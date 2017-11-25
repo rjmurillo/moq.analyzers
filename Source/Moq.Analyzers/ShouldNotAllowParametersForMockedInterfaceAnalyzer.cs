@@ -35,19 +35,21 @@ namespace Moq.Analyzers
                 var qualifiedName = objectCreation.Type as QualifiedNameSyntax;
                 genericName = qualifiedName.Right as GenericNameSyntax;
             }
-            if (genericName == null || genericName.Identifier.ToFullString() != "Mock") return;
+            if (genericName?.Identifier == null || genericName.TypeArgumentList == null) return;
 
-            if (genericName.TypeArgumentList.Arguments.Count != 1) return;
+            if (genericName.Identifier.ToFullString() != "Mock") return;
 
-            var mockedType = genericName.TypeArgumentList.Arguments[0];
+            var typeArguments = genericName.TypeArgumentList.Arguments;
 
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(mockedType);
+            if (typeArguments == null || typeArguments.Count != 1) return;
+
+            var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0]);
 
             var symbol = symbolInfo.Symbol as INamedTypeSymbol;
 
             if (symbol == null) return;
 
-            if (symbol.TypeKind == TypeKind.Interface)
+            if (symbol.TypeKind == TypeKind.Interface && objectCreation.ArgumentList != null)
             {
                 var arguments = objectCreation.ArgumentList.Arguments;
                 if (arguments.Count > 0)
@@ -56,7 +58,7 @@ namespace Moq.Analyzers
                     var constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
                     if (constructorSymbol == null) return;
                     if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
-                    if (constructorSymbol.Parameters.Length > 0)
+                    if (constructorSymbol.Parameters != null && constructorSymbol.Parameters.Length > 0)
                     {
                         var firstParameter = constructorSymbol.Parameters[0];
                         if (firstParameter.IsParams || (constructorSymbol.Parameters.Length > 1 && constructorSymbol.Parameters[1].IsParams))
