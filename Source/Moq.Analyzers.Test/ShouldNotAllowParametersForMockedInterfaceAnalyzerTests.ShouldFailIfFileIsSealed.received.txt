@@ -1,0 +1,24 @@
+﻿Diagnostic 1
+	Id: Moq1003
+	Location: SourceFile(Test0.cs[238..241))
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 2
+	Id: Moq1003
+	Location: SourceFile(Test0.cs[288..291))
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 3
+	Id: Moq1003
+	Location: SourceFile(Test0.cs[366..369))
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 4
+	Id: Moq1003
+	Location: SourceFile(Test0.cs[448..451))
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+

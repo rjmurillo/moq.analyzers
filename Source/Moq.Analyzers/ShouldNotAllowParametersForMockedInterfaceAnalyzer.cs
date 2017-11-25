@@ -7,12 +7,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Moq.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class ShouldNotMockSealedClassesAnalyzer : DiagnosticAnalyzer
+    public class ShouldNotAllowParametersForMockedInterfaceAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "Moq1002";
+        public const string DiagnosticId = "Moq1003";
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId,
-            "Moq: Cannot mock sealed class", "Sealed classes cannot be mocked.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            "Moq: Parameters for mocked interface", "Do not specify parameters for mocked interface.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
         private const string Category = "Moq";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
@@ -46,9 +46,9 @@ namespace Moq.Analyzers
 
             if (symbol == null) return;
 
-            if (symbol.IsSealed)
+            if (symbol.TypeKind == TypeKind.Interface && objectCreation.ArgumentList.Arguments.Count > 0)
             {
-                var diagnostic = Diagnostic.Create(Rule, mockedType.GetLocation());
+                var diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
         }
