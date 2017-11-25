@@ -8,7 +8,7 @@ using System.IO;
 using TestHelper;
 using Xunit;
 
-namespace Moq4.Analyzers.Test
+namespace Moq.Analyzers.Test
 {
     [UseReporter(typeof(DiffReporter))]
     public class CallbackSignatureShouldMatchMockedMethodTest : CodeFixVerifier

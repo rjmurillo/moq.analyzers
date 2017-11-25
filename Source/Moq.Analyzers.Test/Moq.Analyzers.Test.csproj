@@ -12,8 +12,8 @@
     <ProjectGuid>{D2348836-7129-4BE5-8AE6-D05FC8C28FC1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Moq4.Analyzers.Test</RootNamespace>
-    <AssemblyName>Moq4.Analyzers.Test</AssemblyName>
+    <RootNamespace>Moq.Analyzers.Test</RootNamespace>
+    <AssemblyName>Moq.Analyzers.Test</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -137,9 +137,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Moq4.Analyzers\Moq4.Analyzers.csproj">
+    <ProjectReference Include="..\Moq.Analyzers\Moq.Analyzers.csproj">
       <Project>{41ECC571-F586-460A-9BED-23528C8210C4}</Project>
-      <Name>Moq4.Analyzers</Name>
+      <Name>Moq.Analyzers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

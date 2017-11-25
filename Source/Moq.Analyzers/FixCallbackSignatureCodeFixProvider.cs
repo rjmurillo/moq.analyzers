@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Moq4.Analyzers
+namespace Moq.Analyzers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(FixCallbackSignatureCodeFixProvider)), Shared]
     public class FixCallbackSignatureCodeFixProvider : CodeFixProvider

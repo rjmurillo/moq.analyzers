@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2009
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq4.Analyzers", "Source\Moq4.Analyzers\Moq4.Analyzers.csproj", "{41ECC571-F586-460A-9BED-23528C8210C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.Analyzers", "Source\Moq.Analyzers\Moq.Analyzers.csproj", "{41ECC571-F586-460A-9BED-23528C8210C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq4.Analyzers.Test", "Source\Moq4.Analyzers.Test\Moq4.Analyzers.Test.csproj", "{D2348836-7129-4BE5-8AE6-D05FC8C28FC1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.Analyzers.Test", "Source\Moq.Analyzers.Test\Moq.Analyzers.Test.csproj", "{D2348836-7129-4BE5-8AE6-D05FC8C28FC1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq4.Analyzers.Vsix", "Source\Moq4.Analyzers.Vsix\Moq4.Analyzers.Vsix.csproj", "{6C178A5C-B77B-484D-AD33-38E24B76FF35}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.Analyzers.Vsix", "Source\Moq.Analyzers.Vsix\Moq.Analyzers.Vsix.csproj", "{6C178A5C-B77B-484D-AD33-38E24B76FF35}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

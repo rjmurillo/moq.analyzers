@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Moq4.Analyzers
+namespace Moq.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CallbackSignatureShouldMatchMockedMethod : DiagnosticAnalyzer
