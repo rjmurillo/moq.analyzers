@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -72,6 +73,32 @@ namespace Moq4.Analyzers
         {
             var setupLambdaArgument = setupInvocation?.ArgumentList.Arguments[0]?.Expression as LambdaExpressionSyntax;
             return setupLambdaArgument?.Body as InvocationExpressionSyntax;
+        }
+
+        internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(SemanticModel semanticModel, InvocationExpressionSyntax setupMethodInvocation)
+        {
+            var setupLambdaArgument = setupMethodInvocation?.ArgumentList.Arguments[0]?.Expression as LambdaExpressionSyntax;
+            var mockedMethodInvocation = setupLambdaArgument?.Body as InvocationExpressionSyntax;
+
+            return GetAllMatchingSymbols<IMethodSymbol>(semanticModel, mockedMethodInvocation);
+        }
+
+        internal static IEnumerable<T> GetAllMatchingSymbols<T>(SemanticModel semanticModel, ExpressionSyntax expression) where T : class
+        {
+            var matchingSymbols = new List<T>();
+            if (expression != null)
+            {
+                var symbolInfo = semanticModel.GetSymbolInfo(expression);
+                if (symbolInfo.CandidateReason == CandidateReason.None && symbolInfo.Symbol is T)
+                {
+                    matchingSymbols.Add(symbolInfo.Symbol as T);
+                }
+                else if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
+                {
+                    matchingSymbols.AddRange(symbolInfo.CandidateSymbols.OfType<T>());
+                }
+            }
+            return matchingSymbols;
         }
     }
 }

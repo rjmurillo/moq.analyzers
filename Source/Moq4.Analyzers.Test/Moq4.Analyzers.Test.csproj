@@ -119,9 +119,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithBadParameters.cs" />
-    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithNoParameters.cs" />
-    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithGoodParameters.cs" />
+    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithMismatchingParameters.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithInvalidParametersCount.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithNoParameters.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithGoodParameters.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="Verifiers\CodeFixVerifier.cs" />
     <Compile Include="Verifiers\DiagnosticVerifier.cs" />
     <Compile Include="Helpers\CodeFixVerifier.Helper.cs" />

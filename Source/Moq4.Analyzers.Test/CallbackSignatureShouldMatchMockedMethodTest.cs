@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ApprovalTests;
+using ApprovalTests.Reporters;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
@@ -8,23 +10,24 @@ using Xunit;
 
 namespace Moq4.Analyzers.Test
 {
+    [UseReporter(typeof(DiffReporter))]
     public class CallbackSignatureShouldMatchMockedMethodTest : CodeFixVerifier
     {
 
         [Fact]
         public void ShouldPassIfNoParameters()
         {
-            VerifyCSharpDiagnostic(File.ReadAllText("../../Data/CallbackSignatureShouldMatchMockedMethodTest/CallbackWithNoParameters.cs"));
+            VerifyCSharpDiagnostic(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethodTest/CallbackWithNoParameters.cs"));
         }
 
         [Fact]
         public void ShouldPassIfGoodParameters()
         {
-            VerifyCSharpDiagnostic(File.ReadAllText("../../Data/CallbackSignatureShouldMatchMockedMethodTest/CallbackWithGoodParameters.cs"));
+            VerifyCSharpDiagnostic(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethodTest/CallbackWithGoodParameters.cs"));
         }
 
         [Fact]
-        public void ShouldFailIfWrongParametersCount_1()
+        public void ShouldFailIfWrongParametersCount()
         {
             var expected = new DiagnosticResult
             {
@@ -33,11 +36,11 @@ namespace Moq4.Analyzers.Test
                 Severity = DiagnosticSeverity.Warning,
                 Locations =
                     new[] {
-                            new DiagnosticResultLocation("Test0.cs", 15, 63)
+                            new DiagnosticResultLocation("Test0.cs", 16, 64)
                         }
             };
 
-            VerifyCSharpDiagnostic(File.ReadAllText("../../Data/CallbackSignatureShouldMatchMockedMethodTest/CallbackWithBadParameters.cs"), expected);
+            VerifyCSharpDiagnostic(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethodTest/CallbackWithInvalidParametersCount.cs"), expected);
 
             /*
             var fixtest = @"
@@ -57,9 +60,29 @@ namespace Moq4.Analyzers.Test
             VerifyCSharpFix(test, fixtest); */
         }
 
+        [Fact]
+        public void ShouldFailIfMismatchingParameters()
+        {
+            var expected = new DiagnosticResult
+            {
+                Id = "Moq1001",
+                Message = String.Format("No mocked methods with this signature."),
+                Severity = DiagnosticSeverity.Warning,
+                Locations =
+                    new[] {
+                            new DiagnosticResultLocation("Test0.cs", 15, 64)
+                        }
+            };
+
+            string source = File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethodTest/CallbackWithMismatchingParameters.cs");
+            VerifyCSharpDiagnostic(source, expected);
+
+            Approvals.Verify(VerifyCSharpFix(source));
+        }
+
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new Moq4AnalyzersCodeFixProvider();
+            return new FixCallbackSignatureCodeFixProvider();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

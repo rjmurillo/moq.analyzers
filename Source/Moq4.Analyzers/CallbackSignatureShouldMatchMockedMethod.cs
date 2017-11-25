@@ -50,7 +50,7 @@ namespace Moq4.Analyzers
 
             if (mockedMethodArguments.Count != lambdaParameters.Count)
             {
-                var diagnostic = Diagnostic.Create(NoMatchingMethodRule, callbackOrReturnsInvocation.ArgumentList.GetLocation());
+                var diagnostic = Diagnostic.Create(NoMatchingMethodRule, callbackLambda.ParameterList.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
             else
@@ -63,7 +63,7 @@ namespace Moq4.Analyzers
                     string lambdaParameterTypeName = lambdaParameterType.ConvertedType.ToString();
                     if (mockedMethodTypeName != lambdaParameterTypeName)
                     {
-                        var diagnostic = Diagnostic.Create(NoMatchingMethodRule, lambdaParameters[i].Type.GetLocation());
+                        var diagnostic = Diagnostic.Create(NoMatchingMethodRule, callbackLambda.ParameterList.GetLocation());
                         context.ReportDiagnostic(diagnostic);
                     }
                 }

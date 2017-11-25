@@ -1,10 +1,11 @@
 ﻿using Moq;
 
-namespace CallbackWithBadParameters
+namespace CallbackWithInvalidParametersCount
 {
     interface IMyService
     {
         int Do(string s);
+        int Do(string s1, string s2, string s3);
     }
 
     class MyUnitTests
