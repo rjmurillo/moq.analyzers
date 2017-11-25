@@ -34,12 +34,12 @@ namespace Moq.Analyzers.Test
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new FixCallbackSignatureCodeFixProvider();
+            return new CallbackSignatureCodeFix();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CallbackSignatureShouldMatchMockedMethod();
+            return new CallbackSignatureAnalyzer();
         }
     }
 }

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Moq.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CallbackSignatureShouldMatchMockedMethod : DiagnosticAnalyzer
+    public class CallbackSignatureAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "Moq1001";
 

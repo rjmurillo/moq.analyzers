@@ -8,17 +8,15 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace Moq.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(FixCallbackSignatureCodeFixProvider)), Shared]
-    public class FixCallbackSignatureCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CallbackSignatureCodeFix)), Shared]
+    public class CallbackSignatureCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(CallbackSignatureShouldMatchMockedMethod.DiagnosticId); }
+            get { return ImmutableArray.Create(CallbackSignatureAnalyzer.DiagnosticId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
