@@ -14,13 +14,13 @@ namespace Moq4.Analyzers.Test
         [Fact]
         public void ShouldPassIfNoParameters()
         {
-            VerifyCSharpDiagnostic(File.ReadAllText("../../Data/CallbackWithNoParameters.cs"));
+            VerifyCSharpDiagnostic(File.ReadAllText("../../Data/CallbackSignatureShouldMatchMockedMethodTest/CallbackWithNoParameters.cs"));
         }
 
         [Fact]
         public void ShouldPassIfGoodParameters()
         {
-            VerifyCSharpDiagnostic(File.ReadAllText("../../Data/CallbackWithGoodParameters.cs"));
+            VerifyCSharpDiagnostic(File.ReadAllText("../../Data/CallbackSignatureShouldMatchMockedMethodTest/CallbackWithGoodParameters.cs"));
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace Moq4.Analyzers.Test
                         }
             };
 
-            VerifyCSharpDiagnostic(File.ReadAllText("../../Data/CallbackWithBadParameters.cs"), expected);
+            VerifyCSharpDiagnostic(File.ReadAllText("../../Data/CallbackSignatureShouldMatchMockedMethodTest/CallbackWithBadParameters.cs"), expected);
 
             /*
             var fixtest = @"
