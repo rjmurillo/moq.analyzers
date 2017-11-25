@@ -11,18 +11,18 @@ namespace Moq.Analyzers
     {
         public const string DiagnosticId = "Moq1001";
 
-        private static DiagnosticDescriptor NoMatchingMethodRule = new DiagnosticDescriptor(DiagnosticId,
+        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId,
             "Moq: No matching method", "No mocked methods with this signature.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
         private const string Category = "Moq";
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(NoMatchingMethodRule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VerifyCallbackLambdaSignature, SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
         }
 
-        private static void VerifyCallbackLambdaSignature(SyntaxNodeAnalysisContext context)
+        private static void Analyze(SyntaxNodeAnalysisContext context)
         {
 
             var callbackOrReturnsInvocation = (InvocationExpressionSyntax)context.Node;
@@ -50,7 +50,7 @@ namespace Moq.Analyzers
 
             if (mockedMethodArguments.Count != lambdaParameters.Count)
             {
-                var diagnostic = Diagnostic.Create(NoMatchingMethodRule, callbackLambda.ParameterList.GetLocation());
+                var diagnostic = Diagnostic.Create(Rule, callbackLambda.ParameterList.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
             else
@@ -63,7 +63,7 @@ namespace Moq.Analyzers
                     string lambdaParameterTypeName = lambdaParameterType.ConvertedType.ToString();
                     if (mockedMethodTypeName != lambdaParameterTypeName)
                     {
-                        var diagnostic = Diagnostic.Create(NoMatchingMethodRule, callbackLambda.ParameterList.GetLocation());
+                        var diagnostic = Diagnostic.Create(Rule, callbackLambda.ParameterList.GetLocation());
                         context.ReportDiagnostic(diagnostic);
                     }
                 }

@@ -1,6 +1,5 @@
 ﻿using ApprovalTests;
 using ApprovalTests.Reporters;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.IO;
 using TestHelper;
@@ -15,7 +14,7 @@ namespace Moq.Analyzers.Test
         [Fact]
         public void ShouldPassIfGoodParameters()
         {
-            VerifyCSharpDiagnostic(File.ReadAllText("Data/CallbackSignatures/CallbackWithGoodParameters.cs"));
+            Assert.Empty(VerifyCSharpDiagnostic(File.ReadAllText("Data/CallbackSignatures/CallbackWithGoodParameters.cs")));
         }
 
         [Fact]

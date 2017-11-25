@@ -71,25 +71,17 @@ namespace TestHelper
         private static string VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer)
         {
             StringBuilder result = new StringBuilder();
-            if (actualResults.Any())
+            int i = 1;
+            foreach (var diagnostic in actualResults)
             {
+                result.AppendLine("Diagnostic " + i);
+                result.AppendLine("\tId: " + diagnostic.Id);
+                result.AppendLine("\tLocation: " + diagnostic.Location);
+                result.AppendLine("\tSeverity: " + diagnostic.Severity);
+                result.AppendLine("\tMessage: " + diagnostic.GetMessage());
+                result.AppendLine();
 
-                int i = 1;
-                foreach (var diagnostic in actualResults)
-                {
-                    result.AppendLine("Diagnostic " + i);
-                    result.AppendLine("\tId: " + diagnostic.Id);
-                    result.AppendLine("\tLocation: " + diagnostic.Location);
-                    result.AppendLine("\tSeverity: " + diagnostic.Severity);
-                    result.AppendLine("\tMessage: " + diagnostic.GetMessage());
-                    result.AppendLine();
-
-                    i += 1;
-                }
-            }
-            else
-            {
-                result.AppendLine("No diagnostics found");
+                i += 1;
             }
             return result.ToString();
         }

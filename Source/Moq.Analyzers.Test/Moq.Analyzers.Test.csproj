@@ -119,9 +119,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ShouldNotMockSealedClassesAnalyzerTests.cs" />
     <Compile Include="CallbackSignatureCodeFixTests.cs" />
     <Compile Include="CallbackSignatureAnalyzerTests.cs" />
     <Compile Include="Data\CallbackSignatures\CallbackWithBadParameters.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Data\MockSealedClass.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Data\CallbackSignatures\CallbackWithGoodParameters.cs">

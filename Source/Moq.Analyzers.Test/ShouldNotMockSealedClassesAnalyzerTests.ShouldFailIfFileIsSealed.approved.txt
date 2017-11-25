@@ -1,0 +1,24 @@
+﻿Diagnostic 1
+	Id: Moq1002
+	Location: SourceFile(Test0.cs[207..232))
+	Severity: Warning
+	Message: Sealed classes cannot be mocked.
+
+Diagnostic 2
+	Id: Moq1002
+	Location: SourceFile(Test0.cs[259..280))
+	Severity: Warning
+	Message: Sealed classes cannot be mocked.
+
+Diagnostic 3
+	Id: Moq1002
+	Location: SourceFile(Test0.cs[307..344))
+	Severity: Warning
+	Message: Sealed classes cannot be mocked.
+
+Diagnostic 4
+	Id: Moq1002
+	Location: SourceFile(Test0.cs[371..412))
+	Severity: Warning
+	Message: Sealed classes cannot be mocked.
+
