@@ -22,7 +22,7 @@ namespace Moq4.Analyzers
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(Moq4AnalyzersAnalyzer.DiagnosticId); }
+            get { return ImmutableArray.Create(CallbackSignatureShouldMatchMockedMethod.DiagnosticId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
