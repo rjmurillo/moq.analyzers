@@ -9,9 +9,9 @@ namespace Moq.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CallbackSignatureShouldMatchMockedMethod : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "Moq4Analyzers";
+        public const string DiagnosticId = "Moq1001";
 
-        private static DiagnosticDescriptor NoMatchingMethodRule = new DiagnosticDescriptor("Moq1001",
+        private static DiagnosticDescriptor NoMatchingMethodRule = new DiagnosticDescriptor(DiagnosticId,
             "Moq: No matching method", "No mocked methods with this signature.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
         private const string Category = "Moq";
 
