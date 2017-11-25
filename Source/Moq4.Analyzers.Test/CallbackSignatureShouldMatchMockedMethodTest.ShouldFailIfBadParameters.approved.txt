@@ -1,0 +1,24 @@
+﻿Diagnostic 1
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[432..439))
+	Severity: Warning
+	Message: No mocked methods with this signature.
+
+Diagnostic 2
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[513..535))
+	Severity: Warning
+	Message: No mocked methods with this signature.
+
+Diagnostic 3
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[648..667))
+	Severity: Warning
+	Message: No mocked methods with this signature.
+
+Diagnostic 4
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[747..754))
+	Severity: Warning
+	Message: No mocked methods with this signature.
+

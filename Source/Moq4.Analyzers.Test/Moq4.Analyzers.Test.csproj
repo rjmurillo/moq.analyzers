@@ -119,17 +119,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithMismatchingParameters.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithInvalidParametersCount.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithNoParameters.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithBadParameters.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Data\CallbackSignatureShouldMatchMockedMethodTest\CallbackWithGoodParameters.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Verifiers\CodeFixVerifier.cs" />
     <Compile Include="Verifiers\DiagnosticVerifier.cs" />
