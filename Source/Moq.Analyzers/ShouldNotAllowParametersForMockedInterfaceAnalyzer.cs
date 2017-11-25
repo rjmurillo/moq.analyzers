@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 
 namespace Moq.Analyzers
 {
@@ -46,10 +47,25 @@ namespace Moq.Analyzers
 
             if (symbol == null) return;
 
-            if (symbol.TypeKind == TypeKind.Interface && objectCreation.ArgumentList.Arguments.Count > 0)
+            if (symbol.TypeKind == TypeKind.Interface)
             {
-                var diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
-                context.ReportDiagnostic(diagnostic);
+                var arguments = objectCreation.ArgumentList.Arguments;
+                if (arguments.Count > 0)
+                {
+                    var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation);
+                    var constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
+                    if (constructorSymbol == null) return;
+                    if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
+                    if (constructorSymbol.Parameters.Length > 0)
+                    {
+                        var firstParameter = constructorSymbol.Parameters[0];
+                        if (firstParameter.IsParams || (constructorSymbol.Parameters.Length > 1 && constructorSymbol.Parameters[1].IsParams))
+                        {
+                            var diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
+                            context.ReportDiagnostic(diagnostic);
+                        }
+                    }
+                }
             }
         }
     }
