@@ -28,10 +28,11 @@ namespace MockInterfaceWithParameters
 
         void TestGood1()
         {
-            var mock1 = new Moq.Mock<IMyService>(MockBehavior.Default);
-            var mock2 = new Mock<IMyService>(MockBehavior.Strict);
-            var mock3 = new Mock<MockInterfaceWithParameters.IMyService>(MockBehavior.Loose);
-            var mock4 = new Moq.Mock<MockInterfaceWithParameters.IMyService>(MockBehavior.Default);
+            var mock1 = new Moq.Mock<IMyService>();
+            var mock2 = new Moq.Mock<IMyService>(MockBehavior.Default);
+            var mock3 = new Mock<IMyService>(MockBehavior.Strict);
+            var mock4 = new Mock<MockInterfaceWithParameters.IMyService>(MockBehavior.Loose);
+            var mock5 = new Moq.Mock<MockInterfaceWithParameters.IMyService>(MockBehavior.Default);
         }
 
     }
