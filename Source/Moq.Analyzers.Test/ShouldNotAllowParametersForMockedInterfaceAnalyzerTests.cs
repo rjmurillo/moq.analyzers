@@ -18,7 +18,7 @@ namespace Moq.Analyzers.Test
         }
 
         [Fact]
-        public void ShouldPassIfNotMoq()
+        public void ShouldPassIfCustomMockClassIsUsed()
         {
             Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/MockInterfaceWithParametersCustomMockFile.cs")));
         }

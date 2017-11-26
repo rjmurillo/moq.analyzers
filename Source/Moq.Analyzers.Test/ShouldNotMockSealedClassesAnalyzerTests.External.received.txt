@@ -1,6 +1,0 @@
-﻿Diagnostic 1
-	Id: Moq1002
-	Location: SourceFile(Test0.cs[9888..9897))
-	Severity: Warning
-	Message: Sealed classes cannot be mocked.
-

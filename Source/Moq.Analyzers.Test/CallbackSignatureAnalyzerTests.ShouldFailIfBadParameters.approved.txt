@@ -3,26 +3,26 @@
 	Location: SourceFile(Test0.cs[432..439))
 	Code: (int i)
 	Severity: Warning
-	Message: No mocked methods with this signature.
+	Message: Callback must have the same signature as the mocked method.
 
 Diagnostic 2
 	Id: MOQ1001
 	Location: SourceFile(Test0.cs[513..535))
 	Code: (string s1, string s2)
 	Severity: Warning
-	Message: No mocked methods with this signature.
+	Message: Callback must have the same signature as the mocked method.
 
 Diagnostic 3
 	Id: MOQ1001
 	Location: SourceFile(Test0.cs[648..667))
 	Code: (string s1, int i1)
 	Severity: Warning
-	Message: No mocked methods with this signature.
+	Message: Callback must have the same signature as the mocked method.
 
 Diagnostic 4
 	Id: MOQ1001
 	Location: SourceFile(Test0.cs[747..754))
 	Code: (int i)
 	Severity: Warning
-	Message: No mocked methods with this signature.
+	Message: Callback must have the same signature as the mocked method.
 

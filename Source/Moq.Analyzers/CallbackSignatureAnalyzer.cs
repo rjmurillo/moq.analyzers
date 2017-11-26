@@ -12,7 +12,7 @@ namespace Moq.Analyzers
         public const string DiagnosticId = "MOQ1001";
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId,
-            "Moq: No matching method", "No mocked methods with this signature.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            "Moq: Bad callback signature", "Callback must have the same signature as the mocked method.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
         private const string Category = "Moq";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
