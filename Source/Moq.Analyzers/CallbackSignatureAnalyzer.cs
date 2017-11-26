@@ -9,7 +9,7 @@ namespace Moq.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CallbackSignatureAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "MOQ1001";
+        public const string DiagnosticId = "MOQ1101";
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId,
             "Moq: Bad callback signature", "Callback must have the same signature as the mocked method.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);

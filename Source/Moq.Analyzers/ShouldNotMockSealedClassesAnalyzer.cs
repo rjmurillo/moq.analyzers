@@ -9,7 +9,7 @@ namespace Moq.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ShouldNotMockSealedClassesAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "MOQ1002";
+        public const string DiagnosticId = "MOQ1001";
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId,
             "Moq: Cannot mock sealed class", "Sealed classes cannot be mocked.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
