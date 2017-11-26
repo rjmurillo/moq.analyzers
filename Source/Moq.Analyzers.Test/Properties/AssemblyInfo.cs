@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Moq.Analyzers.Test")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCopyright("Copyright © 2015-2017 Andrey Lipatkin")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

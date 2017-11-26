@@ -2,18 +2,17 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Moq.Analyzers</id>
-    <version>1.0.0.0</version>
+    <version>0.0.1</version>
     <title>Moq.Analyzers</title>
-    <authors>Andrey</authors>
-    <owners>Andrey</owners>
-    <licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
-    <projectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</projectUrl>
-    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
+    <authors>Andrey "Litee" Lipatkin</authors>
+    <owners>Andrey "Litee" Lipatkin</owners>
+    <licenseUrl>https://github.com/Litee/moq.analyzers/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Litee/moq.analyzers</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Moq.Analyzers</description>
-    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
-    <copyright>Copyright</copyright>
-    <tags>Moq.Analyzers, analyzers</tags>
+    <description>Roslyn analyzer that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>2015-2017 Andrey Lipatkin</copyright>
+    <tags>moq, mock, test, analyzers</tags>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System" targetFramework="" />
     </frameworkAssemblies>
