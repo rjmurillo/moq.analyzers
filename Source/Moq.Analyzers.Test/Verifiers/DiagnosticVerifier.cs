@@ -69,6 +69,8 @@ namespace TestHelper
                 result.AppendLine("Diagnostic " + i);
                 result.AppendLine("\tId: " + diagnostic.Id);
                 result.AppendLine("\tLocation: " + diagnostic.Location);
+                var sourceSpan = diagnostic.Location.SourceSpan;
+                result.AppendLine("\tCode: " + diagnostic.Location.SourceTree.ToString().Substring(sourceSpan.Start, sourceSpan.End - sourceSpan.Start));
                 result.AppendLine("\tSeverity: " + diagnostic.Severity);
                 result.AppendLine("\tMessage: " + diagnostic.GetMessage());
                 result.AppendLine();
