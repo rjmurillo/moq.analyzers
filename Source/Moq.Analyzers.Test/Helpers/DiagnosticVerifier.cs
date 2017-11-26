@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -70,7 +71,10 @@ namespace TestHelper
                 result.AppendLine("\tId: " + diagnostic.Id);
                 result.AppendLine("\tLocation: " + diagnostic.Location);
                 var sourceSpan = diagnostic.Location.SourceSpan;
-                result.AppendLine("\tCode: " + diagnostic.Location.SourceTree.ToString().Substring(sourceSpan.Start, sourceSpan.End - sourceSpan.Start));
+                var code = diagnostic.Location.SourceTree.GetText();
+                result.AppendLine("\tHighlight: " + code.GetSubText(sourceSpan));
+                var lineSpan = diagnostic.Location.GetLineSpan();
+                result.AppendLine("\tLines: " + string.Join("\n", code.Lines.Where(x => x.LineNumber >= lineSpan.StartLinePosition.Line && x.LineNumber <= lineSpan.EndLinePosition.Line).Select(x=> x.ToString().Trim())));
                 result.AppendLine("\tSeverity: " + diagnostic.Severity);
                 result.AppendLine("\tMessage: " + diagnostic.GetMessage());
                 result.AppendLine();

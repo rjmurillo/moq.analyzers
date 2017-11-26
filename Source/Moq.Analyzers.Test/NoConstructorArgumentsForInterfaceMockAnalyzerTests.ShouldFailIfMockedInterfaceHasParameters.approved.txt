@@ -1,0 +1,64 @@
+﻿Diagnostic 1
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[254..264))
+	Highlight: (25, true)
+	Lines: var mock1 = new Moq.Mock<IMyService>(25, true);
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 2
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[311..318))
+	Highlight: ("123")
+	Lines: var mock2 = new Mock<IMyService>("123");
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 3
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[406..416))
+	Highlight: (25, true)
+	Lines: var mock3 = new Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(25, true);
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 4
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[508..515))
+	Highlight: ("123")
+	Lines: var mock4 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>("123");
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 5
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[615..648))
+	Highlight: (Moq.MockBehavior.Default, "123")
+	Lines: var mock1 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default, "123");
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 6
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[695..726))
+	Highlight: (MockBehavior.Strict, 25, true)
+	Lines: var mock2 = new Mock<IMyService>(MockBehavior.Strict, 25, true);
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 7
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[814..847))
+	Highlight: (Moq.MockBehavior.Default, "123")
+	Lines: var mock3 = new Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(Moq.MockBehavior.Default, "123");
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 8
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[939..969))
+	Highlight: (MockBehavior.Loose, 25, true)
+	Lines: var mock4 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(MockBehavior.Loose, 25, true);
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+

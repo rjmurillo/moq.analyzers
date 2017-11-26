@@ -119,38 +119,35 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\MockProperties.cs">
+    <Compile Include="CallbackSignatureShouldMatchMockedMethodAnalyzerTests.cs" />
+    <Compile Include="CallbackSignatureShouldMatchMockedMethodCodeFixTests.cs" />
+    <Compile Include="ConstructorArgumentsShouldMatchAnalyzerTests.cs" />
+    <Compile Include="Data\NoMethodsInPropertySetup.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Data\MockClassWithParameters.cs">
+    <Compile Include="Data\ConstructorArgumentsShouldMatch.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <None Include="Data\MockInterfaceWithParametersCustomMockFile.cs">
+    <Compile Include="Data\NoConstructorArgumentsForInterfaceMock_2.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Data\MockInterfaceWithParameters.cs">
+    </Compile>
+    <Compile Include="Data\NoConstructorArgumentsForInterfaceMock_1.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Compile Include="DoNotUseMethodsInPropertySetupsAnalyzerTests.cs" />
-    <Compile Include="MatchingConstructorParametersAnalyzerTests.cs" />
-    <Compile Include="NoParametersForMockedInterfacesAnalyzerTests.cs" />
-    <Compile Include="NoMocksForSealedClassesAnalyzerTests.cs" />
-    <Compile Include="CallbackSignatureCodeFixTests.cs" />
-    <Compile Include="CallbackSignatureAnalyzerTests.cs" />
-    <None Include="Data\CallbackSignatures\CallbackWithBadParameters.cs">
+    </Compile>
+    <Compile Include="NoConstructorArgumentsForInterfaceMockAnalyzerTests.cs" />
+    <Compile Include="Data\NoSealedClassMocks.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Data\MockSealedClass.cs">
+    </Compile>
+    <Compile Include="Data\CallbackSignatureShouldMatchMockedMethod.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Data\CallbackSignatures\CallbackWithGoodParameters.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Compile>
     <Compile Include="Helpers\CodeFixVerifier.cs" />
     <Compile Include="Helpers\DiagnosticVerifier.cs" />
     <Compile Include="Helpers\CodeFixVerifier.Helper.cs" />
     <Compile Include="Helpers\DiagnosticResult.cs" />
     <Compile Include="Helpers\DiagnosticVerifier.Helper.cs" />
+    <Compile Include="NoMethodsInPropertySetupAnalyzerTests.cs" />
+    <Compile Include="NoSealedClassMocksAnalyzerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

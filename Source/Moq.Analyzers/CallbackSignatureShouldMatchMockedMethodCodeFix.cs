@@ -11,12 +11,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Moq.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CallbackSignatureCodeFix)), Shared]
-    public class CallbackSignatureCodeFix : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CallbackSignatureShouldMatchMockedMethodCodeFix)), Shared]
+    public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(Diagnostics.BadCallbackSignatureId); }
+            get { return ImmutableArray.Create(Diagnostics.CallbackSignatureShouldMatchMockedMethodId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()

@@ -7,12 +7,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Moq.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CallbackSignatureAnalyzer : DiagnosticAnalyzer
+    public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyzer
     {
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            Diagnostics.BadCallbackSignatureId, 
-            Diagnostics.BadCallbackSignatureTitle, 
-            Diagnostics.BadCallbackSignatureMessage, 
+            Diagnostics.CallbackSignatureShouldMatchMockedMethodId, 
+            Diagnostics.CallbackSignatureShouldMatchMockedMethodTitle, 
+            Diagnostics.CallbackSignatureShouldMatchMockedMethodMessage, 
             Diagnostics.Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }

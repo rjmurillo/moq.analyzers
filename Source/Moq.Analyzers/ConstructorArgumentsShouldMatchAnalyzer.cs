@@ -8,7 +8,7 @@ using System.Linq;
 namespace Moq.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class MatchingConstructorParametersAnalyzer : DiagnosticAnalyzer
+    public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     {
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             Diagnostics.NoSealedClassMocksId,

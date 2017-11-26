@@ -1,8 +1,6 @@
 ﻿using Moq;
-using System;
-using System.Collections.Generic;
 
-namespace MockProperties
+namespace NoMethodsInPropertySetup
 {
     interface IFoo
     {

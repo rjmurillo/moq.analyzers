@@ -8,12 +8,12 @@ using System.Linq;
 namespace Moq.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class NoParametersForMockedInterfacesAnalyzer : DiagnosticAnalyzer
+    public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
     {
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            Diagnostics.ConstructorParametersForInterfaceId, 
-            Diagnostics.ConstructorParametersForInterfaceTitle, 
-            Diagnostics.ConstructorParametersForInterfaceMessage, 
+            Diagnostics.NoConstructorArgumentsForInterfaceMockId, 
+            Diagnostics.NoConstructorArgumentsForInterfaceMockTitle, 
+            Diagnostics.NoConstructorArgumentsForInterfaceMockMessage, 
             Diagnostics.Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }

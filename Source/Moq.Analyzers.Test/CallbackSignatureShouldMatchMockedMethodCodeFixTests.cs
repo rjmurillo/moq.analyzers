@@ -9,23 +9,23 @@ using Xunit;
 namespace Moq.Analyzers.Test
 {
     [UseReporter(typeof(DiffReporter))]
-    public class CallbackSignatureCodeFixTests : CodeFixVerifier
+    public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerifier
     {
 
         [Fact]
         public void ShouldSuggestQuickFixIfBadParameters()
         {
-            Approvals.Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatures/CallbackWithBadParameters.cs")));
+            Approvals.Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.cs")));
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new CallbackSignatureCodeFix();
+            return new CallbackSignatureShouldMatchMockedMethodCodeFix();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CallbackSignatureAnalyzer();
+            return new CallbackSignatureShouldMatchMockedMethodAnalyzer();
         }
     }
 }

@@ -1,0 +1,48 @@
+﻿Diagnostic 1
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[612..621))
+	Highlight: (1, true)
+	Lines: var mock1 = new Moq.Mock<IMyService>(1, true);
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 2
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[713..718))
+	Highlight: ("2")
+	Lines: var mock2 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_2.IMyService>("2");
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 3
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[769..800))
+	Highlight: (Moq.MockBehavior.Default, "3")
+	Lines: var mock3 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default, "3");
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 4
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[892..921))
+	Highlight: (MockBehavior.Loose, 4, true)
+	Lines: var mock4 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_2.IMyService>(MockBehavior.Loose, 4, true);
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 5
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[972..994))
+	Highlight: (MockBehavior.Default)
+	Lines: var mock5 = new Moq.Mock<IMyService>(MockBehavior.Default);
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+
+Diagnostic 6
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[1086..1108))
+	Highlight: (MockBehavior.Default)
+	Lines: var mock6 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_2.IMyService>(MockBehavior.Default);
+	Severity: Warning
+	Message: Do not specify parameters for mocked interface.
+

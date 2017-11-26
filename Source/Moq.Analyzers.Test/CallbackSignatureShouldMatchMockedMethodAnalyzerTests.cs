@@ -8,18 +8,18 @@ using Xunit;
 namespace Moq.Analyzers.Test
 {
     [UseReporter(typeof(DiffReporter))]
-    public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier
+    public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests : DiagnosticVerifier
     {
 
         [Fact]
-        public void ShouldFailIfFileIsSealed()
+        public void ShouldPassIfGoodParameters()
         {
-            Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/MockSealedClass.cs")));
+            Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.cs")));
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new NoSealedClassMocksAnalyzer();
+            return new CallbackSignatureShouldMatchMockedMethodAnalyzer();
         }
     }
 }
