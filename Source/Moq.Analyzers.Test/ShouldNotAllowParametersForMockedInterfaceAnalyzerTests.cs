@@ -12,9 +12,15 @@ namespace Moq.Analyzers.Test
     {
 
         [Fact]
-        public void ShouldFailIfFileIsSealed()
+        public void ShouldFailIfMockedInterfaceHasParameters()
         {
             Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/MockInterfaceWithParameters.cs")));
+        }
+
+        [Fact]
+        public void ShouldPassIfNotMoq()
+        {
+            Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/MockInterfaceWithParametersCustomMockFile.cs")));
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

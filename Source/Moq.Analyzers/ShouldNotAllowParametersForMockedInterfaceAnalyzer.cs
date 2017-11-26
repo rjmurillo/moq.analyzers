@@ -37,37 +37,30 @@ namespace Moq.Analyzers
             }
             if (genericName?.Identifier == null || genericName.TypeArgumentList == null) return;
 
+            // Quick and dirty check
             if (genericName.Identifier.ToFullString() != "Mock") return;
 
+            // Full check
+            var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation);
+            var constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
+            if (constructorSymbol == null || constructorSymbol.ContainingType == null || constructorSymbol.ContainingType.ConstructedFrom == null) return;
+            if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
+            if (constructorSymbol.ContainingType.ConstructedFrom.ToDisplayString() != "Moq.Mock<T>") return;
+            if (constructorSymbol.Parameters == null || constructorSymbol.Parameters.Length == 0) return;
+            if(!constructorSymbol.Parameters.Any(x => x.IsParams)) return;
+
+            // Find mocked type
             var typeArguments = genericName.TypeArgumentList.Arguments;
-
             if (typeArguments == null || typeArguments.Count != 1) return;
-
             var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0]);
-
             var symbol = symbolInfo.Symbol as INamedTypeSymbol;
-
             if (symbol == null) return;
 
-            if (symbol.TypeKind == TypeKind.Interface && objectCreation.ArgumentList != null)
+            // Checked mocked type
+            if (symbol.TypeKind == TypeKind.Interface)
             {
-                var arguments = objectCreation.ArgumentList.Arguments;
-                if (arguments.Count > 0)
-                {
-                    var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation);
-                    var constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
-                    if (constructorSymbol == null) return;
-                    if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
-                    if (constructorSymbol.Parameters != null && constructorSymbol.Parameters.Length > 0)
-                    {
-                        var firstParameter = constructorSymbol.Parameters[0];
-                        if (firstParameter.IsParams || (constructorSymbol.Parameters.Length > 1 && constructorSymbol.Parameters[1].IsParams))
-                        {
-                            var diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
-                            context.ReportDiagnostic(diagnostic);
-                        }
-                    }
-                }
+                var diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
+                context.ReportDiagnostic(diagnostic);
             }
         }
     }

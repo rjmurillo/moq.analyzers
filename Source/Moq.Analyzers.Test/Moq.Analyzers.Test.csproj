@@ -122,6 +122,9 @@
     <None Include="Data\MockInterfaceWithParameters.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Data\MockInterfaceWithParametersCustomMockFile.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Compile Include="ShouldNotAllowParametersForMockedInterfaceAnalyzerTests.cs" />
     <Compile Include="ShouldNotMockSealedClassesAnalyzerTests.cs" />
     <Compile Include="CallbackSignatureCodeFixTests.cs" />

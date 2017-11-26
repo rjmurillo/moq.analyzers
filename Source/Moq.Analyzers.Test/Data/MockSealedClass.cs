@@ -17,5 +17,11 @@ namespace MockSealedClass
             var mock3 = new Mock<MockSealedClass.MyService>();
             var mock4 = new Moq.Mock<MockSealedClass.MyService>();
         }
+
+        void Test()
+        {
+            var mock1 = new Moq.Mock<Action<int>>();
+            var mock1 = new Moq.Mock<EventHandler>();
+        }
     }
 }
