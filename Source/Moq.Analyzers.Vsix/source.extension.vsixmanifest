@@ -3,7 +3,7 @@
     <Metadata>
         <Identity Id="Moq.Analyzers..c3c7e3f8-2407-428d-beef-c4557253517b" Version="0.0.3" Language="en-US" Publisher="Andrey"/>
         <DisplayName>Moq.Analyzers</DisplayName>
-        <Description xml:space="preserve">Visual Studio extension that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn.</Description>
+        <Description xml:space="preserve">Visual Studio extension that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn. Find the full list of detected issues at project GitHub page.</Description>
         <MoreInfo>https://github.com/Litee/moq.analyzers</MoreInfo>
         <License>LICENSE</License>
         <Tags>moq, mock, test</Tags>

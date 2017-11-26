@@ -9,7 +9,7 @@
     <licenseUrl>https://github.com/Litee/moq.analyzers/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/Litee/moq.analyzers</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Roslyn analyzer that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn.</description>
+    <description>Roslyn analyzer that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn. Find the full list of detected issues at project GitHub page.</description>
     <releaseNotes></releaseNotes>
     <copyright>2015-2017 Andrey Lipatkin</copyright>
     <tags>moq, mock, test, analyzers</tags>
