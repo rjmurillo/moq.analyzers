@@ -1,0 +1,42 @@
+﻿Diagnostic 1
+	Id: MOQ1003
+	Location: SourceFile(Test0.cs[326..335))
+	Code: (1, true)
+	Severity: Warning
+	Message: Parameters provided into mock do not match existing constructors.
+
+Diagnostic 2
+	Id: MOQ1003
+	Location: SourceFile(Test0.cs[405..414))
+	Code: (2, true)
+	Severity: Warning
+	Message: Parameters provided into mock do not match existing constructors.
+
+Diagnostic 3
+	Id: MOQ1003
+	Location: SourceFile(Test0.cs[484..492))
+	Code: ("1", 3)
+	Severity: Warning
+	Message: Parameters provided into mock do not match existing constructors.
+
+Diagnostic 4
+	Id: MOQ1003
+	Location: SourceFile(Test0.cs[587..617))
+	Code: (MockBehavior.Strict, 4, true)
+	Severity: Warning
+	Message: Parameters provided into mock do not match existing constructors.
+
+Diagnostic 5
+	Id: MOQ1003
+	Location: SourceFile(Test0.cs[691..720))
+	Code: (MockBehavior.Loose, 5, true)
+	Severity: Warning
+	Message: Parameters provided into mock do not match existing constructors.
+
+Diagnostic 6
+	Id: MOQ1003
+	Location: SourceFile(Test0.cs[794..822))
+	Code: (MockBehavior.Loose, "2", 6)
+	Severity: Warning
+	Message: Parameters provided into mock do not match existing constructors.
+

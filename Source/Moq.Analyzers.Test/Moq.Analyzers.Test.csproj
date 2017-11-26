@@ -119,12 +119,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Data\MockInterfaceWithParameters.cs">
+    <Compile Include="Data\MockClassWithParameters.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Compile>
     <None Include="Data\MockInterfaceWithParametersCustomMockFile.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Data\MockInterfaceWithParameters.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Compile Include="MatchingConstructorParametersAnalyzerTests.cs" />
     <Compile Include="NoParametersForMockedInterfacesAnalyzerTests.cs" />
     <Compile Include="NoMocksForSealedClassesAnalyzerTests.cs" />
     <Compile Include="CallbackSignatureCodeFixTests.cs" />
