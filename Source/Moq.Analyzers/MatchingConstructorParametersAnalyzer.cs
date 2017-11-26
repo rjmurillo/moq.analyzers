@@ -60,6 +60,9 @@ namespace Moq.Analyzers
             var mockedTypeSymbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0]);
             var mockedTypeSymbol = mockedTypeSymbolInfo.Symbol as INamedTypeSymbol;
             if (mockedTypeSymbol == null || mockedTypeSymbol.TypeKind != TypeKind.Class) return;
+            
+            // TODO: Currently detection does not work well for abstract classes because they cannot be instantiated
+            if (mockedTypeSymbol.IsAbstract) return;
 
             // Skip first argument if it is not vararg - typically it is MockingBehavior argument
             var constructorArguments = objectCreation.ArgumentList.Arguments.Skip(varArgsConstructorParameterIdx == 0 ? 0 : 1).ToArray();
