@@ -1,54 +1,54 @@
 ﻿Diagnostic 1
-	Id: MOQ1002
+	Id: Moq1001
 	Location: SourceFile(Test0.cs[241..251))
 	Code: (25, true)
 	Severity: Warning
 	Message: Do not specify parameters for mocked interface.
 
 Diagnostic 2
-	Id: MOQ1002
+	Id: Moq1001
 	Location: SourceFile(Test0.cs[298..305))
 	Code: ("123")
 	Severity: Warning
 	Message: Do not specify parameters for mocked interface.
 
 Diagnostic 3
-	Id: MOQ1002
+	Id: Moq1001
 	Location: SourceFile(Test0.cs[380..390))
 	Code: (25, true)
 	Severity: Warning
 	Message: Do not specify parameters for mocked interface.
 
 Diagnostic 4
-	Id: MOQ1002
+	Id: Moq1001
 	Location: SourceFile(Test0.cs[469..476))
 	Code: ("123")
 	Severity: Warning
 	Message: Do not specify parameters for mocked interface.
 
 Diagnostic 5
-	Id: MOQ1002
+	Id: Moq1001
 	Location: SourceFile(Test0.cs[576..609))
 	Code: (Moq.MockBehavior.Default, "123")
 	Severity: Warning
 	Message: Do not specify parameters for mocked interface.
 
 Diagnostic 6
-	Id: MOQ1002
+	Id: Moq1001
 	Location: SourceFile(Test0.cs[656..687))
 	Code: (MockBehavior.Strict, 25, true)
 	Severity: Warning
 	Message: Do not specify parameters for mocked interface.
 
 Diagnostic 7
-	Id: MOQ1002
+	Id: Moq1001
 	Location: SourceFile(Test0.cs[762..795))
 	Code: (Moq.MockBehavior.Default, "123")
 	Severity: Warning
 	Message: Do not specify parameters for mocked interface.
 
 Diagnostic 8
-	Id: MOQ1002
+	Id: Moq1001
 	Location: SourceFile(Test0.cs[874..904))
 	Code: (MockBehavior.Loose, 25, true)
 	Severity: Warning

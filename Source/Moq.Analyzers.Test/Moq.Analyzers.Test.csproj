@@ -119,6 +119,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\MockProperties.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="Data\MockClassWithParameters.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
@@ -128,6 +131,7 @@
     <None Include="Data\MockInterfaceWithParameters.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Compile Include="DoNotUseMethodsInPropertySetupsAnalyzerTests.cs" />
     <Compile Include="MatchingConstructorParametersAnalyzerTests.cs" />
     <Compile Include="NoParametersForMockedInterfacesAnalyzerTests.cs" />
     <Compile Include="NoMocksForSealedClassesAnalyzerTests.cs" />

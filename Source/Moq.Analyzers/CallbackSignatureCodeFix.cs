@@ -16,7 +16,7 @@ namespace Moq.Analyzers
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(CallbackSignatureAnalyzer.DiagnosticId); }
+            get { return ImmutableArray.Create(Diagnostics.BadCallbackSignatureId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()

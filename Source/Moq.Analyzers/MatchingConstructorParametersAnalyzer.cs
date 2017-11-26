@@ -10,11 +10,11 @@ namespace Moq.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MatchingConstructorParametersAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "MOQ1003";
-
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId,
-            "Moq: No constructors with such parameters", "Parameters provided into mock do not match existing constructors.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
-        private const string Category = "Moq";
+        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+            Diagnostics.NoSealedClassMocksId,
+            Diagnostics.NoSealedClassMocksTitle,
+            Diagnostics.NoSealedClassMocksMessage,
+            Diagnostics.Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 

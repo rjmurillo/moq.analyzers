@@ -36,7 +36,9 @@
   <ItemGroup>
     <Compile Include="CallbackSignatureAnalyzer.cs" />
     <Compile Include="CallbackSignatureCodeFix.cs" />
+    <Compile Include="Diagnostics.cs" />
     <Compile Include="Helpers.cs" />
+    <Compile Include="DoNotUseMethodsInPropertySetupsAnalyzer.cs" />
     <Compile Include="MatchingConstructorParametersAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">

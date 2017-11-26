@@ -10,11 +10,11 @@ namespace Moq.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class NoParametersForMockedInterfacesAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "MOQ1002";
-
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId,
-            "Moq: Parameters for mocked interface", "Do not specify parameters for mocked interface.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
-        private const string Category = "Moq";
+        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+            Diagnostics.ConstructorParametersForInterfaceId, 
+            Diagnostics.ConstructorParametersForInterfaceTitle, 
+            Diagnostics.ConstructorParametersForInterfaceMessage, 
+            Diagnostics.Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 

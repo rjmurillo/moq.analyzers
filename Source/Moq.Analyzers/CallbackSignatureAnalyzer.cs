@@ -9,11 +9,11 @@ namespace Moq.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CallbackSignatureAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "MOQ1101";
-
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId,
-            "Moq: Bad callback signature", "Callback must have the same signature as the mocked method.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
-        private const string Category = "Moq";
+        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+            Diagnostics.BadCallbackSignatureId, 
+            Diagnostics.BadCallbackSignatureTitle, 
+            Diagnostics.BadCallbackSignatureMessage, 
+            Diagnostics.Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 

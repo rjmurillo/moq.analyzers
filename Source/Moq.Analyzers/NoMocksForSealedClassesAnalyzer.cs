@@ -7,13 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Moq.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class NoMocksForSealedClassesAnalyzer : DiagnosticAnalyzer
+    public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "MOQ1001";
-
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId,
-            "Moq: Cannot mock sealed class", "Sealed classes cannot be mocked.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
-        private const string Category = "Moq";
+        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+            Diagnostics.NoSealedClassMocksId, 
+            Diagnostics.NoSealedClassMocksTitle, 
+            Diagnostics.NoSealedClassMocksMessage, 
+            Diagnostics.Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 
