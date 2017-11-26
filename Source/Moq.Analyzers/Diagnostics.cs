@@ -11,23 +11,23 @@ namespace Moq.Analyzers
         internal const string Category = "Moq";
 
         internal const string NoSealedClassMocksId = "Moq1000";
-        internal const string NoSealedClassMocksTitle = "Moq: Cannot mock sealed class";
+        internal const string NoSealedClassMocksTitle = "Moq: Sealed class mocked";
         internal const string NoSealedClassMocksMessage = "Sealed classes cannot be mocked.";
 
         internal const string NoConstructorArgumentsForInterfaceMockId = "Moq1001";
-        internal const string NoConstructorArgumentsForInterfaceMockTitle = "Moq: Parameters for mocked interface";
-        internal const string NoConstructorArgumentsForInterfaceMockMessage = "Do not specify parameters for mocked interface.";
+        internal const string NoConstructorArgumentsForInterfaceMockTitle = "Moq: Parameters specified for mocked interface";
+        internal const string NoConstructorArgumentsForInterfaceMockMessage = "Mocked interfaces cannot have constructor parameters.";
 
         internal const string ConstructorArgumentsShouldMatchId = "Moq1002";
-        internal const string ConstructorArgumentsShouldMatchTitle = "Moq: No constructors with such parameters";
-        internal const string ConstructorArgumentsShouldMatchMessage = "Parameters provided into mock do not match existing constructors.";
+        internal const string ConstructorArgumentsShouldMatchTitle = "Moq: No matching constructor";
+        internal const string ConstructorArgumentsShouldMatchMessage = "Parameters provided into mock do not match any existing constructors.";
 
         internal const string CallbackSignatureShouldMatchMockedMethodId = "Moq1100";
-        internal const string CallbackSignatureShouldMatchMockedMethodTitle = "Moq: Bad callback signature";
-        internal const string CallbackSignatureShouldMatchMockedMethodMessage = "Callback must have the same signature as the mocked method.";
+        internal const string CallbackSignatureShouldMatchMockedMethodTitle = "Moq: Bad callback parameters";
+        internal const string CallbackSignatureShouldMatchMockedMethodMessage = "Callback signature must match the signature of the mocked method.";
 
         internal const string NoMethodsInPropertySetupId = "Moq1101";
-        internal const string NoMethodsInPropertySetupTitle = "Moq: Method is referenced in property setup";
-        internal const string NoMethodsInPropertySetupMessage = "Do not use SetupGet/SetupSet for methods.";
+        internal const string NoMethodsInPropertySetupTitle = "Moq: Property setup used for a method";
+        internal const string NoMethodsInPropertySetupMessage = "SetupGet/SetupSet should be used for properties, not for methods.";
     }
 }
