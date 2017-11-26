@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Moq.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class ShouldNotMockSealedClassesAnalyzer : DiagnosticAnalyzer
+    public class NoMocksForSealedClassesAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "MOQ1001";
 

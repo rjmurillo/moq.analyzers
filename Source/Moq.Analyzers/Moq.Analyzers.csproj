@@ -43,8 +43,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ShouldNotAllowParametersForMockedInterfaceAnalyzer.cs" />
-    <Compile Include="ShouldNotMockSealedClassesAnalyzer.cs" />
+    <Compile Include="NoParametersForMockedInterfacesAnalyzer.cs" />
+    <Compile Include="NoMocksForSealedClassesAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">

@@ -8,7 +8,7 @@ using Xunit;
 namespace Moq.Analyzers.Test
 {
     [UseReporter(typeof(DiffReporter))]
-    public class ShouldNotAllowParametersForMockedInterfaceAnalyzerTests : DiagnosticVerifier
+    public class NoParametersForMockedInterfacesAnalyzerTests : DiagnosticVerifier
     {
 
         [Fact]
@@ -25,7 +25,7 @@ namespace Moq.Analyzers.Test
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new ShouldNotAllowParametersForMockedInterfaceAnalyzer();
+            return new NoParametersForMockedInterfacesAnalyzer();
         }
     }
 }

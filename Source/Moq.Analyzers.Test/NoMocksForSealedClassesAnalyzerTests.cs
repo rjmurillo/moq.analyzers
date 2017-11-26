@@ -8,7 +8,7 @@ using Xunit;
 namespace Moq.Analyzers.Test
 {
     [UseReporter(typeof(DiffReporter))]
-    public class ShouldNotMockSealedClassesAnalyzerTests : DiagnosticVerifier
+    public class NoMocksForSealedClassesAnalyzerTests : DiagnosticVerifier
     {
 
         [Fact]
@@ -19,7 +19,7 @@ namespace Moq.Analyzers.Test
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new ShouldNotMockSealedClassesAnalyzer();
+            return new NoMocksForSealedClassesAnalyzer();
         }
     }
 }

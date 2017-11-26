@@ -8,7 +8,7 @@ using System.Linq;
 namespace Moq.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class ShouldNotAllowParametersForMockedInterfaceAnalyzer : DiagnosticAnalyzer
+    public class NoParametersForMockedInterfacesAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "MOQ1002";
 
