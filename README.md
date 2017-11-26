@@ -6,10 +6,11 @@ Note: If you are using Visual Studio 2017 then you can additionally install [Moq
 
 ## Detected issues
 
-* MOQ1001 = Sealed classes cannot be mocked
-* MOQ1002 = Interface mocks cannot take additional arguments
-* MOQ1003 = Additional arguments for mocked class must match one of class constructors
-* MOQ1101 = Highlight Callback() and Returns() methods with signatures not matching mocked methods
+* Moq1000 = Sealed classes cannot be mocked
+* Moq1001 = Mocked interfaces cannot have constructor parameters
+* Moq1002 = Parameters provided into mock do not match any existing constructors
+* Moq1100 = Callback signature must match the signature of the mocked method
+* Moq1101 = SetupGet/SetupSet should be used for properties, not for methods
  
 ## How to install:
 
