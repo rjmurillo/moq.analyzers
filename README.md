@@ -4,12 +4,13 @@ Visual Studio extension and Roslyn analyzer that helps to write unit tests using
 
 Note: If you are using Visual Studio 2017 then you can additionally install [Moq.Autocomplete](https://github.com/Litee/moq.autocomplete) extension/package to get better autocomplete suggestions when writing code.
 
-## Supported features
+## Detected issues
 
-### Highlight callbacks with invalid number of arguments or incompatible argument types 
+* MOQ1001 = Sealed classes cannot be mocked
+* MOQ1002 = Interface mocks cannot take additional arguments
+* MOQ1003 = Additional arguments for mocked class must match one of class constructors
+* MOQ1101 = Highlight Callback() and Returns() methods with signatures not matching mocked methods
  
-![](https://github.com/Litee/moq.analyzers/blob/master/media/highlight-incompatible-callbacks.png) 
-
 ## How to install:
 
 * (Option 1) Install "Moq.Analyzers" NuGet package into test projects. Con: Extension will work for specific projects only. Pro: It will be available for all project developers automatically.
