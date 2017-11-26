@@ -10,7 +10,7 @@ namespace Moq.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ShouldNotAllowParametersForMockedInterfaceAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "Moq1003";
+        public const string DiagnosticId = "MOQ1003";
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId,
             "Moq: Parameters for mocked interface", "Do not specify parameters for mocked interface.", Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
