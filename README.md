@@ -11,6 +11,15 @@ Note: If you are using Visual Studio 2017 then you can additionally install [Moq
 * Moq1002 = Parameters provided into mock do not match any existing constructors
 * Moq1100 = Callback signature must match the signature of the mocked method
 * Moq1101 = SetupGet/SetupSet should be used for properties, not for methods
+
+## TODO
+
+* Setup() should be used for methods, not for properties
+* Mock.As<T>() should take interfaces only
+* AdvancedMatcherAttribute should accept only IMatcher types
+* Checks for protected mocks when dynamically referencing their members
+* Setup() requires overridable members
+* Mock.Get() should not take literals
  
 ## How to install:
 
