@@ -1,29 +1,35 @@
-﻿using Moq;
-
+﻿#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
+#pragma warning disable SA1502 // Element must not be on a single line
 namespace NoConstructorArgumentsForInterfaceMock_2
 {
-    interface IMyService
+    public enum MockBehavior
     {
-        void Do(string s);
-    }
-
-    public class Mock<T> where T : class
-    {
-        public Mock() { }
-        public Mock(params object[] ar) { }
-        public Mock(MockBehavior behavior) { }
-        public Mock(MockBehavior behavior, params object[] args) { }
-    }
-
-    public enum MockBehavior {
         Default,
         Strict,
         Loose
     }
 
-    class MyUnitTests
+    internal interface IMyService
     {
-        void TestRealMoqWithBadParameters()
+        void Do(string s);
+    }
+
+    public class Mock<T>
+        where T : class
+    {
+        public Mock() { }
+
+        public Mock(params object[] ar) { }
+
+        public Mock(MockBehavior behavior) { }
+
+        public Mock(MockBehavior behavior, params object[] args) { }
+    }
+
+    internal class MyUnitTests
+    {
+        private void TestRealMoqWithBadParameters()
         {
             var mock1 = new Moq.Mock<IMyService>(1, true);
             var mock2 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_2.IMyService>("2");
@@ -33,13 +39,13 @@ namespace NoConstructorArgumentsForInterfaceMock_2
             var mock6 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_2.IMyService>(MockBehavior.Default);
         }
 
-        void TestRealMoqWithGoodParameters()
+        private void TestRealMoqWithGoodParameters()
         {
             var mock1 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default);
             var mock2 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_2.IMyService>(Moq.MockBehavior.Default);
         }
 
-        void TestFakeMoq()
+        private void TestFakeMoq()
         {
             var mock1 = new Mock<IMyService>("4");
             var mock2 = new Mock<NoConstructorArgumentsForInterfaceMock_2.IMyService>(5, true);

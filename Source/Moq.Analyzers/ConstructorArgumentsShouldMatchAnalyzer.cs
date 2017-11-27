@@ -1,22 +1,27 @@
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Linq;
-
 namespace Moq.Analyzers
 {
+    using System.Collections.Immutable;
+    using System.Linq;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+    using Microsoft.CodeAnalysis.Diagnostics;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             Diagnostics.NoSealedClassMocksId,
             Diagnostics.NoSealedClassMocksTitle,
             Diagnostics.NoSealedClassMocksMessage,
-            Diagnostics.Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            Diagnostics.Category,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(Rule); }
+        }
 
         public override void Initialize(AnalysisContext context)
         {
@@ -25,7 +30,6 @@ namespace Moq.Analyzers
 
         private static void Analyze(SyntaxNodeAnalysisContext context)
         {
-
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
             // TODO Think how to make this piece more elegant while fast
@@ -35,6 +39,7 @@ namespace Moq.Analyzers
                 var qualifiedName = objectCreation.Type as QualifiedNameSyntax;
                 genericName = qualifiedName.Right as GenericNameSyntax;
             }
+
             if (genericName?.Identifier == null || genericName.TypeArgumentList == null) return;
 
             // Quick and dirty check that we are calling new Mock<T>()
@@ -50,6 +55,7 @@ namespace Moq.Analyzers
 
             // Vararg parameter is the one that takes all arguments for mocked class constructor
             var varArgsConstructorParameter = constructorSymbol.Parameters.FirstOrDefault(x => x.IsParams);
+
             // Vararg parameter are not used, so there are no arguments for mocked class constructor
             if (varArgsConstructorParameter == null) return;
             var varArgsConstructorParameterIdx = constructorSymbol.Parameters.IndexOf(varArgsConstructorParameter);
@@ -60,7 +66,7 @@ namespace Moq.Analyzers
             var mockedTypeSymbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0]);
             var mockedTypeSymbol = mockedTypeSymbolInfo.Symbol as INamedTypeSymbol;
             if (mockedTypeSymbol == null || mockedTypeSymbol.TypeKind != TypeKind.Class) return;
-            
+
             // TODO: Currently detection does not work well for abstract classes because they cannot be instantiated
             if (mockedTypeSymbol.IsAbstract) return;
 

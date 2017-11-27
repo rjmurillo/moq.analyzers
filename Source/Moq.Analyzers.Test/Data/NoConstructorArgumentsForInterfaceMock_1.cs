@@ -1,16 +1,18 @@
-﻿using Moq;
-
+﻿#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
+#pragma warning disable SA1502 // Element must not be on a single line
 namespace NoConstructorArgumentsForInterfaceMock_1
 {
-    interface IMyService
+    using Moq;
+
+    internal interface IMyService
     {
         void Do(string s);
-
     }
 
-    class MyUnitTests
+    internal class MyUnitTests
     {
-        void TestBad()
+        private void TestBad()
         {
             var mock1 = new Moq.Mock<IMyService>(25, true);
             var mock2 = new Mock<IMyService>("123");
@@ -18,7 +20,7 @@ namespace NoConstructorArgumentsForInterfaceMock_1
             var mock4 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>("123");
         }
 
-        void TestBad2()
+        private void TestBad2()
         {
             var mock1 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default, "123");
             var mock2 = new Mock<IMyService>(MockBehavior.Strict, 25, true);
@@ -26,7 +28,7 @@ namespace NoConstructorArgumentsForInterfaceMock_1
             var mock4 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(MockBehavior.Loose, 25, true);
         }
 
-        void TestGood1()
+        private void TestGood1()
         {
             var mock1 = new Moq.Mock<IMyService>();
             var mock2 = new Moq.Mock<IMyService>(MockBehavior.Default);
@@ -34,6 +36,5 @@ namespace NoConstructorArgumentsForInterfaceMock_1
             var mock4 = new Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(MockBehavior.Loose);
             var mock5 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(MockBehavior.Default);
         }
-
     }
 }

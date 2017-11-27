@@ -1,10 +1,13 @@
-﻿using Moq;
-
+﻿#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
+#pragma warning disable SA1502 // Element must not be on a single line
 namespace NoMethodsInPropertySetup
 {
-    interface IFoo
+    using Moq;
+
+    public interface IFoo
     {
-        string Prop1 {get; set;}
+        string Prop1 { get; set; }
 
         string Prop2 { get; }
 
@@ -13,16 +16,16 @@ namespace NoMethodsInPropertySetup
         string Method();
     }
 
-    class MyUnitTests
+    public class MyUnitTests
     {
-        void TestBad()
+        private void TestBad()
         {
             var mock = new Mock<IFoo>();
             mock.SetupGet(x => x.Method());
             mock.SetupSet(x => x.Method());
         }
 
-        void TestGood()
+        private void TestGood()
         {
             var mock = new Mock<IFoo>();
             mock.SetupGet(x => x.Prop1);

@@ -1,14 +1,11 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Xunit;
-
-namespace TestHelper
+﻿namespace TestHelper
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.Diagnostics;
+
     /// <summary>
     /// Superclass of all Unit Tests for DiagnosticAnalyzers
     /// </summary>
@@ -17,6 +14,7 @@ namespace TestHelper
         /// <summary>
         /// Get the CSharp analyzer being tested - to be implemented in non-abstract class
         /// </summary>
+        /// <returns>Diagnostics to be used in test</returns>
         protected virtual DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return null;
@@ -27,6 +25,7 @@ namespace TestHelper
         /// Note: input a DiagnosticResult for each Diagnostic expected
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
+        /// <returns>String representation of diagnostics results</returns>
         protected string VerifyCSharpDiagnostic(string source)
         {
             return VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer());
@@ -37,22 +36,24 @@ namespace TestHelper
         /// Note: input a DiagnosticResult for each Diagnostic expected
         /// </summary>
         /// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
+        /// <returns>String representation of diagnostics results</returns>
         protected string VerifyCSharpDiagnostic(string[] sources)
         {
             return VerifyDiagnostics(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer());
         }
 
         /// <summary>
-        /// General method that gets a collection of actual diagnostics found in the source after the analyzer is run, 
+        /// General method that gets a collection of actual diagnostics found in the source after the analyzer is run,
         /// then verifies each of them.
         /// </summary>
         /// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
         /// <param name="language">The language of the classes represented by the source strings</param>
-        /// <param name="analyzer">The analyzer to be run on the source code</param>
+        /// <param name="analyzer">The analyzer to be run on the sources</param>
+        /// <returns>String representation of diagnostics results</returns>
         private string VerifyDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer)
         {
             var diagnostics = GetSortedDiagnostics(sources, language, analyzer);
-            return VerifyDiagnosticResults(diagnostics, analyzer);
+            return VerifyDiagnosticResults(diagnostics);
         }
 
         /// <summary>
@@ -60,8 +61,8 @@ namespace TestHelper
         /// Diagnostics are considered equal only if the DiagnosticResultLocation, Id, Severity, and Message of the DiagnosticResult match the actual diagnostic.
         /// </summary>
         /// <param name="actualResults">The Diagnostics found by the compiler after running the analyzer on the source code</param>
-        /// <param name="analyzer">The analyzer that was being run on the sources</param>
-        private static string VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer)
+        /// <returns>String representation of diagnostics results</returns>
+        private string VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults)
         {
             StringBuilder result = new StringBuilder();
             int i = 1;
@@ -74,15 +75,15 @@ namespace TestHelper
                 var code = diagnostic.Location.SourceTree.GetText();
                 result.AppendLine("\tHighlight: " + code.GetSubText(sourceSpan));
                 var lineSpan = diagnostic.Location.GetLineSpan();
-                result.AppendLine("\tLines: " + string.Join("\n", code.Lines.Where(x => x.LineNumber >= lineSpan.StartLinePosition.Line && x.LineNumber <= lineSpan.EndLinePosition.Line).Select(x=> x.ToString().Trim())));
+                result.AppendLine("\tLines: " + string.Join("\n", code.Lines.Where(x => x.LineNumber >= lineSpan.StartLinePosition.Line && x.LineNumber <= lineSpan.EndLinePosition.Line).Select(x => x.ToString().Trim())));
                 result.AppendLine("\tSeverity: " + diagnostic.Severity);
                 result.AppendLine("\tMessage: " + diagnostic.GetMessage());
                 result.AppendLine();
 
                 i += 1;
             }
+
             return result.ToString();
         }
-      
     }
 }

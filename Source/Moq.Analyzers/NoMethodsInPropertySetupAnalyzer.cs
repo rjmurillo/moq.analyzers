@@ -1,21 +1,26 @@
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
 namespace Moq.Analyzers
 {
+    using System.Collections.Immutable;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+    using Microsoft.CodeAnalysis.Diagnostics;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            Diagnostics.NoMethodsInPropertySetupId, 
-            Diagnostics.NoMethodsInPropertySetupTitle, 
-            Diagnostics.NoMethodsInPropertySetupMessage, 
-            Diagnostics.Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+            Diagnostics.NoMethodsInPropertySetupId,
+            Diagnostics.NoMethodsInPropertySetupTitle,
+            Diagnostics.NoMethodsInPropertySetupMessage,
+            Diagnostics.Category,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(Rule); }
+        }
 
         public override void Initialize(AnalysisContext context)
         {
@@ -24,7 +29,6 @@ namespace Moq.Analyzers
 
         private static void Analyze(SyntaxNodeAnalysisContext context)
         {
-
             var setupGetOrSetInvocation = (InvocationExpressionSyntax)context.Node;
 
             var setupGetOrSetMethod = setupGetOrSetInvocation.Expression as MemberAccessExpressionSyntax;

@@ -1,10 +1,13 @@
-﻿using Moq;
-using System;
-using System.Collections.Generic;
-
+﻿#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
+#pragma warning disable SA1502 // Element must not be on a single line
 namespace CallbackSignatureShouldMatchMockedMethod
 {
-    interface IFoo
+    using System;
+    using System.Collections.Generic;
+    using Moq;
+
+    internal interface IFoo
     {
         int Do(string s);
 
@@ -13,9 +16,9 @@ namespace CallbackSignatureShouldMatchMockedMethod
         int Do(List<string> l);
     }
 
-    class MyUnitTests
+    internal class MyUnitTests
     {
-        void TestBadCallbacks()
+        private void TestBadCallbacks()
         {
             var mock = new Mock<IFoo>();
             mock.Setup(x => x.Do(It.IsAny<string>())).Callback((string s) => { });
@@ -24,7 +27,7 @@ namespace CallbackSignatureShouldMatchMockedMethod
             mock.Setup(x => x.Do(It.IsAny<List<string>>())).Callback((List<string> l) => { });
         }
 
-        void TestGoodSetupAndParameterlessCallback()
+        private void TestGoodSetupAndParameterlessCallback()
         {
             var mock = new Mock<IFoo>();
             mock.Setup(x => x.Do(It.IsAny<string>())).Callback(() => { });
@@ -32,7 +35,7 @@ namespace CallbackSignatureShouldMatchMockedMethod
             mock.Setup(x => x.Do(It.IsAny<List<string>>())).Callback(() => { });
         }
 
-        void TestGoodSetupAndCallback()
+        private void TestGoodSetupAndCallback()
         {
             var mock = new Mock<IFoo>();
             mock.Setup(x => x.Do(It.IsAny<string>())).Callback((string s) => { });
@@ -40,7 +43,7 @@ namespace CallbackSignatureShouldMatchMockedMethod
             mock.Setup(x => x.Do(It.IsAny<List<string>>())).Callback((List<string> l) => { });
         }
 
-        void TestGoodSetupAndReturnsAndCallback()
+        private void TestGoodSetupAndReturnsAndCallback()
         {
             var mock = new Mock<IFoo>();
             mock.Setup(x => x.Do(It.IsAny<string>())).Returns(0).Callback((string s) => { });
@@ -48,7 +51,7 @@ namespace CallbackSignatureShouldMatchMockedMethod
             mock.Setup(x => x.Do(It.IsAny<List<string>>())).Returns(0).Callback((List<string> l) => { });
         }
 
-        void MyGoodSetupAndReturns()
+        private void MyGoodSetupAndReturns()
         {
             var mock = new Mock<IFoo>();
             mock.Setup(x => x.Do(It.IsAny<string>())).Returns((string s) => { return 0; });

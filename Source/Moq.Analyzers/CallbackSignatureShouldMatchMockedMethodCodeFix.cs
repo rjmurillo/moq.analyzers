@@ -1,17 +1,18 @@
-﻿using System.Collections.Immutable;
-using System.Composition;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-namespace Moq.Analyzers
+﻿namespace Moq.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CallbackSignatureShouldMatchMockedMethodCodeFix)), Shared]
+    using System.Collections.Immutable;
+    using System.Composition;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CodeActions;
+    using Microsoft.CodeAnalysis.CodeFixes;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CallbackSignatureShouldMatchMockedMethodCodeFix))]
+    [Shared]
     public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
@@ -49,22 +50,23 @@ namespace Moq.Analyzers
             var callbackInvocation = oldParameters?.Parent?.Parent?.Parent?.Parent as InvocationExpressionSyntax;
             if (callbackInvocation != null)
             {
-
                 var setupMethodInvocation = Helpers.FindSetupMethodFromCallbackInvocation(semanticModel, callbackInvocation);
                 var matchingMockedMethods = Helpers.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(semanticModel, setupMethodInvocation).ToArray();
 
-                if (matchingMockedMethods.Count() == 1)
+                if (matchingMockedMethods.Length == 1)
                 {
                     var newParameters = SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(matchingMockedMethods[0].Parameters.Select(
-                        p => {
+                        p =>
+                        {
                             var type = SyntaxFactory.ParseTypeName(p.Type.ToMinimalDisplayString(semanticModel, oldParameters.SpanStart));
-                            return SyntaxFactory.Parameter(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.TokenList(), type, SyntaxFactory.Identifier(p.Name), null);
+                            return SyntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), SyntaxFactory.TokenList(), type, SyntaxFactory.Identifier(p.Name), null);
                         })));
 
                     var newRoot = root.ReplaceNode(oldParameters, newParameters);
                     return document.WithSyntaxRoot(newRoot);
                 }
             }
+
             return document;
         }
     }

@@ -1,21 +1,26 @@
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
 namespace Moq.Analyzers
 {
+    using System.Collections.Immutable;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+    using Microsoft.CodeAnalysis.Diagnostics;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            Diagnostics.NoSealedClassMocksId, 
-            Diagnostics.NoSealedClassMocksTitle, 
-            Diagnostics.NoSealedClassMocksMessage, 
-            Diagnostics.Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+            Diagnostics.NoSealedClassMocksId,
+            Diagnostics.NoSealedClassMocksTitle,
+            Diagnostics.NoSealedClassMocksMessage,
+            Diagnostics.Category,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(Rule); }
+        }
 
         public override void Initialize(AnalysisContext context)
         {
@@ -24,7 +29,6 @@ namespace Moq.Analyzers
 
         private static void Analyze(SyntaxNodeAnalysisContext context)
         {
-
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
             // TODO Think how to make this piece more elegant while fast
@@ -34,6 +38,7 @@ namespace Moq.Analyzers
                 var qualifiedName = objectCreation.Type as QualifiedNameSyntax;
                 genericName = qualifiedName.Right as GenericNameSyntax;
             }
+
             if (genericName?.Identifier == null || genericName.TypeArgumentList == null) return;
 
             // Quick and dirty check

@@ -1,10 +1,14 @@
-﻿using Moq;
-using System;
-using System.Collections.Generic;
-
+﻿#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
+#pragma warning disable SA1502 // Element must not be on a single line
 namespace ConstructorArgumentsShouldMatch
 {
-    class Foo
+    using System;
+    using System.Collections.Generic;
+    using Moq;
+
+#pragma warning disable SA1402 // File may only contain a single class
+    internal class Foo
     {
         public Foo(string s) { }
 
@@ -15,14 +19,15 @@ namespace ConstructorArgumentsShouldMatch
         public Foo(List<string> l, string s = "A") { }
     }
 
-    abstract class FooAbstract
+    internal abstract class FooAbstract
     {
         public FooAbstract(string s) { }
     }
 
-    class MyUnitTests
+    internal class MyUnitTests
+#pragma warning restore SA1402 // File may only contain a single class
     {
-        void TestBad()
+        private void TestBad()
         {
             var mock1 = new Moq.Mock<Foo>(1, true);
             var mock2 = new Mock<ConstructorArgumentsShouldMatch.Foo>(2, true);
@@ -30,14 +35,14 @@ namespace ConstructorArgumentsShouldMatch
             var mock4 = new Mock<ConstructorArgumentsShouldMatch.Foo>(new int[] { 1, 2, 3 });
         }
 
-        void TestBad2()
+        private void TestBad2()
         {
             var mock1 = new Mock<Foo>(MockBehavior.Strict, 4, true);
             var mock2 = new Moq.Mock<ConstructorArgumentsShouldMatch.Foo>(MockBehavior.Loose, 5, true);
             var mock3 = new Moq.Mock<ConstructorArgumentsShouldMatch.Foo>(MockBehavior.Loose, "2", 6);
         }
 
-        void TestGood1()
+        private void TestGood1()
         {
             var mock1 = new Moq.Mock<Foo>(MockBehavior.Default);
             var mock2 = new Mock<Foo>(MockBehavior.Strict);
@@ -61,11 +66,10 @@ namespace ConstructorArgumentsShouldMatch
             var mock16 = new Mock<Foo>(MockBehavior.Default, new List<string>());
         }
 
-        void TestAbstractGood()
+        private void TestAbstractGood()
         {
             var mock1 = new Mock<FooAbstract>("9");
             var mock2 = new Mock<FooAbstract>(MockBehavior.Default, "10");
         }
-
     }
 }

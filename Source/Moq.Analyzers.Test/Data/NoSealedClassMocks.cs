@@ -1,17 +1,19 @@
-﻿using Moq;
-using System;
-
+﻿#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
+#pragma warning disable SA1502 // Element must not be on a single line
 namespace NoSealedClassMocks
 {
-    sealed class FooSealed
-    {
-        void Do(string s) { }
+    using System;
+    using Moq;
 
+    internal sealed class FooSealed
+    {
+        private void Do(string s) { }
     }
 
-    class MyUnitTests
+    internal class MyUnitTests
     {
-        void Test()
+        private void Test()
         {
             var mock1 = new Moq.Mock<FooSealed>();
             var mock2 = new Mock<FooSealed>();
@@ -19,7 +21,7 @@ namespace NoSealedClassMocks
             var mock4 = new Moq.Mock<NoSealedClassMocks.FooSealed>();
         }
 
-        void Tes2t()
+        private void Test2()
         {
             new Mock<Action<int>>();
             new Mock<EventHandler>();
