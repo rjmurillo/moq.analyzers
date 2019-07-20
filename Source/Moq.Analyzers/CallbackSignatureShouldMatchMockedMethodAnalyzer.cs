@@ -48,7 +48,7 @@ namespace Moq.Analyzers
             if (lambdaParameters.Count == 0) return;
 
             var setupInvocation = Helpers.FindSetupMethodFromCallbackInvocation(context.SemanticModel, callbackOrReturnsInvocation);
-            var mockedMethodInvocation = Helpers.FindMockedMethodInvocationFromSetupMethod(context.SemanticModel, setupInvocation);
+            var mockedMethodInvocation = Helpers.FindMockedMethodInvocationFromSetupMethod(setupInvocation);
             if (mockedMethodInvocation == null) return;
 
             var mockedMethodArguments = mockedMethodInvocation.ArgumentList.Arguments;

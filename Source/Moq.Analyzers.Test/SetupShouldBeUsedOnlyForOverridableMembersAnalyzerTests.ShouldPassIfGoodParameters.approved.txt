@@ -1,0 +1,24 @@
+﻿Diagnostic 1
+	Id: Moq1200
+	Location: SourceFile(Test0.cs[2075..2088))
+	Highlight: x.Calculate()
+	Lines: mock.Setup(x => x.Calculate());
+	Severity: Error
+	Message: Setup should be used only for overridable members.
+
+Diagnostic 2
+	Id: Moq1200
+	Location: SourceFile(Test0.cs[2241..2303))
+	Highlight: x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())
+	Lines: mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()));
+	Severity: Error
+	Message: Setup should be used only for overridable members.
+
+Diagnostic 3
+	Id: Moq1200
+	Location: SourceFile(Test0.cs[2462..2472))
+	Highlight: x.Property
+	Lines: mock.Setup(x => x.Property);
+	Severity: Error
+	Message: Setup should be used only for overridable members.
+
