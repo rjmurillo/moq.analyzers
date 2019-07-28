@@ -35,7 +35,7 @@ namespace Moq.Analyzers
             if (setupGetOrSetMethod == null) return;
             if (setupGetOrSetMethod.Name.ToFullString() != "SetupGet" && setupGetOrSetMethod.Name.ToFullString() != "SetupSet") return;
 
-            var mockedMethodCall = Helpers.FindMockedMethodInvocationFromSetupMethod(context.SemanticModel, setupGetOrSetInvocation);
+            var mockedMethodCall = Helpers.FindMockedMethodInvocationFromSetupMethod(setupGetOrSetInvocation);
             if (mockedMethodCall == null) return;
 
             var mockedMethodSymbol = context.SemanticModel.GetSymbolInfo(mockedMethodCall).Symbol;

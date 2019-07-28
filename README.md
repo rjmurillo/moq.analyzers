@@ -11,6 +11,7 @@ Note: If you are using Visual Studio 2017 then you can additionally install [Moq
 * Moq1002 = Parameters provided into mock do not match any existing constructors
 * Moq1100 = Callback signature must match the signature of the mocked method
 * Moq1101 = SetupGet/SetupSet should be used for properties, not for methods
+* Moq1200 = Setup should be used only for overridable members.
 
 ## TODO
 

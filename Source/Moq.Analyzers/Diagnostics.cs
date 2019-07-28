@@ -23,5 +23,10 @@
         internal const string NoMethodsInPropertySetupId = "Moq1101";
         internal const string NoMethodsInPropertySetupTitle = "Moq: Property setup used for a method";
         internal const string NoMethodsInPropertySetupMessage = "SetupGet/SetupSet should be used for properties, not for methods.";
+
+
+        internal const string SetupShouldBeUsedOnlyForOverridableMembersId = "Moq1200";
+        internal const string SetupShouldBeUsedOnlyForOverridableMembersTitle = "Moq: Invalid setup parameter";
+        internal const string SetupShouldBeUsedOnlyForOverridableMembersMessage = "Setup should be used only for overridable members.";
     }
 }

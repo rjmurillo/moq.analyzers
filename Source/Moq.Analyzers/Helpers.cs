@@ -1,4 +1,6 @@
-﻿namespace Moq.Analyzers
+﻿using Microsoft.CodeAnalysis.CSharp;
+
+namespace Moq.Analyzers
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -64,10 +66,16 @@
             return FindSetupMethodFromCallbackInvocation(semanticModel, method.Expression);
         }
 
-        internal static InvocationExpressionSyntax FindMockedMethodInvocationFromSetupMethod(SemanticModel semanticModel, InvocationExpressionSyntax setupInvocation)
+        internal static InvocationExpressionSyntax FindMockedMethodInvocationFromSetupMethod(InvocationExpressionSyntax setupInvocation)
         {
             var setupLambdaArgument = setupInvocation?.ArgumentList.Arguments[0]?.Expression as LambdaExpressionSyntax;
             return setupLambdaArgument?.Body as InvocationExpressionSyntax;
+        }
+
+        internal static ExpressionSyntax FindMockedMemberExpressionFromSetupMethod(InvocationExpressionSyntax setupInvocation)
+        {
+            var setupLambdaArgument = setupInvocation?.ArgumentList.Arguments[0]?.Expression as LambdaExpressionSyntax;
+            return setupLambdaArgument?.Body as ExpressionSyntax;
         }
 
         internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(SemanticModel semanticModel, InvocationExpressionSyntax setupMethodInvocation)
