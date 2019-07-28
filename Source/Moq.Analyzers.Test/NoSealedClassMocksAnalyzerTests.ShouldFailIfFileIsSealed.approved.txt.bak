@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1000
-	Location: SourceFile(Test0.cs[852..861))
+	Location: SourceFile(Test0.cs[494..503))
 	Highlight: FooSealed
 	Lines: var mock1 = new Moq.Mock<FooSealed>();
 	Severity: Warning
@@ -8,7 +8,7 @@
 
 Diagnostic 2
 	Id: Moq1000
-	Location: SourceFile(Test0.cs[900..909))
+	Location: SourceFile(Test0.cs[542..551))
 	Highlight: FooSealed
 	Lines: var mock2 = new Mock<FooSealed>();
 	Severity: Warning
@@ -16,7 +16,7 @@ Diagnostic 2
 
 Diagnostic 3
 	Id: Moq1000
-	Location: SourceFile(Test0.cs[948..976))
+	Location: SourceFile(Test0.cs[590..618))
 	Highlight: NoSealedClassMocks.FooSealed
 	Lines: var mock3 = new Mock<NoSealedClassMocks.FooSealed>();
 	Severity: Warning
@@ -24,7 +24,7 @@ Diagnostic 3
 
 Diagnostic 4
 	Id: Moq1000
-	Location: SourceFile(Test0.cs[1019..1047))
+	Location: SourceFile(Test0.cs[661..689))
 	Highlight: NoSealedClassMocks.FooSealed
 	Lines: var mock4 = new Moq.Mock<NoSealedClassMocks.FooSealed>();
 	Severity: Warning

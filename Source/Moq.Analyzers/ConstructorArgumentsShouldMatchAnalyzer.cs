@@ -11,9 +11,9 @@ namespace Moq.Analyzers
     public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            Diagnostics.NoSealedClassMocksId,
-            Diagnostics.NoSealedClassMocksTitle,
-            Diagnostics.NoSealedClassMocksMessage,
+            Diagnostics.ConstructorArgumentsShouldMatchId,
+            Diagnostics.ConstructorArgumentsShouldMatchTitle,
+            Diagnostics.ConstructorArgumentsShouldMatchMessage,
             Diagnostics.Category,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
