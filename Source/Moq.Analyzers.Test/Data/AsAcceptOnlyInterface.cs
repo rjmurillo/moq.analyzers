@@ -1,14 +1,17 @@
 ﻿#pragma warning disable SA1402 // File may only contain a single class
 #pragma warning disable SA1649 // File name must match first type name
 #pragma warning disable SA1502 // Element must not be on a single line
+#pragma warning disable RCS1213 // Remove unused member declaration.
+#pragma warning disable IDE0051 // Remove unused private members
 namespace AsAcceptOnlyInterface
 {
     using Moq;
+
     public interface ISampleInterface
     {
-        int Calculate(int a, int b);
-
         int TestProperty { get; set; }
+
+        int Calculate(int a, int b);
     }
 
     public abstract class BaseSampleClass
@@ -23,13 +26,11 @@ namespace AsAcceptOnlyInterface
 
     public class SampleClass
     {
-
         public virtual int Calculate(int a, int b) => 0;
     }
 
     public class OtherClass
     {
-
         public virtual int Calculate() => 0;
     }
 
@@ -45,7 +46,7 @@ namespace AsAcceptOnlyInterface
         {
             var mock = new Mock<BaseSampleClass>();
             mock.As<ISampleInterface>()
-                .Setup(x=>x.Calculate(It.IsAny<int>(), It.IsAny<int>()))
+                .Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(10);
         }
 

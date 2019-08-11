@@ -9,7 +9,7 @@
     {
         private readonly bool isGeneric;
 
-        public MoqMethodDescriptor(string shortMethodName, Regex fullMethodNamePattern, bool isGeneric=false)
+        public MoqMethodDescriptor(string shortMethodName, Regex fullMethodNamePattern, bool isGeneric = false)
         {
             this.isGeneric = isGeneric;
             ShortMethodName = shortMethodName;
@@ -25,7 +25,7 @@
             var methodName = method?.Name.ToString();
 
             // First fast check before walking semantic model
-            if (DoesShortMethodMatch(methodName) == false) return false;
+            if (!DoesShortMethodMatch(methodName)) return false;
 
             var symbolInfo = semanticModel.GetSymbolInfo(method);
             if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
@@ -36,8 +36,8 @@
             else if (symbolInfo.CandidateReason == CandidateReason.None)
             {
                 // TODO: Replace regex with something more elegant
-                return symbolInfo.Symbol is IMethodSymbol &&
-                       this.FullMethodNamePattern.IsMatch(symbolInfo.Symbol.ToString());
+                return symbolInfo.Symbol is IMethodSymbol
+                       && this.FullMethodNamePattern.IsMatch(symbolInfo.Symbol.ToString());
             }
 
             return false;
@@ -49,6 +49,7 @@
             {
                 return methodName.StartsWith($"{this.ShortMethodName}<");
             }
+
             return methodName == this.ShortMethodName;
         }
     }

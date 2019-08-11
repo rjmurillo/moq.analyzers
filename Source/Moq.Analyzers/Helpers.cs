@@ -8,18 +8,18 @@
 
     internal static class Helpers
     {
-        private static MoqMethodDescriptor moqSetupMethodDescriptor = new MoqMethodDescriptor("Setup", new Regex("^Moq\\.Mock<.*>\\.Setup\\.*"));
+        private static readonly MoqMethodDescriptor MoqSetupMethodDescriptor = new MoqMethodDescriptor("Setup", new Regex("^Moq\\.Mock<.*>\\.Setup\\.*"));
 
-        private static MoqMethodDescriptor moqAsMethodDescriptor = new MoqMethodDescriptor("As", new Regex("^Moq\\.Mock\\.As<\\.*"), isGeneric: true);
+        private static readonly MoqMethodDescriptor MoqAsMethodDescriptor = new MoqMethodDescriptor("As", new Regex("^Moq\\.Mock\\.As<\\.*"), isGeneric: true);
 
         internal static bool IsMoqSetupMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
         {
-            return moqSetupMethodDescriptor.IsMoqMethod(semanticModel, method);
+            return MoqSetupMethodDescriptor.IsMoqMethod(semanticModel, method);
         }
 
         internal static bool IsMoqAsMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
         {
-            return moqAsMethodDescriptor.IsMoqMethod(semanticModel, method);
+            return MoqAsMethodDescriptor.IsMoqMethod(semanticModel, method);
         }
 
         internal static bool IsCallbackOrReturnInvocation(SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)

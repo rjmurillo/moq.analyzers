@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="Moq.Analyzers..c3c7e3f8-2407-428d-beef-c4557253517b" Version="0.0.7" Language="en-US" Publisher="Andrey Lipatkin"/>
+        <Identity Id="Moq.Analyzers..c3c7e3f8-2407-428d-beef-c4557253517b" Version="0.0.8" Language="en-US" Publisher="Andrey Lipatkin"/>
         <DisplayName>Moq.Analyzers</DisplayName>
         <Description xml:space="preserve">Visual Studio extension that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn. Find the full list of detected issues at project GitHub page.</Description>
         <MoreInfo>https://github.com/Litee/moq.analyzers</MoreInfo>

@@ -44,14 +44,14 @@
     <PackageProjectUrl>https://github.com/Litee/moq.analyzers</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Roslyn analyzer that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn. Find the full list of detected issues at project GitHub page.</Description>
-    <PackageReleaseNotes>Added a check that Setup() is mocking an overridable method (contribution from cezarypiatek@)</PackageReleaseNotes>
+    <PackageReleaseNotes>Added a check for As() method to be used with interfaces only (contribution from cezarypiatek@)</PackageReleaseNotes>
     <Copyright>2015-2019 Andrey Lipatkin</Copyright>
     <PackageTags>moq, mock, test, analyzers</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.0.7</Version>
-    <AssemblyVersion>0.0.7.0</AssemblyVersion>
-    <FileVersion>0.0.7.0</FileVersion>
+    <Version>0.0.8</Version>
+    <AssemblyVersion>0.0.8.0</AssemblyVersion>
+    <FileVersion>0.0.8.0</FileVersion>
     <PackageLicenseExpression></PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Litee/moq.analyzers</RepositoryUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
