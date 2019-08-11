@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
-
-namespace Moq.Analyzers
+﻿namespace Moq.Analyzers
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -10,27 +8,18 @@ namespace Moq.Analyzers
 
     internal static class Helpers
     {
-        private static Regex setupMethodNamePattern = new Regex("^Moq\\.Mock<.*>\\.Setup\\.*");
+        private static MoqMethodDescriptor moqSetupMethodDescriptor = new MoqMethodDescriptor("Setup", new Regex("^Moq\\.Mock<.*>\\.Setup\\.*"));
+
+        private static MoqMethodDescriptor moqAsMethodDescriptor = new MoqMethodDescriptor("As", new Regex("^Moq\\.Mock\\.As<\\.*"), isGeneric: true);
 
         internal static bool IsMoqSetupMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
         {
-            var methodName = method?.Name.ToString();
+            return moqSetupMethodDescriptor.IsMoqMethod(semanticModel, method);
+        }
 
-            // First fast check before walking semantic model
-            if (methodName != "Setup") return false;
-
-            var symbolInfo = semanticModel.GetSymbolInfo(method);
-            if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
-            {
-                return symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().Any(s => setupMethodNamePattern.IsMatch(s.ToString()));
-            }
-            else if (symbolInfo.CandidateReason == CandidateReason.None)
-            {
-                // TODO: Replace regex with something more elegant
-                return symbolInfo.Symbol is IMethodSymbol && setupMethodNamePattern.IsMatch(symbolInfo.Symbol.ToString());
-            }
-
-            return false;
+        internal static bool IsMoqAsMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
+        {
+            return moqAsMethodDescriptor.IsMoqMethod(semanticModel, method);
         }
 
         internal static bool IsCallbackOrReturnInvocation(SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)
