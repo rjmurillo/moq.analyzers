@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <MinimumVisualStudioVersion>11.0</MinimumVisualStudioVersion>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -34,25 +34,34 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>
     </CodeAnalysisRuleSet>
+    <DocumentationFile></DocumentationFile>
   </PropertyGroup>
   
   <PropertyGroup>
     <PackageId>Moq.Analyzers</PackageId>
-    <PackageVersion>0.0.6</PackageVersion>
     <Authors>Andrey "Litee" Lipatkin</Authors>
-    <PackageLicenseUrl>https://github.com/Litee/moq.analyzers/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/Litee/moq.analyzers</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Roslyn analyzer that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn. Find the full list of detected issues at project GitHub page.</Description>
-    <PackageReleaseNotes>Upgraded to support Visual Studio 2019</PackageReleaseNotes>
+    <PackageReleaseNotes>Added a check that Setup() is mocking an overridable method (contribution from cezarypiatek@)</PackageReleaseNotes>
     <Copyright>2015-2019 Andrey Lipatkin</Copyright>
     <PackageTags>moq, mock, test, analyzers</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.0.5</Version>
-    <AssemblyVersion>0.0.6.0</AssemblyVersion>
-    <FileVersion>0.0.6.0</FileVersion>
+    <Version>0.0.7</Version>
+    <AssemblyVersion>0.0.7.0</AssemblyVersion>
+    <FileVersion>0.0.7.0</FileVersion>
+    <PackageLicenseExpression></PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Litee/moq.analyzers</RepositoryUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Remove="bin\**" />
+    <EmbeddedResource Remove="bin\**" />
+    <None Remove="bin\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.3" PrivateAssets="all" />
@@ -74,8 +83,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
-
 </Project>

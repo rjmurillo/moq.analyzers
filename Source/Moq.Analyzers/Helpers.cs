@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
-
-namespace Moq.Analyzers
+﻿namespace Moq.Analyzers
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -10,7 +8,7 @@ namespace Moq.Analyzers
 
     internal static class Helpers
     {
-        private static Regex setupMethodNamePattern = new Regex("^Moq\\.Mock<.*>\\.Setup\\.*");
+        private static readonly Regex SetupMethodNamePattern = new Regex("^Moq\\.Mock<.*>\\.Setup\\.*");
 
         internal static bool IsMoqSetupMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
         {
@@ -22,12 +20,12 @@ namespace Moq.Analyzers
             var symbolInfo = semanticModel.GetSymbolInfo(method);
             if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
             {
-                return symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().Any(s => setupMethodNamePattern.IsMatch(s.ToString()));
+                return symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().Any(s => SetupMethodNamePattern.IsMatch(s.ToString()));
             }
             else if (symbolInfo.CandidateReason == CandidateReason.None)
             {
                 // TODO: Replace regex with something more elegant
-                return symbolInfo.Symbol is IMethodSymbol && setupMethodNamePattern.IsMatch(symbolInfo.Symbol.ToString());
+                return symbolInfo.Symbol is IMethodSymbol && SetupMethodNamePattern.IsMatch(symbolInfo.Symbol.ToString());
             }
 
             return false;
