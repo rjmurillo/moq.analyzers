@@ -1,16 +1,21 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-#pragma warning disable SA1402 // File may only contain a single class
-#pragma warning disable SA1649 // File name must match first type name
+﻿#pragma warning disable SA1402 // File may only contain a single class
 #pragma warning disable SA1502 // Element must not be on a single line
+#pragma warning disable SA1602 // Undocumented enum values
+#pragma warning disable SA1649 // File name must match first type name
+#pragma warning disable RCS1163 // Unused parameter
+#pragma warning disable RCS1213 // Remove unused member declaration
+#pragma warning disable IDE0051 // Unused private member
+#pragma warning disable IDE0059 // Unnecessary value assignment
+#pragma warning disable IDE0060 // Unused parameter
 namespace SetupOnlyForOverridableMembers
 {
     using Moq;
+
     public interface ISampleInterface
     {
-        int Calculate(int a, int b);
-
         int TestProperty { get; set; }
+
+        int Calculate(int a, int b);
     }
 
     public abstract class BaseSampleClass
@@ -27,14 +32,13 @@ namespace SetupOnlyForOverridableMembers
 
     public class SampleClass : BaseSampleClass
     {
+        public int Property { get; set; }
 
         public override int Calculate(int a, int b) => 0;
 
         public sealed override int Calculate(int a, int b, int c) => 0;
 
         public virtual int DoSth() => 0;
-
-        public int Property { get; set; }
     }
 
     internal class MyUnitTests

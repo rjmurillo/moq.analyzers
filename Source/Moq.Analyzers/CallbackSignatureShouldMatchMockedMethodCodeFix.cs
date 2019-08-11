@@ -46,7 +46,7 @@
 
         private async Task<Document> FixCallbackSignature(SyntaxNode root, Document document, ParameterListSyntax oldParameters, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var callbackInvocation = oldParameters?.Parent?.Parent?.Parent?.Parent as InvocationExpressionSyntax;
             if (callbackInvocation != null)
             {
