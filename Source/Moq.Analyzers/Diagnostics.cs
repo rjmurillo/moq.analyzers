@@ -29,6 +29,10 @@
         internal const string SetupShouldBeUsedOnlyForOverridableMembersTitle = "Moq: Invalid setup parameter";
         internal const string SetupShouldBeUsedOnlyForOverridableMembersMessage = "Setup should be used only for overridable members.";
 
+        internal const string SetupShouldNotIncludeAsyncResultId = "Moq1201";
+        internal const string SetupShouldNotIncludeAsyncResultTitle = SetupShouldBeUsedOnlyForOverridableMembersTitle;
+        internal const string SetupShouldNotIncludeAsyncResultMessage = "Setup of async methods should use ReturnsAsync instead of .Result";
+
         internal const string AsShouldBeUsedOnlyForInterfaceId = "Moq1300";
         internal const string AsShouldBeUsedOnlyForInterfaceTitle = "Moq: Invalid As type parameter";
         internal const string AsShouldBeUsedOnlyForInterfaceMessage = "Mock.As() should take interfaces only";
