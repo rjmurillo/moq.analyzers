@@ -12,7 +12,8 @@ Note: If you are using Visual Studio 2017 then you can additionally install [Moq
 * Moq1100 = Callback signature must match the signature of the mocked method
 * Moq1101 = SetupGet/SetupSet should be used for properties, not for methods
 * Moq1200 = Setup should be used only for overridable members.
-* Moq1300 = Mock.As() should take interfaces only.
+* Moq1201 = Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`.
+* Moq1300 = Mock.As() should take interfaces 
 
 ## TODO
 
