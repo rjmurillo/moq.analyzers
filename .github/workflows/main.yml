@@ -1,0 +1,66 @@
+name: Main build
+
+on:
+  workflow_dispatch: # Allow running the workflow manually from the GitHub UI
+  push:
+    branches:
+      - main
+  workflow_call: # Allow to be called from the release workflow
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-2022, ubuntu-22.04]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        global-json-file: ./global.json
+
+    - name: NuGet Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release /bl:./artifacts/logs/release/build.release.binlog
+
+    - name: Test
+      run: dotnet test --no-build --configuration Release
+
+    - name: Publish Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: .NET Test Report (${{ matrix.os }})
+        path: "artifacts/TestResults/**/*.trx"
+        reporter: dotnet-trx
+        fail-on-error: true
+        fail-on-empty: true
+
+    - name: Upload binlogs
+      uses: actions/upload-artifact@v4
+      with:
+        name: binlogs-${{ matrix.os }}
+        path: ./artifacts/logs
+        if-no-files-found: error
+
+    # TODO: Wire up building packages. Tracked by #13.
+    # - name: Upload packages
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: packages-${{ matrix.os }}
+    #     path: |
+    #       ./artifacts/package
+    #     if-no-files-found: error

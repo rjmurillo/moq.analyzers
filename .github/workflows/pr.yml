@@ -1,0 +1,14 @@
+name: PR build
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/main.yml

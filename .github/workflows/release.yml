@@ -1,0 +1,35 @@
+name: Release publish
+
+on:
+  workflow_dispatch: # Allow running the workflow manually from the GitHub UI
+  release:
+    types:
+      - published # Run the workflow when a new GitHub release is published
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/main.yml
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          path: packages
+          pattern: packages-windows-*
+          merge-multiple: true
+      - name: Publish NuGet package
+        shell: pwsh
+        run: |
+          foreach ($file in (Get-ChildItem ./packages/release -Recurse -Include *.nupkg)) {
+            echo "NuGet publish for file: '$file'"
+            # TODO: Wire to publishing packages
+            # dotnet nuget push $file --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          }
