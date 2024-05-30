@@ -1,4 +1,6 @@
-﻿namespace TestHelper
+﻿using System.Diagnostics;
+
+namespace TestHelper
 {
     using System;
     using System.Collections.Generic;
@@ -42,6 +44,8 @@
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location.</returns>
         protected static Diagnostic[] GetSortedDiagnosticsFromDocuments(DiagnosticAnalyzer analyzer, Document[] documents)
         {
+            Debug.Assert(documents != null, nameof(documents) + " != null");
+
             var projects = new HashSet<Project>();
             foreach (var document in documents)
             {
@@ -51,6 +55,7 @@
             var diagnostics = new List<Diagnostic>();
             foreach (var project in projects)
             {
+                Debug.Assert(analyzer != null, nameof(analyzer) + " != null");
                 var compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(ImmutableArray.Create(analyzer));
                 var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
                 foreach (var diag in diags)
