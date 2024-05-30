@@ -10,7 +10,7 @@
     <RootNamespace>Moq.Analyzers</RootNamespace>
     <AssemblyName>Moq.Analyzers</AssemblyName>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
@@ -35,7 +35,7 @@
     <CodeAnalysisRuleSet>
     </CodeAnalysisRuleSet>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <PackageId>Moq.Analyzers</PackageId>
     <PackageVersion>0.0.6</PackageVersion>
