@@ -40,14 +40,12 @@ jobs:
       run: dotnet test --no-build --configuration Release
 
     - name: Publish Test Report
-      uses: dorny/test-reporter@v1
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
-        name: .NET Test Report (${{ matrix.os }})
+        name: .NET Test Reports (${{ matrix.os }})
         path: "artifacts/TestResults/**/*.trx"
-        reporter: dotnet-trx
-        fail-on-error: true
-        fail-on-empty: true
+        if-no-files-found: error
 
     - name: Upload binlogs
       uses: actions/upload-artifact@v4
