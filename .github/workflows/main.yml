@@ -2,6 +2,9 @@ name: Main build
 
 on:
   workflow_dispatch: # Allow running the workflow manually from the GitHub UI
+  pull_request:
+    branches:
+      - master
   push:
     branches:
       - master
@@ -52,11 +55,6 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration Release /bl:./artifacts/logs/release/build.release.binlog
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:csharp"
-
     - name: Test
       run: dotnet test --no-build --configuration Release
 
@@ -91,3 +89,8 @@ jobs:
     #     path: |
     #       ./artifacts/package
     #     if-no-files-found: error
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:csharp"
