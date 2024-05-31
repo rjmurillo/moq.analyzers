@@ -66,7 +66,7 @@ namespace Moq.Analyzers
             {
                 // Issue #1: Currently detection does not work well for abstract classes because they cannot be instantiated
 
-                // The mocked symbol is generic, so we need to check if the constructor arguments match the abstract class constructor
+                // The mocked symbol is abstract, so we need to check if the constructor arguments match the abstract class constructor
 
                 // Extract types of arguments passed in the constructor call
                 var argumentTypes = constructorArguments
