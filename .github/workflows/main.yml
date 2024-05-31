@@ -2,15 +2,21 @@ name: Main build
 
 on:
   workflow_dispatch: # Allow running the workflow manually from the GitHub UI
+  pull_request:
+    branches:
+      - master
   push:
     branches:
       - master
   workflow_call: # Allow to be called from the release workflow
+  schedule:
+    - cron: '31 15 * * 0' # Run periodically to keep CodeQL database updated
 
 permissions:
+  security-events: write  # required for CodeQL
+  packages: read
   contents: read
   actions: read
-  checks: write
 
 jobs:
   build:
@@ -24,6 +30,19 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: csharp
+        build-mode: manual
+        # If you wish to specify custom queries, you can do so here or in a config file.
+        # By default, queries listed here will override any specified in a config file.
+        # Prefix the list here with "+" to use these queries and those in the config file.
+
+        # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
+        # queries: security-extended,security-and-quality
+        queries: security-extended
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -70,3 +89,8 @@ jobs:
     #     path: |
     #       ./artifacts/package
     #     if-no-files-found: error
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:csharp"
