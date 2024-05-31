@@ -1,20 +1,19 @@
 ﻿namespace Moq.Analyzers.Test
 {
     using System.IO;
-    using ApprovalTests;
-    using ApprovalTests.Reporters;
+    using System.Threading.Tasks;
     using Microsoft.CodeAnalysis.CodeFixes;
     using Microsoft.CodeAnalysis.Diagnostics;
     using TestHelper;
+    using VerifyXunit;
     using Xunit;
 
-    [UseReporter(typeof(DiffReporter))]
     public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerifier
     {
         [Fact]
-        public void ShouldSuggestQuickFixIfBadParameters()
+        public Task ShouldSuggestQuickFixIfBadParameters()
         {
-            Approvals.Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.cs")));
+            return Verifier.Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.cs")));
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()

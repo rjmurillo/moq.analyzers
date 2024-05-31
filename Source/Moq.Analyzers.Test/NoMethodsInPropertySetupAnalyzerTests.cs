@@ -1,19 +1,18 @@
 ﻿namespace Moq.Analyzers.Test
 {
     using System.IO;
-    using ApprovalTests;
-    using ApprovalTests.Reporters;
+    using System.Threading.Tasks;
     using Microsoft.CodeAnalysis.Diagnostics;
     using TestHelper;
+    using VerifyXunit;
     using Xunit;
 
-    [UseReporter(typeof(DiffReporter))]
     public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
     {
         [Fact]
-        public void Test()
+        public Task Test()
         {
-            Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoMethodsInPropertySetup.cs")));
+            return Verifier.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoMethodsInPropertySetup.cs")));
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

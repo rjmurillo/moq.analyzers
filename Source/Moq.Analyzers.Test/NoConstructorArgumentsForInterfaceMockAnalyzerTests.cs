@@ -1,25 +1,24 @@
 ﻿namespace Moq.Analyzers.Test
 {
     using System.IO;
-    using ApprovalTests;
-    using ApprovalTests.Reporters;
+    using System.Threading.Tasks;
     using Microsoft.CodeAnalysis.Diagnostics;
     using TestHelper;
+    using VerifyXunit;
     using Xunit;
 
-    [UseReporter(typeof(DiffReporter))]
     public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVerifier
     {
         [Fact]
-        public void ShouldFailIfMockedInterfaceHasParameters()
+        public Task ShouldFailIfMockedInterfaceHasParameters()
         {
-            Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock_1.cs")));
+            return Verifier.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock_1.cs")));
         }
 
         [Fact]
-        public void ShouldPassIfCustomMockClassIsUsed()
+        public Task ShouldPassIfCustomMockClassIsUsed()
         {
-            Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock_2.cs")));
+            return Verifier.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock_2.cs")));
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

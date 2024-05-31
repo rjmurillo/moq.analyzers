@@ -1,19 +1,18 @@
 ﻿namespace Moq.Analyzers.Test
 {
     using System.IO;
-    using ApprovalTests;
-    using ApprovalTests.Reporters;
+    using System.Threading.Tasks;
     using Microsoft.CodeAnalysis.Diagnostics;
     using TestHelper;
+    using VerifyXunit;
     using Xunit;
 
-    [UseReporter(typeof(DiffReporter))]
     public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : DiagnosticVerifier
     {
         [Fact]
-        public void ShouldPassIfGoodParameters()
+        public Task ShouldPassIfGoodParameters()
         {
-            Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/SetupOnlyForOverridableMembers.cs")));
+            return Verifier.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/SetupOnlyForOverridableMembers.cs")));
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

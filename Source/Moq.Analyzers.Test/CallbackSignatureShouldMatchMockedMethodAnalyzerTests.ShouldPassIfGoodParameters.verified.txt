@@ -1,0 +1,32 @@
+﻿Diagnostic 1
+	Id: Moq1100
+	Location: SourceFile(Test0.cs[1120..1127))
+	Highlight: (int i)
+	Lines: mock.Setup(x => x.Do(It.IsAny<string>())).Callback((int i) => { });
+	Severity: Warning
+	Message: Callback signature must match the signature of the mocked method.
+
+Diagnostic 2
+	Id: Moq1100
+	Location: SourceFile(Test0.cs[1201..1223))
+	Highlight: (string s1, string s2)
+	Lines: mock.Setup(x => x.Do(It.IsAny<string>())).Callback((string s1, string s2) => { });
+	Severity: Warning
+	Message: Callback signature must match the signature of the mocked method.
+
+Diagnostic 3
+	Id: Moq1100
+	Location: SourceFile(Test0.cs[1336..1355))
+	Highlight: (string s1, int i1)
+	Lines: mock.Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback((string s1, int i1) => { });
+	Severity: Warning
+	Message: Callback signature must match the signature of the mocked method.
+
+Diagnostic 4
+	Id: Moq1100
+	Location: SourceFile(Test0.cs[1435..1442))
+	Highlight: (int i)
+	Lines: mock.Setup(x => x.Do(It.IsAny<List<string>>())).Callback((int i) => { });
+	Severity: Warning
+	Message: Callback signature must match the signature of the mocked method.
+
