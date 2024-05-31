@@ -11,7 +11,7 @@ namespace Moq.Analyzers.Test
     public class AbstractClassTests : DiagnosticVerifier
     {
         [Fact]
-        public Task ShouldPassIfGoodParameters()
+        public Task ShouldPassIfGoodParametersAndFailOnTypeMismatch()
         {
             return Verify(VerifyCSharpDiagnostic(
                 [
