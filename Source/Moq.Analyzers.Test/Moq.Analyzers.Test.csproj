@@ -38,7 +38,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Data\AbstractClass.cs">
+    <Compile Update="Data\AbstractClass.Bad.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Data\AbstractClass.Good.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Data\CallbackSignatureShouldMatchMockedMethod.cs">

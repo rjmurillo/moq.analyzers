@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Moq.Analyzers.Test.Data
+﻿namespace Moq.Analyzers.Test.Data
 {
     internal abstract class AbstractClassDefaultCtor
     {
@@ -38,16 +36,7 @@ namespace Moq.Analyzers.Test.Data
         private void TestForBaseWithArgsPassed()
         {
             var mock2 = new Mock<AbstractClassWithCtor>(42);
-        }
-
-        private void TestForBaseWithArgsPassedAndBehavior()
-        {
             var mock3 = new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42);
-        }
-
-        private void TestBad()
-        {
-            var mock = new Mock<AbstractClassWithCtor>("42");
         }
     }
 }

@@ -4,21 +4,21 @@ namespace Moq.Analyzers.Test
 {
     using System.IO;
 
-    using ApprovalTests;
-    using ApprovalTests.Reporters;
-
     using TestHelper;
 
     using Xunit;
 
-
-    [UseReporter(typeof(DiffReporter))]
     public class AbstractClassTests : DiagnosticVerifier
     {
         [Fact]
-        public void ShouldPassIfGoodParameters()
+        public Task ShouldPassIfGoodParameters()
         {
-            Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/AbstractClass.cs")));
+            return Verify(VerifyCSharpDiagnostic(
+                [
+                    File.ReadAllText("Data/AbstractClass.Good.cs"),
+                    File.ReadAllText("Data/AbstractClass.Bad.cs")
+                ]
+            ));
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
