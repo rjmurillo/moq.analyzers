@@ -1,0 +1,48 @@
+﻿Diagnostic 1
+	Id: Moq1002
+	Location: SourceFile(Test1.cs[252..258))
+	Highlight: ("42")
+	Lines: var mock = new Mock<AbstractClassWithCtor>("42");
+	Severity: Warning
+	Message: Parameters provided into mock do not match any existing constructors.
+
+Diagnostic 2
+	Id: Moq1002
+	Location: SourceFile(Test1.cs[316..326))
+	Highlight: ("42", 42)
+	Lines: var mock1 = new Mock<AbstractClassWithCtor>("42", 42);
+	Severity: Warning
+	Message: Parameters provided into mock do not match any existing constructors.
+
+Diagnostic 3
+	Id: Moq1002
+	Location: SourceFile(Test1.cs[451..455))
+	Highlight: (42)
+	Lines: var mock3 = new Mock<AbstractClassDefaultCtor>(42);
+	Severity: Warning
+	Message: Parameters provided into mock do not match any existing constructors.
+
+Diagnostic 4
+	Id: Moq1002
+	Location: SourceFile(Test1.cs[672..678))
+	Highlight: ("42")
+	Lines: var mock = new Mock<AbstractGenericClassWithCtor<object>>("42");
+	Severity: Warning
+	Message: Parameters provided into mock do not match any existing constructors.
+
+Diagnostic 5
+	Id: Moq1002
+	Location: SourceFile(Test1.cs[751..761))
+	Highlight: ("42", 42)
+	Lines: var mock1 = new Mock<AbstractGenericClassWithCtor<object>>("42", 42);
+	Severity: Warning
+	Message: Parameters provided into mock do not match any existing constructors.
+
+Diagnostic 6
+	Id: Moq1002
+	Location: SourceFile(Test1.cs[914..918))
+	Highlight: (42)
+	Lines: var mock3 = new Mock<AbstractGenericClassDefaultCtor<object>>(42);
+	Severity: Warning
+	Message: Parameters provided into mock do not match any existing constructors.
+
