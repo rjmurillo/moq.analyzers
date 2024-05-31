@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[259..265))
+	Location: SourceFile(Test1.cs[252..258))
 	Highlight: ("42")
 	Lines: var mock = new Mock<AbstractClassWithCtor>("42");
 	Severity: Warning
