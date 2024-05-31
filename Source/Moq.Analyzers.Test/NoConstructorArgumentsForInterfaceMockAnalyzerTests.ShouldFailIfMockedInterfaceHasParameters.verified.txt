@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1001
-	Location: SourceFile(Test0.cs[856..866))
+	Location: SourceFile(Test0.cs[834..844))
 	Highlight: (25, true)
 	Lines: var mock1 = new Moq.Mock<IMyService>(25, true);
 	Severity: Warning
@@ -8,7 +8,7 @@
 
 Diagnostic 2
 	Id: Moq1001
-	Location: SourceFile(Test0.cs[913..920))
+	Location: SourceFile(Test0.cs[890..897))
 	Highlight: ("123")
 	Lines: var mock2 = new Mock<IMyService>("123");
 	Severity: Warning
@@ -16,7 +16,7 @@ Diagnostic 2
 
 Diagnostic 3
 	Id: Moq1001
-	Location: SourceFile(Test0.cs[1008..1018))
+	Location: SourceFile(Test0.cs[984..994))
 	Highlight: (25, true)
 	Lines: var mock3 = new Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(25, true);
 	Severity: Warning
@@ -24,7 +24,7 @@ Diagnostic 3
 
 Diagnostic 4
 	Id: Moq1001
-	Location: SourceFile(Test0.cs[1110..1117))
+	Location: SourceFile(Test0.cs[1085..1092))
 	Highlight: ("123")
 	Lines: var mock4 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>("123");
 	Severity: Warning
@@ -32,7 +32,7 @@ Diagnostic 4
 
 Diagnostic 5
 	Id: Moq1001
-	Location: SourceFile(Test0.cs[1225..1258))
+	Location: SourceFile(Test0.cs[1195..1228))
 	Highlight: (Moq.MockBehavior.Default, "123")
 	Lines: var mock1 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default, "123");
 	Severity: Warning
@@ -40,7 +40,7 @@ Diagnostic 5
 
 Diagnostic 6
 	Id: Moq1001
-	Location: SourceFile(Test0.cs[1305..1336))
+	Location: SourceFile(Test0.cs[1274..1305))
 	Highlight: (MockBehavior.Strict, 25, true)
 	Lines: var mock2 = new Mock<IMyService>(MockBehavior.Strict, 25, true);
 	Severity: Warning
@@ -48,7 +48,7 @@ Diagnostic 6
 
 Diagnostic 7
 	Id: Moq1001
-	Location: SourceFile(Test0.cs[1424..1457))
+	Location: SourceFile(Test0.cs[1392..1425))
 	Highlight: (Moq.MockBehavior.Default, "123")
 	Lines: var mock3 = new Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(Moq.MockBehavior.Default, "123");
 	Severity: Warning
@@ -56,7 +56,7 @@ Diagnostic 7
 
 Diagnostic 8
 	Id: Moq1001
-	Location: SourceFile(Test0.cs[1549..1579))
+	Location: SourceFile(Test0.cs[1516..1546))
 	Highlight: (MockBehavior.Loose, 25, true)
 	Lines: var mock4 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(MockBehavior.Loose, 25, true);
 	Severity: Warning
