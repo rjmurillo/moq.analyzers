@@ -1,0 +1,64 @@
+﻿Diagnostic 1
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[856..866))
+	Highlight: (25, true)
+	Lines: var mock1 = new Moq.Mock<IMyService>(25, true);
+	Severity: Warning
+	Message: Mocked interfaces cannot have constructor parameters.
+
+Diagnostic 2
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[913..920))
+	Highlight: ("123")
+	Lines: var mock2 = new Mock<IMyService>("123");
+	Severity: Warning
+	Message: Mocked interfaces cannot have constructor parameters.
+
+Diagnostic 3
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[1008..1018))
+	Highlight: (25, true)
+	Lines: var mock3 = new Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(25, true);
+	Severity: Warning
+	Message: Mocked interfaces cannot have constructor parameters.
+
+Diagnostic 4
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[1110..1117))
+	Highlight: ("123")
+	Lines: var mock4 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>("123");
+	Severity: Warning
+	Message: Mocked interfaces cannot have constructor parameters.
+
+Diagnostic 5
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[1225..1258))
+	Highlight: (Moq.MockBehavior.Default, "123")
+	Lines: var mock1 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default, "123");
+	Severity: Warning
+	Message: Mocked interfaces cannot have constructor parameters.
+
+Diagnostic 6
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[1305..1336))
+	Highlight: (MockBehavior.Strict, 25, true)
+	Lines: var mock2 = new Mock<IMyService>(MockBehavior.Strict, 25, true);
+	Severity: Warning
+	Message: Mocked interfaces cannot have constructor parameters.
+
+Diagnostic 7
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[1424..1457))
+	Highlight: (Moq.MockBehavior.Default, "123")
+	Lines: var mock3 = new Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(Moq.MockBehavior.Default, "123");
+	Severity: Warning
+	Message: Mocked interfaces cannot have constructor parameters.
+
+Diagnostic 8
+	Id: Moq1001
+	Location: SourceFile(Test0.cs[1549..1579))
+	Highlight: (MockBehavior.Loose, 25, true)
+	Lines: var mock4 = new Moq.Mock<NoConstructorArgumentsForInterfaceMock_1.IMyService>(MockBehavior.Loose, 25, true);
+	Severity: Warning
+	Message: Mocked interfaces cannot have constructor parameters.
+

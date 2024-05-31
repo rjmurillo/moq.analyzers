@@ -1,19 +1,17 @@
 ﻿namespace Moq.Analyzers.Test
 {
     using System.IO;
-    using ApprovalTests;
-    using ApprovalTests.Reporters;
+    using System.Threading.Tasks;
     using Microsoft.CodeAnalysis.Diagnostics;
     using TestHelper;
     using Xunit;
 
-    [UseReporter(typeof(DiffReporter))]
     public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier
     {
         [Fact]
-        public void ShouldFailIfFileIsSealed()
+        public Task ShouldFailIfFileIsSealed()
         {
-            Approvals.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoSealedClassMocks.cs")));
+            return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoSealedClassMocks.cs")));
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

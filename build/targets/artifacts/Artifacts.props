@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <ArtifactsPath>$(RepoRoot)/artifacts</ArtifactsPath>
+    <ArtifactsTestResultsPath>$(ArtifactsPath)/TestResults</ArtifactsTestResultsPath>
+  </PropertyGroup>
+</Project>
