@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis.Diagnostics;
     using TestHelper;
-    using VerifyXunit;
     using Xunit;
 
     public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
@@ -12,7 +11,7 @@
         [Fact]
         public Task ShouldPassIfGoodParameters()
         {
-            return Verifier.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/AsAcceptOnlyInterface.cs")));
+            return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/AsAcceptOnlyInterface.cs")));
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

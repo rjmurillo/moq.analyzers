@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis.Diagnostics;
     using TestHelper;
-    using VerifyXunit;
     using Xunit;
 
     public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
@@ -12,7 +11,7 @@
         [Fact]
         public Task ShouldPassIfSetupProperly()
         {
-            return Verifier.Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/SetupShouldNotIncludeAsyncResult.cs")));
+            return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/SetupShouldNotIncludeAsyncResult.cs")));
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

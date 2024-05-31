@@ -5,7 +5,6 @@
     using Microsoft.CodeAnalysis.CodeFixes;
     using Microsoft.CodeAnalysis.Diagnostics;
     using TestHelper;
-    using VerifyXunit;
     using Xunit;
 
     public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerifier
@@ -13,7 +12,7 @@
         [Fact]
         public Task ShouldSuggestQuickFixIfBadParameters()
         {
-            return Verifier.Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.cs")));
+            return Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.cs")));
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
