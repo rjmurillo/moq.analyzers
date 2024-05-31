@@ -1,7 +1,17 @@
 <Project>
-  <PropertyGroup>
+  <PropertyGroup Label="Language options">
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <PropertyGroup Label="Code analysis">
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisMode>All</AnalysisMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(RepoRoot)/Source/stylecop.json" />
+  </ItemGroup>
 </Project>
