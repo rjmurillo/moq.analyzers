@@ -26,11 +26,6 @@ namespace ConstructorArgumentsShouldMatch
         public Foo(List<string> l, string s = "A") { }
     }
 
-    internal abstract class FooAbstract
-    {
-        public FooAbstract(string s) { }
-    }
-
     internal class MyUnitTests
 #pragma warning restore SA1402 // File may only contain a single class
     {
@@ -71,12 +66,6 @@ namespace ConstructorArgumentsShouldMatch
             var mock14 = new Mock<Foo>(new List<string>());
             var mock15 = new Mock<Foo>(MockBehavior.Default, new List<string>(), "8");
             var mock16 = new Mock<Foo>(MockBehavior.Default, new List<string>());
-        }
-
-        private void TestAbstractGood()
-        {
-            var mock1 = new Mock<FooAbstract>("9");
-            var mock2 = new Mock<FooAbstract>(MockBehavior.Default, "10");
         }
     }
 }

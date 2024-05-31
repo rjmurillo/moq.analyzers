@@ -32,26 +32,13 @@ namespace Moq.Analyzers
         {
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
-            // TODO Think how to make this piece more elegant while fast
-            GenericNameSyntax genericName = objectCreation.Type as GenericNameSyntax;
-            if (objectCreation.Type is QualifiedNameSyntax)
-            {
-                var qualifiedName = objectCreation.Type as QualifiedNameSyntax;
-                genericName = qualifiedName.Right as GenericNameSyntax;
-            }
+            var genericName = GetGenericNameSyntax(objectCreation.Type);
+            if (genericName == null) return;
 
-            if (genericName?.Identifier == null || genericName.TypeArgumentList == null) return;
-
-            // Quick and dirty check that we are calling new Mock<T>()
-            if (genericName.Identifier.ToFullString() != "Mock") return;
+            if (!IsMockGenericType(genericName)) return;
 
             // Full check that we are calling new Mock<T>()
-            var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation);
-            var constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
-            if (constructorSymbol == null || constructorSymbol.ContainingType == null || constructorSymbol.ContainingType.ConstructedFrom == null) return;
-            if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
-            if (constructorSymbol.ContainingType.ConstructedFrom.ToDisplayString() != "Moq.Mock<T>") return;
-            if (constructorSymbol.Parameters == null || constructorSymbol.Parameters.Length == 0) return;
+            var constructorSymbol = GetConstructorSymbol(context, objectCreation);
 
             // Vararg parameter is the one that takes all arguments for mocked class constructor
             var varArgsConstructorParameter = constructorSymbol.Parameters.FirstOrDefault(x => x.IsParams);
@@ -61,26 +48,118 @@ namespace Moq.Analyzers
             var varArgsConstructorParameterIdx = constructorSymbol.Parameters.IndexOf(varArgsConstructorParameter);
 
             // Find mocked type
-            var typeArguments = genericName.TypeArgumentList.Arguments;
-            if (typeArguments == null || typeArguments.Count != 1) return;
-            var mockedTypeSymbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0]);
-            var mockedTypeSymbol = mockedTypeSymbolInfo.Symbol as INamedTypeSymbol;
-            if (mockedTypeSymbol == null || mockedTypeSymbol.TypeKind != TypeKind.Class) return;
-
-            // TODO: Currently detection does not work well for abstract classes because they cannot be instantiated
-            if (mockedTypeSymbol.IsAbstract) return;
+            var mockedTypeSymbol = GetMockedSymbol(context, genericName);
+            if (mockedTypeSymbol == null) return;
 
             // Skip first argument if it is not vararg - typically it is MockingBehavior argument
             var constructorArguments = objectCreation.ArgumentList.Arguments.Skip(varArgsConstructorParameterIdx == 0 ? 0 : 1).ToArray();
 
-            // Build fake constructor call to understand how it is resolved
-            var fakeConstructorCall = SyntaxFactory.ObjectCreationExpression(typeArguments[0], SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(constructorArguments)), null);
-            var mockedClassConstructorSymbolInfo = context.SemanticModel.GetSpeculativeSymbolInfo(objectCreation.GetLocation().SourceSpan.Start, fakeConstructorCall, SpeculativeBindingOption.BindAsExpression);
-            if (mockedClassConstructorSymbolInfo.Symbol == null)
+            if (!mockedTypeSymbol.IsAbstract)
             {
+                if (IsConstructorMismatch(context, objectCreation, genericName, constructorArguments))
+                {
+                    var diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
+                    context.ReportDiagnostic(diagnostic);
+                }
+            }
+            else
+            {
+                // Issue #1: Currently detection does not work well for abstract classes because they cannot be instantiated
+
+                // The mocked symbol is abstract, so we need to check if the constructor arguments match the abstract class constructor
+
+                // Extract types of arguments passed in the constructor call
+                var argumentTypes = constructorArguments
+                    .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression).Type)
+                    .ToArray();
+
+                // Check all constructors of the abstract type
+                foreach (var constructor in mockedTypeSymbol.Constructors)
+                {
+                    if (AreParametersMatching(constructor.Parameters, argumentTypes))
+                    {
+                        return; // Found a matching constructor
+                    }
+                }
+
                 var diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
+        }
+
+        private static INamedTypeSymbol GetMockedSymbol(
+            SyntaxNodeAnalysisContext context,
+            GenericNameSyntax genericName)
+        {
+            var typeArguments = genericName.TypeArgumentList.Arguments;
+            if (typeArguments == null || typeArguments.Count != 1) return null;
+            var mockedTypeSymbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0]);
+            var mockedTypeSymbol = mockedTypeSymbolInfo.Symbol as INamedTypeSymbol;
+            if (mockedTypeSymbol == null || mockedTypeSymbol.TypeKind != TypeKind.Class) return null;
+            return mockedTypeSymbol;
+        }
+
+        private static bool AreParametersMatching(ImmutableArray<IParameterSymbol> constructorParameters, ITypeSymbol[] argumentTypes2)
+        {
+            // Check if the number of parameters matches
+            if (constructorParameters.Length != argumentTypes2.Length)
+            {
+                return false;
+            }
+
+            // Check if each parameter type matches in order
+            for (int i = 0; i < constructorParameters.Length; i++)
+            {
+                if (!constructorParameters[i].Type.Equals(argumentTypes2[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static GenericNameSyntax GetGenericNameSyntax(TypeSyntax typeSyntax)
+        {
+            if (typeSyntax is GenericNameSyntax genericNameSyntax)
+            {
+                return genericNameSyntax;
+            }
+
+            if (typeSyntax is QualifiedNameSyntax qualifiedNameSyntax)
+            {
+                return qualifiedNameSyntax.Right as GenericNameSyntax;
+            }
+
+            return null;
+        }
+
+        private static bool IsMockGenericType(GenericNameSyntax genericName)
+        {
+            return genericName?.Identifier.Text == "Mock" && genericName.TypeArgumentList.Arguments.Count == 1;
+        }
+
+        private static IMethodSymbol GetConstructorSymbol(SyntaxNodeAnalysisContext context, ObjectCreationExpressionSyntax objectCreation)
+        {
+            var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation);
+            var constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
+            return constructorSymbol?.MethodKind == MethodKind.Constructor &&
+                   constructorSymbol.ContainingType?.ConstructedFrom.ToDisplayString() == "Moq.Mock<T>"
+                ? constructorSymbol
+                : null;
+        }
+
+        private static bool IsConstructorMismatch(SyntaxNodeAnalysisContext context, ObjectCreationExpressionSyntax objectCreation, GenericNameSyntax genericName, ArgumentSyntax[] constructorArguments)
+        {
+            var fakeConstructorCall = SyntaxFactory.ObjectCreationExpression(
+                genericName.TypeArgumentList.Arguments.First(),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(constructorArguments)),
+                null);
+
+            var mockedClassConstructorSymbolInfo = context.SemanticModel.GetSpeculativeSymbolInfo(
+                objectCreation.SpanStart, fakeConstructorCall, SpeculativeBindingOption.BindAsExpression);
+
+            return mockedClassConstructorSymbolInfo.Symbol == null;
         }
     }
 }
