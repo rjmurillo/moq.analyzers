@@ -67,8 +67,14 @@
 
         private void TestForBaseWithArgsPassed()
         {
-            var mock2 = new Mock<AbstractClassWithCtor>(42);
-            var mock3 = new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42);
+            var mock = new Mock<AbstractClassWithCtor>(42);
+            var mock2 = new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42);
+
+            var mock3 = new Mock<AbstractClassWithCtor>(42, "42");
+            var mock4 = new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42, "42");
+
+            var mock5 = new Mock<AbstractGenericClassWithCtor<object>>(42);
+            var mock6 = new Mock<AbstractGenericClassWithCtor<object>>(MockBehavior.Default, 42);
         }
     }
 }
