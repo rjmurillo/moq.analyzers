@@ -39,6 +39,7 @@
     <PackageReleaseNotes>Upgraded to support Visual Studio 2019</PackageReleaseNotes>
     <Copyright>2015-2019 Andrey Lipatkin</Copyright>
     <PackageTags>moq, mock, test, analyzers</PackageTags>
+    <DevelopmentDependency>true</DevelopmentDependency> 
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
