@@ -1,11 +1,11 @@
-﻿namespace TestHelper
-{
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
+namespace TestHelper
+{
     /// <summary>
     /// Superclass of all Unit Tests for DiagnosticAnalyzers
     /// </summary>

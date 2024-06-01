@@ -1,15 +1,15 @@
-﻿namespace TestHelper
-{
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CodeActions;
-    using Microsoft.CodeAnalysis.CodeFixes;
-    using Microsoft.CodeAnalysis.Diagnostics;
-    using Microsoft.CodeAnalysis.Formatting;
-    using Xunit;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
+using Xunit;
 
+namespace TestHelper
+{
     /// <summary>
     /// Superclass of all Unit tests made for diagnostics with codefixes.
     /// Contains methods used to verify correctness of codefixes

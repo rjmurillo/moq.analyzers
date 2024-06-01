@@ -1,11 +1,11 @@
-﻿namespace Moq.Analyzers
-{
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+namespace Moq.Analyzers
+{
     internal static class Helpers
     {
         private static MoqMethodDescriptor moqSetupMethodDescriptor = new MoqMethodDescriptor("Setup", new Regex("^Moq\\.Mock<.*>\\.Setup\\.*"));

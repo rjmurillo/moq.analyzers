@@ -1,8 +1,8 @@
-﻿namespace Moq.Analyzers.Test
-{
-    using System.Runtime.CompilerServices;
-    using VerifyTests;
+﻿using System.Runtime.CompilerServices;
+using VerifyTests;
 
+namespace Moq.Analyzers.Test
+{
     public static class ModuleInitializer
     {
         [ModuleInitializer]

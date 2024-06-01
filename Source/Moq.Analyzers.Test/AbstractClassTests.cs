@@ -1,13 +1,12 @@
 ﻿using Microsoft.CodeAnalysis.Diagnostics;
+using System.IO;
+
+using TestHelper;
+
+using Xunit;
 
 namespace Moq.Analyzers.Test
 {
-    using System.IO;
-
-    using TestHelper;
-
-    using Xunit;
-
     public class AbstractClassTests : DiagnosticVerifier
     {
         [Fact]

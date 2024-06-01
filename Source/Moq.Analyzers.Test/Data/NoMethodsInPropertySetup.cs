@@ -1,3 +1,5 @@
+using Moq;
+
 #pragma warning disable SA1402 // File may only contain a single class
 #pragma warning disable SA1502 // Element must not be on a single line
 #pragma warning disable SA1602 // Undocumented enum values
@@ -9,8 +11,6 @@
 #pragma warning disable IDE0060 // Unused parameter
 namespace NoMethodsInPropertySetup
 {
-    using Moq;
-
     public interface IFoo
     {
         string Prop1 { get; set; }

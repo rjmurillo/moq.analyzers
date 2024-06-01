@@ -1,18 +1,18 @@
-﻿namespace TestHelper
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Linq.Expressions;
-    using System.Reflection;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.Diagnostics;
-    using Microsoft.CodeAnalysis.Text;
-    using Moq;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
+using Moq;
 
+namespace TestHelper
+{
     /// <summary>
     /// Class for turning strings into documents and getting the diagnostics on them
     /// All methods are static.

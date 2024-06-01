@@ -1,7 +1,7 @@
-﻿namespace TestHelper
-{
-    using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
+namespace TestHelper
+{
     /// <summary>
     /// Struct that stores information about a Diagnostic appearing in a source
     /// </summary>

@@ -1,15 +1,15 @@
-﻿namespace Moq.Analyzers
-{
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+namespace Moq.Analyzers
+{
     internal class MoqMethodDescriptor
     {
         private readonly bool isGeneric;
 
-        public MoqMethodDescriptor(string shortMethodName, Regex fullMethodNamePattern, bool isGeneric=false)
+        public MoqMethodDescriptor(string shortMethodName, Regex fullMethodNamePattern, bool isGeneric = false)
         {
             this.isGeneric = isGeneric;
             ShortMethodName = shortMethodName;

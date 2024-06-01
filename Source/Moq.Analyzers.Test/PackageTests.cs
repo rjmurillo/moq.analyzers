@@ -1,11 +1,11 @@
-﻿namespace Moq.Analyzers.Test
-{
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Threading.Tasks;
-    using Xunit;
+﻿using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using Xunit;
 
+namespace Moq.Analyzers.Test
+{
     public class PackageTests
     {
         private static readonly FileInfo Package;
