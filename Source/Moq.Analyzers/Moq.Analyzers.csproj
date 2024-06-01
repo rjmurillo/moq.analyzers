@@ -31,7 +31,7 @@
   <PropertyGroup>
     <PackageId>Moq.Analyzers</PackageId>
     <Authors>Andrey "Litee" Lipatkin</Authors>
-    <PackageLicenseUrl>https://github.com/Litee/moq.analyzers/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Litee/moq.analyzers</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Roslyn analyzer that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn. Find the full list of detected issues at project GitHub page.</Description>
