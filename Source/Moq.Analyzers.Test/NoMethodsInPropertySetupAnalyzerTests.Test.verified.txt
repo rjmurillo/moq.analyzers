@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1101
-	Location: SourceFile(Test0.cs[925..935))
+	Location: SourceFile(Test0.cs[872..882))
 	Highlight: x.Method()
 	Lines: mock.SetupGet(x => x.Method());
 	Severity: Warning
@@ -8,7 +8,7 @@
 
 Diagnostic 2
 	Id: Moq1101
-	Location: SourceFile(Test0.cs[969..979))
+	Location: SourceFile(Test0.cs[912..922))
 	Highlight: x.Method()
 	Lines: mock.SetupSet(x => x.Method());
 	Severity: Warning
