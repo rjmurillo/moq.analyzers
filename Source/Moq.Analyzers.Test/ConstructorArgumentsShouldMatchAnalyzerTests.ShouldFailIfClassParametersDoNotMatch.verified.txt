@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1002
-	Location: SourceFile(Test0.cs[1227..1236))
+	Location: SourceFile(Test0.cs[1216..1225))
 	Highlight: (1, true)
 	Lines: var mock1 = new Moq.Mock<Foo>(1, true);
 	Severity: Warning
@@ -8,7 +8,7 @@
 
 Diagnostic 2
 	Id: Moq1002
-	Location: SourceFile(Test0.cs[1307..1316))
+	Location: SourceFile(Test0.cs[1296..1305))
 	Highlight: (2, true)
 	Lines: var mock2 = new Mock<ConstructorArgumentsShouldMatch.Foo>(2, true);
 	Severity: Warning
@@ -16,7 +16,7 @@ Diagnostic 2
 
 Diagnostic 3
 	Id: Moq1002
-	Location: SourceFile(Test0.cs[1387..1395))
+	Location: SourceFile(Test0.cs[1376..1384))
 	Highlight: ("1", 3)
 	Lines: var mock3 = new Mock<ConstructorArgumentsShouldMatch.Foo>("1", 3);
 	Severity: Warning
@@ -24,7 +24,7 @@ Diagnostic 3
 
 Diagnostic 4
 	Id: Moq1002
-	Location: SourceFile(Test0.cs[1466..1489))
+	Location: SourceFile(Test0.cs[1455..1478))
 	Highlight: (new int[] { 1, 2, 3 })
 	Lines: var mock4 = new Mock<ConstructorArgumentsShouldMatch.Foo>(new int[] { 1, 2, 3 });
 	Severity: Warning
@@ -32,7 +32,7 @@ Diagnostic 4
 
 Diagnostic 5
 	Id: Moq1002
-	Location: SourceFile(Test0.cs[1581..1611))
+	Location: SourceFile(Test0.cs[1570..1600))
 	Highlight: (MockBehavior.Strict, 4, true)
 	Lines: var mock1 = new Mock<Foo>(MockBehavior.Strict, 4, true);
 	Severity: Warning
@@ -40,7 +40,7 @@ Diagnostic 5
 
 Diagnostic 6
 	Id: Moq1002
-	Location: SourceFile(Test0.cs[1686..1715))
+	Location: SourceFile(Test0.cs[1675..1704))
 	Highlight: (MockBehavior.Loose, 5, true)
 	Lines: var mock2 = new Moq.Mock<ConstructorArgumentsShouldMatch.Foo>(MockBehavior.Loose, 5, true);
 	Severity: Warning
@@ -48,7 +48,7 @@ Diagnostic 6
 
 Diagnostic 7
 	Id: Moq1002
-	Location: SourceFile(Test0.cs[1790..1818))
+	Location: SourceFile(Test0.cs[1779..1807))
 	Highlight: (MockBehavior.Loose, "2", 6)
 	Lines: var mock3 = new Moq.Mock<ConstructorArgumentsShouldMatch.Foo>(MockBehavior.Loose, "2", 6);
 	Severity: Warning

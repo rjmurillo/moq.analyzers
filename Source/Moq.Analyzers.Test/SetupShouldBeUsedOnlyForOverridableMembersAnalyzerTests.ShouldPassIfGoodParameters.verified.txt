@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1200
-	Location: SourceFile(Test0.cs[2064..2077))
+	Location: SourceFile(Test0.cs[2060..2073))
 	Highlight: x.Calculate()
 	Lines: mock.Setup(x => x.Calculate());
 	Severity: Error
@@ -8,7 +8,7 @@
 
 Diagnostic 2
 	Id: Moq1200
-	Location: SourceFile(Test0.cs[2228..2290))
+	Location: SourceFile(Test0.cs[2224..2286))
 	Highlight: x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())
 	Lines: mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()));
 	Severity: Error
@@ -16,7 +16,7 @@ Diagnostic 2
 
 Diagnostic 3
 	Id: Moq1200
-	Location: SourceFile(Test0.cs[2447..2457))
+	Location: SourceFile(Test0.cs[2443..2453))
 	Highlight: x.Property
 	Lines: mock.Setup(x => x.Property);
 	Severity: Error
