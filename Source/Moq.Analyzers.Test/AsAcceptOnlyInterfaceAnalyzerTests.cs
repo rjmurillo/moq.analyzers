@@ -4,19 +4,18 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
 using Xunit;
 
-namespace Moq.Analyzers.Test
-{
-    public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
-    {
-        [Fact]
-        public Task ShouldPassIfGoodParameters()
-        {
-            return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/AsAcceptOnlyInterface.cs")));
-        }
+namespace Moq.Analyzers.Test;
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new AsShouldBeUsedOnlyForInterfaceAnalyzer();
-        }
+public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
+{
+    [Fact]
+    public Task ShouldPassIfGoodParameters()
+    {
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/AsAcceptOnlyInterface.cs")));
+    }
+
+    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+    {
+        return new AsShouldBeUsedOnlyForInterfaceAnalyzer();
     }
 }

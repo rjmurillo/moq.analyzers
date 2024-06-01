@@ -5,65 +5,64 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Moq.Analyzers
+namespace Moq.Analyzers;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        Diagnostics.SetupShouldNotIncludeAsyncResultId,
+        Diagnostics.SetupShouldNotIncludeAsyncResultTitle,
+        Diagnostics.SetupShouldNotIncludeAsyncResultMessage,
+        Diagnostics.Category,
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+
+    public override void Initialize(AnalysisContext context)
     {
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            Diagnostics.SetupShouldNotIncludeAsyncResultId,
-            Diagnostics.SetupShouldNotIncludeAsyncResultTitle,
-            Diagnostics.SetupShouldNotIncludeAsyncResultMessage,
-            Diagnostics.Category,
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
+    }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+    private static void Analyze(SyntaxNodeAnalysisContext context)
+    {
+        var setupInvocation = (InvocationExpressionSyntax)context.Node;
 
-        public override void Initialize(AnalysisContext context)
+        if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && Helpers.IsMoqSetupMethod(context.SemanticModel, memberAccessExpression))
         {
-            context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
-        }
-
-        private static void Analyze(SyntaxNodeAnalysisContext context)
-        {
-            var setupInvocation = (InvocationExpressionSyntax)context.Node;
-
-            if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && Helpers.IsMoqSetupMethod(context.SemanticModel, memberAccessExpression))
+            var mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
+            if (mockedMemberExpression == null)
             {
-                var mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
-                if (mockedMemberExpression == null)
-                {
-                    return;
-                }
+                return;
+            }
 
-                var symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression);
-                if (symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
+            var symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression);
+            if (symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
+            {
+                if (IsMethodOverridable(symbolInfo.Symbol) == false &&
+                    IsMethodReturnTypeTask(symbolInfo.Symbol) == true)
                 {
-                    if (IsMethodOverridable(symbolInfo.Symbol) == false &&
-                        IsMethodReturnTypeTask(symbolInfo.Symbol) == true)
-                    {
-                        var diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
-                        context.ReportDiagnostic(diagnostic);
-                    }
+                    var diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
+                    context.ReportDiagnostic(diagnostic);
                 }
             }
         }
+    }
 
-        private static bool IsMethodOverridable(ISymbol methodSymbol)
-        {
-            return methodSymbol.IsSealed == false && (methodSymbol.IsVirtual || methodSymbol.IsAbstract || methodSymbol.IsOverride);
-        }
+    private static bool IsMethodOverridable(ISymbol methodSymbol)
+    {
+        return methodSymbol.IsSealed == false && (methodSymbol.IsVirtual || methodSymbol.IsAbstract || methodSymbol.IsOverride);
+    }
 
-        private static bool IsMethodReturnTypeTask(ISymbol methodSymbol)
-        {
-            var type = methodSymbol.ToDisplayString();
-            return type != null &&
-                   (type == "System.Threading.Tasks.Task" ||
-                    type == "System.Threading.ValueTask" ||
-                    type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal) ||
-                    type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal) &&
-                    type.EndsWith(".Result", StringComparison.Ordinal));
-        }
+    private static bool IsMethodReturnTypeTask(ISymbol methodSymbol)
+    {
+        var type = methodSymbol.ToDisplayString();
+        return type != null &&
+               (type == "System.Threading.Tasks.Task" ||
+                type == "System.Threading.ValueTask" ||
+                type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal) ||
+                type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal) &&
+                type.EndsWith(".Result", StringComparison.Ordinal));
     }
 }

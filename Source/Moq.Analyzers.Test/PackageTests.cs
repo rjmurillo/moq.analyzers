@@ -4,25 +4,24 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Moq.Analyzers.Test
+namespace Moq.Analyzers.Test;
+
+public class PackageTests
 {
-    public class PackageTests
+    private static readonly FileInfo Package;
+
+    static PackageTests()
     {
-        private static readonly FileInfo Package;
+        Package = new FileInfo(Assembly.GetExecutingAssembly().Location)
+            .Directory!
+            .GetFiles("Moq.Analyzers*.nupkg")
+            .OrderByDescending(f => f.LastWriteTimeUtc)
+            .First();
+    }
 
-        static PackageTests()
-        {
-            Package = new FileInfo(Assembly.GetExecutingAssembly().Location)
-                .Directory!
-                .GetFiles("Moq.Analyzers*.nupkg")
-                .OrderByDescending(f => f.LastWriteTimeUtc)
-                .First();
-        }
-
-        [Fact]
-        public Task Baseline()
-        {
-            return VerifyFile(Package).ScrubNuspec();
-        }
+    [Fact]
+    public Task Baseline()
+    {
+        return VerifyFile(Package).ScrubNuspec();
     }
 }

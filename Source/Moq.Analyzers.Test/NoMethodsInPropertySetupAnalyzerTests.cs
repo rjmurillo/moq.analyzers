@@ -4,19 +4,18 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
 using Xunit;
 
-namespace Moq.Analyzers.Test
-{
-    public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
-    {
-        [Fact]
-        public Task Test()
-        {
-            return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoMethodsInPropertySetup.cs")));
-        }
+namespace Moq.Analyzers.Test;
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new NoMethodsInPropertySetupAnalyzer();
-        }
+public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
+{
+    [Fact]
+    public Task Test()
+    {
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoMethodsInPropertySetup.cs")));
+    }
+
+    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+    {
+        return new NoMethodsInPropertySetupAnalyzer();
     }
 }

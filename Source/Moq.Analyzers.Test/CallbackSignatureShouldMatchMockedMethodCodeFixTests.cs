@@ -5,24 +5,23 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
 using Xunit;
 
-namespace Moq.Analyzers.Test
+namespace Moq.Analyzers.Test;
+
+public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerifier
 {
-    public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerifier
+    [Fact]
+    public Task ShouldSuggestQuickFixIfBadParameters()
     {
-        [Fact]
-        public Task ShouldSuggestQuickFixIfBadParameters()
-        {
-            return Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.cs")));
-        }
+        return Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.cs")));
+    }
 
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return new CallbackSignatureShouldMatchMockedMethodCodeFix();
-        }
+    protected override CodeFixProvider GetCSharpCodeFixProvider()
+    {
+        return new CallbackSignatureShouldMatchMockedMethodCodeFix();
+    }
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new CallbackSignatureShouldMatchMockedMethodAnalyzer();
-        }
+    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+    {
+        return new CallbackSignatureShouldMatchMockedMethodAnalyzer();
     }
 }
