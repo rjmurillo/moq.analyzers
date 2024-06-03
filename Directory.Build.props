@@ -5,6 +5,7 @@
 
   <Import Project="build/targets/artifacts/Artifacts.props" />
   <Import Project="build/targets/compiler/Compiler.props" />
+  <Import Project="build/targets/reproducible/Reproducible.props" />
   <Import Project="build/targets/versioning/Versioning.props" />
   <Import Project="build/targets/tests/Tests.props" />
 </Project>
