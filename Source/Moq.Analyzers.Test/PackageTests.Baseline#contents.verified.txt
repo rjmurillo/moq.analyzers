@@ -1,5 +1,6 @@
 ﻿/
 |-- Moq.Analyzers.nuspec
+|-- README.md
 |-- analyzers
 |   |-- dotnet
 |   |   |-- cs
