@@ -15,14 +15,6 @@ Note: If you are using Visual Studio 2017 then you can additionally install [Moq
 * Moq1201 = Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`.
 * Moq1300 = Mock.As() should take interfaces.
 
-## TODO
-
-* Setup() should be used for methods, not for properties
-* AdvancedMatcherAttribute should accept only IMatcher types
-* Checks for protected mocks when dynamically referencing their members
-* Setup() requires overridable members
-* Mock.Get() should not take literals
-
 ## How to install
 
 * (Option 1) Install "Moq.Analyzers" NuGet package into test projects. Con: Extension will work for specific projects only. Pro: It will be available for all project developers automatically.
