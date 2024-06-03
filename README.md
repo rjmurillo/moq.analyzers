@@ -1,8 +1,6 @@
 # Moq.Analyzers
 
-Visual Studio extension and Roslyn analyzer that helps to write unit tests using Moq mocking library. Port of Resharper extension to Roslyn.
-
-Note: If you are using Visual Studio 2017 then you can additionally install [Moq.Autocomplete](https://github.com/Litee/moq.autocomplete) extension/package to get better autocomplete suggestions when writing code.
+**Moq.Analyzers** is a Roslyn analyzer that helps to write unit tests using the popular and friend [Moq](https://github.com/devlooped/moq) library. Moq.Analyzers protects you from popular mistakes and warns you if something is wrong with your Moq configuration:
 
 ## Detected issues
 
@@ -17,5 +15,14 @@ Note: If you are using Visual Studio 2017 then you can additionally install [Moq
 
 ## How to install
 
-* (Option 1) Install "Moq.Analyzers" NuGet package into test projects. Con: Extension will work for specific projects only. Pro: It will be available for all project developers automatically.
-* (Option 2) Install "Moq.Analyzers" extension into Visual Studio. Con: Every developer must install extension manually. Pro: It works for all your projects.
+Install ["Moq.Analyzers" NuGet package](https://www.nuget.org/packages/Moq.Analyzers) into test projects using Moq.
+
+## Contributions are welcome!
+
+Moq.Analyzers continues to evolve and add new features. Any help will be appreciated. You can report issues, develop new features, improve the documention, or do other cool stuff.
+
+If you want to contribute to existing issues, check the [help wanted](https://github.com/Litee/moq.analyzers/labels/help%20wanted) or [good first issue](https://github.com/Litee/moq.analyzers/labels/good%20first%20issue) items in the backlog. If you have new ideas or want to complain about bugs, feel free to [create a new issue](https://github.com/Litee/moq.analyzers/issues/new).
+
+## Code of Conduct
+
+This project has adopted the code of conduct defined by the [Contributor Covenant](https://www.contributor-covenant.org/) to set expectations for behavior in our communication. For more information, see the [.NET Foundation's Contributor Convenant Code of Conduct](https://dotnetfoundation.org/about/policies/code-of-conduct)
