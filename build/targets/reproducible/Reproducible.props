@@ -1,0 +1,7 @@
+<Project>
+  <Sdk Name="DotNet.ReproducibleBuilds.Isolated"/>
+
+  <ItemGroup>
+    <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="All" />
+  </ItemGroup>
+</Project>
