@@ -1,64 +1,64 @@
-﻿#pragma warning disable SA1402 // File may only contain a single class
+﻿using Moq;
+
+#pragma warning disable SA1402 // File may only contain a single class
 #pragma warning disable SA1649 // File name must match first type name
 #pragma warning disable SA1502 // Element must not be on a single line
-namespace AsAcceptOnlyInterface
+namespace AsAcceptOnlyInterface;
+
+public interface ISampleInterface
 {
-    using Moq;
-    public interface ISampleInterface
-    {
-        int Calculate(int a, int b);
+    int Calculate(int a, int b);
 
-        int TestProperty { get; set; }
+    int TestProperty { get; set; }
+}
+
+public abstract class BaseSampleClass
+{
+    public int Calculate()
+    {
+        return 0;
     }
 
-    public abstract class BaseSampleClass
-    {
-        public int Calculate()
-        {
-            return 0;
-        }
+    public abstract int Calculate(int a, int b, int c);
+}
 
-        public abstract int Calculate(int a, int b, int c);
+public class SampleClass
+{
+
+    public virtual int Calculate(int a, int b) => 0;
+}
+
+public class OtherClass
+{
+
+    public virtual int Calculate() => 0;
+}
+
+internal class MyUnitTests
+{
+    private void TestOkAsForInterface()
+    {
+        var mock = new Mock<BaseSampleClass>();
+        mock.As<ISampleInterface>();
     }
 
-    public class SampleClass
+    private void TestOkAsForInterfaceWithConfiguration()
     {
-
-        public virtual int Calculate(int a, int b) => 0;
+        var mock = new Mock<BaseSampleClass>();
+        mock.As<ISampleInterface>()
+            .Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(10);
     }
 
-    public class OtherClass
+    private void TestBadAsForAbstractClass()
     {
-
-        public virtual int Calculate() => 0;
+        var mock = new Mock<BaseSampleClass>();
+        mock.As<BaseSampleClass>();
     }
 
-    internal class MyUnitTests
+    private void TestBadAsForNonAbstractClass()
     {
-        private void TestOkAsForInterface()
-        {
-            var mock = new Mock<BaseSampleClass>();
-            mock.As<ISampleInterface>();
-        }
-
-        private void TestOkAsForInterfaceWithConfiguration()
-        {
-            var mock = new Mock<BaseSampleClass>();
-            mock.As<ISampleInterface>()
-                .Setup(x=>x.Calculate(It.IsAny<int>(), It.IsAny<int>()))
-                .Returns(10);
-        }
-
-        private void TestBadAsForAbstractClass()
-        {
-            var mock = new Mock<BaseSampleClass>();
-            mock.As<BaseSampleClass>();
-        }
-
-        private void TestBadAsForNonAbstractClass()
-        {
-            var mock = new Mock<BaseSampleClass>();
-            mock.As<OtherClass>();
-        }
+        var mock = new Mock<BaseSampleClass>();
+        mock.As<OtherClass>();
     }
 }

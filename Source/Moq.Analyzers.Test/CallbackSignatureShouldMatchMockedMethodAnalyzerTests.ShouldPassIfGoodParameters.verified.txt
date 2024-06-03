@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1100
-	Location: SourceFile(Test0.cs[1090..1097))
+	Location: SourceFile(Test0.cs[1030..1037))
 	Highlight: (int i)
 	Lines: mock.Setup(x => x.Do(It.IsAny<string>())).Callback((int i) => { });
 	Severity: Warning
@@ -8,7 +8,7 @@
 
 Diagnostic 2
 	Id: Moq1100
-	Location: SourceFile(Test0.cs[1170..1192))
+	Location: SourceFile(Test0.cs[1106..1128))
 	Highlight: (string s1, string s2)
 	Lines: mock.Setup(x => x.Do(It.IsAny<string>())).Callback((string s1, string s2) => { });
 	Severity: Warning
@@ -16,7 +16,7 @@ Diagnostic 2
 
 Diagnostic 3
 	Id: Moq1100
-	Location: SourceFile(Test0.cs[1304..1323))
+	Location: SourceFile(Test0.cs[1236..1255))
 	Highlight: (string s1, int i1)
 	Lines: mock.Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback((string s1, int i1) => { });
 	Severity: Warning
@@ -24,7 +24,7 @@ Diagnostic 3
 
 Diagnostic 4
 	Id: Moq1100
-	Location: SourceFile(Test0.cs[1402..1409))
+	Location: SourceFile(Test0.cs[1330..1337))
 	Highlight: (int i)
 	Lines: mock.Setup(x => x.Do(It.IsAny<List<string>>())).Callback((int i) => { });
 	Severity: Warning

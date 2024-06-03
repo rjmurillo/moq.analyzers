@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1201
-	Location: SourceFile(Test0.cs[845..886))
+	Location: SourceFile(Test0.cs[773..814))
 	Highlight: c.GenericAsyncWithConcreteReturn().Result
 	Lines: mock.Setup(c => c.GenericAsyncWithConcreteReturn().Result);
 	Severity: Error

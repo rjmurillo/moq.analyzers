@@ -1,29 +1,25 @@
-﻿using Microsoft.CodeAnalysis.Diagnostics;
+﻿using System.IO;
+using Microsoft.CodeAnalysis.Diagnostics;
+using TestHelper;
+using Xunit;
 
-namespace Moq.Analyzers.Test
+namespace Moq.Analyzers.Test;
+
+public class AbstractClassTests : DiagnosticVerifier
 {
-    using System.IO;
-
-    using TestHelper;
-
-    using Xunit;
-
-    public class AbstractClassTests : DiagnosticVerifier
+    [Fact]
+    public Task ShouldPassIfGoodParametersAndFailOnTypeMismatch()
     {
-        [Fact]
-        public Task ShouldPassIfGoodParametersAndFailOnTypeMismatch()
-        {
-            return Verify(VerifyCSharpDiagnostic(
-                [
-                    File.ReadAllText("Data/AbstractClass.Good.cs"),
-                    File.ReadAllText("Data/AbstractClass.Bad.cs")
-                ]
-            ));
-        }
+        return Verify(VerifyCSharpDiagnostic(
+            [
+                File.ReadAllText("Data/AbstractClass.Good.cs"),
+                File.ReadAllText("Data/AbstractClass.Bad.cs")
+            ]
+        ));
+    }
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new ConstructorArgumentsShouldMatchAnalyzer();
-        }
+    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+    {
+        return new ConstructorArgumentsShouldMatchAnalyzer();
     }
 }
