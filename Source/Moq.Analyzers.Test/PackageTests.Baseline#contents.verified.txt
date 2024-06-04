@@ -5,9 +5,6 @@
 |   |-- dotnet
 |   |   |-- cs
 |   |   |   |-- Moq.Analyzers.dll
-|-- lib
-|   |-- netstandard2.0
-|   |   |-- Moq.Analyzers.dll
 |-- tools
 |   |-- install.ps1
 |   |-- uninstall.ps1
