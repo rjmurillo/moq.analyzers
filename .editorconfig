@@ -375,3 +375,7 @@ dotnet_naming_style.s_camelcase.required_suffix =
 dotnet_naming_style.s_camelcase.word_separator =
 dotnet_naming_style.s_camelcase.capitalization = camel_case
 
+# MA0040: Forward the CancellationToken parameter to methods that take one
+dotnet_diagnostic.MA0040.severity = error
+# Async analyzer
+dotnet_diagnostic.CA2016.severity = error

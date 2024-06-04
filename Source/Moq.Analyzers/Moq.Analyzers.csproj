@@ -19,10 +19,14 @@
     <PackageReleaseNotes>A changelog is available at https://github.com/Litee/moq.analyzers/releases</PackageReleaseNotes>
     <Copyright>2017 Andrey Lipatkin</Copyright>
     <PackageTags>moq, tdd, mocking, mocks, unittesting, agile, unittest, mock, test, analyzers</PackageTags>
-    <DevelopmentDependency>true</DevelopmentDependency> 
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Meziantou.Analyzer">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" PrivateAssets="all" />
     <PackageReference Include="Roslynator.Analyzers">
@@ -41,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(RepoRoot)\README.md" Pack="true" PackagePath="/"/>
+    <None Include="$(RepoRoot)\README.md" Pack="true" PackagePath="/" />
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
