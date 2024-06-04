@@ -1,14 +1,5 @@
 using Moq;
 
-#pragma warning disable SA1402 // File may only contain a single class
-#pragma warning disable SA1502 // Element must not be on a single line
-#pragma warning disable SA1602 // Undocumented enum values
-#pragma warning disable SA1649 // File name must match first type name
-#pragma warning disable RCS1163 // Unused parameter
-#pragma warning disable RCS1213 // Remove unused member declaration
-#pragma warning disable IDE0051 // Unused private member
-#pragma warning disable IDE0059 // Unnecessary value assignment
-#pragma warning disable IDE0060 // Unused parameter
 namespace NoMethodsInPropertySetup;
 
 public interface IFoo

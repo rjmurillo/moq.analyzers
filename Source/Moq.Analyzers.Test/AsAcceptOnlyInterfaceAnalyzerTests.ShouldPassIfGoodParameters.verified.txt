@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1300
-	Location: SourceFile(Test0.cs[1212..1227))
+	Location: SourceFile(Test0.cs[999..1014))
 	Highlight: BaseSampleClass
 	Lines: mock.As<BaseSampleClass>();
 	Severity: Error
@@ -8,7 +8,7 @@
 
 Diagnostic 2
 	Id: Moq1300
-	Location: SourceFile(Test0.cs[1357..1367))
+	Location: SourceFile(Test0.cs[1144..1154))
 	Highlight: OtherClass
 	Lines: mock.As<OtherClass>();
 	Severity: Error
