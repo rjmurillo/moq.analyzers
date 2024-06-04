@@ -7,9 +7,10 @@ on:
       - published # Run the workflow when a new GitHub release is published
 
 permissions:
+  security-events: write  # required for CodeQL
+  packages: read
   contents: read
   actions: read
-  checks: write
 
 jobs:
   build:
