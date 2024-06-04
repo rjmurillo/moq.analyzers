@@ -33,7 +33,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
             if (memberAccessExpression.Name is GenericNameSyntax genericName && genericName.TypeArgumentList.Arguments.Count == 1)
             {
                 var typeArgument = genericName.TypeArgumentList.Arguments[0];
-                var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArgument);
+                var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArgument, context.CancellationToken);
                 if (symbolInfo.Symbol != null && symbolInfo.Symbol is ITypeSymbol typeSymbol && typeSymbol.TypeKind != TypeKind.Interface)
                 {
                     var diagnostic = Diagnostic.Create(Rule, typeArgument.GetLocation());
