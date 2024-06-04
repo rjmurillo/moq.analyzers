@@ -1,17 +1,17 @@
-﻿<package>
+<package>
   <metadata>
     <id>Moq.Analyzers</id>
     <version>********</version>
-    <authors>Andrey "Litee" Lipatkin</authors>
+    <authors>Matt Kotsenas, Andrey "Litee" Lipatkin, Richard Murillo</authors>
     <developmentDependency>true</developmentDependency>
     <license type="expression">BSD-3-Clause</license>
     <licenseUrl>https://licenses.nuget.org/BSD-3-Clause</licenseUrl>
     <readme>README.md</readme>
     <projectUrl>https://github.com/Litee/moq.analyzers</projectUrl>
     <description>Roslyn analyzer that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn. Find the full list of detected issues at project GitHub page.</description>
-    <releaseNotes>Upgraded to support Visual Studio 2019</releaseNotes>
-    <copyright>2015-2019 Andrey Lipatkin</copyright>
-    <tags>moq, mock, test, analyzers</tags>
+    <releaseNotes>A changelog is available at https://github.com/Litee/moq.analyzers/releases</releaseNotes>
+    <copyright>2017 Andrey Lipatkin</copyright>
+    <tags>moq, tdd, mocking, mocks, unittesting, agile, unittest, mock, test, analyzers</tags>
     <repository type="git" url="https://github.com/********/moq.analyzers.git" commit="****************************************" />
   </metadata>
 </package>
