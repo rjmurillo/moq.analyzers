@@ -12,8 +12,7 @@ public class AbstractClassTests : DiagnosticVerifier
     {
         return Verify(VerifyCSharpDiagnostic(
             [
-                File.ReadAllText("Data/AbstractClass.Good.cs"),
-                File.ReadAllText("Data/AbstractClass.Bad.cs")
+                File.ReadAllText("Data/AbstractClass.cs")
             ]
         ));
     }

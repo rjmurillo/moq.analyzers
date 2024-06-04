@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[223..229))
+	Location: SourceFile(Test0.cs[2288..2294))
 	Highlight: ("42")
 	Lines: var mock = new Mock<AbstractClassWithCtor>("42");
 	Severity: Warning
@@ -8,7 +8,7 @@
 
 Diagnostic 2
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[388..398))
+	Location: SourceFile(Test0.cs[2453..2463))
 	Highlight: ("42", 42)
 	Lines: var mock1 = new Mock<AbstractClassWithCtor>("42", 42);
 	Severity: Warning
@@ -16,7 +16,7 @@ Diagnostic 2
 
 Diagnostic 3
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[519..523))
+	Location: SourceFile(Test0.cs[2584..2588))
 	Highlight: (42)
 	Lines: var mock2 = new Mock<AbstractClassDefaultCtor>(42);
 	Severity: Warning
@@ -24,7 +24,7 @@ Diagnostic 3
 
 Diagnostic 4
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[720..726))
+	Location: SourceFile(Test0.cs[2785..2791))
 	Highlight: ("42")
 	Lines: var mock = new Mock<AbstractGenericClassWithCtor<object>>("42");
 	Severity: Warning
@@ -32,7 +32,7 @@ Diagnostic 4
 
 Diagnostic 5
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[900..910))
+	Location: SourceFile(Test0.cs[2965..2975))
 	Highlight: ("42", 42)
 	Lines: var mock1 = new Mock<AbstractGenericClassWithCtor<object>>("42", 42);
 	Severity: Warning
@@ -40,7 +40,7 @@ Diagnostic 5
 
 Diagnostic 6
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[1046..1050))
+	Location: SourceFile(Test0.cs[3111..3115))
 	Highlight: (42)
 	Lines: var mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>(42);
 	Severity: Warning
