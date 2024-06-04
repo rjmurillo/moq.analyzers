@@ -22,12 +22,12 @@ internal class MoqMethodDescriptor
 
     public bool IsMoqMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
     {
-        var methodName = method?.Name.ToString();
+        string? methodName = method?.Name.ToString();
 
         // First fast check before walking semantic model
         if (DoesShortMethodMatch(methodName) == false) return false;
 
-        var symbolInfo = semanticModel.GetSymbolInfo(method);
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(method);
         if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
         {
             return symbolInfo.CandidateSymbols.OfType<IMethodSymbol>()

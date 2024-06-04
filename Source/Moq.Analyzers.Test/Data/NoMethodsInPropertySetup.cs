@@ -26,14 +26,14 @@ public class MyUnitTests
 {
     private void TestBad()
     {
-        var mock = new Mock<IFoo>();
+        Mock<IFoo>? mock = new Mock<IFoo>();
         mock.SetupGet(x => x.Method());
         mock.SetupSet(x => x.Method());
     }
 
     private void TestGood()
     {
-        var mock = new Mock<IFoo>();
+        Mock<IFoo>? mock = new Mock<IFoo>();
         mock.SetupGet(x => x.Prop1);
         mock.SetupGet(x => x.Prop2);
         mock.SetupSet(x => x.Prop1 = "1");

@@ -17,19 +17,19 @@ internal class MyUnitTests
 {
     private void TestOkForTask()
     {
-        var mock = new Mock<AsyncClient>();
+        Mock<AsyncClient>? mock = new Mock<AsyncClient>();
         mock.Setup(c => c.VoidAsync());
     }
 
     private void TestOkForTaskWithConcreteReturn()
     {
-        var mock = new Mock<AsyncClient>();
+        Mock<AsyncClient>? mock = new Mock<AsyncClient>();
         mock.Setup(c => c.GenericAsyncWithConcreteReturn().Result);
     }
 
     private void TestOkForTaskWithConcreteReturnProperSetup()
     {
-        var mock = new Mock<AsyncClient>();
+        Mock<AsyncClient>? mock = new Mock<AsyncClient>();
         mock.Setup(c => c.GenericAsyncWithConcreteReturn())
             .ReturnsAsync(string.Empty);
     }

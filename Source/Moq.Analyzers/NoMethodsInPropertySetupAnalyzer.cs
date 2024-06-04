@@ -29,19 +29,19 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
 
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        var setupGetOrSetInvocation = (InvocationExpressionSyntax)context.Node;
+        InvocationExpressionSyntax? setupGetOrSetInvocation = (InvocationExpressionSyntax)context.Node;
 
-        var setupGetOrSetMethod = setupGetOrSetInvocation.Expression as MemberAccessExpressionSyntax;
+        MemberAccessExpressionSyntax? setupGetOrSetMethod = setupGetOrSetInvocation.Expression as MemberAccessExpressionSyntax;
         if (setupGetOrSetMethod == null) return;
         if (setupGetOrSetMethod.Name.ToFullString() != "SetupGet" && setupGetOrSetMethod.Name.ToFullString() != "SetupSet") return;
 
-        var mockedMethodCall = Helpers.FindMockedMethodInvocationFromSetupMethod(setupGetOrSetInvocation);
+        InvocationExpressionSyntax? mockedMethodCall = Helpers.FindMockedMethodInvocationFromSetupMethod(setupGetOrSetInvocation);
         if (mockedMethodCall == null) return;
 
-        var mockedMethodSymbol = context.SemanticModel.GetSymbolInfo(mockedMethodCall).Symbol;
+        ISymbol? mockedMethodSymbol = context.SemanticModel.GetSymbolInfo(mockedMethodCall).Symbol;
         if (mockedMethodSymbol == null) return;
 
-        var diagnostic = Diagnostic.Create(Rule, mockedMethodCall.GetLocation());
+        Diagnostic? diagnostic = Diagnostic.Create(Rule, mockedMethodCall.GetLocation());
         context.ReportDiagnostic(diagnostic);
     }
 }

@@ -30,13 +30,13 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
 
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
+        ObjectCreationExpressionSyntax? objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
         // TODO Think how to make this piece more elegant while fast
         GenericNameSyntax genericName = objectCreation.Type as GenericNameSyntax;
         if (objectCreation.Type is QualifiedNameSyntax)
         {
-            var qualifiedName = objectCreation.Type as QualifiedNameSyntax;
+            QualifiedNameSyntax? qualifiedName = objectCreation.Type as QualifiedNameSyntax;
             genericName = qualifiedName.Right as GenericNameSyntax;
         }
 
@@ -46,8 +46,8 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
         if (genericName.Identifier.ToFullString() != "Mock") return;
 
         // Full check
-        var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation);
-        var constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
+        SymbolInfo constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation);
+        IMethodSymbol? constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
         if (constructorSymbol == null || constructorSymbol.ContainingType == null || constructorSymbol.ContainingType.ConstructedFrom == null) return;
         if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
         if (constructorSymbol.ContainingType.ConstructedFrom.ToDisplayString() != "Moq.Mock<T>") return;
@@ -55,16 +55,16 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
         if (!constructorSymbol.Parameters.Any(x => x.IsParams)) return;
 
         // Find mocked type
-        var typeArguments = genericName.TypeArgumentList.Arguments;
+        SeparatedSyntaxList<TypeSyntax> typeArguments = genericName.TypeArgumentList.Arguments;
         if (typeArguments == null || typeArguments.Count != 1) return;
-        var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0]);
-        var symbol = symbolInfo.Symbol as INamedTypeSymbol;
+        SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0]);
+        INamedTypeSymbol? symbol = symbolInfo.Symbol as INamedTypeSymbol;
         if (symbol == null) return;
 
         // Checked mocked type
         if (symbol.TypeKind == TypeKind.Interface)
         {
-            var diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
+            Diagnostic? diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
             context.ReportDiagnostic(diagnostic);
         }
     }

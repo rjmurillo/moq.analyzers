@@ -21,10 +21,10 @@ internal class MyUnitTests
 {
     private void Test()
     {
-        var mock1 = new Moq.Mock<FooSealed>();
-        var mock2 = new Mock<FooSealed>();
-        var mock3 = new Mock<NoSealedClassMocks.FooSealed>();
-        var mock4 = new Moq.Mock<NoSealedClassMocks.FooSealed>();
+        Mock<FooSealed>? mock1 = new Moq.Mock<FooSealed>();
+        Mock<FooSealed>? mock2 = new Mock<FooSealed>();
+        Mock<FooSealed>? mock3 = new Mock<NoSealedClassMocks.FooSealed>();
+        Mock<FooSealed>? mock4 = new Moq.Mock<NoSealedClassMocks.FooSealed>();
     }
 
     private void Test2()

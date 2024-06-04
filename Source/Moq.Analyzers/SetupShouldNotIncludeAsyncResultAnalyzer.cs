@@ -27,23 +27,23 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        var setupInvocation = (InvocationExpressionSyntax)context.Node;
+        InvocationExpressionSyntax? setupInvocation = (InvocationExpressionSyntax)context.Node;
 
         if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && Helpers.IsMoqSetupMethod(context.SemanticModel, memberAccessExpression))
         {
-            var mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
+            ExpressionSyntax? mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
             if (mockedMemberExpression == null)
             {
                 return;
             }
 
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression);
+            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression);
             if (symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
             {
                 if (IsMethodOverridable(symbolInfo.Symbol) == false &&
                     IsMethodReturnTypeTask(symbolInfo.Symbol) == true)
                 {
-                    var diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
+                    Diagnostic? diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
                     context.ReportDiagnostic(diagnostic);
                 }
             }
@@ -57,7 +57,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 
     private static bool IsMethodReturnTypeTask(ISymbol methodSymbol)
     {
-        var type = methodSymbol.ToDisplayString();
+        string? type = methodSymbol.ToDisplayString();
         return type != null &&
                (type == "System.Threading.Tasks.Task" ||
                 type == "System.Threading.ValueTask" ||

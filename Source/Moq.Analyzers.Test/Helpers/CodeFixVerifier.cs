@@ -52,15 +52,15 @@ public abstract partial class CodeFixVerifier : DiagnosticVerifier
     /// <returns>Code with quick fix applied</returns>
     private string VerifyFix(string language, DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider, string oldSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
     {
-        var document = CreateDocument(oldSource, language);
-        var analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
-        var compilerDiagnostics = GetCompilerDiagnostics(document);
-        var attempts = analyzerDiagnostics.Length;
+        Document? document = CreateDocument(oldSource, language);
+        Diagnostic[]? analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
+        IEnumerable<Diagnostic>? compilerDiagnostics = GetCompilerDiagnostics(document);
+        int attempts = analyzerDiagnostics.Length;
 
         for (int i = 0; i < attempts; ++i)
         {
-            var actions = new List<CodeAction>();
-            var context = new CodeFixContext(document, analyzerDiagnostics[0], (a, d) => actions.Add(a), CancellationToken.None);
+            List<CodeAction>? actions = new List<CodeAction>();
+            CodeFixContext context = new CodeFixContext(document, analyzerDiagnostics[0], (a, d) => actions.Add(a), CancellationToken.None);
             codeFixProvider.RegisterCodeFixesAsync(context).Wait();
 
             if (!actions.Any())
@@ -77,7 +77,7 @@ public abstract partial class CodeFixVerifier : DiagnosticVerifier
             document = ApplyFix(document, actions.ElementAt(0));
             analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
 
-            var newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, GetCompilerDiagnostics(document));
+            IEnumerable<Diagnostic>? newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, GetCompilerDiagnostics(document));
 
             // check if applying the code fix introduced any new compiler diagnostics
             if (!allowNewCompilerDiagnostics && newCompilerDiagnostics.Any())

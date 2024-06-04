@@ -41,49 +41,49 @@ internal class MyUnitTests
 {
     private void TestOkForAbstractMethod()
     {
-        var mock = new Mock<BaseSampleClass>();
+        Mock<BaseSampleClass>? mock = new Mock<BaseSampleClass>();
         mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));
     }
 
     private void TestOkForOverrideAbstractMethod()
     {
-        var mock = new Mock<SampleClass>();
+        Mock<SampleClass>? mock = new Mock<SampleClass>();
         mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));
     }
 
     private void TestOkForInterfaceMethod()
     {
-        var mock = new Mock<ISampleInterface>();
+        Mock<ISampleInterface>? mock = new Mock<ISampleInterface>();
         mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));
     }
 
     private void TestOkForInterfaceProperty()
     {
-        var mock = new Mock<ISampleInterface>();
+        Mock<ISampleInterface>? mock = new Mock<ISampleInterface>();
         mock.Setup(x => x.TestProperty);
     }
 
     private void TestOkForVirtualMethod()
     {
-        var mock = new Mock<SampleClass>();
+        Mock<SampleClass>? mock = new Mock<SampleClass>();
         mock.Setup(x => x.DoSth());
     }
 
     private void TestBadSetupForNonVirtualMethod()
     {
-        var mock = new Mock<BaseSampleClass>();
+        Mock<BaseSampleClass>? mock = new Mock<BaseSampleClass>();
         mock.Setup(x => x.Calculate());
     }
 
     private void TestBadSetupForSealedMethod()
     {
-        var mock = new Mock<SampleClass>();
+        Mock<SampleClass>? mock = new Mock<SampleClass>();
         mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()));
     }
 
     private void TestBadSetupForNonVirtualProperty()
     {
-        var mock = new Mock<SampleClass>();
+        Mock<SampleClass>? mock = new Mock<SampleClass>();
         mock.Setup(x => x.Property);
     }
 }

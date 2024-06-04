@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace TestHelper;
 
@@ -52,7 +53,7 @@ public abstract partial class DiagnosticVerifier
     /// <returns>String representation of diagnostics results</returns>
     private string VerifyDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer)
     {
-        var diagnostics = GetSortedDiagnostics(sources, language, analyzer);
+        Diagnostic[]? diagnostics = GetSortedDiagnostics(sources, language, analyzer);
         return VerifyDiagnosticResults(diagnostics);
     }
 
@@ -66,15 +67,15 @@ public abstract partial class DiagnosticVerifier
     {
         StringBuilder result = new StringBuilder();
         int i = 1;
-        foreach (var diagnostic in actualResults)
+        foreach (Diagnostic? diagnostic in actualResults)
         {
             result.AppendLine("Diagnostic " + i);
             result.AppendLine("\tId: " + diagnostic.Id);
             result.AppendLine("\tLocation: " + diagnostic.Location);
-            var sourceSpan = diagnostic.Location.SourceSpan;
-            var code = diagnostic.Location.SourceTree.GetText();
+            TextSpan sourceSpan = diagnostic.Location.SourceSpan;
+            SourceText? code = diagnostic.Location.SourceTree.GetText();
             result.AppendLine("\tHighlight: " + code.GetSubText(sourceSpan));
-            var lineSpan = diagnostic.Location.GetLineSpan();
+            FileLinePositionSpan lineSpan = diagnostic.Location.GetLineSpan();
             result.AppendLine("\tLines: " + string.Join("\n", code.Lines.Where(x => x.LineNumber >= lineSpan.StartLinePosition.Line && x.LineNumber <= lineSpan.EndLinePosition.Line).Select(x => x.ToString().Trim())));
             result.AppendLine("\tSeverity: " + diagnostic.Severity);
             result.AppendLine("\tMessage: " + diagnostic.GetMessage());

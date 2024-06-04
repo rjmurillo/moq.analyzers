@@ -38,13 +38,13 @@ internal class MyUnitTests
 {
     private void TestOkAsForInterface()
     {
-        var mock = new Mock<BaseSampleClass>();
+        Mock<BaseSampleClass>? mock = new Mock<BaseSampleClass>();
         mock.As<ISampleInterface>();
     }
 
     private void TestOkAsForInterfaceWithConfiguration()
     {
-        var mock = new Mock<BaseSampleClass>();
+        Mock<BaseSampleClass>? mock = new Mock<BaseSampleClass>();
         mock.As<ISampleInterface>()
             .Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()))
             .Returns(10);
@@ -52,13 +52,13 @@ internal class MyUnitTests
 
     private void TestBadAsForAbstractClass()
     {
-        var mock = new Mock<BaseSampleClass>();
+        Mock<BaseSampleClass>? mock = new Mock<BaseSampleClass>();
         mock.As<BaseSampleClass>();
     }
 
     private void TestBadAsForNonAbstractClass()
     {
-        var mock = new Mock<BaseSampleClass>();
+        Mock<BaseSampleClass>? mock = new Mock<BaseSampleClass>();
         mock.As<OtherClass>();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -23,8 +24,8 @@ public abstract partial class CodeFixVerifier : DiagnosticVerifier
     /// <returns>A Document with the changes from the CodeAction</returns>
     private static Document ApplyFix(Document document, CodeAction codeAction)
     {
-        var operations = codeAction.GetOperationsAsync(CancellationToken.None).Result;
-        var solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
+        ImmutableArray<CodeActionOperation> operations = codeAction.GetOperationsAsync(CancellationToken.None).Result;
+        Solution? solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
         return solution.GetDocument(document.Id);
     }
 
@@ -38,8 +39,8 @@ public abstract partial class CodeFixVerifier : DiagnosticVerifier
     /// <returns>A list of Diagnostics that only surfaced in the code after the CodeFix was applied</returns>
     private static IEnumerable<Diagnostic> GetNewDiagnostics(IEnumerable<Diagnostic> diagnostics, IEnumerable<Diagnostic> newDiagnostics)
     {
-        var oldArray = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
-        var newArray = newDiagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
+        Diagnostic[]? oldArray = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
+        Diagnostic[]? newArray = newDiagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
 
         int oldIndex = 0;
         int newIndex = 0;
@@ -75,8 +76,8 @@ public abstract partial class CodeFixVerifier : DiagnosticVerifier
     /// <returns>A string containing the syntax of the Document after formatting</returns>
     private static string GetStringFromDocument(Document document)
     {
-        var simplifiedDoc = Simplifier.ReduceAsync(document, Simplifier.Annotation).Result;
-        var root = simplifiedDoc.GetSyntaxRootAsync().Result;
+        Document? simplifiedDoc = Simplifier.ReduceAsync(document, Simplifier.Annotation).Result;
+        SyntaxNode? root = simplifiedDoc.GetSyntaxRootAsync().Result;
         root = Formatter.Format(root, Formatter.Annotation, simplifiedDoc.Project.Solution.Workspace);
         return root.GetText().ToString();
     }

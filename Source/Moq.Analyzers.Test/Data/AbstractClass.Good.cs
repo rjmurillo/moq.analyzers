@@ -41,39 +41,39 @@ internal class MyUnitTests
     // Base case that we can handle abstract types
     private void TestForBaseNoArgs()
     {
-        var mock = new Mock<AbstractClassDefaultCtor>();
+        Mock<AbstractClassDefaultCtor>? mock = new Mock<AbstractClassDefaultCtor>();
         mock.As<AbstractClassDefaultCtor>();
 
-        var mock2 = new Mock<AbstractClassWithCtor>();
-        var mock3 = new Mock<AbstractClassDefaultCtor>(MockBehavior.Default);
+        Mock<AbstractClassWithCtor>? mock2 = new Mock<AbstractClassWithCtor>();
+        Mock<AbstractClassDefaultCtor>? mock3 = new Mock<AbstractClassDefaultCtor>(MockBehavior.Default);
     }
 
     private void TestForBaseGenericNoArgs()
     {
-        var mock = new Mock<AbstractGenericClassDefaultCtor<object>>();
+        Mock<AbstractGenericClassDefaultCtor<object>>? mock = new Mock<AbstractGenericClassDefaultCtor<object>>();
         mock.As<AbstractGenericClassDefaultCtor<object>>();
 
-        var mock1 = new Mock<AbstractGenericClassDefaultCtor<object>>();
+        Mock<AbstractGenericClassDefaultCtor<object>>? mock1 = new Mock<AbstractGenericClassDefaultCtor<object>>();
 
-        var mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);
+        Mock<AbstractGenericClassDefaultCtor<object>>? mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);
     }
 
     // This is syntatically not allowed by C#, but you can do it with Moq
     private void TestForBaseWithArgsNonePassed()
     {
-        var mock = new Mock<AbstractClassWithCtor>();
+        Mock<AbstractClassWithCtor>? mock = new Mock<AbstractClassWithCtor>();
         mock.As<AbstractClassWithCtor>();
     }
 
     private void TestForBaseWithArgsPassed()
     {
-        var mock = new Mock<AbstractClassWithCtor>(42);
-        var mock2 = new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42);
+        Mock<AbstractClassWithCtor>? mock = new Mock<AbstractClassWithCtor>(42);
+        Mock<AbstractClassWithCtor>? mock2 = new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42);
 
-        var mock3 = new Mock<AbstractClassWithCtor>(42, "42");
-        var mock4 = new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42, "42");
+        Mock<AbstractClassWithCtor>? mock3 = new Mock<AbstractClassWithCtor>(42, "42");
+        Mock<AbstractClassWithCtor>? mock4 = new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42, "42");
 
-        var mock5 = new Mock<AbstractGenericClassWithCtor<object>>(42);
-        var mock6 = new Mock<AbstractGenericClassWithCtor<object>>(MockBehavior.Default, 42);
+        Mock<AbstractGenericClassWithCtor<object>>? mock5 = new Mock<AbstractGenericClassWithCtor<object>>(42);
+        Mock<AbstractGenericClassWithCtor<object>>? mock6 = new Mock<AbstractGenericClassWithCtor<object>>(MockBehavior.Default, 42);
     }
 }
