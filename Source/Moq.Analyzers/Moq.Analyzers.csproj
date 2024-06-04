@@ -10,7 +10,7 @@
 
   <PropertyGroup Label="Package metadata">
     <PackageId>Moq.Analyzers</PackageId>
-    <Authors>Andrey "Litee" Lipatkin</Authors>
+    <Authors>Matt Kotsenas, Andrey "Litee" Lipatkin, Richard Murillo</Authors>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Litee/moq.analyzers</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
