@@ -9,9 +9,21 @@ namespace Moq.Analyzers.Test;
 public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVerifier
 {
     [Fact]
-    public Task ShouldFailIfMockedInterfaceHasParameters()
+    public Task ShouldFailIfMockedInterfaceHasConstructorParameters()
     {
-        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock_1.cs")));
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock.TestBad.cs")));
+    }
+
+    [Fact]
+    public Task ShouldFailIfMockedInterfaceHasConstructorParametersAndExplicitMockBehavior()
+    {
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock.TestBadWithMockBehavior.cs")));
+    }
+
+    [Fact]
+    public Task ShouldPassIfMockedInterfaceDoesNotHaveConstructorParameters()
+    {
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock.TestGood.cs")));
     }
 
     [Fact]
