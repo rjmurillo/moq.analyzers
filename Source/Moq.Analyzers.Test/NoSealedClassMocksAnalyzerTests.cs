@@ -9,9 +9,15 @@ namespace Moq.Analyzers.Test;
 public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier
 {
     [Fact]
-    public Task ShouldFailIfFileIsSealed()
+    public Task ShouldFailWhenClassIsSealed()
     {
-        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoSealedClassMocks.cs")));
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoSealedClassMocks.Sealed.cs")));
+    }
+
+    [Fact]
+    public Task ShouldPassWhenClassIsNotSealed()
+    {
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoSealedClassMocks.NotSealed.cs")));
     }
 
     protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

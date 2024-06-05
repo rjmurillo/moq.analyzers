@@ -1,7 +1,7 @@
 using System;
 using Moq;
 
-namespace NoSealedClassMocks;
+namespace NoSealedClassMocks.Sealed;
 
 internal sealed class FooSealed { }
 
@@ -9,13 +9,8 @@ internal class Foo { }
 
 internal class MyUnitTests
 {
-    private void Test()
+    private void Sealed()
     {
         var mock = new Mock<FooSealed>();
-    }
-
-    private void Test2()
-    {
-        var mock = new Mock<Foo>();
     }
 }
