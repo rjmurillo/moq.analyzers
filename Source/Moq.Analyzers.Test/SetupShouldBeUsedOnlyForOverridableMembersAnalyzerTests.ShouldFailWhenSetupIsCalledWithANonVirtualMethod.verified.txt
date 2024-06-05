@@ -1,0 +1,8 @@
+﻿Diagnostic 1
+	Id: Moq1200
+	Location: SourceFile(Test0.cs[785..798))
+	Highlight: x.Calculate()
+	Lines: mock.Setup(x => x.Calculate());
+	Severity: Error
+	Message: Setup should be used only for overridable members.
+
