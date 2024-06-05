@@ -1,21 +1,38 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests : DiagnosticVerifier
+public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests : CallbackSignatureShouldMatchMockedMethodBase
 {
     [Fact]
-    public Task ShouldPassIfGoodParameters()
+    public Task ShouldPassWhenCorrectSetupAndReturns()
     {
-        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.cs")));
+        return Verify(VerifyCSharpDiagnostic(GoodSetupAndCallback));
     }
 
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+    [Fact]
+    public Task ShouldFailWhenIncorrectCallbacks()
     {
-        return new CallbackSignatureShouldMatchMockedMethodAnalyzer();
+        return Verify(VerifyCSharpDiagnostic(BadCallbacks));
+    }
+
+    [Fact]
+    public Task ShouldPassWhenCorrectSetupAndCallbacks()
+    {
+        return Verify(VerifyCSharpDiagnostic(GoodSetupAndCallback));
+    }
+
+    [Fact]
+    public Task ShouldPassWhenCorrectSetupAndParameterlessCallbacks()
+    {
+        return Verify(VerifyCSharpDiagnostic(GoodSetupAndParameterlessCallback));
+    }
+
+    [Fact]
+    public Task ShouldPassWhenCorrectSetupAndReturnsAndCallbacks()
+    {
+        return Verify(VerifyCSharpDiagnostic(GoodSetupAndReturnsAndCallback));
     }
 }

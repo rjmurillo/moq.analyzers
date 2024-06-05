@@ -7,21 +7,35 @@ using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerifier
+public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CallbackSignatureShouldMatchMockedMethodBase
 {
     [Fact]
-    public Task ShouldSuggestQuickFixIfBadParameters()
+    public Task ShouldPassWhenCorrectSetupAndReturns()
     {
-        return Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.cs")));
+        return Verify(VerifyCSharpFix(GoodSetupAndReturns));
     }
 
-    protected override CodeFixProvider GetCSharpCodeFixProvider()
+    [Fact]
+    public Task ShouldSuggestQuickFixWhenIncorrectCallbacks()
     {
-        return new CallbackSignatureShouldMatchMockedMethodCodeFix();
+        return Verify(VerifyCSharpFix(BadCallbacks));
     }
 
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+    [Fact]
+    public Task ShouldPassWhenCorrectSetupAndCallbacks()
     {
-        return new CallbackSignatureShouldMatchMockedMethodAnalyzer();
+        return Verify(VerifyCSharpFix(GoodSetupAndCallback));
+    }
+
+    [Fact]
+    public Task ShouldPassWhenCorrectSetupAndParameterlessCallbacks()
+    {
+        return Verify(VerifyCSharpFix(GoodSetupAndParameterlessCallback));
+    }
+
+    [Fact]
+    public Task ShouldPassWhenCorrectSetupAndReturnsAndCallbacks()
+    {
+        return Verify(VerifyCSharpFix(GoodSetupAndReturnsAndCallback));
     }
 }

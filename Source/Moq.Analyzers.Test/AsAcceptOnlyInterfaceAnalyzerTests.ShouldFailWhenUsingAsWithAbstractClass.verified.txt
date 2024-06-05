@@ -1,0 +1,8 @@
+﻿Diagnostic 1
+	Id: Moq1300
+	Location: SourceFile(Test0.cs[292..307))
+	Highlight: BaseSampleClass
+	Lines: mock.As<BaseSampleClass>();
+	Severity: Error
+	Message: Mock.As() should take interfaces only
+
