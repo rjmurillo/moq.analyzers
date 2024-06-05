@@ -1,6 +1,6 @@
 ﻿Diagnostic 1
 	Id: Moq1300
-	Location: SourceFile(Test0.cs[642..652))
+	Location: SourceFile(Test0.cs[433..443))
 	Highlight: OtherClass
 	Lines: mock.As<OtherClass>();
 	Severity: Error
