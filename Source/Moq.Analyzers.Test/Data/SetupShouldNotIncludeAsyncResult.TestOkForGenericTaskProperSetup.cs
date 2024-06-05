@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Moq;
 
-namespace SetupShouldNotIncludeAsyncResult;
+namespace SetupShouldNotIncludeAsyncResult.TestOkForGenericTaskProperSetup;
 
 public class AsyncClient
 {
@@ -12,18 +12,6 @@ public class AsyncClient
 
 internal class MyUnitTests
 {
-    private void TestOkForTask()
-    {
-        var mock = new Mock<AsyncClient>();
-        mock.Setup(c => c.TaskAsync());
-    }
-
-    private void TestOkForGenericTask()
-    {
-        var mock = new Mock<AsyncClient>();
-        mock.Setup(c => c.GenericTaskAsync().Result);
-    }
-
     private void TestOkForGenericTaskProperSetup()
     {
         var mock = new Mock<AsyncClient>();
