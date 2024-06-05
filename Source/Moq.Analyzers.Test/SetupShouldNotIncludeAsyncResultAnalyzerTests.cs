@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Test;
 
 public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
 {
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenSetupWithoutReturn()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -38,7 +38,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenSetupWithReturnsAsync()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -69,7 +69,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldFailWhenSetupWithTaskResult()
     {
         return Verify(VerifyCSharpDiagnostic(

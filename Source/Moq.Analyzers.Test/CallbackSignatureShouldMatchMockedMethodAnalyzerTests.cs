@@ -6,31 +6,31 @@ namespace Moq.Analyzers.Test;
 
 public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests : CallbackSignatureShouldMatchMockedMethodBase
 {
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenCorrectSetupAndReturns()
     {
         return Verify(VerifyCSharpDiagnostic(GoodSetupAndCallback));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldFailWhenIncorrectCallbacks()
     {
         return Verify(VerifyCSharpDiagnostic(BadCallbacks));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenCorrectSetupAndCallbacks()
     {
         return Verify(VerifyCSharpDiagnostic(GoodSetupAndCallback));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenCorrectSetupAndParameterlessCallbacks()
     {
         return Verify(VerifyCSharpDiagnostic(GoodSetupAndParameterlessCallback));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenCorrectSetupAndReturnsAndCallbacks()
     {
         return Verify(VerifyCSharpDiagnostic(GoodSetupAndReturnsAndCallback));

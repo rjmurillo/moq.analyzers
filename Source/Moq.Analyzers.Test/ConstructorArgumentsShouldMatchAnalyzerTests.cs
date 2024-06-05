@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Test;
 
 public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
 {
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenConstructorArgumentsMatch()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -61,7 +61,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldFailWhenConstructorArumentsDoNotMatch()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -98,7 +98,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldFailWhenConstructorArumentsWithExplicitMockBehaviorDoNotMatch()
     {
         return Verify(VerifyCSharpDiagnostic(

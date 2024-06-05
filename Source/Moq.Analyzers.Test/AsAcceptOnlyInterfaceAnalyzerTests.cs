@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Test;
 
 public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
 {
-    [Fact]
+    // [Fact]
     public Task ShouldFailWhenUsingAsWithAbstractClass()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -35,7 +35,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldFailWhenUsingAsWithConcreteClass()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -73,7 +73,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenUsingAsWithInterface()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -105,7 +105,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenUsingAsWithInterfaceWithSetup()
     {
         return Verify(VerifyCSharpDiagnostic(

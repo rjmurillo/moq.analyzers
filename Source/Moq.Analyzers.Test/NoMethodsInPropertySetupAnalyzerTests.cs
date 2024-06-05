@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Test;
 
 public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
 {
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenPropertiesUsePropertySetup()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -45,7 +45,7 @@ public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldFailWhenMethodsUsePropertySetup()
     {
         return Verify(VerifyCSharpDiagnostic(

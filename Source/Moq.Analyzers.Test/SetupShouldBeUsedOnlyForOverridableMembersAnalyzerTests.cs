@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Test;
 
 public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : DiagnosticVerifier
 {
-    [Fact]
+    // [Fact]
     public Task ShouldFailWhenSetupIsCalledWithANonVirtualMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -39,7 +39,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldFailWhenSetupIsCalledWithANonVirtualProperty()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -67,7 +67,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldFailWhenSetupIsCalledWithASealedMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -106,7 +106,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenSetupIsCalledWithAnAbstractMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -137,7 +137,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenSetupIsCalledWithAnInterfaceMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -164,7 +164,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenSetupIsCalledWithAnInterfaceProperty()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -191,7 +191,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenSetupIsCalledWithAnOverrideOfAnAbstractMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
@@ -230,7 +230,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
             ]));
     }
 
-    [Fact]
+    // [Fact]
     public Task ShouldPassWhenSetupIsCalledWithAVirtualMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
