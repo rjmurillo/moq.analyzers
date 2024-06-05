@@ -1,12 +1,5 @@
 ﻿namespace Moq.Analyzers.Test.DataAbstractClass.WithArgsPassed;
 
-internal abstract class AbstractGenericClassDefaultCtor<T>
-{
-    protected AbstractGenericClassDefaultCtor()
-    {
-    }
-}
-
 internal abstract class AbstractGenericClassWithCtor<T>
 {
     protected AbstractGenericClassWithCtor(int a)
@@ -14,13 +7,6 @@ internal abstract class AbstractGenericClassWithCtor<T>
     }
 
     protected AbstractGenericClassWithCtor(int a, string b)
-    {
-    }
-}
-
-internal abstract class AbstractClassDefaultCtor
-{
-    protected AbstractClassDefaultCtor()
     {
     }
 }

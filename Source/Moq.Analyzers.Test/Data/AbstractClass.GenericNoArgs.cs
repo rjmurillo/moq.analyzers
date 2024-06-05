@@ -7,35 +7,6 @@ internal abstract class AbstractGenericClassDefaultCtor<T>
     }
 }
 
-internal abstract class AbstractGenericClassWithCtor<T>
-{
-    protected AbstractGenericClassWithCtor(int a)
-    {
-    }
-
-    protected AbstractGenericClassWithCtor(int a, string b)
-    {
-    }
-}
-
-internal abstract class AbstractClassDefaultCtor
-{
-    protected AbstractClassDefaultCtor()
-    {
-    }
-}
-
-internal abstract class AbstractClassWithCtor
-{
-    protected AbstractClassWithCtor(int a)
-    {
-    }
-
-    protected AbstractClassWithCtor(int a, string b)
-    {
-    }
-}
-
 internal class MyUnitTests
 {
     private void TestForBaseGenericNoArgs()

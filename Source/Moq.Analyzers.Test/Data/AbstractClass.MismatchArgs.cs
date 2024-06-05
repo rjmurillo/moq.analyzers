@@ -1,23 +1,5 @@
 ﻿namespace Moq.Analyzers.Test.Data.AbstractClass.MismatchArgs;
 
-internal abstract class AbstractGenericClassDefaultCtor<T>
-{
-    protected AbstractGenericClassDefaultCtor()
-    {
-    }
-}
-
-internal abstract class AbstractGenericClassWithCtor<T>
-{
-    protected AbstractGenericClassWithCtor(int a)
-    {
-    }
-
-    protected AbstractGenericClassWithCtor(int a, string b)
-    {
-    }
-}
-
 internal abstract class AbstractClassDefaultCtor
 {
     protected AbstractClassDefaultCtor()
