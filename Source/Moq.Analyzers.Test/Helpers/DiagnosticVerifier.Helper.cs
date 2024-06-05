@@ -56,7 +56,7 @@ public abstract partial class DiagnosticVerifier
         {
             Debug.Assert(analyzer != null, nameof(analyzer) + " != null");
             var compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(ImmutableArray.Create(analyzer));
-            var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
+            var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(compilationWithAnalyzers.CancellationToken).Result;
             foreach (var diag in diags)
             {
                 if (diag.Location == Location.None || diag.Location.IsInMetadata)
@@ -68,7 +68,7 @@ public abstract partial class DiagnosticVerifier
                     for (int i = 0; i < documents.Length; i++)
                     {
                         var document = documents[i];
-                        var tree = document.GetSyntaxTreeAsync().Result;
+                        var tree = document.GetSyntaxTreeAsync(compilationWithAnalyzers.CancellationToken).Result;
                         if (tree == diag.Location.SourceTree)
                         {
                             diagnostics.Add(diag);
