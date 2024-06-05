@@ -1,4 +1,4 @@
-namespace NoConstructorArgumentsForInterfaceMock_2;
+namespace NoConstructorArgumentsForInterfaceMock.TestFakeMoq;
 
 public enum MockBehavior
 {
@@ -26,22 +26,6 @@ public class Mock<T>
 
 internal class MyUnitTests
 {
-    private void TestRealMoqWithBadParameters()
-    {
-        var mock1 = new Moq.Mock<IMyService>(1, true);
-        var mock2 = new Moq.Mock<IMyService>("2");
-        var mock3 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default, "3");
-        var mock4 = new Moq.Mock<IMyService>(MockBehavior.Loose, 4, true);
-        var mock5 = new Moq.Mock<IMyService>(MockBehavior.Default);
-        var mock6 = new Moq.Mock<IMyService>(MockBehavior.Default);
-    }
-
-    private void TestRealMoqWithGoodParameters()
-    {
-        var mock1 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default);
-        var mock2 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default);
-    }
-
     private void TestFakeMoq()
     {
         var mock1 = new Mock<IMyService>("4");

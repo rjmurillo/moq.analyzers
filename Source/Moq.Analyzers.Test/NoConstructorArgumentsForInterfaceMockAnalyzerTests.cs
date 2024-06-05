@@ -95,10 +95,24 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
             ]));
     }
 
+    // TODO: This feels like it should be in every analyzer's tests
     [Fact]
     public Task ShouldPassIfCustomMockClassIsUsed()
     {
-        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock_2.cs")));
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock.TestFakeMoq.cs")));
+    }
+
+    // TODO: This feels duplicated with other tests
+    [Fact]
+    public Task ShouldFailIsRealMoqIsUsedWithInvalidParameters()
+    {
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock.TestRealMoqWithBadParameters.cs")));
+    }
+
+    [Fact]
+    public Task ShouldPassIfRealMoqIsUsedWithValidParameters()
+    {
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/NoConstructorArgumentsForInterfaceMock.TestRealMoqWithGoodParameters.cs")));
     }
 
     protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
