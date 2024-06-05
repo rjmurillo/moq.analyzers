@@ -7,6 +7,7 @@ namespace Moq.Analyzers.Test;
 
 public class AbstractClassTests : DiagnosticVerifier
 {
+    // TODO: Review use of `.As<>()` in the test cases. It is not clear what purpose it serves.
     [Fact]
     public Task ShouldFailOnGenericTypesWithMismatchArgs()
     {
