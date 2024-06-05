@@ -1,0 +1,24 @@
+﻿Diagnostic 1
+	Id: Moq1002
+	Location: SourceFile(Test0.cs[423..453))
+	Highlight: (MockBehavior.Strict, 4, true)
+	Lines: var mock1 = new Mock<Foo>(MockBehavior.Strict, 4, true);
+	Severity: Warning
+	Message: Parameters provided into mock do not match any existing constructors.
+
+Diagnostic 2
+	Id: Moq1002
+	Location: SourceFile(Test0.cs[488..517))
+	Highlight: (MockBehavior.Loose, 5, true)
+	Lines: var mock2 = new Mock<Foo>(MockBehavior.Loose, 5, true);
+	Severity: Warning
+	Message: Parameters provided into mock do not match any existing constructors.
+
+Diagnostic 3
+	Id: Moq1002
+	Location: SourceFile(Test0.cs[552..580))
+	Highlight: (MockBehavior.Loose, "2", 6)
+	Lines: var mock3 = new Mock<Foo>(MockBehavior.Loose, "2", 6);
+	Severity: Warning
+	Message: Parameters provided into mock do not match any existing constructors.
+

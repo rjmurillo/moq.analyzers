@@ -9,16 +9,22 @@ namespace Moq.Analyzers.Test;
 public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
 {
     [Fact]
-    public Task ShouldFailIfClassParametersDoNotMatch()
+    public Task ShouldPassWhenConstructorArgumentsMatch()
     {
-        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/ConstructorArgumentsShouldMatch.cs")));
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/ConstructorArgumentsShouldMatch.TestGood.cs")));
     }
 
-    // [Fact]
-    // public Task ShouldPassIfCustomMockClassIsUsed()
-    // {
-    //    return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/MockInterfaceWithParametersCustomMockFile.cs")));
-    // }
+    [Fact]
+    public Task ShouldFailWhenConstructorArumentsDoNotMatch()
+    {
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/ConstructorArgumentsShouldMatch.TestBad.cs")));
+    }
+
+    [Fact]
+    public Task ShouldFailWhenConstructorArumentsWithExplicitMockBehaviorDoNotMatch()
+    {
+        return Verify(VerifyCSharpDiagnostic(File.ReadAllText("Data/ConstructorArgumentsShouldMatch.TestBadWithMockBehavior.cs")));
+    }
 
     protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
     {
