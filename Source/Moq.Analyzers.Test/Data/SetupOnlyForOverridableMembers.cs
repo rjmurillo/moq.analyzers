@@ -1,5 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Moq;
+﻿using Moq;
 
 namespace SetupOnlyForOverridableMembers;
 
@@ -12,10 +11,7 @@ public interface ISampleInterface
 
 public abstract class BaseSampleClass
 {
-    public int Calculate()
-    {
-        return 0;
-    }
+    public int Calculate() => 0;
 
     public abstract int Calculate(int a, int b);
 
