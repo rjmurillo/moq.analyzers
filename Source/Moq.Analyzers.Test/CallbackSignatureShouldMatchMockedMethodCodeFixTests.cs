@@ -7,45 +7,35 @@ using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerifier
+public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CallbackSignatureShouldMatchMockedMethodBase
 {
     [Fact]
     public Task ShouldPassWhenCorrectSetupAndReturns()
     {
-        return Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.MyGoodSetupAndReturns.cs")));
+        return Verify(VerifyCSharpFix(GoodSetupAndReturns));
     }
 
     [Fact]
     public Task ShouldSuggestQuickFixWhenIncorrectCallbacks()
     {
-        return Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.TestBadCallbacks.cs")));
+        return Verify(VerifyCSharpFix(BadCallbacks));
     }
 
     [Fact]
     public Task ShouldPassWhenCorrectSetupAndCallbacks()
     {
-        return Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.TestGoodSetupAndCallback.cs")));
+        return Verify(VerifyCSharpFix(GoodSetupAndCallback));
     }
 
     [Fact]
     public Task ShouldPassWhenCorrectSetupAndParameterlessCallbacks()
     {
-        return Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.TestGoodSetupAndParameterlessCallback.cs")));
+        return Verify(VerifyCSharpFix(GoodSetupAndParameterlessCallback));
     }
 
     [Fact]
     public Task ShouldPassWhenCorrectSetupAndReturnsAndCallbacks()
     {
-        return Verify(VerifyCSharpFix(File.ReadAllText("Data/CallbackSignatureShouldMatchMockedMethod.TestGoodSetupAndReturnsAndCallback.cs")));
-    }
-
-    protected override CodeFixProvider GetCSharpCodeFixProvider()
-    {
-        return new CallbackSignatureShouldMatchMockedMethodCodeFix();
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new CallbackSignatureShouldMatchMockedMethodAnalyzer();
+        return Verify(VerifyCSharpFix(GoodSetupAndReturnsAndCallback));
     }
 }
