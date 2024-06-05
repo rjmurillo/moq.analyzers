@@ -1,6 +1,6 @@
 ﻿using Moq;
 
-namespace AsAcceptOnlyInterface;
+namespace AsAcceptOnlyInterface.TestOkAsForInterface;
 
 public interface ISampleInterface
 {
@@ -37,25 +37,5 @@ internal class MyUnitTests
     {
         var mock = new Mock<BaseSampleClass>();
         mock.As<ISampleInterface>();
-    }
-
-    private void TestOkAsForInterfaceWithConfiguration()
-    {
-        var mock = new Mock<BaseSampleClass>();
-        mock.As<ISampleInterface>()
-            .Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()))
-            .Returns(10);
-    }
-
-    private void TestBadAsForAbstractClass()
-    {
-        var mock = new Mock<BaseSampleClass>();
-        mock.As<BaseSampleClass>();
-    }
-
-    private void TestBadAsForNonAbstractClass()
-    {
-        var mock = new Mock<BaseSampleClass>();
-        mock.As<OtherClass>();
     }
 }
