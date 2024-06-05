@@ -12,7 +12,42 @@ public class AbstractClassTests : DiagnosticVerifier
     {
         return Verify(VerifyCSharpDiagnostic(
             [
-                File.ReadAllText("Data/AbstractClass.GenericMismatchArgs.cs")
+                """
+                namespace Moq.Analyzers.Test.Data.AbstractClass.GenericMistmatchArgs;
+
+                internal abstract class AbstractGenericClassDefaultCtor<T>
+                {
+                    protected AbstractGenericClassDefaultCtor()
+                    {
+                    }
+                }
+
+                internal abstract class AbstractGenericClassWithCtor<T>
+                {
+                    protected AbstractGenericClassWithCtor(int a)
+                    {
+                    }
+
+                    protected AbstractGenericClassWithCtor(int a, string b)
+                    {
+                    }
+                }
+
+                internal class MyUnitTests
+                {
+                    private void TestBadWithGeneric()
+                    {
+                        // The class has a constructor that takes an Int32 but passes a String
+                        var mock = new Mock<AbstractGenericClassWithCtor<object>>("42");
+
+                        // The class has a ctor with two arguments [Int32, String], but they are passed in reverse order
+                        var mock1 = new Mock<AbstractGenericClassWithCtor<object>>("42", 42);
+
+                        // The class has a ctor but does not take any arguments
+                        var mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>(42);
+                    }
+                }
+                """
             ]));
     }
 
@@ -21,7 +56,29 @@ public class AbstractClassTests : DiagnosticVerifier
     {
         return Verify(VerifyCSharpDiagnostic(
             [
-                File.ReadAllText("Data/AbstractClass.GenericNoArgs.cs")
+                """
+                namespace Moq.Analyzers.Test.Data.AbstractClass.GenericNoArgs;
+
+                internal abstract class AbstractGenericClassDefaultCtor<T>
+                {
+                    protected AbstractGenericClassDefaultCtor()
+                    {
+                    }
+                }
+
+                internal class MyUnitTests
+                {
+                    private void TestForBaseGenericNoArgs()
+                    {
+                        var mock = new Mock<AbstractGenericClassDefaultCtor<object>>();
+                        mock.As<AbstractGenericClassDefaultCtor<object>>();
+
+                        var mock1 = new Mock<AbstractGenericClassDefaultCtor<object>>();
+
+                        var mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);
+                    }
+                }
+                """
             ]));
     }
 
@@ -30,7 +87,42 @@ public class AbstractClassTests : DiagnosticVerifier
     {
         return Verify(VerifyCSharpDiagnostic(
             [
-                File.ReadAllText("Data/AbstractClass.MismatchArgs.cs")
+                """
+                namespace Moq.Analyzers.Test.Data.AbstractClass.MismatchArgs;
+
+                internal abstract class AbstractClassDefaultCtor
+                {
+                    protected AbstractClassDefaultCtor()
+                    {
+                    }
+                }
+
+                internal abstract class AbstractClassWithCtor
+                {
+                    protected AbstractClassWithCtor(int a)
+                    {
+                    }
+
+                    protected AbstractClassWithCtor(int a, string b)
+                    {
+                    }
+                }
+
+                internal class MyUnitTests
+                {
+                    private void TestBad()
+                    {
+                        // The class has a ctor that takes an Int32 but passes a String
+                        var mock = new Mock<AbstractClassWithCtor>("42");
+
+                        // The class has a ctor with two arguments [Int32, String], but they are passed in reverse order
+                        var mock1 = new Mock<AbstractClassWithCtor>("42", 42);
+
+                        // The class has a ctor but does not take any arguments
+                        var mock2 = new Mock<AbstractClassDefaultCtor>(42);
+                    }
+                }
+                """
             ]));
     }
 
@@ -39,7 +131,40 @@ public class AbstractClassTests : DiagnosticVerifier
     {
         return Verify(VerifyCSharpDiagnostic(
             [
-                File.ReadAllText("Data/AbstractClass.NoArgs.cs")
+                """
+                namespace Moq.Analyzers.Test.Data.AbstractClass.NoArgs;
+
+                internal abstract class AbstractClassDefaultCtor
+                {
+                    protected AbstractClassDefaultCtor()
+                    {
+                    }
+                }
+
+                internal abstract class AbstractClassWithCtor
+                {
+                    protected AbstractClassWithCtor(int a)
+                    {
+                    }
+
+                    protected AbstractClassWithCtor(int a, string b)
+                    {
+                    }
+                }
+
+                internal class MyUnitTests
+                {
+                    // Base case that we can handle abstract types
+                    private void TestForBaseNoArgs()
+                    {
+                        var mock = new Mock<AbstractClassDefaultCtor>();
+                        mock.As<AbstractClassDefaultCtor>();
+
+                        var mock2 = new Mock<AbstractClassWithCtor>();
+                        var mock3 = new Mock<AbstractClassDefaultCtor>(MockBehavior.Default);
+                    }
+                }
+                """
             ]));
     }
 
@@ -48,7 +173,30 @@ public class AbstractClassTests : DiagnosticVerifier
     {
         return Verify(VerifyCSharpDiagnostic(
             [
-                File.ReadAllText("Data/AbstractClass.WithArgsNonePassed.cs")
+                """
+                namespace Moq.Analyzers.Test.Data.AbstractClass.WithArgsNonePassed;
+
+                internal abstract class AbstractClassWithCtor
+                {
+                    protected AbstractClassWithCtor(int a)
+                    {
+                    }
+
+                    protected AbstractClassWithCtor(int a, string b)
+                    {
+                    }
+                }
+
+                internal class MyUnitTests
+                {
+                    // This is syntatically not allowed by C#, but you can do it with Moq
+                    private void TestForBaseWithArgsNonePassed()
+                    {
+                        var mock = new Mock<AbstractClassWithCtor>();
+                        mock.As<AbstractClassWithCtor>();
+                    }
+                }
+                """
             ]));
     }
 
@@ -57,7 +205,46 @@ public class AbstractClassTests : DiagnosticVerifier
     {
         return Verify(VerifyCSharpDiagnostic(
             [
-                File.ReadAllText("Data/AbstractClass.WithArgsPassed.cs")
+                """
+                namespace Moq.Analyzers.Test.DataAbstractClass.WithArgsPassed;
+
+                internal abstract class AbstractGenericClassWithCtor<T>
+                {
+                    protected AbstractGenericClassWithCtor(int a)
+                    {
+                    }
+
+                    protected AbstractGenericClassWithCtor(int a, string b)
+                    {
+                    }
+                }
+
+                internal abstract class AbstractClassWithCtor
+                {
+                    protected AbstractClassWithCtor(int a)
+                    {
+                    }
+
+                    protected AbstractClassWithCtor(int a, string b)
+                    {
+                    }
+                }
+
+                internal class MyUnitTests
+                {
+                    private void TestForBaseWithArgsPassed()
+                    {
+                        var mock = new Mock<AbstractClassWithCtor>(42);
+                        var mock2 = new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42);
+
+                        var mock3 = new Mock<AbstractClassWithCtor>(42, "42");
+                        var mock4 = new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42, "42");
+
+                        var mock5 = new Mock<AbstractGenericClassWithCtor<object>>(42);
+                        var mock6 = new Mock<AbstractGenericClassWithCtor<object>>(MockBehavior.Default, 42);
+                    }
+                }
+                """
             ]));
     }
 
