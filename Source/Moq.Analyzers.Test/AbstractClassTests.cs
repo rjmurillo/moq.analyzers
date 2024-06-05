@@ -141,17 +141,6 @@ public class AbstractClassTests : DiagnosticVerifier
                     }
                 }
 
-                internal abstract class AbstractClassWithCtor
-                {
-                    protected AbstractClassWithCtor(int a)
-                    {
-                    }
-
-                    protected AbstractClassWithCtor(int a, string b)
-                    {
-                    }
-                }
-
                 internal class MyUnitTests
                 {
                     // Base case that we can handle abstract types
@@ -159,9 +148,6 @@ public class AbstractClassTests : DiagnosticVerifier
                     {
                         var mock = new Mock<AbstractClassDefaultCtor>();
                         mock.As<AbstractClassDefaultCtor>();
-
-                        var mock2 = new Mock<AbstractClassWithCtor>();
-                        var mock3 = new Mock<AbstractClassDefaultCtor>(MockBehavior.Default);
                     }
                 }
                 """
@@ -194,6 +180,8 @@ public class AbstractClassTests : DiagnosticVerifier
                     {
                         var mock = new Mock<AbstractClassWithCtor>();
                         mock.As<AbstractClassWithCtor>();
+
+                        var mock2 = new Mock<AbstractClassDefaultCtor>(MockBehavior.Default);
                     }
                 }
                 """
