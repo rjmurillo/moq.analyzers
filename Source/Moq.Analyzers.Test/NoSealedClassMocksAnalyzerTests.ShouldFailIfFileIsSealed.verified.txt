@@ -1,32 +1,32 @@
 ﻿Diagnostic 1
 	Id: Moq1000
-	Location: SourceFile(Test0.cs[785..794))
+	Location: SourceFile(Test0.cs[798..807))
 	Highlight: FooSealed
-	Lines: var mock1 = new Moq.Mock<FooSealed>();
+	Lines: Mock<FooSealed>? mock1 = new Moq.Mock<FooSealed>();
 	Severity: Warning
 	Message: Sealed classes cannot be mocked.
 
 Diagnostic 2
 	Id: Moq1000
-	Location: SourceFile(Test0.cs[828..837))
+	Location: SourceFile(Test0.cs[854..863))
 	Highlight: FooSealed
-	Lines: var mock2 = new Mock<FooSealed>();
+	Lines: Mock<FooSealed>? mock2 = new Mock<FooSealed>();
 	Severity: Warning
 	Message: Sealed classes cannot be mocked.
 
 Diagnostic 3
 	Id: Moq1000
-	Location: SourceFile(Test0.cs[871..899))
+	Location: SourceFile(Test0.cs[910..938))
 	Highlight: NoSealedClassMocks.FooSealed
-	Lines: var mock3 = new Mock<NoSealedClassMocks.FooSealed>();
+	Lines: Mock<FooSealed>? mock3 = new Mock<NoSealedClassMocks.FooSealed>();
 	Severity: Warning
 	Message: Sealed classes cannot be mocked.
 
 Diagnostic 4
 	Id: Moq1000
-	Location: SourceFile(Test0.cs[937..965))
+	Location: SourceFile(Test0.cs[989..1017))
 	Highlight: NoSealedClassMocks.FooSealed
-	Lines: var mock4 = new Moq.Mock<NoSealedClassMocks.FooSealed>();
+	Lines: Mock<FooSealed>? mock4 = new Moq.Mock<NoSealedClassMocks.FooSealed>();
 	Severity: Warning
 	Message: Sealed classes cannot be mocked.
 

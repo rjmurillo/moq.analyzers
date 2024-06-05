@@ -1,48 +1,48 @@
 ﻿Diagnostic 1
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[223..229))
+	Location: SourceFile(Test1.cs[248..254))
 	Highlight: ("42")
-	Lines: var mock = new Mock<AbstractClassWithCtor>("42");
+	Lines: Mock<AbstractClassWithCtor>? mock = new Mock<AbstractClassWithCtor>("42");
 	Severity: Warning
 	Message: Parameters provided into mock do not match any existing constructors.
 
 Diagnostic 2
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[388..398))
+	Location: SourceFile(Test1.cs[438..448))
 	Highlight: ("42", 42)
-	Lines: var mock1 = new Mock<AbstractClassWithCtor>("42", 42);
+	Lines: Mock<AbstractClassWithCtor>? mock1 = new Mock<AbstractClassWithCtor>("42", 42);
 	Severity: Warning
 	Message: Parameters provided into mock do not match any existing constructors.
 
 Diagnostic 3
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[519..523))
+	Location: SourceFile(Test1.cs[597..601))
 	Highlight: (42)
-	Lines: var mock2 = new Mock<AbstractClassDefaultCtor>(42);
+	Lines: Mock<AbstractClassDefaultCtor>? mock2 = new Mock<AbstractClassDefaultCtor>(42);
 	Severity: Warning
 	Message: Parameters provided into mock do not match any existing constructors.
 
 Diagnostic 4
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[720..726))
+	Location: SourceFile(Test1.cs[838..844))
 	Highlight: ("42")
-	Lines: var mock = new Mock<AbstractGenericClassWithCtor<object>>("42");
+	Lines: Mock<AbstractGenericClassWithCtor<object>>? mock = new Mock<AbstractGenericClassWithCtor<object>>("42");
 	Severity: Warning
 	Message: Parameters provided into mock do not match any existing constructors.
 
 Diagnostic 5
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[900..910))
+	Location: SourceFile(Test1.cs[1058..1068))
 	Highlight: ("42", 42)
-	Lines: var mock1 = new Mock<AbstractGenericClassWithCtor<object>>("42", 42);
+	Lines: Mock<AbstractGenericClassWithCtor<object>>? mock1 = new Mock<AbstractGenericClassWithCtor<object>>("42", 42);
 	Severity: Warning
 	Message: Parameters provided into mock do not match any existing constructors.
 
 Diagnostic 6
 	Id: Moq1002
-	Location: SourceFile(Test1.cs[1046..1050))
+	Location: SourceFile(Test1.cs[1247..1251))
 	Highlight: (42)
-	Lines: var mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>(42);
+	Lines: Mock<AbstractGenericClassDefaultCtor<object>>? mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>(42);
 	Severity: Warning
 	Message: Parameters provided into mock do not match any existing constructors.
 
