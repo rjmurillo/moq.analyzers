@@ -1,6 +1,6 @@
 using Moq;
 
-namespace NoMethodsInPropertySetup;
+namespace NoMethodsInPropertySetup.Bad;
 
 public interface IFoo
 {
@@ -20,15 +20,5 @@ public class MyUnitTests
         var mock = new Mock<IFoo>();
         mock.SetupGet(x => x.Method());
         mock.SetupSet(x => x.Method());
-    }
-
-    private void TestGood()
-    {
-        var mock = new Mock<IFoo>();
-        mock.SetupGet(x => x.Prop1);
-        mock.SetupGet(x => x.Prop2);
-        mock.SetupSet(x => x.Prop1 = "1");
-        mock.SetupSet(x => x.Prop3 = "2");
-        mock.Setup(x => x.Method());
     }
 }
