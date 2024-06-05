@@ -1,16 +1,13 @@
 ﻿using System.Threading.Tasks;
 using Moq;
 
-#pragma warning disable SA1402 // File may only contain a single class
-#pragma warning disable SA1649 // File name must match first type name
-#pragma warning disable SA1502 // Element must not be on a single line
-
 namespace SetupShouldNotIncludeAsyncResult;
 
 public class AsyncClient
 {
-    public virtual Task VoidAsync() => Task.CompletedTask;
-    public virtual Task<string> GenericAsyncWithConcreteReturn() => Task.FromResult(string.Empty);
+    public virtual Task TaskAsync() => Task.CompletedTask;
+
+    public virtual Task<string> GenericTaskAsync() => Task.FromResult(string.Empty);
 }
 
 internal class MyUnitTests
@@ -18,19 +15,19 @@ internal class MyUnitTests
     private void TestOkForTask()
     {
         var mock = new Mock<AsyncClient>();
-        mock.Setup(c => c.VoidAsync());
+        mock.Setup(c => c.TaskAsync());
     }
 
-    private void TestOkForTaskWithConcreteReturn()
+    private void TestOkForGenericTask()
     {
         var mock = new Mock<AsyncClient>();
-        mock.Setup(c => c.GenericAsyncWithConcreteReturn().Result);
+        mock.Setup(c => c.GenericTaskAsync().Result);
     }
 
-    private void TestOkForTaskWithConcreteReturnProperSetup()
+    private void TestOkForGenericTaskProperSetup()
     {
         var mock = new Mock<AsyncClient>();
-        mock.Setup(c => c.GenericAsyncWithConcreteReturn())
+        mock.Setup(c => c.GenericTaskAsync())
             .ReturnsAsync(string.Empty);
     }
 }
