@@ -8,10 +8,10 @@ namespace Moq.Analyzers.Test;
 
 public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier<SetupShouldNotIncludeAsyncResultAnalyzer>
 {
-    // [Fact]
-    public Task ShouldPassWhenSetupWithoutReturn()
+    [Fact]
+    public async Task ShouldPassWhenSetupWithoutReturn()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -33,14 +33,13 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier<
                         mock.Setup(c => c.TaskAsync());
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact]
-    public Task ShouldPassWhenSetupWithReturnsAsync()
+    [Fact]
+    public async Task ShouldPassWhenSetupWithReturnsAsync()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -63,14 +62,13 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier<
                             .ReturnsAsync(string.Empty);
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact]
-    public Task ShouldFailWhenSetupWithTaskResult()
+    [Fact]
+    public async Task ShouldFailWhenSetupWithTaskResult()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -89,10 +87,9 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier<
                     private void TestBadForGenericTask()
                     {
                         var mock = new Mock<AsyncClient>();
-                        mock.Setup(c => c.GenericTaskAsync().Result);
+                        mock.Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});
                     }
                 }
-                """
-            ));
+                """);
     }
 }
