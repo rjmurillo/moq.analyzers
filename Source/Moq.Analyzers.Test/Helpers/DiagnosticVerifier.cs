@@ -12,7 +12,7 @@ public abstract class DiagnosticVerifier<TAnalyzer>
     {
         CSharpAnalyzerTest<TAnalyzer, DefaultVerifier> context = new()
         {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]),
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.8.2")]), // TODO: See https://github.com/Litee/moq.analyzers/issues/58
             TestCode = source,
             TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck, // TODO: We should enable the generated code check
         };

@@ -8,10 +8,10 @@ namespace Moq.Analyzers.Test;
 
 public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeUsedOnlyForInterfaceAnalyzer>
 {
-    // [Fact]
-    public Task ShouldFailWhenUsingAsWithAbstractClass()
+    [Fact]
+    public async Task ShouldFailWhenUsingAsWithAbstractClass()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -27,17 +27,16 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeU
                     private void TestBadAsForAbstractClass()
                     {
                         var mock = new Mock<BaseSampleClass>();
-                        mock.As<BaseSampleClass>();
+                        mock.As<{|Moq1300:BaseSampleClass|}>();
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact]
-    public Task ShouldFailWhenUsingAsWithConcreteClass()
+    [Fact]
+    public async Task ShouldFailWhenUsingAsWithConcreteClass()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -64,17 +63,16 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeU
                     private void TestBadAsForNonAbstractClass()
                     {
                         var mock = new Mock<BaseSampleClass>();
-                        mock.As<OtherClass>();
+                        mock.As<{|Moq1300:OtherClass|}>();
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact]
-    public Task ShouldPassWhenUsingAsWithInterface()
+    [Fact]
+    public async Task ShouldPassWhenUsingAsWithInterface()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -98,14 +96,13 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeU
                         mock.As<ISampleInterface>();
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact]
-    public Task ShouldPassWhenUsingAsWithInterfaceWithSetup()
+    [Fact]
+    public async Task ShouldPassWhenUsingAsWithInterfaceWithSetup()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -131,7 +128,6 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeU
                             .Returns(10);
                     }
                 }
-                """
-            ));
+                """);
     }
 }
