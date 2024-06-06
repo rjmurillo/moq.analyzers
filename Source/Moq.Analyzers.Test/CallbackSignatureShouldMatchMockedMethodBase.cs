@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Moq.Analyzers.Test;
 

@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis.Diagnostics;
-
-namespace Moq.Analyzers.Test;
+﻿namespace Moq.Analyzers.Test;
 
 public class AbstractClassTests : DiagnosticVerifier
 {
