@@ -50,10 +50,10 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
                 """);
     }
 
-    // [Fact]
-    public Task ShouldPassOnGenericTypesWithNoArgs()
+    [Fact]
+    public async Task ShouldPassOnGenericTypesWithNoArgs()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.GenericNoArgs;
 
@@ -76,14 +76,13 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
                         var mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact]
-    public Task ShouldFailOnMismatchArgs()
+    [Fact]
+    public async Task ShouldFailOnMismatchArgs()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.MismatchArgs;
 
@@ -110,23 +109,22 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
                     private void TestBad()
                     {
                         // The class has a ctor that takes an Int32 but passes a String
-                        var mock = new Mock<AbstractClassWithCtor>("42");
+                        var mock = new Mock<AbstractClassWithCtor>{|Moq1002:("42")|};
 
                         // The class has a ctor with two arguments [Int32, String], but they are passed in reverse order
-                        var mock1 = new Mock<AbstractClassWithCtor>("42", 42);
+                        var mock1 = new Mock<AbstractClassWithCtor>{|Moq1002:("42", 42)|};
 
                         // The class has a ctor but does not take any arguments
-                        var mock2 = new Mock<AbstractClassDefaultCtor>(42);
+                        var mock2 = new Mock<AbstractClassDefaultCtor>{|Moq1002:(42)|};
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact]
-    public Task ShouldPassWithNoArgs()
+    [Fact]
+    public async Task ShouldPassWithNoArgs()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.NoArgs;
 
@@ -146,14 +144,13 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
                         mock.As<AbstractClassDefaultCtor>();
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact(Skip = "I think this _should_ fail, but currently passes. Tracked by #55.")]
-    public Task ShouldFailWithArgsNonePassed()
+    [Fact(Skip = "I think this _should_ fail, but currently passes. Tracked by #55.")]
+    public async Task ShouldFailWithArgsNonePassed()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.WithArgsNonePassed;
 
@@ -175,18 +172,15 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
                     {
                         var mock = new Mock<AbstractClassWithCtor>();
                         mock.As<AbstractClassWithCtor>();
-
-                        var mock2 = new Mock<AbstractClassDefaultCtor>(MockBehavior.Default);
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact]
-    public Task ShouldPassWithArgsPassed()
+    [Fact]
+    public async Task ShouldPassWithArgsPassed()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.DataAbstractClass.WithArgsPassed;
 
@@ -226,7 +220,6 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
                         var mock6 = new Mock<AbstractGenericClassWithCtor<object>>(MockBehavior.Default, 42);
                     }
                 }
-                """
-            ));
+                """);
     }
 }
