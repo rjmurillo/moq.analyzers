@@ -1,8 +1,4 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-using Xunit;
-
-namespace Moq.Analyzers.Test;
+﻿namespace Moq.Analyzers.Test;
 
 public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests : CallbackSignatureShouldMatchMockedMethodBase
 {

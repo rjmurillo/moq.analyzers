@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using VerifyTests;
 
 namespace Moq.Analyzers.Test;
 

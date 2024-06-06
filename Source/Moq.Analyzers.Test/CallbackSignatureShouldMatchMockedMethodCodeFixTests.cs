@@ -1,11 +1,4 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
-using Xunit;
-
-namespace Moq.Analyzers.Test;
+﻿namespace Moq.Analyzers.Test;
 
 public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CallbackSignatureShouldMatchMockedMethodBase
 {

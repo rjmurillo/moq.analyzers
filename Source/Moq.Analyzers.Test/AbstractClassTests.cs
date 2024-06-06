@@ -1,7 +1,5 @@
-﻿using System.IO;
-using Microsoft.CodeAnalysis.Diagnostics;
+﻿using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
-using Xunit;
 
 namespace Moq.Analyzers.Test;
 
