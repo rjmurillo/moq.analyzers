@@ -8,10 +8,10 @@ namespace Moq.Analyzers.Test;
 
 public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier<NoSealedClassMocksAnalyzer>
 {
-    // [Fact]
-    public Task ShouldFailWhenClassIsSealed()
+    [Fact]
+    public async Task ShouldFailWhenClassIsSealed()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using System;
                 using Moq;
@@ -26,17 +26,16 @@ public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier<NoSealedClassM
                 {
                     private void Sealed()
                     {
-                        var mock = new Mock<FooSealed>();
+                        var mock = new Mock<{|Moq1000:FooSealed|}>();
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact]
-    public Task ShouldPassWhenClassIsNotSealed()
+    [Fact]
+    public async Task ShouldPassWhenClassIsNotSealed()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using System;
                 using Moq;
@@ -54,7 +53,6 @@ public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier<NoSealedClassM
                         var mock = new Mock<Foo>();
                     }
                 }
-                """
-            ));
+                """);
     }
 }
