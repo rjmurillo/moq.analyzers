@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
 
 namespace Moq.Analyzers.Test;
 

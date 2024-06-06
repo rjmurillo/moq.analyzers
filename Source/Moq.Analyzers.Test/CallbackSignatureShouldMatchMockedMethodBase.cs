@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
 
 namespace Moq.Analyzers.Test;
 
