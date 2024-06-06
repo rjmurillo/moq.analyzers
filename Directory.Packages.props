@@ -6,9 +6,20 @@
   <Import Project="build/targets/reproducible/Packages.props" />
   <Import Project="build/targets/tests/Packages.props" />
   <Import Project="build/targets/codeanalysis/Packages.props" />
+  <ItemGroup Label="Public APIs">
+    <!--
+      These items impact our compatibility with SDK versions, so follow
+      to strike a balance between compatibility and modernity.
+
+      These are the two main documents to reference how the Public API impacts users:
+      - https://github.com/dotnet/roslyn/blob/main/docs/wiki/NuGet-packages.md
+      - https://learn.microsoft.com/en-us/visualstudio/productinfo/vs-servicing
+    -->
+
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.1" />
+  </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="GetPackFromProject" Version="1.0.6" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.6.1" />
     <PackageVersion Include="Moq" Version="4.8.2" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
