@@ -37,7 +37,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression);
+            var symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
             if (symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
             {
                 if (IsMethodOverridable(symbolInfo.Symbol) == false &&

@@ -45,7 +45,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         if (genericName.Identifier.ToFullString() != "Mock") return;
 
         // Full check
-        var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation);
+        var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation, context.CancellationToken);
         var constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
         if (constructorSymbol == null || constructorSymbol.ContainingType == null || constructorSymbol.ContainingType.ConstructedFrom == null) return;
         if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
@@ -54,7 +54,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         // Find mocked type
         var typeArguments = genericName.TypeArgumentList.Arguments;
         if (typeArguments == null || typeArguments.Count != 1) return;
-        var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0]);
+        var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0], context.CancellationToken);
         var symbol = symbolInfo.Symbol as INamedTypeSymbol;
         if (symbol == null) return;
 

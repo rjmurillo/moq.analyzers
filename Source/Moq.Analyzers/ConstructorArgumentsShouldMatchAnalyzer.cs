@@ -70,7 +70,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
             // Extract types of arguments passed in the constructor call
             var argumentTypes = constructorArguments
-                .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression).Type)
+                .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
                 .ToArray();
 
             // Check all constructors of the abstract type
@@ -93,7 +93,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     {
         var typeArguments = genericName.TypeArgumentList.Arguments;
         if (typeArguments == null || typeArguments.Count != 1) return null;
-        var mockedTypeSymbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0]);
+        var mockedTypeSymbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0], context.CancellationToken);
         var mockedTypeSymbol = mockedTypeSymbolInfo.Symbol as INamedTypeSymbol;
         if (mockedTypeSymbol == null || mockedTypeSymbol.TypeKind != TypeKind.Class) return null;
         return mockedTypeSymbol;
@@ -141,7 +141,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
     private static IMethodSymbol GetConstructorSymbol(SyntaxNodeAnalysisContext context, ObjectCreationExpressionSyntax objectCreation)
     {
-        var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation);
+        var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation, context.CancellationToken);
         var constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
         return constructorSymbol?.MethodKind == MethodKind.Constructor &&
                constructorSymbol.ContainingType?.ConstructedFrom.ToDisplayString() == "Moq.Mock<T>"

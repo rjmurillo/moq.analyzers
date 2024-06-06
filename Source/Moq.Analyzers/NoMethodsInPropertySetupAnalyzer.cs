@@ -38,7 +38,7 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
         var mockedMethodCall = Helpers.FindMockedMethodInvocationFromSetupMethod(setupGetOrSetInvocation);
         if (mockedMethodCall == null) return;
 
-        var mockedMethodSymbol = context.SemanticModel.GetSymbolInfo(mockedMethodCall).Symbol;
+        var mockedMethodSymbol = context.SemanticModel.GetSymbolInfo(mockedMethodCall, context.CancellationToken).Symbol;
         if (mockedMethodSymbol == null) return;
 
         var diagnostic = Diagnostic.Create(Rule, mockedMethodCall.GetLocation());
