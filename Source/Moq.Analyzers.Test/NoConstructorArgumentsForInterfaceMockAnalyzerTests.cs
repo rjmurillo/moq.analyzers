@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVerifier
+public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVerifier<NoConstructorArgumentsForInterfaceMockAnalyzer>
 {
     // [Fact]
     public Task ShouldFailIfMockedInterfaceHasConstructorParameters()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -34,14 +33,13 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldFailIfMockedInterfaceHasConstructorParametersAndExplicitMockBehavior()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -63,14 +61,13 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassIfMockedInterfaceDoesNotHaveConstructorParameters()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
             """
             using Moq;
 
@@ -92,7 +89,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                 }
             }
             """
-            ]));
+            ));
     }
 
     // TODO: This feels like it should be in every analyzer's tests
@@ -100,7 +97,6 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
     public Task ShouldPassIfCustomMockClassIsUsed()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 namespace NoConstructorArgumentsForInterfaceMock.TestFakeMoq;
 
@@ -141,7 +137,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // TODO: This feels duplicated with other tests
@@ -149,7 +145,6 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
     public Task ShouldFailIsRealMoqIsUsedWithInvalidParameters()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 namespace NoConstructorArgumentsForInterfaceMock.TestRealMoqWithBadParameters;
 
@@ -190,14 +185,13 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassIfRealMoqIsUsedWithValidParameters()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 namespace NoConstructorArgumentsForInterfaceMock.TestRealMoqWithGoodParameters;
 
@@ -234,11 +228,6 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                     }
                 }
                 """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new NoConstructorArgumentsForInterfaceMockAnalyzer();
+            ));
     }
 }

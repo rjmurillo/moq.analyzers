@@ -4,35 +4,35 @@ using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests : CallbackSignatureShouldMatchMockedMethodBase
-{
-    // [Fact]
-    public Task ShouldPassWhenCorrectSetupAndReturns()
-    {
-        return Verify(VerifyCSharpDiagnostic(GoodSetupAndCallback));
-    }
+//public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests : CallbackSignatureShouldMatchMockedMethodBase
+//{
+//    // [Fact]
+//    public Task ShouldPassWhenCorrectSetupAndReturns()
+//    {
+//        return Verify(VerifyCSharpDiagnostic(GoodSetupAndCallback));
+//    }
 
-    // [Fact]
-    public Task ShouldFailWhenIncorrectCallbacks()
-    {
-        return Verify(VerifyCSharpDiagnostic(BadCallbacks));
-    }
+//    // [Fact]
+//    public Task ShouldFailWhenIncorrectCallbacks()
+//    {
+//        return Verify(VerifyCSharpDiagnostic(BadCallbacks));
+//    }
 
-    // [Fact]
-    public Task ShouldPassWhenCorrectSetupAndCallbacks()
-    {
-        return Verify(VerifyCSharpDiagnostic(GoodSetupAndCallback));
-    }
+//    // [Fact]
+//    public Task ShouldPassWhenCorrectSetupAndCallbacks()
+//    {
+//        return Verify(VerifyCSharpDiagnostic(GoodSetupAndCallback));
+//    }
 
-    // [Fact]
-    public Task ShouldPassWhenCorrectSetupAndParameterlessCallbacks()
-    {
-        return Verify(VerifyCSharpDiagnostic(GoodSetupAndParameterlessCallback));
-    }
+//    // [Fact]
+//    public Task ShouldPassWhenCorrectSetupAndParameterlessCallbacks()
+//    {
+//        return Verify(VerifyCSharpDiagnostic(GoodSetupAndParameterlessCallback));
+//    }
 
-    // [Fact]
-    public Task ShouldPassWhenCorrectSetupAndReturnsAndCallbacks()
-    {
-        return Verify(VerifyCSharpDiagnostic(GoodSetupAndReturnsAndCallback));
-    }
-}
+//    // [Fact]
+//    public Task ShouldPassWhenCorrectSetupAndReturnsAndCallbacks()
+//    {
+//        return Verify(VerifyCSharpDiagnostic(GoodSetupAndReturnsAndCallback));
+//    }
+//}

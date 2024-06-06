@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
+public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier<NoMethodsInPropertySetupAnalyzer>
 {
     // [Fact]
     public Task ShouldPassWhenPropertiesUsePropertySetup()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -42,14 +41,13 @@ public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldFailWhenMethodsUsePropertySetup()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -76,12 +74,6 @@ public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
-    }
-
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new NoMethodsInPropertySetupAnalyzer();
+            ));
     }
 }

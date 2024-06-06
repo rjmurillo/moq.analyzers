@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
+public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeUsedOnlyForInterfaceAnalyzer>
 {
     // [Fact]
     public Task ShouldFailWhenUsingAsWithAbstractClass()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -32,14 +31,13 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldFailWhenUsingAsWithConcreteClass()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -70,14 +68,13 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassWhenUsingAsWithInterface()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -102,14 +99,13 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassWhenUsingAsWithInterfaceWithSetup()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -136,11 +132,6 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new AsShouldBeUsedOnlyForInterfaceAnalyzer();
+            ));
     }
 }

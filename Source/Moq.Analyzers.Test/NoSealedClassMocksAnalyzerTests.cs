@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier
+public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier<NoSealedClassMocksAnalyzer>
 {
     // [Fact]
     public Task ShouldFailWhenClassIsSealed()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using System;
                 using Moq;
@@ -31,14 +30,13 @@ public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassWhenClassIsNotSealed()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using System;
                 using Moq;
@@ -57,11 +55,6 @@ public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new NoSealedClassMocksAnalyzer();
+            ));
     }
 }

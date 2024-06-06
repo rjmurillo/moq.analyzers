@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
+public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier<ConstructorArgumentsShouldMatchAnalyzer>
 {
     // [Fact]
     public Task ShouldPassWhenConstructorArgumentsMatch()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using System;
                 using System.Collections.Generic;
@@ -58,14 +57,13 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldFailWhenConstructorArumentsDoNotMatch()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using System;
                 using System.Collections.Generic;
@@ -95,14 +93,13 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldFailWhenConstructorArumentsWithExplicitMockBehaviorDoNotMatch()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using System;
                 using System.Collections.Generic;
@@ -131,11 +128,6 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new ConstructorArgumentsShouldMatchAnalyzer();
+            ));
     }
 }

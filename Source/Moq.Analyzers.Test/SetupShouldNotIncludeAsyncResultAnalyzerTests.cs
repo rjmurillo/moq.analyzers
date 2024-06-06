@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
+public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier<SetupShouldNotIncludeAsyncResultAnalyzer>
 {
     // [Fact]
     public Task ShouldPassWhenSetupWithoutReturn()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -35,14 +34,13 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassWhenSetupWithReturnsAsync()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -66,14 +64,13 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldFailWhenSetupWithTaskResult()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -96,11 +93,6 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
                     }
                 }
                 """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new SetupShouldNotIncludeAsyncResultAnalyzer();
+            ));
     }
 }

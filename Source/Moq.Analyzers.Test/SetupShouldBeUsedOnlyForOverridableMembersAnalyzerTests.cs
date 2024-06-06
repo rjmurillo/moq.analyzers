@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : DiagnosticVerifier
+public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : DiagnosticVerifier<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>
 {
     // [Fact]
     public Task ShouldFailWhenSetupIsCalledWithANonVirtualMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -36,14 +35,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldFailWhenSetupIsCalledWithANonVirtualProperty()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -64,14 +62,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldFailWhenSetupIsCalledWithASealedMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -103,14 +100,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassWhenSetupIsCalledWithAnAbstractMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -134,14 +130,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassWhenSetupIsCalledWithAnInterfaceMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -161,14 +156,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassWhenSetupIsCalledWithAnInterfaceProperty()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -188,14 +182,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassWhenSetupIsCalledWithAnOverrideOfAnAbstractMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -227,14 +220,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     }
                 }
                 """
-            ]));
+            ));
     }
 
     // [Fact]
     public Task ShouldPassWhenSetupIsCalledWithAVirtualMethod()
     {
         return Verify(VerifyCSharpDiagnostic(
-            [
                 """
                 using Moq;
 
@@ -254,11 +246,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     }
                 }
                 """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new SetupShouldBeUsedOnlyForOverridableMembersAnalyzer();
+            ));
     }
 }
