@@ -13,12 +13,11 @@ public abstract class CodeFixVerifier<TAnalyzer, TCodeFixProvider>
     {
         CSharpCodeFixTest<TAnalyzer, TCodeFixProvider, DefaultVerifier> context = new()
         {
-            // TODO: Refactor this out
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.8.2")]), // TODO: See https://github.com/Litee/moq.analyzers/issues/58
-            TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck, // TODO: We should enable the generated code check
             TestCode = originalSource,
             FixedCode = fixedSource,
         };
+
+        context.SetDefaults<CSharpCodeFixTest<TAnalyzer, TCodeFixProvider, DefaultVerifier>, DefaultVerifier>();
 
         await context.RunAsync().ConfigureAwait(false);
     }
