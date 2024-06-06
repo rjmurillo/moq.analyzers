@@ -8,10 +8,10 @@ namespace Moq.Analyzers.Test;
 
 public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier<NoMethodsInPropertySetupAnalyzer>
 {
-    // [Fact]
-    public Task ShouldPassWhenPropertiesUsePropertySetup()
+    [Fact]
+    public async Task ShouldPassWhenPropertiesUsePropertySetup()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -40,14 +40,13 @@ public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier<NoMethod
                         mock.Setup(x => x.Method());
                     }
                 }
-                """
-            ));
+                """);
     }
 
-    // [Fact]
-    public Task ShouldFailWhenMethodsUsePropertySetup()
+    [Fact]
+    public async Task ShouldFailWhenMethodsUsePropertySetup()
     {
-        return Verify(VerifyCSharpDiagnostic(
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -69,11 +68,10 @@ public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier<NoMethod
                     private void TestBad()
                     {
                         var mock = new Mock<IFoo>();
-                        mock.SetupGet(x => x.Method());
-                        mock.SetupSet(x => x.Method());
+                        mock.SetupGet(x => {|Moq1101:x.Method()|});
+                        mock.SetupSet(x => {|Moq1101:x.Method()|});
                     }
                 }
-                """
-            ));
+                """);
     }
 }
