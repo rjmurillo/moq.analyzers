@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="GetPackFromProject" Version="1.0.6" />
-    <PackageVersion Include="Moq" Version="4.8.2" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
 </Project>
