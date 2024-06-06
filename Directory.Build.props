@@ -8,4 +8,5 @@
   <Import Project="build/targets/reproducible/Reproducible.props" />
   <Import Project="build/targets/versioning/Versioning.props" />
   <Import Project="build/targets/tests/Tests.props" />
+  <Import Project="build/targets/codeanalysis/CodeAnalysis.props" />
 </Project>

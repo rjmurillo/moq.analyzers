@@ -1,0 +1,8 @@
+<Project>
+  <ItemGroup>
+    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.155" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.3" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="2.1.0" />
+    <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" />
+  </ItemGroup>
+</Project>
