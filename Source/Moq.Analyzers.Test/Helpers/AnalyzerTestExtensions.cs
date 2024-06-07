@@ -9,7 +9,6 @@ internal static class AnalyzerTestExtensions
         where TVerifier : IVerifier, new()
     {
         test.ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.8.2")]); // TODO: See https://github.com/rjmurillo/moq.analyzers/issues/58
-        test.TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck; // TODO: We should enable the generated code check
 
         return test;
     }
