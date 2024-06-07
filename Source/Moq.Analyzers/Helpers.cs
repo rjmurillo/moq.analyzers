@@ -21,7 +21,7 @@ internal static class Helpers
 
     internal static bool IsCallbackOrReturnInvocation(SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)
     {
-        var callbackOrReturnsMethod = callbackOrReturnsInvocation.Expression as MemberAccessExpressionSyntax;
+        MemberAccessExpressionSyntax? callbackOrReturnsMethod = callbackOrReturnsInvocation.Expression as MemberAccessExpressionSyntax;
 
         Debug.Assert(callbackOrReturnsMethod != null, nameof(callbackOrReturnsMethod) + " != null");
 
@@ -30,7 +30,7 @@ internal static class Helpers
             return false;
         }
 
-        var methodName = callbackOrReturnsMethod.Name.ToString();
+        string? methodName = callbackOrReturnsMethod.Name.ToString();
 
         // First fast check before walking semantic model
         if (!string.Equals(methodName, "Callback", StringComparison.Ordinal)
@@ -39,7 +39,7 @@ internal static class Helpers
             return false;
         }
 
-        var symbolInfo = semanticModel.GetSymbolInfo(callbackOrReturnsMethod);
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(callbackOrReturnsMethod);
         return symbolInfo.CandidateReason switch
         {
             CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(IsCallbackOrReturnSymbol),
@@ -50,7 +50,7 @@ internal static class Helpers
 
     internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(SemanticModel semanticModel, ExpressionSyntax expression)
     {
-        var invocation = expression as InvocationExpressionSyntax;
+        InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
         if (invocation?.Expression is not MemberAccessExpressionSyntax method) return null;
         if (IsMoqSetupMethod(semanticModel, method)) return invocation;
         return FindSetupMethodFromCallbackInvocation(semanticModel, method.Expression);
@@ -58,20 +58,20 @@ internal static class Helpers
 
     internal static InvocationExpressionSyntax? FindMockedMethodInvocationFromSetupMethod(InvocationExpressionSyntax? setupInvocation)
     {
-        var setupLambdaArgument = setupInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
+        LambdaExpressionSyntax? setupLambdaArgument = setupInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
         return setupLambdaArgument?.Body as InvocationExpressionSyntax;
     }
 
     internal static ExpressionSyntax? FindMockedMemberExpressionFromSetupMethod(InvocationExpressionSyntax? setupInvocation)
     {
-        var setupLambdaArgument = setupInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
+        LambdaExpressionSyntax? setupLambdaArgument = setupInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
         return setupLambdaArgument?.Body as ExpressionSyntax;
     }
 
     internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(SemanticModel semanticModel, InvocationExpressionSyntax? setupMethodInvocation)
     {
-        var setupLambdaArgument = setupMethodInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
-        var mockedMethodInvocation = setupLambdaArgument?.Body as InvocationExpressionSyntax;
+        LambdaExpressionSyntax? setupLambdaArgument = setupMethodInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
+        InvocationExpressionSyntax? mockedMethodInvocation = setupLambdaArgument?.Body as InvocationExpressionSyntax;
 
         return GetAllMatchingSymbols<IMethodSymbol>(semanticModel, mockedMethodInvocation);
     }
@@ -79,10 +79,10 @@ internal static class Helpers
     internal static IEnumerable<T> GetAllMatchingSymbols<T>(SemanticModel semanticModel, ExpressionSyntax? expression)
         where T : class
     {
-        var matchingSymbols = new List<T>();
+        List<T>? matchingSymbols = new List<T>();
         if (expression != null)
         {
-            var symbolInfo = semanticModel.GetSymbolInfo(expression);
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
             if (symbolInfo is { CandidateReason: CandidateReason.None, Symbol: T })
             {
                 matchingSymbols.Add(symbolInfo.Symbol as T);
@@ -100,7 +100,7 @@ internal static class Helpers
     {
         // TODO: Check what is the best way to do such checks
         if (symbol is not IMethodSymbol methodSymbol) return false;
-        var methodName = methodSymbol.ToString();
+        string? methodName = methodSymbol.ToString();
         return methodName.StartsWith("Moq.Language.ICallback", StringComparison.Ordinal)
                || methodName.StartsWith("Moq.Language.IReturns", StringComparison.Ordinal);
     }

@@ -25,46 +25,46 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        var callbackOrReturnsInvocation = (InvocationExpressionSyntax)context.Node;
+        InvocationExpressionSyntax? callbackOrReturnsInvocation = (InvocationExpressionSyntax)context.Node;
 
-        var callbackOrReturnsMethodArguments = callbackOrReturnsInvocation.ArgumentList.Arguments;
+        SeparatedSyntaxList<ArgumentSyntax> callbackOrReturnsMethodArguments = callbackOrReturnsInvocation.ArgumentList.Arguments;
 
         // Ignoring Callback() and Return() calls without lambda arguments
         if (callbackOrReturnsMethodArguments.Count == 0) return;
 
         if (!Helpers.IsCallbackOrReturnInvocation(context.SemanticModel, callbackOrReturnsInvocation)) return;
 
-        var callbackLambda = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ParenthesizedLambdaExpressionSyntax;
+        ParenthesizedLambdaExpressionSyntax? callbackLambda = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ParenthesizedLambdaExpressionSyntax;
 
         // Ignoring callbacks without lambda
         if (callbackLambda == null) return;
 
         // Ignoring calls with no arguments because those are valid in Moq
-        var lambdaParameters = callbackLambda.ParameterList.Parameters;
+        SeparatedSyntaxList<ParameterSyntax> lambdaParameters = callbackLambda.ParameterList.Parameters;
         if (lambdaParameters.Count == 0) return;
 
-        var setupInvocation = Helpers.FindSetupMethodFromCallbackInvocation(context.SemanticModel, callbackOrReturnsInvocation);
-        var mockedMethodInvocation = Helpers.FindMockedMethodInvocationFromSetupMethod(setupInvocation);
+        InvocationExpressionSyntax? setupInvocation = Helpers.FindSetupMethodFromCallbackInvocation(context.SemanticModel, callbackOrReturnsInvocation);
+        InvocationExpressionSyntax? mockedMethodInvocation = Helpers.FindMockedMethodInvocationFromSetupMethod(setupInvocation);
         if (mockedMethodInvocation == null) return;
 
-        var mockedMethodArguments = mockedMethodInvocation.ArgumentList.Arguments;
+        SeparatedSyntaxList<ArgumentSyntax> mockedMethodArguments = mockedMethodInvocation.ArgumentList.Arguments;
 
         if (mockedMethodArguments.Count != lambdaParameters.Count)
         {
-            var diagnostic = Diagnostic.Create(Rule, callbackLambda.ParameterList.GetLocation());
+            Diagnostic? diagnostic = Diagnostic.Create(Rule, callbackLambda.ParameterList.GetLocation());
             context.ReportDiagnostic(diagnostic);
         }
         else
         {
             for (int i = 0; i < mockedMethodArguments.Count; i++)
             {
-                var mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[i].Expression, context.CancellationToken);
-                var lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameters[i].Type, context.CancellationToken);
+                TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[i].Expression, context.CancellationToken);
+                TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameters[i].Type, context.CancellationToken);
                 string? mockedMethodTypeName = mockedMethodArgumentType.ConvertedType?.ToString();
                 string? lambdaParameterTypeName = lambdaParameterType.ConvertedType?.ToString();
                 if (!string.Equals(mockedMethodTypeName, lambdaParameterTypeName, StringComparison.Ordinal))
                 {
-                    var diagnostic = Diagnostic.Create(Rule, callbackLambda.ParameterList.GetLocation());
+                    Diagnostic? diagnostic = Diagnostic.Create(Rule, callbackLambda.ParameterList.GetLocation());
                     context.ReportDiagnostic(diagnostic);
                 }
             }

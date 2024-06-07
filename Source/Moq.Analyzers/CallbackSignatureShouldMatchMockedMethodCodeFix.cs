@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Moq.Analyzers;
 
@@ -21,15 +22,15 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        SyntaxNode? root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
         if (root == null)
         {
             return;
         }
 
-        var diagnostic = context.Diagnostics.First();
-        var diagnosticSpan = diagnostic.Location.SourceSpan;
+        Diagnostic? diagnostic = context.Diagnostics.First();
+        TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
 
         // Find the type declaration identified by the diagnostic.
         ParameterListSyntax? badArgumentListSyntax = root.FindToken(diagnosticSpan.Start)
@@ -49,7 +50,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
 
     private async Task<Document> FixCallbackSignatureAsync(SyntaxNode root, Document document, ParameterListSyntax? oldParameters, CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         Debug.Assert(semanticModel != null, nameof(semanticModel) + " != null");
 
@@ -63,23 +64,23 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
             return document;
         }
 
-        var setupMethodInvocation = Helpers.FindSetupMethodFromCallbackInvocation(semanticModel, callbackInvocation);
+        InvocationExpressionSyntax? setupMethodInvocation = Helpers.FindSetupMethodFromCallbackInvocation(semanticModel, callbackInvocation);
         Debug.Assert(setupMethodInvocation != null, nameof(setupMethodInvocation) + " != null");
-        var matchingMockedMethods = Helpers.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(semanticModel, setupMethodInvocation).ToArray();
+        IMethodSymbol[]? matchingMockedMethods = Helpers.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(semanticModel, setupMethodInvocation).ToArray();
 
         if (matchingMockedMethods.Length != 1 || oldParameters == null)
         {
             return document;
         }
 
-        var newParameters = SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(matchingMockedMethods[0].Parameters.Select(
+        ParameterListSyntax? newParameters = SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(matchingMockedMethods[0].Parameters.Select(
             p =>
             {
-                var type = SyntaxFactory.ParseTypeName(p.Type.ToMinimalDisplayString(semanticModel, oldParameters.SpanStart));
+                TypeSyntax? type = SyntaxFactory.ParseTypeName(p.Type.ToMinimalDisplayString(semanticModel, oldParameters.SpanStart));
                 return SyntaxFactory.Parameter(default, SyntaxFactory.TokenList(), type, SyntaxFactory.Identifier(p.Name), null);
             })));
 
-        var newRoot = root.ReplaceNode(oldParameters, newParameters);
+        SyntaxNode? newRoot = root.ReplaceNode(oldParameters, newParameters);
         return document.WithSyntaxRoot(newRoot);
     }
 }

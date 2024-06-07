@@ -22,21 +22,21 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
 
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        var setupInvocation = (InvocationExpressionSyntax)context.Node;
+        InvocationExpressionSyntax? setupInvocation = (InvocationExpressionSyntax)context.Node;
 
         if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && Helpers.IsMoqSetupMethod(context.SemanticModel, memberAccessExpression))
         {
-            var mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
+            ExpressionSyntax? mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
             if (mockedMemberExpression == null)
             {
                 return;
             }
 
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
+            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
             if (symbolInfo.Symbol is IPropertySymbol or IMethodSymbol
                 && !IsMethodOverridable(symbolInfo.Symbol))
             {
-                var diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
+                Diagnostic? diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
         }

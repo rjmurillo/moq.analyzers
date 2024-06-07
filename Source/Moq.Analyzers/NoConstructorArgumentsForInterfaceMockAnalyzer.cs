@@ -27,7 +27,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
 
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
+        ObjectCreationExpressionSyntax? objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
         // TODO Think how to make this piece more elegant while fast
         GenericNameSyntax? genericName = objectCreation.Type as GenericNameSyntax;
@@ -42,7 +42,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
         if (!string.Equals(genericName.Identifier.ToFullString(), "Mock", StringComparison.Ordinal)) return;
 
         // Full check
-        var constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation, context.CancellationToken);
+        SymbolInfo constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation, context.CancellationToken);
         if (constructorSymbolInfo.Symbol is not IMethodSymbol constructorSymbol || constructorSymbol.ContainingType == null || constructorSymbol.ContainingType.ConstructedFrom == null) return;
         if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
         if (!string.Equals(
@@ -57,9 +57,9 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
         if (!constructorSymbol.Parameters.Any(x => x.IsParams)) return;
 
         // Find mocked type
-        var typeArguments = genericName.TypeArgumentList.Arguments;
+        SeparatedSyntaxList<TypeSyntax> typeArguments = genericName.TypeArgumentList.Arguments;
         if (typeArguments.Count != 1) return;
-        var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0], context.CancellationToken);
+        SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0], context.CancellationToken);
         if (symbolInfo.Symbol is not INamedTypeSymbol symbol) return;
 
         // Checked mocked type
@@ -67,7 +67,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
         {
             Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
 
-            var diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+            Diagnostic? diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
             context.ReportDiagnostic(diagnostic);
         }
     }
