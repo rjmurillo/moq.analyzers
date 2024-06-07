@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class AbstractClassTests : DiagnosticVerifier
+public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldMatchAnalyzer>
 {
     // TODO: Review use of `.As<>()` in the test cases. It is not clear what purpose it serves.
     [Fact]
-    public Task ShouldFailOnGenericTypesWithMismatchArgs()
+    public async Task ShouldFailOnGenericTypesWithMismatchArgs()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.GenericMistmatchArgs;
 
@@ -39,24 +38,22 @@ public class AbstractClassTests : DiagnosticVerifier
                     private void TestBadWithGeneric()
                     {
                         // The class has a constructor that takes an Int32 but passes a String
-                        var mock = new Mock<AbstractGenericClassWithCtor<object>>("42");
+                        var mock = new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:("42")|};
 
                         // The class has a ctor with two arguments [Int32, String], but they are passed in reverse order
-                        var mock1 = new Mock<AbstractGenericClassWithCtor<object>>("42", 42);
+                        var mock1 = new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:("42", 42)|};
 
                         // The class has a ctor but does not take any arguments
-                        var mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>(42);
+                        var mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>{|Moq1002:(42)|};
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassOnGenericTypesWithNoArgs()
+    public async Task ShouldPassOnGenericTypesWithNoArgs()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.GenericNoArgs;
 
@@ -79,15 +76,13 @@ public class AbstractClassTests : DiagnosticVerifier
                         var mock2 = new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldFailOnMismatchArgs()
+    public async Task ShouldFailOnMismatchArgs()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.MismatchArgs;
 
@@ -114,24 +109,22 @@ public class AbstractClassTests : DiagnosticVerifier
                     private void TestBad()
                     {
                         // The class has a ctor that takes an Int32 but passes a String
-                        var mock = new Mock<AbstractClassWithCtor>("42");
+                        var mock = new Mock<AbstractClassWithCtor>{|Moq1002:("42")|};
 
                         // The class has a ctor with two arguments [Int32, String], but they are passed in reverse order
-                        var mock1 = new Mock<AbstractClassWithCtor>("42", 42);
+                        var mock1 = new Mock<AbstractClassWithCtor>{|Moq1002:("42", 42)|};
 
                         // The class has a ctor but does not take any arguments
-                        var mock2 = new Mock<AbstractClassDefaultCtor>(42);
+                        var mock2 = new Mock<AbstractClassDefaultCtor>{|Moq1002:(42)|};
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWithNoArgs()
+    public async Task ShouldPassWithNoArgs()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.NoArgs;
 
@@ -151,15 +144,13 @@ public class AbstractClassTests : DiagnosticVerifier
                         mock.As<AbstractClassDefaultCtor>();
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact(Skip = "I think this _should_ fail, but currently passes. Tracked by #55.")]
-    public Task ShouldFailWithArgsNonePassed()
+    public async Task ShouldFailWithArgsNonePassed()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.WithArgsNonePassed;
 
@@ -181,19 +172,15 @@ public class AbstractClassTests : DiagnosticVerifier
                     {
                         var mock = new Mock<AbstractClassWithCtor>();
                         mock.As<AbstractClassWithCtor>();
-
-                        var mock2 = new Mock<AbstractClassDefaultCtor>(MockBehavior.Default);
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWithArgsPassed()
+    public async Task ShouldPassWithArgsPassed()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 namespace Moq.Analyzers.Test.DataAbstractClass.WithArgsPassed;
 
@@ -233,12 +220,6 @@ public class AbstractClassTests : DiagnosticVerifier
                         var mock6 = new Mock<AbstractGenericClassWithCtor<object>>(MockBehavior.Default, 42);
                     }
                 }
-                """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new ConstructorArgumentsShouldMatchAnalyzer();
+                """);
     }
 }

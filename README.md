@@ -17,6 +17,8 @@
 
 Install ["Moq.Analyzers" NuGet package](https://www.nuget.org/packages/Moq.Analyzers) into test projects using Moq.
 
+You must use an in-support version of the .NET SDK (i.e. 6+).
+
 ## Contributions are welcome!
 
 Moq.Analyzers continues to evolve and add new features. Any help will be appreciated. You can report issues, develop new features, improve the documention, or do other cool stuff.

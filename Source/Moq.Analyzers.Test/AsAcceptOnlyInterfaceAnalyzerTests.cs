@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
+public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeUsedOnlyForInterfaceAnalyzer>
 {
     [Fact]
-    public Task ShouldFailWhenUsingAsWithAbstractClass()
+    public async Task ShouldFailWhenUsingAsWithAbstractClass()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -28,18 +27,16 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
                     private void TestBadAsForAbstractClass()
                     {
                         var mock = new Mock<BaseSampleClass>();
-                        mock.As<BaseSampleClass>();
+                        mock.As<{|Moq1300:BaseSampleClass|}>();
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldFailWhenUsingAsWithConcreteClass()
+    public async Task ShouldFailWhenUsingAsWithConcreteClass()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -66,18 +63,16 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
                     private void TestBadAsForNonAbstractClass()
                     {
                         var mock = new Mock<BaseSampleClass>();
-                        mock.As<OtherClass>();
+                        mock.As<{|Moq1300:OtherClass|}>();
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWhenUsingAsWithInterface()
+    public async Task ShouldPassWhenUsingAsWithInterface()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -101,15 +96,13 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
                         mock.As<ISampleInterface>();
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWhenUsingAsWithInterfaceWithSetup()
+    public async Task ShouldPassWhenUsingAsWithInterfaceWithSetup()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -135,12 +128,6 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier
                             .Returns(10);
                     }
                 }
-                """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new AsShouldBeUsedOnlyForInterfaceAnalyzer();
+                """);
     }
 }

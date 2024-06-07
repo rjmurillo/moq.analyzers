@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : DiagnosticVerifier
+public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : DiagnosticVerifier<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>
 {
     [Fact]
-    public Task ShouldFailWhenSetupIsCalledWithANonVirtualMethod()
+    public async Task ShouldFailWhenSetupIsCalledWithANonVirtualMethod()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -32,18 +31,16 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     private void TestBadSetupForNonVirtualMethod()
                     {
                         var mock = new Mock<BaseSampleClass>();
-                        mock.Setup(x => x.Calculate());
+                        mock.Setup(x => {|Moq1200:x.Calculate()|});
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldFailWhenSetupIsCalledWithANonVirtualProperty()
+    public async Task ShouldFailWhenSetupIsCalledWithANonVirtualProperty()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -60,18 +57,16 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     private void TestBadSetupForNonVirtualProperty()
                     {
                         var mock = new Mock<SampleClass>();
-                        mock.Setup(x => x.Property);
+                        mock.Setup(x => {|Moq1200:x.Property|});
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldFailWhenSetupIsCalledWithASealedMethod()
+    public async Task ShouldFailWhenSetupIsCalledWithASealedMethod()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -99,18 +94,16 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                     private void TestBadSetupForSealedMethod()
                     {
                         var mock = new Mock<SampleClass>();
-                        mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()));
+                        mock.Setup(x => {|Moq1200:x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())|});
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWhenSetupIsCalledWithAnAbstractMethod()
+    public async Task ShouldPassWhenSetupIsCalledWithAnAbstractMethod()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -133,15 +126,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                         mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWhenSetupIsCalledWithAnInterfaceMethod()
+    public async Task ShouldPassWhenSetupIsCalledWithAnInterfaceMethod()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -160,15 +151,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                         mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWhenSetupIsCalledWithAnInterfaceProperty()
+    public async Task ShouldPassWhenSetupIsCalledWithAnInterfaceProperty()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -187,15 +176,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                         mock.Setup(x => x.TestProperty);
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWhenSetupIsCalledWithAnOverrideOfAnAbstractMethod()
+    public async Task ShouldPassWhenSetupIsCalledWithAnOverrideOfAnAbstractMethod()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -226,15 +213,13 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                         mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWhenSetupIsCalledWithAVirtualMethod()
+    public async Task ShouldPassWhenSetupIsCalledWithAVirtualMethod()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -253,12 +238,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
                         mock.Setup(x => x.DoSth());
                     }
                 }
-                """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new SetupShouldBeUsedOnlyForOverridableMembersAnalyzer();
+                """);
     }
 }

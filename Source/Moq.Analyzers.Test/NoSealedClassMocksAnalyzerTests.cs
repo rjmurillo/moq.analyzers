@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier
+public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier<NoSealedClassMocksAnalyzer>
 {
     [Fact]
-    public Task ShouldFailWhenClassIsSealed()
+    public async Task ShouldFailWhenClassIsSealed()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using System;
                 using Moq;
@@ -27,18 +26,16 @@ public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier
                 {
                     private void Sealed()
                     {
-                        var mock = new Mock<FooSealed>();
+                        var mock = new Mock<{|Moq1000:FooSealed|}>();
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWhenClassIsNotSealed()
+    public async Task ShouldPassWhenClassIsNotSealed()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using System;
                 using Moq;
@@ -56,12 +53,6 @@ public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier
                         var mock = new Mock<Foo>();
                     }
                 }
-                """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new NoSealedClassMocksAnalyzer();
+                """);
     }
 }

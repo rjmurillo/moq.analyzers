@@ -1,8 +1,0 @@
-﻿Diagnostic 1
-	Id: Moq1201
-	Location: SourceFile(Test0.cs[428..455))
-	Highlight: c.GenericTaskAsync().Result
-	Lines: mock.Setup(c => c.GenericTaskAsync().Result);
-	Severity: Error
-	Message: Setup of async methods should use ReturnsAsync instead of .Result
-

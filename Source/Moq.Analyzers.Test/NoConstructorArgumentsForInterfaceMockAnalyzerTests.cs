@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVerifier
+public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVerifier<NoConstructorArgumentsForInterfaceMockAnalyzer>
 {
     [Fact]
-    public Task ShouldFailIfMockedInterfaceHasConstructorParameters()
+    public async Task ShouldFailIfMockedInterfaceHasConstructorParameters()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -27,21 +26,19 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                 {
                     private void TestBad()
                     {
-                        var mock1 = new Mock<IMyService>(25, true);
-                        var mock2 = new Mock<IMyService>("123");
-                        var mock3 = new Mock<IMyService>(25, true);
-                        var mock4 = new Mock<IMyService>("123");
+                        var mock1 = new Mock<IMyService>{|Moq1001:(25, true)|};
+                        var mock2 = new Mock<IMyService>{|Moq1001:("123")|};
+                        var mock3 = new Mock<IMyService>{|Moq1001:(25, true)|};
+                        var mock4 = new Mock<IMyService>{|Moq1001:("123")|};
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldFailIfMockedInterfaceHasConstructorParametersAndExplicitMockBehavior()
+    public async Task ShouldFailIfMockedInterfaceHasConstructorParametersAndExplicitMockBehavior()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -56,21 +53,19 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                 {
                     private void TestBadWithMockBehavior()
                     {
-                        var mock1 = new Mock<IMyService>(MockBehavior.Default, "123");
-                        var mock2 = new Mock<IMyService>(MockBehavior.Strict, 25, true);
-                        var mock3 = new Mock<IMyService>(MockBehavior.Default, "123");
-                        var mock4 = new Mock<IMyService>(MockBehavior.Loose, 25, true);
+                        var mock1 = new Mock<IMyService>{|Moq1001:(MockBehavior.Default, "123")|};
+                        var mock2 = new Mock<IMyService>{|Moq1001:(MockBehavior.Strict, 25, true)|};
+                        var mock3 = new Mock<IMyService>{|Moq1001:(MockBehavior.Default, "123")|};
+                        var mock4 = new Mock<IMyService>{|Moq1001:(MockBehavior.Loose, 25, true)|};
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassIfMockedInterfaceDoesNotHaveConstructorParameters()
+    public async Task ShouldPassIfMockedInterfaceDoesNotHaveConstructorParameters()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
             """
             using Moq;
 
@@ -91,16 +86,14 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                     var mock4 = new Mock<IMyService>(MockBehavior.Loose);
                 }
             }
-            """
-            ]));
+            """);
     }
 
     // TODO: This feels like it should be in every analyzer's tests
     [Fact]
-    public Task ShouldPassIfCustomMockClassIsUsed()
+    public async Task ShouldPassIfCustomMockClassIsUsed()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 namespace NoConstructorArgumentsForInterfaceMock.TestFakeMoq;
 
@@ -140,16 +133,14 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                         var mock6 = new Mock<IMyService>(MockBehavior.Loose);
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     // TODO: This feels duplicated with other tests
     [Fact]
-    public Task ShouldFailIsRealMoqIsUsedWithInvalidParameters()
+    public async Task ShouldFailIsRealMoqIsUsedWithInvalidParameters()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 namespace NoConstructorArgumentsForInterfaceMock.TestRealMoqWithBadParameters;
 
@@ -181,23 +172,21 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                 {
                     private void TestRealMoqWithBadParameters()
                     {
-                        var mock1 = new Moq.Mock<IMyService>(1, true);
-                        var mock2 = new Moq.Mock<IMyService>("2");
-                        var mock3 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default, "3");
-                        var mock4 = new Moq.Mock<IMyService>(MockBehavior.Loose, 4, true);
-                        var mock5 = new Moq.Mock<IMyService>(MockBehavior.Default);
-                        var mock6 = new Moq.Mock<IMyService>(MockBehavior.Default);
+                        var mock1 = new Moq.Mock<IMyService>{|Moq1001:(1, true)|};
+                        var mock2 = new Moq.Mock<IMyService>{|Moq1001:("2")|};
+                        var mock3 = new Moq.Mock<IMyService>{|Moq1001:(Moq.MockBehavior.Default, "3")|};
+                        var mock4 = new Moq.Mock<IMyService>{|Moq1001:(MockBehavior.Loose, 4, true)|};
+                        var mock5 = new Moq.Mock<IMyService>{|Moq1001:(MockBehavior.Default)|};
+                        var mock6 = new Moq.Mock<IMyService>{|Moq1001:(MockBehavior.Default)|};
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassIfRealMoqIsUsedWithValidParameters()
+    public async Task ShouldPassIfRealMoqIsUsedWithValidParameters()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 namespace NoConstructorArgumentsForInterfaceMock.TestRealMoqWithGoodParameters;
 
@@ -233,12 +222,6 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
                         var mock2 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default);
                     }
                 }
-                """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new NoConstructorArgumentsForInterfaceMockAnalyzer();
+                """);
     }
 }

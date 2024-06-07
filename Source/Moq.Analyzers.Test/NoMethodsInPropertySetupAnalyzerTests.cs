@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
+public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier<NoMethodsInPropertySetupAnalyzer>
 {
     [Fact]
-    public Task ShouldPassWhenPropertiesUsePropertySetup()
+    public async Task ShouldPassWhenPropertiesUsePropertySetup()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -41,15 +40,13 @@ public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
                         mock.Setup(x => x.Method());
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldFailWhenMethodsUsePropertySetup()
+    public async Task ShouldFailWhenMethodsUsePropertySetup()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using Moq;
 
@@ -71,17 +68,10 @@ public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier
                     private void TestBad()
                     {
                         var mock = new Mock<IFoo>();
-                        mock.SetupGet(x => x.Method());
-                        mock.SetupSet(x => x.Method());
+                        mock.SetupGet(x => {|Moq1101:x.Method()|});
+                        mock.SetupSet(x => {|Moq1101:x.Method()|});
                     }
                 }
-                """
-            ]));
-    }
-
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new NoMethodsInPropertySetupAnalyzer();
+                """);
     }
 }

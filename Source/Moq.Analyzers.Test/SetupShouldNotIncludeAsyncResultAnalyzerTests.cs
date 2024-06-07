@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
+public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier<SetupShouldNotIncludeAsyncResultAnalyzer>
 {
     [Fact]
-    public Task ShouldPassWhenSetupWithoutReturn()
+    public async Task ShouldPassWhenSetupWithoutReturn()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -34,15 +33,13 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
                         mock.Setup(c => c.TaskAsync());
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldPassWhenSetupWithReturnsAsync()
+    public async Task ShouldPassWhenSetupWithReturnsAsync()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -65,15 +62,13 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
                             .ReturnsAsync(string.Empty);
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldFailWhenSetupWithTaskResult()
+    public async Task ShouldFailWhenSetupWithTaskResult()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -92,15 +87,9 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier
                     private void TestBadForGenericTask()
                     {
                         var mock = new Mock<AsyncClient>();
-                        mock.Setup(c => c.GenericTaskAsync().Result);
+                        mock.Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});
                     }
                 }
-                """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new SetupShouldNotIncludeAsyncResultAnalyzer();
+                """);
     }
 }

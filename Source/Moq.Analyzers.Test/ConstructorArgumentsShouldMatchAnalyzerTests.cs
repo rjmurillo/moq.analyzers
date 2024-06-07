@@ -1,18 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
+using Moq.Analyzers.Test.Helpers;
 using Xunit;
 
 namespace Moq.Analyzers.Test;
 
-public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
+public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier<ConstructorArgumentsShouldMatchAnalyzer>
 {
     [Fact]
-    public Task ShouldPassWhenConstructorArgumentsMatch()
+    public async Task ShouldPassWhenConstructorArgumentsMatch()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using System;
                 using System.Collections.Generic;
@@ -57,15 +56,13 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
                         var mock16 = new Mock<Foo>(MockBehavior.Default, new List<string>());
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldFailWhenConstructorArumentsDoNotMatch()
+    public async Task ShouldFailWhenConstructorArumentsDoNotMatch()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using System;
                 using System.Collections.Generic;
@@ -88,21 +85,19 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
                 {
                     private void TestBad()
                     {
-                        var mock1 = new Mock<Foo>(1, true);
-                        var mock2 = new Mock<Foo>(2, true);
-                        var mock3 = new Mock<Foo>("1", 3);
-                        var mock4 = new Mock<Foo>(new int[] { 1, 2, 3 });
+                        var mock1 = new Mock<Foo>{|Moq1002:(1, true)|};
+                        var mock2 = new Mock<Foo>{|Moq1002:(2, true)|};
+                        var mock3 = new Mock<Foo>{|Moq1002:("1", 3)|};
+                        var mock4 = new Mock<Foo>{|Moq1002:(new int[] { 1, 2, 3 })|};
                     }
                 }
-                """
-            ]));
+                """);
     }
 
     [Fact]
-    public Task ShouldFailWhenConstructorArumentsWithExplicitMockBehaviorDoNotMatch()
+    public async Task ShouldFailWhenConstructorArumentsWithExplicitMockBehaviorDoNotMatch()
     {
-        return Verify(VerifyCSharpDiagnostic(
-            [
+        await VerifyCSharpDiagnostic(
                 """
                 using System;
                 using System.Collections.Generic;
@@ -125,17 +120,11 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier
                 {
                     private void TestBadWithMockBehavior()
                     {
-                        var mock1 = new Mock<Foo>(MockBehavior.Strict, 4, true);
-                        var mock2 = new Mock<Foo>(MockBehavior.Loose, 5, true);
-                        var mock3 = new Mock<Foo>(MockBehavior.Loose, "2", 6);
+                        var mock1 = new Mock<Foo>{|Moq1002:(MockBehavior.Strict, 4, true)|};
+                        var mock2 = new Mock<Foo>{|Moq1002:(MockBehavior.Loose, 5, true)|};
+                        var mock3 = new Mock<Foo>{|Moq1002:(MockBehavior.Loose, "2", 6)|};
                     }
                 }
-                """
-            ]));
-    }
-
-    protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-    {
-        return new ConstructorArgumentsShouldMatchAnalyzer();
+                """);
     }
 }
