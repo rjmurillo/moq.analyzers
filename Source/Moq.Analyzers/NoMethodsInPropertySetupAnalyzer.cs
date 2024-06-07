@@ -27,9 +27,9 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
     {
         var setupGetOrSetInvocation = (InvocationExpressionSyntax)context.Node;
 
-        var setupGetOrSetMethod = setupGetOrSetInvocation.Expression as MemberAccessExpressionSyntax;
-        if (setupGetOrSetMethod == null) return;
-        if (setupGetOrSetMethod.Name.ToFullString() != "SetupGet" && setupGetOrSetMethod.Name.ToFullString() != "SetupSet") return;
+        if (setupGetOrSetInvocation.Expression is not MemberAccessExpressionSyntax setupGetOrSetMethod) return;
+        if (!string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupGet", StringComparison.Ordinal)
+            && !string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupSet", StringComparison.Ordinal)) return;
 
         var mockedMethodCall = Helpers.FindMockedMethodInvocationFromSetupMethod(setupGetOrSetInvocation);
         if (mockedMethodCall == null) return;
