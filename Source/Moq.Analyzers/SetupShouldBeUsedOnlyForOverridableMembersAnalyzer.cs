@@ -15,6 +15,8 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
 
     public override void Initialize(AnalysisContext context)
     {
+        context.EnableConcurrentExecution();
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
     }
 
