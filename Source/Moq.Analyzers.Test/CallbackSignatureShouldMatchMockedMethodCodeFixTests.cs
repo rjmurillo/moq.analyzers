@@ -1,10 +1,4 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Testing;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Moq.Analyzers.Test.Helpers;
-using Xunit;
 
 namespace Moq.Analyzers.Test;
 

@@ -1,8 +1,4 @@
-﻿using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using Xunit;
+﻿using System.Reflection;
 
 namespace Moq.Analyzers.Test;
 

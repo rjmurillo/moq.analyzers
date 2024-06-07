@@ -1,8 +1,4 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Moq.Analyzers.Test.Helpers;
-using Xunit;
+﻿using Moq.Analyzers.Test.Helpers;
 
 namespace Moq.Analyzers.Test;
 

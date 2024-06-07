@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Moq.Analyzers;
+﻿namespace Moq.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
