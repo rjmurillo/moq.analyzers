@@ -33,31 +33,29 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
             }
 
             var symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
-            if (symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
+            if ((symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
+                && !IsMethodOverridable(symbolInfo.Symbol)
+                && IsMethodReturnTypeTask(symbolInfo.Symbol))
             {
-                if (IsMethodOverridable(symbolInfo.Symbol) == false &&
-                    IsMethodReturnTypeTask(symbolInfo.Symbol) == true)
-                {
-                    var diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
-                    context.ReportDiagnostic(diagnostic);
-                }
+                var diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
+                context.ReportDiagnostic(diagnostic);
             }
         }
     }
 
     private static bool IsMethodOverridable(ISymbol methodSymbol)
     {
-        return methodSymbol.IsSealed == false && (methodSymbol.IsVirtual || methodSymbol.IsAbstract || methodSymbol.IsOverride);
+        return !methodSymbol.IsSealed
+               && (methodSymbol.IsVirtual || methodSymbol.IsAbstract || methodSymbol.IsOverride);
     }
 
     private static bool IsMethodReturnTypeTask(ISymbol methodSymbol)
     {
         var type = methodSymbol.ToDisplayString();
-        return type != null &&
-               (type == "System.Threading.Tasks.Task" ||
-                type == "System.Threading.ValueTask" ||
-                type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal) ||
-                type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal) &&
-                type.EndsWith(".Result", StringComparison.Ordinal));
+        return string.Equals(type, "System.Threading.Tasks.Task", StringComparison.Ordinal)
+               || string.Equals(type, "System.Threading.ValueTask", StringComparison.Ordinal)
+               || type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal)
+               || (type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal)
+                   && type.EndsWith(".Result", StringComparison.Ordinal));
     }
 }

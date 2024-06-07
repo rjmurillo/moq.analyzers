@@ -1,14 +1,15 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Moq.Analyzers;
 
 internal class MoqMethodDescriptor
 {
-    private readonly bool isGeneric;
+    private readonly bool _isGeneric;
 
     public MoqMethodDescriptor(string shortMethodName, Regex fullMethodNamePattern, bool isGeneric = false)
     {
-        this.isGeneric = isGeneric;
+        _isGeneric = isGeneric;
         ShortMethodName = shortMethodName;
         FullMethodNamePattern = fullMethodNamePattern;
     }
@@ -17,35 +18,41 @@ internal class MoqMethodDescriptor
 
     private Regex FullMethodNamePattern { get; }
 
-    public bool IsMoqMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
+    public bool IsMoqMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax? method)
     {
         var methodName = method?.Name.ToString();
 
+        Debug.Assert(!string.IsNullOrEmpty(methodName), nameof(methodName) + " != null or empty");
+
+        if (string.IsNullOrEmpty(methodName)) return false;
+
         // First fast check before walking semantic model
-        if (DoesShortMethodMatch(methodName) == false) return false;
+        if (!DoesShortMethodMatch(methodName!)) return false;
+
+        Debug.Assert(method != null, nameof(method) + " != null");
+
+        if (method == null)
+        {
+            return false;
+        }
 
         var symbolInfo = semanticModel.GetSymbolInfo(method);
-        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
+        return symbolInfo.CandidateReason switch
         {
-            return symbolInfo.CandidateSymbols.OfType<IMethodSymbol>()
-                .Any(s => this.FullMethodNamePattern.IsMatch(s.ToString()));
-        }
-        else if (symbolInfo.CandidateReason == CandidateReason.None)
-        {
-            // TODO: Replace regex with something more elegant
-            return symbolInfo.Symbol is IMethodSymbol &&
-                   this.FullMethodNamePattern.IsMatch(symbolInfo.Symbol.ToString());
-        }
-
-        return false;
+            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().Any(s => FullMethodNamePattern.IsMatch(s.ToString())),
+            CandidateReason.None => symbolInfo.Symbol is IMethodSymbol &&
+                                    FullMethodNamePattern.IsMatch(symbolInfo.Symbol.ToString()),
+            _ => false,
+        };
     }
 
     private bool DoesShortMethodMatch(string methodName)
     {
-        if (isGeneric)
+        if (_isGeneric)
         {
-            return methodName.StartsWith($"{this.ShortMethodName}<");
+            return methodName.StartsWith($"{ShortMethodName}<", StringComparison.Ordinal);
         }
-        return methodName == this.ShortMethodName;
+
+        return string.Equals(methodName, ShortMethodName, StringComparison.Ordinal);
     }
 }

@@ -60,9 +60,9 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
             {
                 var mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[i].Expression, context.CancellationToken);
                 var lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameters[i].Type, context.CancellationToken);
-                string mockedMethodTypeName = mockedMethodArgumentType.ConvertedType.ToString();
-                string lambdaParameterTypeName = lambdaParameterType.ConvertedType.ToString();
-                if (mockedMethodTypeName != lambdaParameterTypeName)
+                string? mockedMethodTypeName = mockedMethodArgumentType.ConvertedType?.ToString();
+                string? lambdaParameterTypeName = lambdaParameterType.ConvertedType?.ToString();
+                if (!string.Equals(mockedMethodTypeName, lambdaParameterTypeName, StringComparison.Ordinal))
                 {
                     var diagnostic = Diagnostic.Create(Rule, callbackLambda.ParameterList.GetLocation());
                     context.ReportDiagnostic(diagnostic);

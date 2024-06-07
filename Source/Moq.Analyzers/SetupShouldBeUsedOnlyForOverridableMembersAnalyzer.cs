@@ -33,19 +33,17 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
             }
 
             var symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
-            if (symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
+            if (symbolInfo.Symbol is IPropertySymbol or IMethodSymbol
+                && !IsMethodOverridable(symbolInfo.Symbol))
             {
-                if (IsMethodOverridable(symbolInfo.Symbol) == false)
-                {
-                    var diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
-                    context.ReportDiagnostic(diagnostic);
-                }
+                var diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
+                context.ReportDiagnostic(diagnostic);
             }
         }
     }
 
     private static bool IsMethodOverridable(ISymbol methodSymbol)
     {
-        return methodSymbol.IsSealed == false && (methodSymbol.IsVirtual || methodSymbol.IsAbstract || methodSymbol.IsOverride);
+        return !methodSymbol.IsSealed && (methodSymbol.IsVirtual || methodSymbol.IsAbstract || methodSymbol.IsOverride);
     }
 }

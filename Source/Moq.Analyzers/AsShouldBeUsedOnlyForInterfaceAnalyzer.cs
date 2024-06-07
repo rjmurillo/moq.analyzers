@@ -24,17 +24,17 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
     {
         var asInvocation = (InvocationExpressionSyntax)context.Node;
 
-        if (asInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && Helpers.IsMoqAsMethod(context.SemanticModel, memberAccessExpression))
+        if (asInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression
+            && Helpers.IsMoqAsMethod(context.SemanticModel, memberAccessExpression)
+            && memberAccessExpression.Name is GenericNameSyntax genericName
+            && genericName.TypeArgumentList.Arguments.Count == 1)
         {
-            if (memberAccessExpression.Name is GenericNameSyntax genericName && genericName.TypeArgumentList.Arguments.Count == 1)
+            var typeArgument = genericName.TypeArgumentList.Arguments[0];
+            var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArgument, context.CancellationToken);
+            if (symbolInfo.Symbol is ITypeSymbol typeSymbol && typeSymbol.TypeKind != TypeKind.Interface)
             {
-                var typeArgument = genericName.TypeArgumentList.Arguments[0];
-                var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArgument, context.CancellationToken);
-                if (symbolInfo.Symbol != null && symbolInfo.Symbol is ITypeSymbol typeSymbol && typeSymbol.TypeKind != TypeKind.Interface)
-                {
-                    var diagnostic = Diagnostic.Create(Rule, typeArgument.GetLocation());
-                    context.ReportDiagnostic(diagnostic);
-                }
+                var diagnostic = Diagnostic.Create(Rule, typeArgument.GetLocation());
+                context.ReportDiagnostic(diagnostic);
             }
         }
     }
