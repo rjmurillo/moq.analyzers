@@ -1,6 +1,4 @@
-﻿using Moq.Analyzers.Test.Helpers;
-
-namespace Moq.Analyzers.Test;
+﻿namespace Moq.Analyzers.Test;
 
 public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier<NoSealedClassMocksAnalyzer>
 {

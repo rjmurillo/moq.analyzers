@@ -1,5 +1,3 @@
-using Moq.Analyzers.Test.Helpers;
-
 namespace Moq.Analyzers.Test;
 
 public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier<SetupShouldNotIncludeAsyncResultAnalyzer>
