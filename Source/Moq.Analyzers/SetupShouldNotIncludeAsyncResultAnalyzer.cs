@@ -22,22 +22,22 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        var setupInvocation = (InvocationExpressionSyntax)context.Node;
+        InvocationExpressionSyntax? setupInvocation = (InvocationExpressionSyntax)context.Node;
 
         if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && Helpers.IsMoqSetupMethod(context.SemanticModel, memberAccessExpression))
         {
-            var mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
+            ExpressionSyntax? mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
             if (mockedMemberExpression == null)
             {
                 return;
             }
 
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
+            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
             if ((symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
                 && !IsMethodOverridable(symbolInfo.Symbol)
                 && IsMethodReturnTypeTask(symbolInfo.Symbol))
             {
-                var diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
+                Diagnostic? diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
         }
@@ -51,7 +51,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 
     private static bool IsMethodReturnTypeTask(ISymbol methodSymbol)
     {
-        var type = methodSymbol.ToDisplayString();
+        string? type = methodSymbol.ToDisplayString();
         return string.Equals(type, "System.Threading.Tasks.Task", StringComparison.Ordinal)
                || string.Equals(type, "System.Threading.ValueTask", StringComparison.Ordinal)
                || type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal)

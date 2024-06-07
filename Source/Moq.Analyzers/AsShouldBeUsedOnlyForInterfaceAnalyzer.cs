@@ -22,18 +22,18 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        var asInvocation = (InvocationExpressionSyntax)context.Node;
+        InvocationExpressionSyntax? asInvocation = (InvocationExpressionSyntax)context.Node;
 
         if (asInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression
             && Helpers.IsMoqAsMethod(context.SemanticModel, memberAccessExpression)
             && memberAccessExpression.Name is GenericNameSyntax genericName
             && genericName.TypeArgumentList.Arguments.Count == 1)
         {
-            var typeArgument = genericName.TypeArgumentList.Arguments[0];
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(typeArgument, context.CancellationToken);
+            TypeSyntax? typeArgument = genericName.TypeArgumentList.Arguments[0];
+            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(typeArgument, context.CancellationToken);
             if (symbolInfo.Symbol is ITypeSymbol typeSymbol && typeSymbol.TypeKind != TypeKind.Interface)
             {
-                var diagnostic = Diagnostic.Create(Rule, typeArgument.GetLocation());
+                Diagnostic? diagnostic = Diagnostic.Create(Rule, typeArgument.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
         }

@@ -20,7 +20,7 @@ internal class MoqMethodDescriptor
 
     public bool IsMoqMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax? method)
     {
-        var methodName = method?.Name.ToString();
+        string? methodName = method?.Name.ToString();
 
         Debug.Assert(!string.IsNullOrEmpty(methodName), nameof(methodName) + " != null or empty");
 
@@ -36,7 +36,7 @@ internal class MoqMethodDescriptor
             return false;
         }
 
-        var symbolInfo = semanticModel.GetSymbolInfo(method);
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(method);
         return symbolInfo.CandidateReason switch
         {
             CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().Any(s => FullMethodNamePattern.IsMatch(s.ToString())),
