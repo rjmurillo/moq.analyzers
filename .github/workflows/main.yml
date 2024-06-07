@@ -4,10 +4,10 @@ on:
   workflow_dispatch: # Allow running the workflow manually from the GitHub UI
   pull_request:
     branches:
-      - master
+      - main
   push:
     branches:
-      - master
+      - main
   workflow_call: # Allow to be called from the release workflow
   schedule:
     - cron: '31 15 * * 0' # Run periodically to keep CodeQL database updated
