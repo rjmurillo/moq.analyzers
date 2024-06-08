@@ -9,8 +9,6 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace NoConstructorArgumentsForInterfaceMock.TestBad;
 
                 internal interface IMyService
@@ -36,8 +34,6 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace NoConstructorArgumentsForInterfaceMock.TestBadWithMockBehavior;
 
                 internal interface IMyService
@@ -63,8 +59,6 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
             """
-            using Moq;
-
             namespace NoConstructorArgumentsForInterfaceMock.TestGood;
 
             internal interface IMyService

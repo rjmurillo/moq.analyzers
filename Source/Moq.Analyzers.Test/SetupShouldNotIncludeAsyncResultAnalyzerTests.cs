@@ -9,9 +9,6 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using System.Threading.Tasks;
-                using Moq;
-
                 namespace SetupShouldNotIncludeAsyncResult.TestOkForTask;
 
                 public class AsyncClient
@@ -37,9 +34,6 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using System.Threading.Tasks;
-                using Moq;
-
                 namespace SetupShouldNotIncludeAsyncResult.TestOkForGenericTaskProperSetup;
 
                 public class AsyncClient
@@ -66,9 +60,6 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using System.Threading.Tasks;
-                using Moq;
-
                 namespace SetupShouldNotIncludeAsyncResult.TestBadForGenericTask;
 
                 public class AsyncClient

@@ -9,8 +9,6 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace AsAcceptOnlyInterface.TestBadAsForAbstractClass;
 
                 public abstract class BaseSampleClass
@@ -34,8 +32,6 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace AsAcceptOnlyInterface.TestBadAsForNonAbstractClass;
 
                 public interface ISampleInterface
@@ -70,8 +66,6 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace AsAcceptOnlyInterface.TestOkAsForInterface;
 
                 public interface ISampleInterface
@@ -100,8 +94,6 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace AsAcceptOnlyInterface.TestOkAsForInterfaceWithConfiguration;
 
                 public interface ISampleInterface

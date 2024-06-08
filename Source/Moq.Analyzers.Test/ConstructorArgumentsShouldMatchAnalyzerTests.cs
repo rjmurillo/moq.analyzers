@@ -9,10 +9,6 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using System;
-                using System.Collections.Generic;
-                using Moq;
-
                 namespace ConstructorArgumentsShouldMatch.TestGood;
 
                 internal class Foo
@@ -60,10 +56,6 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using System;
-                using System.Collections.Generic;
-                using Moq;
-
                 namespace ConstructorArgumentsShouldMatch.TestBad;
 
                 internal class Foo
@@ -95,10 +87,6 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using System;
-                using System.Collections.Generic;
-                using Moq;
-
                 namespace ConstructorArgumentsShouldMatchTestBadWithMockBehavior;
 
                 internal class Foo

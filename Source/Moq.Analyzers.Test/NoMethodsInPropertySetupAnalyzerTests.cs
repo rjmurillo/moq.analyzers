@@ -9,8 +9,6 @@ public class NoMethodsInPropertySetupAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace NoMethodsInPropertySetup.Good;
 
                 public interface IFoo
@@ -44,8 +42,6 @@ public class NoMethodsInPropertySetupAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace NoMethodsInPropertySetup.Bad;
 
                 public interface IFoo

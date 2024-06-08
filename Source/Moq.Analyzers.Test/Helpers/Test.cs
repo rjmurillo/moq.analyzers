@@ -17,6 +17,17 @@ internal class Test<TAnalyzer, TCodeFixProvider> : CSharpCodeFixTest<TAnalyzer, 
 {
     public Test()
     {
+        // Add Moq and some common usings to all test cases to avoid test authoring errors.
+        const string globalUsings =
+            """
+            global using System;
+            global using System.Collections.Generic;
+            global using System.Threading.Tasks;
+            global using Moq;
+            """;
+
+        TestState.Sources.Add(globalUsings);
+        FixedState.Sources.Add(globalUsings);
         ReferenceAssemblies = ReferenceAssemblyCatalog.Net80WithOldMoq;
     }
 }

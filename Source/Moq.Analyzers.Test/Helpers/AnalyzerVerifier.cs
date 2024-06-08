@@ -12,6 +12,7 @@ internal static class AnalyzerVerifier<TAnalyzer>
         await new Test<TAnalyzer, EmptyCodeFixProvider>
         {
             TestCode = source,
+            FixedCode = source,
         }.RunAsync().ConfigureAwait(false);
     }
 }

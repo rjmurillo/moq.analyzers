@@ -9,8 +9,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace SetupOnlyForOverridableMembers.TestBadSetupForNonVirtualMethod;
 
                 public abstract class BaseSampleClass
@@ -38,8 +36,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace SetupOnlyForOverridableMembers.TestBadSetupForNonVirtualProperty;
 
                 public class SampleClass
@@ -64,8 +60,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace SetupOnlyForOverridableMembers.TestBadSetupForSealedMethod;
 
                 public abstract class BaseSampleClass
@@ -101,8 +95,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace SetupOnlyForOverridableMembers.TestOkForAbstractMethod;
 
                 public abstract class BaseSampleClass
@@ -130,8 +122,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace SetupOnlyForOverridableMembers.TestOkForInterfaceMethod;
 
                 public interface ISampleInterface
@@ -155,8 +145,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace SetupOnlyForOverridableMembers.TestOkForInterfaceProperty;
 
                 public interface ISampleInterface
@@ -180,8 +168,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace SetupOnlyForOverridableMembers.TestOkForOverrideAbstractMethod;
 
                 public abstract class BaseSampleClass
@@ -217,8 +203,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using Moq;
-
                 namespace SetupOnlyForOverridableMembers.TestOkForVirtualMethod;
 
                 public class SampleClass

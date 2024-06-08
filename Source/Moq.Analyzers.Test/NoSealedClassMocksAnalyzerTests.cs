@@ -9,9 +9,6 @@ public class NoSealedClassMocksAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using System;
-                using Moq;
-
                 namespace NoSealedClassMocks.Sealed;
 
                 internal sealed class FooSealed { }
@@ -33,9 +30,6 @@ public class NoSealedClassMocksAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
-                using System;
-                using Moq;
-
                 namespace NoSealedClassMocks.NotSealed;
 
                 internal sealed class FooSealed { }

@@ -9,10 +9,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     {
         await Verifier.VerifyCodeFixAsync(
             """
-            using System;
-            using System.Collections.Generic;
-            using Moq;
-
             namespace CallbackSignatureShouldMatchMockedMethod.MyGoodSetupAndReturns;
 
             internal interface IFoo
@@ -36,10 +32,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             }
             """,
             """
-            using System;
-            using System.Collections.Generic;
-            using Moq;
-
             namespace CallbackSignatureShouldMatchMockedMethod.MyGoodSetupAndReturns;
 
             internal interface IFoo
@@ -69,10 +61,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     {
         await Verifier.VerifyCodeFixAsync(
             """
-            using System;
-            using System.Collections.Generic;
-            using Moq;
-
             namespace CallbackSignatureShouldMatchMockedMethod.TestBadCallbacks;
 
             internal interface IFoo
@@ -97,10 +85,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             }
             """,
             """
-            using System;
-            using System.Collections.Generic;
-            using Moq;
-
             namespace CallbackSignatureShouldMatchMockedMethod.TestBadCallbacks;
 
             internal interface IFoo
@@ -131,10 +115,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     {
         await Verifier.VerifyCodeFixAsync(
             """
-            using System;
-            using System.Collections.Generic;
-            using Moq;
-
             namespace CallbackSignatureShouldMatchMockedMethod.TestGoodSetupAndCallback;
 
             internal interface IFoo
@@ -158,10 +138,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             }
             """,
             """
-            using System;
-            using System.Collections.Generic;
-            using Moq;
-
             namespace CallbackSignatureShouldMatchMockedMethod.TestGoodSetupAndCallback;
 
             internal interface IFoo
@@ -191,10 +167,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     {
         await Verifier.VerifyCodeFixAsync(
             """
-            using System;
-            using System.Collections.Generic;
-            using Moq;
-
             namespace CallbackSignatureShouldMatchMockedMethod.TestGoodSetupAndParameterlessCallback;
 
             internal interface IFoo
@@ -218,10 +190,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             }
             """,
             """
-            using System;
-            using System.Collections.Generic;
-            using Moq;
-
             namespace CallbackSignatureShouldMatchMockedMethod.TestGoodSetupAndParameterlessCallback;
 
             internal interface IFoo
@@ -251,10 +219,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     {
         await Verifier.VerifyCodeFixAsync(
             """
-            using System;
-            using System.Collections.Generic;
-            using Moq;
-
             namespace CallbackSignatureShouldMatchMockedMethod.TestGoodSetupAndReturnsAndCallback;
 
             internal interface IFoo
@@ -278,10 +242,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             }
             """,
             """
-            using System;
-            using System.Collections.Generic;
-            using Moq;
-
             namespace CallbackSignatureShouldMatchMockedMethod.TestGoodSetupAndReturnsAndCallback;
 
             internal interface IFoo
