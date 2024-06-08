@@ -4,59 +4,43 @@ namespace Moq.Analyzers.Test;
 
 public class ConstructorArgumentsShouldMatchAnalyzerTests
 {
-    [Fact]
-    public async Task ShouldPassWhenConstructorArgumentsMatch()
+    public static IEnumerable<object[]> TestData()
     {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace ConstructorArgumentsShouldMatch.TestGood;
-
-                internal class Foo
-                {
-                    public Foo(string s) { }
-
-                    public Foo(bool b, int i) { }
-
-                    public Foo(params DateTime[] dates) { }
-
-                    public Foo(List<string> l, string s = "A") { }
-                }
-
-                internal class MyUnitTests
-                {
-                    private void TestGood()
-                    {
-                        var mock1 = new Mock<Foo>(MockBehavior.Default);
-                        var mock2 = new Mock<Foo>(MockBehavior.Strict);
-                        var mock3 = new Mock<Foo>(MockBehavior.Loose);
-                        var mock4 = new Mock<Foo>(MockBehavior.Default);
-
-                        var mock5 = new Mock<Foo>("3");
-                        var mock6 = new Mock<Foo>("4");
-                        var mock7 = new Mock<Foo>(MockBehavior.Default, "5");
-                        var mock8 = new Mock<Foo>(MockBehavior.Default, "6");
-
-                        var mock9 = new Mock<Foo>(false, 0);
-                        var mock10 = new Mock<Foo>(MockBehavior.Default, true, 1);
-
-                        var mock11 = new Mock<Foo>(DateTime.Now, DateTime.Now);
-                        var mock12 = new Mock<Foo>(MockBehavior.Default, DateTime.Now, DateTime.Now);
-
-                        var mock13 = new Mock<Foo>(new List<string>(), "7");
-                        var mock14 = new Mock<Foo>(new List<string>());
-                        var mock15 = new Mock<Foo>(MockBehavior.Default, new List<string>(), "8");
-                        var mock16 = new Mock<Foo>(MockBehavior.Default, new List<string>());
-                    }
-                }
-                """);
+        foreach (var @namespace in new[] { string.Empty, "namespace MyNamespace;" })
+        {
+            yield return [@namespace, """new Mock<Foo>(MockBehavior.Default);"""];
+            yield return [@namespace, """new Mock<Foo>(MockBehavior.Strict);"""];
+            yield return [@namespace, """new Mock<Foo>(MockBehavior.Loose);"""];
+            yield return [@namespace, """new Mock<Foo>(MockBehavior.Default);"""];
+            yield return [@namespace, """new Mock<Foo>("3");"""];
+            yield return [@namespace, """new Mock<Foo>("4");"""];
+            yield return [@namespace, """new Mock<Foo>(MockBehavior.Default, "5");"""];
+            yield return [@namespace, """new Mock<Foo>(MockBehavior.Default, "6");"""];
+            yield return [@namespace, """new Mock<Foo>(false, 0);"""];
+            yield return [@namespace, """new Mock<Foo>(MockBehavior.Default, true, 1);"""];
+            yield return [@namespace, """new Mock<Foo>(DateTime.Now, DateTime.Now);"""];
+            yield return [@namespace, """new Mock<Foo>(MockBehavior.Default, DateTime.Now, DateTime.Now);"""];
+            yield return [@namespace, """new Mock<Foo>(new List<string>(), "7");"""];
+            yield return [@namespace, """new Mock<Foo>(new List<string>());"""];
+            yield return [@namespace, """new Mock<Foo>(MockBehavior.Default, new List<string>(), "8");"""];
+            yield return [@namespace, """new Mock<Foo>(MockBehavior.Default, new List<string>());"""];
+            yield return [@namespace, """new Mock<Foo>{|Moq1002:(1, true)|};"""];
+            yield return [@namespace, """new Mock<Foo>{|Moq1002:(2, true)|};"""];
+            yield return [@namespace, """new Mock<Foo>{|Moq1002:("1", 3)|};"""];
+            yield return [@namespace, """new Mock<Foo>{|Moq1002:(new int[] { 1, 2, 3 })|};"""];
+            yield return [@namespace, """new Mock<Foo>{|Moq1002:(MockBehavior.Strict, 4, true)|};"""];
+            yield return [@namespace, """new Mock<Foo>{|Moq1002:(MockBehavior.Loose, 5, true)|};"""];
+            yield return [@namespace, """new Mock<Foo>{|Moq1002:(MockBehavior.Loose, "2", 6)|};"""];
+        }
     }
 
-    [Fact]
-    public async Task ShouldFailWhenConstructorArumentsDoNotMatch()
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public async Task ShouldAnalyzeConstructorArguments(string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace ConstructorArgumentsShouldMatch.TestBad;
+                $$"""
+                {{@namespace}}
 
                 internal class Foo
                 {
@@ -69,44 +53,11 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
                     public Foo(List<string> l, string s = "A") { }
                 }
 
-                internal class MyUnitTests
+                internal class UnitTest
                 {
-                    private void TestBad()
+                    private void Test()
                     {
-                        var mock1 = new Mock<Foo>{|Moq1002:(1, true)|};
-                        var mock2 = new Mock<Foo>{|Moq1002:(2, true)|};
-                        var mock3 = new Mock<Foo>{|Moq1002:("1", 3)|};
-                        var mock4 = new Mock<Foo>{|Moq1002:(new int[] { 1, 2, 3 })|};
-                    }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task ShouldFailWhenConstructorArumentsWithExplicitMockBehaviorDoNotMatch()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace ConstructorArgumentsShouldMatchTestBadWithMockBehavior;
-
-                internal class Foo
-                {
-                    public Foo(string s) { }
-
-                    public Foo(bool b, int i) { }
-
-                    public Foo(params DateTime[] dates) { }
-
-                    public Foo(List<string> l, string s = "A") { }
-                }
-
-                internal class MyUnitTests
-                {
-                    private void TestBadWithMockBehavior()
-                    {
-                        var mock1 = new Mock<Foo>{|Moq1002:(MockBehavior.Strict, 4, true)|};
-                        var mock2 = new Mock<Foo>{|Moq1002:(MockBehavior.Loose, 5, true)|};
-                        var mock3 = new Mock<Foo>{|Moq1002:(MockBehavior.Loose, "2", 6)|};
+                        {{mock}}
                     }
                 }
                 """);
