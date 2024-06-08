@@ -1,11 +1,13 @@
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>;
+
 namespace Moq.Analyzers.Test;
 
-public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : DiagnosticVerifier<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>
+public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
 {
     [Fact]
     public async Task ShouldFailWhenSetupIsCalledWithANonVirtualMethod()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -34,7 +36,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
     [Fact]
     public async Task ShouldFailWhenSetupIsCalledWithANonVirtualProperty()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -60,7 +62,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
     [Fact]
     public async Task ShouldFailWhenSetupIsCalledWithASealedMethod()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -97,7 +99,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
     [Fact]
     public async Task ShouldPassWhenSetupIsCalledWithAnAbstractMethod()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -126,7 +128,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
     [Fact]
     public async Task ShouldPassWhenSetupIsCalledWithAnInterfaceMethod()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -151,7 +153,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
     [Fact]
     public async Task ShouldPassWhenSetupIsCalledWithAnInterfaceProperty()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -176,7 +178,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
     [Fact]
     public async Task ShouldPassWhenSetupIsCalledWithAnOverrideOfAnAbstractMethod()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -213,7 +215,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests : Diagnosti
     [Fact]
     public async Task ShouldPassWhenSetupIsCalledWithAVirtualMethod()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 

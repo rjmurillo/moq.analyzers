@@ -1,12 +1,14 @@
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.ConstructorArgumentsShouldMatchAnalyzer>;
+
 namespace Moq.Analyzers.Test;
 
-public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldMatchAnalyzer>
+public class AbstractClassTests
 {
     // TODO: Review use of `.As<>()` in the test cases. It is not clear what purpose it serves.
     [Fact]
     public async Task ShouldFailOnGenericTypesWithMismatchArgs()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.GenericMistmatchArgs;
 
@@ -48,7 +50,7 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
     [Fact]
     public async Task ShouldPassOnGenericTypesWithNoArgs()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.GenericNoArgs;
 
@@ -77,7 +79,7 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
     [Fact]
     public async Task ShouldFailOnMismatchArgs()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.MismatchArgs;
 
@@ -119,7 +121,7 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
     [Fact]
     public async Task ShouldPassWithNoArgs()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.NoArgs;
 
@@ -145,7 +147,7 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
     [Fact(Skip = "I think this _should_ fail, but currently passes. Tracked by #55.")]
     public async Task ShouldFailWithArgsNonePassed()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 namespace Moq.Analyzers.Test.Data.AbstractClass.WithArgsNonePassed;
 
@@ -175,7 +177,7 @@ public class AbstractClassTests : DiagnosticVerifier<ConstructorArgumentsShouldM
     [Fact]
     public async Task ShouldPassWithArgsPassed()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 namespace Moq.Analyzers.Test.DataAbstractClass.WithArgsPassed;
 

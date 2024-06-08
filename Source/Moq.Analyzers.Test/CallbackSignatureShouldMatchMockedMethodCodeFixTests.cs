@@ -1,11 +1,13 @@
+using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer, Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodCodeFix>;
+
 namespace Moq.Analyzers.Test;
 
-public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerifier<CallbackSignatureShouldMatchMockedMethodAnalyzer, CallbackSignatureShouldMatchMockedMethodCodeFix>
+public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
 {
     [Fact]
     public async Task ShouldPassWhenCorrectSetupAndReturns()
     {
-        await VerifyCSharpFix(
+        await Verifier.VerifyCodeFixAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -65,7 +67,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerif
     [Fact]
     public async Task ShouldSuggestQuickFixWhenIncorrectCallbacks()
     {
-        await VerifyCSharpFix(
+        await Verifier.VerifyCodeFixAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -127,7 +129,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerif
     [Fact]
     public async Task ShouldPassWhenCorrectSetupAndCallbacks()
     {
-        await VerifyCSharpFix(
+        await Verifier.VerifyCodeFixAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -187,7 +189,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerif
     [Fact]
     public async Task ShouldPassWhenCorrectSetupAndParameterlessCallbacks()
     {
-        await VerifyCSharpFix(
+        await Verifier.VerifyCodeFixAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -247,7 +249,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests : CodeFixVerif
     [Fact]
     public async Task ShouldPassWhenCorrectSetupAndReturnsAndCallbacks()
     {
-        await VerifyCSharpFix(
+        await Verifier.VerifyCodeFixAsync(
             """
             using System;
             using System.Collections.Generic;

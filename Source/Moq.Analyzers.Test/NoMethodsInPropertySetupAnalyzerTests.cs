@@ -1,11 +1,13 @@
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoMethodsInPropertySetupAnalyzer>;
+
 namespace Moq.Analyzers.Test;
 
-public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier<NoMethodsInPropertySetupAnalyzer>
+public class NoMethodsInPropertySetupAnalyzerTests
 {
     [Fact]
     public async Task ShouldPassWhenPropertiesUsePropertySetup()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -40,7 +42,7 @@ public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier<NoMethod
     [Fact]
     public async Task ShouldFailWhenMethodsUsePropertySetup()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 

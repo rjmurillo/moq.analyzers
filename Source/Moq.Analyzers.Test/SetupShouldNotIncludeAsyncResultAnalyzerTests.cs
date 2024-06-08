@@ -1,11 +1,13 @@
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetupShouldNotIncludeAsyncResultAnalyzer>;
+
 namespace Moq.Analyzers.Test;
 
-public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier<SetupShouldNotIncludeAsyncResultAnalyzer>
+public class SetupShouldNotIncludeAsyncResultAnalyzerTests
 {
     [Fact]
     public async Task ShouldPassWhenSetupWithoutReturn()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -33,7 +35,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier<
     [Fact]
     public async Task ShouldPassWhenSetupWithReturnsAsync()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using System.Threading.Tasks;
                 using Moq;
@@ -62,7 +64,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests : DiagnosticVerifier<
     [Fact]
     public async Task ShouldFailWhenSetupWithTaskResult()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using System.Threading.Tasks;
                 using Moq;

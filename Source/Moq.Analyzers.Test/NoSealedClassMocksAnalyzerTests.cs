@@ -1,11 +1,13 @@
-﻿namespace Moq.Analyzers.Test;
+﻿using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoSealedClassMocksAnalyzer>;
 
-public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier<NoSealedClassMocksAnalyzer>
+namespace Moq.Analyzers.Test;
+
+public class NoSealedClassMocksAnalyzerTests
 {
     [Fact]
     public async Task ShouldFailWhenClassIsSealed()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using System;
                 using Moq;
@@ -29,7 +31,7 @@ public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier<NoSealedClassM
     [Fact]
     public async Task ShouldPassWhenClassIsNotSealed()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using System;
                 using Moq;

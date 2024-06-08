@@ -1,11 +1,13 @@
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.AsShouldBeUsedOnlyForInterfaceAnalyzer>;
+
 namespace Moq.Analyzers.Test;
 
-public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeUsedOnlyForInterfaceAnalyzer>
+public class AsAcceptOnlyInterfaceAnalyzerTests
 {
     [Fact]
     public async Task ShouldFailWhenUsingAsWithAbstractClass()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -30,7 +32,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeU
     [Fact]
     public async Task ShouldFailWhenUsingAsWithConcreteClass()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -66,7 +68,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeU
     [Fact]
     public async Task ShouldPassWhenUsingAsWithInterface()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -96,7 +98,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests : DiagnosticVerifier<AsShouldBeU
     [Fact]
     public async Task ShouldPassWhenUsingAsWithInterfaceWithSetup()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 

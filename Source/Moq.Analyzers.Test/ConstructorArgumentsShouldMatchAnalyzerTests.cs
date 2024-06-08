@@ -1,11 +1,13 @@
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.ConstructorArgumentsShouldMatchAnalyzer>;
+
 namespace Moq.Analyzers.Test;
 
-public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier<ConstructorArgumentsShouldMatchAnalyzer>
+public class ConstructorArgumentsShouldMatchAnalyzerTests
 {
     [Fact]
     public async Task ShouldPassWhenConstructorArgumentsMatch()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using System;
                 using System.Collections.Generic;
@@ -56,7 +58,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier<C
     [Fact]
     public async Task ShouldFailWhenConstructorArumentsDoNotMatch()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using System;
                 using System.Collections.Generic;
@@ -91,7 +93,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests : DiagnosticVerifier<C
     [Fact]
     public async Task ShouldFailWhenConstructorArumentsWithExplicitMockBehaviorDoNotMatch()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using System;
                 using System.Collections.Generic;

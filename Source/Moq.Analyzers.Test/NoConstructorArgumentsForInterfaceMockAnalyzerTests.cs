@@ -1,11 +1,13 @@
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoConstructorArgumentsForInterfaceMockAnalyzer>;
+
 namespace Moq.Analyzers.Test;
 
-public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVerifier<NoConstructorArgumentsForInterfaceMockAnalyzer>
+public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
 {
     [Fact]
     public async Task ShouldFailIfMockedInterfaceHasConstructorParameters()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -32,7 +34,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
     [Fact]
     public async Task ShouldFailIfMockedInterfaceHasConstructorParametersAndExplicitMockBehavior()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 using Moq;
 
@@ -59,7 +61,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
     [Fact]
     public async Task ShouldPassIfMockedInterfaceDoesNotHaveConstructorParameters()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
             """
             using Moq;
 
@@ -87,7 +89,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
     [Fact]
     public async Task ShouldPassIfCustomMockClassIsUsed()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 namespace NoConstructorArgumentsForInterfaceMock.TestFakeMoq;
 
@@ -134,7 +136,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
     [Fact]
     public async Task ShouldFailIsRealMoqIsUsedWithInvalidParameters()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 namespace NoConstructorArgumentsForInterfaceMock.TestRealMoqWithBadParameters;
 
@@ -180,7 +182,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests : DiagnosticVer
     [Fact]
     public async Task ShouldPassIfRealMoqIsUsedWithValidParameters()
     {
-        await VerifyCSharpDiagnostic(
+        await Verifier.VerifyAnalyzerAsync(
                 """
                 namespace NoConstructorArgumentsForInterfaceMock.TestRealMoqWithGoodParameters;
 
