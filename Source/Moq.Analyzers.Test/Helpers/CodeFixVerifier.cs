@@ -15,9 +15,8 @@ public abstract class CodeFixVerifier<TAnalyzer, TCodeFixProvider>
         {
             TestCode = originalSource,
             FixedCode = fixedSource,
+            ReferenceAssemblies = ReferenceAssemblyCatalog.Net80WithOldMoq,
         };
-
-        context.SetDefaults<CSharpCodeFixTest<TAnalyzer, TCodeFixProvider, DefaultVerifier>, DefaultVerifier>();
 
         await context.RunAsync().ConfigureAwait(false);
     }
