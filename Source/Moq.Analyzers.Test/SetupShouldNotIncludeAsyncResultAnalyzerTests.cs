@@ -4,37 +4,23 @@ namespace Moq.Analyzers.Test;
 
 public class SetupShouldNotIncludeAsyncResultAnalyzerTests
 {
-    [Fact]
-    public async Task ShouldPassWhenSetupWithoutReturn()
+    public static IEnumerable<object[]> TestData()
     {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupShouldNotIncludeAsyncResult.TestOkForTask;
-
-                public class AsyncClient
-                {
-                    public virtual Task TaskAsync() => Task.CompletedTask;
-
-                    public virtual Task<string> GenericTaskAsync() => Task.FromResult(string.Empty);
-                }
-
-                internal class MyUnitTests
-                {
-                    private void TestOkForTask()
-                    {
-                        var mock = new Mock<AsyncClient>();
-                        mock.Setup(c => c.TaskAsync());
-                    }
-                }
-                """);
+        foreach (string @namespace in new[] { string.Empty, "namespace MyNamespace; "})
+        {
+            yield return [@namespace, """new Mock<AsyncClient>().Setup(c => c.TaskAsync());"""];
+            yield return [@namespace, """new Mock<AsyncClient>().Setup(c => c.GenericTaskAsync()).ReturnsAsync(string.Empty);"""];
+            yield return [@namespace, """new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""];
+        }
     }
 
-    [Fact]
-    public async Task ShouldPassWhenSetupWithReturnsAsync()
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public async Task ShouldAnalyzeSetupForAsyncResult(string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupShouldNotIncludeAsyncResult.TestOkForGenericTaskProperSetup;
+                $$"""
+                {{@namespace}}
 
                 public class AsyncClient
                 {
@@ -43,38 +29,11 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests
                     public virtual Task<string> GenericTaskAsync() => Task.FromResult(string.Empty);
                 }
 
-                internal class MyUnitTests
+                internal class UnitTest
                 {
-                    private void TestOkForGenericTaskProperSetup()
+                    private void Test()
                     {
-                        var mock = new Mock<AsyncClient>();
-                        mock.Setup(c => c.GenericTaskAsync())
-                            .ReturnsAsync(string.Empty);
-                    }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task ShouldFailWhenSetupWithTaskResult()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupShouldNotIncludeAsyncResult.TestBadForGenericTask;
-
-                public class AsyncClient
-                {
-                    public virtual Task TaskAsync() => Task.CompletedTask;
-
-                    public virtual Task<string> GenericTaskAsync() => Task.FromResult(string.Empty);
-                }
-
-                internal class MyUnitTests
-                {
-                    private void TestBadForGenericTask()
-                    {
-                        var mock = new Mock<AsyncClient>();
-                        mock.Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});
+                        {{mock}}
                     }
                 }
                 """);
