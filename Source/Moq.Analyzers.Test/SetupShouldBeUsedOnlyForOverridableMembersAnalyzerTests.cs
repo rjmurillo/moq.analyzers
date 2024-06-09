@@ -4,218 +4,61 @@ namespace Moq.Analyzers.Test;
 
 public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
 {
-    [Fact]
-    public async Task ShouldFailWhenSetupIsCalledWithANonVirtualMethod()
+    public static IEnumerable<object[]> TestData()
     {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupOnlyForOverridableMembers.TestBadSetupForNonVirtualMethod;
-
-                public abstract class BaseSampleClass
-                {
-                    public int Calculate() => 0;
-
-                    public abstract int Calculate(int a, int b);
-
-                    public abstract int Calculate(int a, int b, int c);
-                }
-
-                internal class MyUnitTests
-                {
-                    private void TestBadSetupForNonVirtualMethod()
-                    {
-                        var mock = new Mock<BaseSampleClass>();
-                        mock.Setup(x => {|Moq1200:x.Calculate()|});
-                    }
-                }
-                """);
+        foreach (string @namespace in new[] { string.Empty, "namespace MyNamespace;" })
+        {
+            yield return [@namespace, """new Mock<BaseSampleClass>().Setup(x => {|Moq1200:x.Calculate()|});"""];
+            yield return [@namespace, """new Mock<SampleClass>().Setup(x => {|Moq1200:x.Property|});"""];
+            yield return [@namespace, """new Mock<SampleClass>().Setup(x => {|Moq1200:x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())|});"""];
+            yield return [@namespace, """new Mock<BaseSampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""];
+            yield return [@namespace, """new Mock<ISampleInterface>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""];
+            yield return [@namespace, """new Mock<ISampleInterface>().Setup(x => x.TestProperty);"""];
+            yield return [@namespace, """new Mock<SampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""];
+            yield return [@namespace, """new Mock<SampleClass>().Setup(x => x.DoSth());"""];
+        }
     }
 
-    [Fact]
-    public async Task ShouldFailWhenSetupIsCalledWithANonVirtualProperty()
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public async Task ShouldAnalyzeSetupForOverridableMembers(string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupOnlyForOverridableMembers.TestBadSetupForNonVirtualProperty;
-
-                public class SampleClass
-                {
-
-                    public int Property { get; set; }
-                }
-
-                internal class MyUnitTests
-                {
-                    private void TestBadSetupForNonVirtualProperty()
-                    {
-                        var mock = new Mock<SampleClass>();
-                        mock.Setup(x => {|Moq1200:x.Property|});
-                    }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task ShouldFailWhenSetupIsCalledWithASealedMethod()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupOnlyForOverridableMembers.TestBadSetupForSealedMethod;
-
-                public abstract class BaseSampleClass
-                {
-                    public int Calculate() => 0;
-
-                    public abstract int Calculate(int a, int b);
-
-                    public abstract int Calculate(int a, int b, int c);
-                }
-
-                public class SampleClass : BaseSampleClass
-                {
-
-                    public override int Calculate(int a, int b) => 0;
-
-                    public sealed override int Calculate(int a, int b, int c) => 0;
-                }
-
-                internal class MyUnitTests
-                {
-                    private void TestBadSetupForSealedMethod()
-                    {
-                        var mock = new Mock<SampleClass>();
-                        mock.Setup(x => {|Moq1200:x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())|});
-                    }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task ShouldPassWhenSetupIsCalledWithAnAbstractMethod()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupOnlyForOverridableMembers.TestOkForAbstractMethod;
-
-                public abstract class BaseSampleClass
-                {
-                    public int Calculate() => 0;
-
-                    public abstract int Calculate(int a, int b);
-
-                    public abstract int Calculate(int a, int b, int c);
-                }
-
-                internal class MyUnitTests
-                {
-                    private void TestOkForAbstractMethod()
-                    {
-                        var mock = new Mock<BaseSampleClass>();
-                        mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));
-                    }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task ShouldPassWhenSetupIsCalledWithAnInterfaceMethod()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupOnlyForOverridableMembers.TestOkForInterfaceMethod;
+                $$"""
+                {{@namespace}}
 
                 public interface ISampleInterface
                 {
                     int Calculate(int a, int b);
-                }
 
-                internal class MyUnitTests
-                {
-                    private void TestOkForInterfaceMethod()
-                    {
-                        var mock = new Mock<ISampleInterface>();
-                        mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));
-                    }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task ShouldPassWhenSetupIsCalledWithAnInterfaceProperty()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupOnlyForOverridableMembers.TestOkForInterfaceProperty;
-
-                public interface ISampleInterface
-                {
                     int TestProperty { get; set; }
                 }
-
-                internal class MyUnitTests
-                {
-                    private void TestOkForInterfaceProperty()
-                    {
-                        var mock = new Mock<ISampleInterface>();
-                        mock.Setup(x => x.TestProperty);
-                    }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task ShouldPassWhenSetupIsCalledWithAnOverrideOfAnAbstractMethod()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupOnlyForOverridableMembers.TestOkForOverrideAbstractMethod;
-
+                
                 public abstract class BaseSampleClass
                 {
                     public int Calculate() => 0;
-
+                
                     public abstract int Calculate(int a, int b);
-
+                
                     public abstract int Calculate(int a, int b, int c);
                 }
-
+                
                 public class SampleClass : BaseSampleClass
                 {
-
                     public override int Calculate(int a, int b) => 0;
-
+                
                     public sealed override int Calculate(int a, int b, int c) => 0;
-                }
-
-                internal class MyUnitTests
-                {
-                    private void TestOkForOverrideAbstractMethod()
-                    {
-                        var mock = new Mock<SampleClass>();
-                        mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));
-                    }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task ShouldPassWhenSetupIsCalledWithAVirtualMethod()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                namespace SetupOnlyForOverridableMembers.TestOkForVirtualMethod;
-
-                public class SampleClass
-                {
+                
                     public virtual int DoSth() => 0;
+
+                    public int Property { get; set; }
                 }
 
-                internal class MyUnitTests
+                internal class UnitTest
                 {
-                    private void TestOkForVirtualMethod()
+                    private void Test()
                     {
-                        var mock = new Mock<SampleClass>();
-                        mock.Setup(x => x.DoSth());
+                        {{mock}}
                     }
                 }
                 """);
