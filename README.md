@@ -1,8 +1,8 @@
 # Moq.Analyzers
 
-**Moq.Analyzers** is a Roslyn analyzer that helps to write unit tests using the popular and friend
-[Moq](https://github.com/devlooped/moq) library. Moq.Analyzers protects you from popular mistakes and warns you if
-something is wrong with your Moq configuration:
+**Moq.Analyzers** is a Roslyn analyzer that helps you to write unit tests using the popular
+[Moq](https://github.com/devlooped/moq) framework. Moq.Analyzers protects you from common mistakes and warns you if
+something is wrong with your Moq configuration.
 
 ## Detected issues
 
