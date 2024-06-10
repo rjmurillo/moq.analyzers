@@ -1,5 +1,9 @@
 # Moq.Analyzers
 
+[![NuGet Version](https://img.shields.io/nuget/v/Moq.Analyzers?style=flat&logo=nuget&color=blue)](https://www.nuget.org/packages/Moq.Analyzers)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Moq.Analyzers?style=flat&logo=nuget)](https://www.nuget.org/packages/Moq.Analyzers)
+[![Main build](https://github.com/rjmurillo/moq.analyzers/actions/workflows/main.yml/badge.svg)](https://github.com/rjmurillo/moq.analyzers/actions/workflows/main.yml)
+
 **Moq.Analyzers** is a Roslyn analyzer that helps you to write unit tests using the popular
 [Moq](https://github.com/devlooped/moq) framework. Moq.Analyzers protects you from common mistakes and warns you if
 something is wrong with your Moq configuration.
