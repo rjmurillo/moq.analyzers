@@ -139,9 +139,9 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 int Do(List<string> l);
             }
 
-            internal class MyUnitTests
+            internal class UnitTest
             {
-                private void MyGoodSetupAndReturns()
+                private void Test()
                 {
                     {{mock}}
                 }
