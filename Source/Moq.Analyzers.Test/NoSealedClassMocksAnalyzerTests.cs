@@ -1,50 +1,35 @@
-﻿namespace Moq.Analyzers.Test;
+﻿using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoSealedClassMocksAnalyzer>;
 
-public class NoSealedClassMocksAnalyzerTests : DiagnosticVerifier<NoSealedClassMocksAnalyzer>
+namespace Moq.Analyzers.Test;
+
+public class NoSealedClassMocksAnalyzerTests
 {
-    [Fact]
-    public async Task ShouldFailWhenClassIsSealed()
+    public static IEnumerable<object[]> TestData()
     {
-        await VerifyCSharpDiagnostic(
-                """
-                using System;
-                using Moq;
-
-                namespace NoSealedClassMocks.Sealed;
-
-                internal sealed class FooSealed { }
-
-                internal class Foo { }
-
-                internal class MyUnitTests
-                {
-                    private void Sealed()
-                    {
-                        var mock = new Mock<{|Moq1000:FooSealed|}>();
-                    }
-                }
-                """);
+        foreach (string @namespace in new[] { string.Empty, "namespace MyNamespace;" })
+        {
+            yield return [@namespace, """new Mock<{|Moq1000:FooSealed|}>();"""];
+            yield return [@namespace, """new Mock<Foo>();"""];
+        }
     }
 
-    [Fact]
-    public async Task ShouldPassWhenClassIsNotSealed()
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public async Task ShoulAnalyzeSealedClassMocks(string @namespace, string mock)
     {
-        await VerifyCSharpDiagnostic(
-                """
-                using System;
-                using Moq;
-
-                namespace NoSealedClassMocks.NotSealed;
+        await Verifier.VerifyAnalyzerAsync(
+                $$"""
+                {{@namespace}}
 
                 internal sealed class FooSealed { }
 
                 internal class Foo { }
 
-                internal class MyUnitTests
+                internal class UnitTest
                 {
-                    private void NotSealed()
+                    private void Test()
                     {
-                        var mock = new Mock<Foo>();
+                        {{mock}}
                     }
                 }
                 """);

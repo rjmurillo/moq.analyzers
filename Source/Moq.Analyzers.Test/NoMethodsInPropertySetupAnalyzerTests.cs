@@ -1,50 +1,30 @@
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoMethodsInPropertySetupAnalyzer>;
+
 namespace Moq.Analyzers.Test;
 
-public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier<NoMethodsInPropertySetupAnalyzer>
+public class NoMethodsInPropertySetupAnalyzerTests
 {
-    [Fact]
-    public async Task ShouldPassWhenPropertiesUsePropertySetup()
+    public static IEnumerable<object[]> TestData()
     {
-        await VerifyCSharpDiagnostic(
-                """
-                using Moq;
-
-                namespace NoMethodsInPropertySetup.Good;
-
-                public interface IFoo
-                {
-                    string Prop1 { get; set; }
-
-                    string Prop2 { get; }
-
-                    string Prop3 { set; }
-
-                    string Method();
-                }
-
-                public class MyUnitTests
-                {
-                    private void TestGood()
-                    {
-                        var mock = new Mock<IFoo>();
-                        mock.SetupGet(x => x.Prop1);
-                        mock.SetupGet(x => x.Prop2);
-                        mock.SetupSet(x => x.Prop1 = "1");
-                        mock.SetupSet(x => x.Prop3 = "2");
-                        mock.Setup(x => x.Method());
-                    }
-                }
-                """);
+        foreach (string @namespace in new[] { string.Empty, "namespace MyNamespace;" })
+        {
+            yield return [@namespace, """new Mock<IFoo>().SetupGet(x => x.Prop1);"""];
+            yield return [@namespace, """new Mock<IFoo>().SetupGet(x => x.Prop2);"""];
+            yield return [@namespace, """new Mock<IFoo>().SetupSet(x => x.Prop1 = "1");"""];
+            yield return [@namespace, """new Mock<IFoo>().SetupSet(x => x.Prop3 = "2");"""];
+            yield return [@namespace, """new Mock<IFoo>().Setup(x => x.Method());"""];
+            yield return [@namespace, """new Mock<IFoo>().SetupGet(x => {|Moq1101:x.Method()|});"""];
+            yield return [@namespace, """new Mock<IFoo>().SetupSet(x => {|Moq1101:x.Method()|});"""];
+        }
     }
 
-    [Fact]
-    public async Task ShouldFailWhenMethodsUsePropertySetup()
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public async Task ShouldAnalyzePropertySetup(string @namespace, string mock)
     {
-        await VerifyCSharpDiagnostic(
-                """
-                using Moq;
-
-                namespace NoMethodsInPropertySetup.Bad;
+        await Verifier.VerifyAnalyzerAsync(
+                $$"""
+                {{@namespace}}
 
                 public interface IFoo
                 {
@@ -57,13 +37,11 @@ public class NoMethodsInPropertySetupAnalyzerTests : DiagnosticVerifier<NoMethod
                     string Method();
                 }
 
-                public class MyUnitTests
+                public class UnitTest
                 {
-                    private void TestBad()
+                    private void Test()
                     {
-                        var mock = new Mock<IFoo>();
-                        mock.SetupGet(x => {|Moq1101:x.Method()|});
-                        mock.SetupSet(x => {|Moq1101:x.Method()|});
+                        {{mock}}
                     }
                 }
                 """);
