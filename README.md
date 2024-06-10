@@ -1,30 +1,38 @@
 # Moq.Analyzers
 
-**Moq.Analyzers** is a Roslyn analyzer that helps to write unit tests using the popular and friend [Moq](https://github.com/devlooped/moq) library. Moq.Analyzers protects you from popular mistakes and warns you if something is wrong with your Moq configuration:
+[![NuGet Version](https://img.shields.io/nuget/v/Moq.Analyzers?style=flat&logo=nuget&color=blue)](https://www.nuget.org/packages/Moq.Analyzers)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Moq.Analyzers?style=flat&logo=nuget)](https://www.nuget.org/packages/Moq.Analyzers)
+[![Main build](https://github.com/rjmurillo/moq.analyzers/actions/workflows/main.yml/badge.svg)](https://github.com/rjmurillo/moq.analyzers/actions/workflows/main.yml)
 
-## Detected issues
+**Moq.Analyzers** is a Roslyn analyzer that helps you to write unit tests using the popular
+[Moq](https://github.com/devlooped/moq) framework. Moq.Analyzers protects you from common mistakes and warns you if
+something is wrong with your Moq configuration.
 
-* Moq1000 = Sealed classes cannot be mocked.
-* Moq1001 = Mocked interfaces cannot have constructor parameters.
-* Moq1002 = Parameters provided into mock do not match any existing constructors.
-* Moq1100 = Callback signature must match the signature of the mocked method.
-* Moq1101 = SetupGet/SetupSet should be used for properties, not for methods.
-* Moq1200 = Setup should be used only for overridable members.
-* Moq1201 = Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`.
-* Moq1300 = Mock.As() should take interfaces.
+## Analyzer rules
 
-## How to install
+* Moq1000: Sealed classes cannot be mocked
+* Moq1001: Mocked interfaces cannot have constructor parameters
+* Moq1002: Parameters provided into mock do not match any existing constructors
+* Moq1100: Callback signature must match the signature of the mocked method
+* Moq1101: SetupGet/SetupSet should be used for properties, not for methods
+* Moq1200: Setup should be used only for overridable members
+* Moq1201: Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`
+* Moq1300: Mock.As() should take interfaces
 
-Install ["Moq.Analyzers" NuGet package](https://www.nuget.org/packages/Moq.Analyzers) into test projects using Moq.
+See [docs/rules](./docs/rules/README.md) for full documentation.
 
-You must use an in-support version of the .NET SDK (i.e. 6+).
+## Getting started
 
-## Contributions are welcome!
+Moq.Analyzers is installed from NuGet. Run this command for your test project(s):
 
-Moq.Analyzers continues to evolve and add new features. Any help will be appreciated. You can report issues, develop new features, improve the documention, or do other cool stuff.
+```powershell
+dotnet add package Moq.Analyzers
+```
 
-If you want to contribute to existing issues, check the [help wanted](https://github.com/rjmurillo/moq.analyzers/labels/help%20wanted) or [good first issue](https://github.com/rjmurillo/moq.analyzers/labels/good%20first%20issue) items in the backlog. If you have new ideas or want to complain about bugs, feel free to [create a new issue](https://github.com/rjmurillo/moq.analyzers/issues/new).
+> NOTE: You must use a [supported version](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) of
+> the .NET SDK (i.e. 6.0 or later).
 
-## Code of Conduct
+## Contributions welcome
 
-This project has adopted the code of conduct defined by the [Contributor Covenant](https://www.contributor-covenant.org/) to set expectations for behavior in our communication. For more information, see the [.NET Foundation's Contributor Convenant Code of Conduct](https://dotnetfoundation.org/about/policies/code-of-conduct)
+Moq.Analyzers continues to evolve and add new features. Any help will be appreciated. You can report issues,
+develop new features, improve the documentation, or do other cool stuff. See [CONTRIBUTING.md](./CONTRIBUTING.md).
