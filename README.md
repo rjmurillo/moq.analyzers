@@ -15,11 +15,17 @@ something is wrong with your Moq configuration:
 * Moq1201 = Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`.
 * Moq1300 = Mock.As() should take interfaces.
 
-## How to install
 
-Install ["Moq.Analyzers" NuGet package](https://www.nuget.org/packages/Moq.Analyzers) into test projects using Moq.
+## Getting started
 
-You must use an in-support version of the .NET SDK (i.e. 6+).
+Moq.Analyzers is installed from NuGet. Run this command for your test project(s):
+
+```powershell
+dotnet add package Moq.Analyzers
+```
+
+> NOTE: You must use a [supported version](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) of
+> the .NET SDK (i.e. 6.0 or later).
 
 ## Contributions welcome
 
