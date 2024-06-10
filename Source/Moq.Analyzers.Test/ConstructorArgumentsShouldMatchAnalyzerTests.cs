@@ -31,6 +31,27 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             yield return [@namespace, """new Mock<Foo>{|Moq1002:(MockBehavior.Strict, 4, true)|};"""];
             yield return [@namespace, """new Mock<Foo>{|Moq1002:(MockBehavior.Loose, 5, true)|};"""];
             yield return [@namespace, """new Mock<Foo>{|Moq1002:(MockBehavior.Loose, "2", 6)|};"""];
+            yield return [@namespace, """new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:("42")|};"""];
+            yield return [@namespace, """new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:("42", 42)|};"""];
+            yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>{|Moq1002:(42)|};"""];
+            // TODO: Review use of `.As<>()` in this test case. It is not clear what purpose it serves.
+            yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>().As<AbstractGenericClassDefaultCtor<object>>();"""];
+            yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>();"""];
+            yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);"""];
+            // TODO: "I think this _should_ fail, but currently passes. Tracked by #55."
+            // TODO: Review use of `.As<>()` in this test case. It is not clear what purpose it serves.
+            // yield return [@namespace, """new Mock<AbstractClassWithCtor>().As<AbstractClassWithCtor>();"""];
+            yield return [@namespace, """new Mock<AbstractClassWithCtor>{|Moq1002:("42")|};"""];
+            yield return [@namespace, """new Mock<AbstractClassWithCtor>{|Moq1002:("42", 42)|};"""];
+            yield return [@namespace, """new Mock<AbstractClassDefaultCtor>{|Moq1002:(42)|};"""];
+            // TODO: Review use of `.As<>()` in this test case. It is not clear what purpose it serves.
+            yield return [@namespace, """new Mock<AbstractClassDefaultCtor>().As<AbstractClassDefaultCtor>();"""];
+            yield return [@namespace, """new Mock<AbstractClassWithCtor>(42);"""];
+            yield return [@namespace, """new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42);"""];
+            yield return [@namespace, """new Mock<AbstractClassWithCtor>(42, "42");"""];
+            yield return [@namespace, """new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42, "42");"""];
+            yield return [@namespace, """new Mock<AbstractGenericClassWithCtor<object>>(42);"""];
+            yield return [@namespace, """new Mock<AbstractGenericClassWithCtor<object>>(MockBehavior.Default, 42);"""];
         }
     }
 
@@ -45,12 +66,31 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
                 internal class Foo
                 {
                     public Foo(string s) { }
-
                     public Foo(bool b, int i) { }
-
                     public Foo(params DateTime[] dates) { }
-
                     public Foo(List<string> l, string s = "A") { }
+                }
+
+                internal abstract class AbstractClassDefaultCtor
+                {
+                    protected AbstractClassDefaultCtor() { }
+                }
+
+                internal abstract class AbstractGenericClassDefaultCtor<T>
+                {
+                    protected AbstractGenericClassDefaultCtor() { }
+                }
+
+                internal abstract class AbstractClassWithCtor
+                {
+                    protected AbstractClassWithCtor(int a) { }
+                    protected AbstractClassWithCtor(int a, string b) { }
+                }
+
+                internal abstract class AbstractGenericClassWithCtor<T>
+                {
+                    protected AbstractGenericClassWithCtor(int a) { }
+                    protected AbstractGenericClassWithCtor(int a, string b) { }
                 }
 
                 internal class UnitTest
