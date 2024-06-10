@@ -34,18 +34,15 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             yield return [@namespace, """new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:("42")|};"""];
             yield return [@namespace, """new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:("42", 42)|};"""];
             yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>{|Moq1002:(42)|};"""];
-            // TODO: Review use of `.As<>()` in this test case. It is not clear what purpose it serves.
-            yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>().As<AbstractGenericClassDefaultCtor<object>>();"""];
+            yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>();"""];
             yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>();"""];
             yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);"""];
             // TODO: "I think this _should_ fail, but currently passes. Tracked by #55."
-            // TODO: Review use of `.As<>()` in this test case. It is not clear what purpose it serves.
-            // yield return [@namespace, """new Mock<AbstractClassWithCtor>().As<AbstractClassWithCtor>();"""];
+            // yield return [@namespace, """new Mock<AbstractClassWithCtor>();"""];
             yield return [@namespace, """new Mock<AbstractClassWithCtor>{|Moq1002:("42")|};"""];
             yield return [@namespace, """new Mock<AbstractClassWithCtor>{|Moq1002:("42", 42)|};"""];
             yield return [@namespace, """new Mock<AbstractClassDefaultCtor>{|Moq1002:(42)|};"""];
-            // TODO: Review use of `.As<>()` in this test case. It is not clear what purpose it serves.
-            yield return [@namespace, """new Mock<AbstractClassDefaultCtor>().As<AbstractClassDefaultCtor>();"""];
+            yield return [@namespace, """new Mock<AbstractClassDefaultCtor>();"""];
             yield return [@namespace, """new Mock<AbstractClassWithCtor>(42);"""];
             yield return [@namespace, """new Mock<AbstractClassWithCtor>(MockBehavior.Default, 42);"""];
             yield return [@namespace, """new Mock<AbstractClassWithCtor>(42, "42");"""];
