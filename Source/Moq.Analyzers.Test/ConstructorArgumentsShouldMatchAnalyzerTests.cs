@@ -11,7 +11,6 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             yield return [@namespace, """new Mock<Foo>(MockBehavior.Default);"""];
             yield return [@namespace, """new Mock<Foo>(MockBehavior.Strict);"""];
             yield return [@namespace, """new Mock<Foo>(MockBehavior.Loose);"""];
-            yield return [@namespace, """new Mock<Foo>(MockBehavior.Default);"""];
             yield return [@namespace, """new Mock<Foo>("3");"""];
             yield return [@namespace, """new Mock<Foo>("4");"""];
             yield return [@namespace, """new Mock<Foo>(MockBehavior.Default, "5");"""];
@@ -34,7 +33,6 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             yield return [@namespace, """new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:("42")|};"""];
             yield return [@namespace, """new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:("42", 42)|};"""];
             yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>{|Moq1002:(42)|};"""];
-            yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>();"""];
             yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>();"""];
             yield return [@namespace, """new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);"""];
             // TODO: "I think this _should_ fail, but currently passes. Tracked by #55."

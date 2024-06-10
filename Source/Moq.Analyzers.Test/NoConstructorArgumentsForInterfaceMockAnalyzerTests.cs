@@ -10,11 +10,8 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
         {
             yield return [@namespace, """new Mock<IMyService>{|Moq1001:(25, true)|};"""];
             yield return [@namespace, """new Mock<IMyService>{|Moq1001:("123")|};"""];
-            yield return [@namespace, """new Mock<IMyService>{|Moq1001:(25, true)|};"""];
-            yield return [@namespace, """new Mock<IMyService>{|Moq1001:("123")|};"""];
             yield return [@namespace, """new Mock<IMyService>{|Moq1001:(MockBehavior.Default, "123")|};"""];
             yield return [@namespace, """new Mock<IMyService>{|Moq1001:(MockBehavior.Strict, 25, true)|};"""];
-            yield return [@namespace, """new Mock<IMyService>{|Moq1001:(MockBehavior.Default, "123")|};"""];
             yield return [@namespace, """new Mock<IMyService>{|Moq1001:(MockBehavior.Loose, 25, true)|};"""];
             yield return [@namespace, """new Mock<IMyService>();"""];
             yield return [@namespace, """new Mock<IMyService>(MockBehavior.Default);"""];
