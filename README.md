@@ -21,12 +21,7 @@ Install ["Moq.Analyzers" NuGet package](https://www.nuget.org/packages/Moq.Analy
 
 You must use an in-support version of the .NET SDK (i.e. 6+).
 
-## Contributions are welcome!
+## Contributions welcome
 
 Moq.Analyzers continues to evolve and add new features. Any help will be appreciated. You can report issues,
-develop new features, improve the documention, or do other cool stuff.
-
-If you want to contribute to existing issues, check the
-[help wanted](https://github.com/rjmurillo/moq.analyzers/labels/help%20wanted) or
-[good first issue](https://github.com/rjmurillo/moq.analyzers/labels/good%20first%20issue) items in the backlog.
-If you have new ideas or want to complain about bugs, feel free to [create a new issue](https://github.com/rjmurillo/moq.analyzers/issues/new).
+develop new features, improve the documentation, or do other cool stuff. See [CONTRIBUTING.md](./CONTRIBUTING.md).
