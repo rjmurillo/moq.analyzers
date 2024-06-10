@@ -8,17 +8,18 @@
 [Moq](https://github.com/devlooped/moq) framework. Moq.Analyzers protects you from common mistakes and warns you if
 something is wrong with your Moq configuration.
 
-## Detected issues
+## Analyzer rules
 
-* Moq1000 = Sealed classes cannot be mocked.
-* Moq1001 = Mocked interfaces cannot have constructor parameters.
-* Moq1002 = Parameters provided into mock do not match any existing constructors.
-* Moq1100 = Callback signature must match the signature of the mocked method.
-* Moq1101 = SetupGet/SetupSet should be used for properties, not for methods.
-* Moq1200 = Setup should be used only for overridable members.
-* Moq1201 = Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`.
-* Moq1300 = Mock.As() should take interfaces.
+* Moq1000: Sealed classes cannot be mocked
+* Moq1001: Mocked interfaces cannot have constructor parameters
+* Moq1002: Parameters provided into mock do not match any existing constructors
+* Moq1100: Callback signature must match the signature of the mocked method
+* Moq1101: SetupGet/SetupSet should be used for properties, not for methods
+* Moq1200: Setup should be used only for overridable members
+* Moq1201: Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`
+* Moq1300: Mock.As() should take interfaces
 
+See [docs/rules](./docs/rules/README.md) for full documentation.
 
 ## Getting started
 
