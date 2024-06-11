@@ -1,8 +1,8 @@
 ﻿namespace Moq.Analyzers;
 
-internal class MoqAsMethodDescriptor : MoqMethodDescriptorBase
+internal class MoqSetupMethodDescriptor : MoqMethodDescriptorBase
 {
-    private const string MethodName = "As";
+    private const string MethodName = "Setup";
 
     public override bool IsMatch(SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccessSyntax, CancellationToken cancellationToken)
     {
@@ -24,5 +24,10 @@ internal class MoqAsMethodDescriptor : MoqMethodDescriptorBase
         }
 
         return methodSymbol.Name.AsSpan().SequenceEqual(MethodName.AsSpan()) && methodSymbol.IsGenericMethod;
+    }
+
+    private static bool IsFastMatch(MemberAccessExpressionSyntax memberAccessSyntax)
+    {
+        return string.Equals(memberAccessSyntax.Name.Identifier.Text, MethodName, StringComparison.Ordinal);
     }
 }

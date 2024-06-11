@@ -5,7 +5,7 @@ namespace Moq.Analyzers;
 
 internal static class Helpers
 {
-    private static readonly MoqMethodDescriptorBase MoqSetupMethodDescriptor = new MoqMethodDescriptor("Setup", new Regex("^Moq\\.Mock<.*>\\.Setup\\.*"));
+    private static readonly MoqMethodDescriptorBase MoqSetupMethodDescriptor = new MoqSetupMethodDescriptor();
 
     private static readonly MoqMethodDescriptorBase MoqAsMethodDescriptor = new MoqAsMethodDescriptor();
 
