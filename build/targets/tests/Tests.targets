@@ -10,6 +10,7 @@
     <ItemGroup>
       <_CoverageFiles Include="$(ArtifactsTestResultsPath)/**/*.cobertura.xml" />
     </ItemGroup>
-    <ReportGenerator ProjectDirectory="$(MSBuildProjectDirectory)" ReportFiles="@(_CoverageFiles)" TargetDirectory="$(ArtifactsTestResultsPath)/codecoverage" ReportTypes="Html" />
+    <ReportGenerator ProjectDirectory="$(MSBuildProjectDirectory)" ReportFiles="@(_CoverageFiles)" TargetDirectory="$(ArtifactsTestResultsPath)/coverage" ReportTypes="MarkdownSummaryGithub;Cobertura;HtmlInline" />
+    <Delete Files="@(_CoverageFiles)" /><!-- Prevent this run's coverage files from being merged into the next run. -->
   </Target>
 </Project>
