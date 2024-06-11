@@ -3,14 +3,28 @@
     <!-- Enable test logging to TRX files and place them in the artifacts directory -->
     <VSTestLogger>trx%3bLogFileName=$(MSBuildProjectName).trx</VSTestLogger>
     <VSTestResultsDirectory Condition="'$(VSTestResultsDirectory)' == ''">$(ArtifactsTestResultsPath)/$(TargetFramework)</VSTestResultsDirectory>
-    <_TestCodeCoverageMergedReport>$(ArtifactsTestResultsPath)/report.cobertura.xml</_TestCodeCoverageMergedReport>
+
+    <_TestCoverageGlob>$(ArtifactsTestResultsPath)/**/*.cobertura.xml</_TestCoverageGlob>
+    <_TestCoverageReportDirectory>$(ArtifactsTestResultsPath)/coverage</_TestCoverageReportDirectory>
   </PropertyGroup>
 
-  <Target Name="GenerageCodeCoverageReport" AfterTargets="Test;VSTest" Condition=" '$(IsTestProject)' == 'true' ">
+  <Target Name="CleanCoverageReport" BeforeTargets="Test;VSTest" Condition=" '$(IsTestProject)' == 'true' ">
+    <!-- Prevent this previous runs' coverage files from being merged into this report run. -->
+    <RemoveDir Directories="$(_TestCoverageReportDirectory)" />
+
     <ItemGroup>
-      <_CoverageFiles Include="$(ArtifactsTestResultsPath)/**/*.cobertura.xml" />
+      <_CoverageFiles Include="$(_TestCoverageGlob)" />
     </ItemGroup>
-    <ReportGenerator ProjectDirectory="$(MSBuildProjectDirectory)" ReportFiles="@(_CoverageFiles)" TargetDirectory="$(ArtifactsTestResultsPath)/coverage" ReportTypes="MarkdownSummaryGithub;Cobertura;HtmlInline" />
-    <Delete Files="@(_CoverageFiles)" /><!-- Prevent this run's coverage files from being merged into the next run. -->
+    <Delete Files="@(_CoverageFiles)" />
+    <ItemGroup>
+      <_CoverageFiles Remove="@(_CoverageFiles)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GenerateCoverageReport" AfterTargets="Test;VSTest" Condition=" '$(IsTestProject)' == 'true' ">
+    <ItemGroup>
+      <_CoverageFiles Include="$(_TestCoverageGlob)" />
+    </ItemGroup>
+    <ReportGenerator ProjectDirectory="$(MSBuildProjectDirectory)" ReportFiles="@(_CoverageFiles)" TargetDirectory="$(_TestCoverageReportDirectory)" ReportTypes="MarkdownSummaryGithub;Cobertura;HtmlInline" />
   </Target>
 </Project>
