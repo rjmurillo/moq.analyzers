@@ -6,10 +6,8 @@ internal static class Helpers
 {
     private static readonly MoqMethodDescriptorBase MoqSetupMethodDescriptor = new MoqSetupMethodDescriptor();
 
-    internal static bool IsMoqSetupMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
+    internal static bool IsMoqSetupMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method, CancellationToken cancellationToken)
     {
-        // TODO: Plumb cancellationToken through
-        CancellationToken cancellationToken = default;
         return MoqSetupMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
     }
 
@@ -42,12 +40,12 @@ internal static class Helpers
         };
     }
 
-    internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(SemanticModel semanticModel, ExpressionSyntax expression)
+    internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
     {
         InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
         if (invocation?.Expression is not MemberAccessExpressionSyntax method) return null;
-        if (IsMoqSetupMethod(semanticModel, method)) return invocation;
-        return FindSetupMethodFromCallbackInvocation(semanticModel, method.Expression);
+        if (IsMoqSetupMethod(semanticModel, method, cancellationToken)) return invocation;
+        return FindSetupMethodFromCallbackInvocation(semanticModel, method.Expression, cancellationToken);
     }
 
     internal static InvocationExpressionSyntax? FindMockedMethodInvocationFromSetupMethod(InvocationExpressionSyntax? setupInvocation)
