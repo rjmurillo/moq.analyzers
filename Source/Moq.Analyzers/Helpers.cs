@@ -5,18 +5,22 @@ namespace Moq.Analyzers;
 
 internal static class Helpers
 {
-    private static readonly MoqMethodDescriptor MoqSetupMethodDescriptor = new("Setup", new Regex("^Moq\\.Mock<.*>\\.Setup\\.*"));
+    private static readonly MoqMethodDescriptorBase MoqSetupMethodDescriptor = new MoqMethodDescriptor("Setup", new Regex("^Moq\\.Mock<.*>\\.Setup\\.*"));
 
-    private static readonly MoqMethodDescriptor MoqAsMethodDescriptor = new("As", new Regex("^Moq\\.Mock\\.As<\\.*"), isGeneric: true);
+    private static readonly MoqMethodDescriptorBase MoqAsMethodDescriptor = new MoqMethodDescriptor("As", new Regex("^Moq\\.Mock\\.As<\\.*"), isGeneric: true);
 
     internal static bool IsMoqSetupMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
     {
-        return MoqSetupMethodDescriptor.IsMoqMethod(semanticModel, method);
+        // TODO: Plumb cancellationToken through
+        CancellationToken cancellationToken = default;
+        return MoqSetupMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
     }
 
     internal static bool IsMoqAsMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
     {
-        return MoqAsMethodDescriptor.IsMoqMethod(semanticModel, method);
+        // TODO: Plumb cancellationToken through
+        CancellationToken cancellationToken = default;
+        return MoqAsMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
     }
 
     internal static bool IsCallbackOrReturnInvocation(SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)

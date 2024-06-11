@@ -3,7 +3,12 @@ using System.Text.RegularExpressions;
 
 namespace Moq.Analyzers;
 
-internal class MoqMethodDescriptor
+internal abstract class MoqMethodDescriptorBase
+{
+    public abstract bool IsMatch(SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccessSyntax, CancellationToken cancellationToken);
+}
+
+internal class MoqMethodDescriptor : MoqMethodDescriptorBase
 {
     private readonly bool _isGeneric;
 
@@ -17,6 +22,11 @@ internal class MoqMethodDescriptor
     private string ShortMethodName { get; }
 
     private Regex FullMethodNamePattern { get; }
+
+    public override bool IsMatch(SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccessSyntax, CancellationToken cancellationToken)
+    {
+        return IsMoqMethod(semanticModel, memberAccessSyntax);
+    }
 
     public bool IsMoqMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax? method)
     {
