@@ -3,6 +3,8 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 {
+    private static readonly MoqMethodDescriptorBase MoqAsMethodDescriptor = new MoqAsMethodDescriptor();
+
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         Diagnostics.AsShouldBeUsedOnlyForInterfaceId,
         Diagnostics.AsShouldBeUsedOnlyForInterfaceTitle,
@@ -22,20 +24,37 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        InvocationExpressionSyntax? asInvocation = (InvocationExpressionSyntax)context.Node;
-
-        if (asInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression
-            && Helpers.IsMoqAsMethod(context.SemanticModel, memberAccessExpression)
-            && memberAccessExpression.Name is GenericNameSyntax genericName
-            && genericName.TypeArgumentList.Arguments.Count == 1)
+        if (context.Node is not InvocationExpressionSyntax invocationExpression)
         {
-            TypeSyntax? typeArgument = genericName.TypeArgumentList.Arguments[0];
-            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(typeArgument, context.CancellationToken);
-            if (symbolInfo.Symbol is ITypeSymbol typeSymbol && typeSymbol.TypeKind != TypeKind.Interface)
-            {
-                Diagnostic? diagnostic = Diagnostic.Create(Rule, typeArgument.GetLocation());
-                context.ReportDiagnostic(diagnostic);
-            }
+            return;
+        }
+
+        if (invocationExpression.Expression is not MemberAccessExpressionSyntax memberAccessSyntax)
+        {
+            return;
+        }
+
+        if (!MoqAsMethodDescriptor.IsMatch(context.SemanticModel, memberAccessSyntax, context.CancellationToken))
+        {
+            return;
+        }
+
+        if (!memberAccessSyntax.Name.TryGetGenericArguments(out SeparatedSyntaxList<TypeSyntax> typeArguments))
+        {
+            return;
+        }
+
+        if (typeArguments.Count != 1)
+        {
+            return;
+        }
+
+        TypeSyntax typeArgument = typeArguments[0];
+        SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(typeArgument, context.CancellationToken);
+
+        if (symbolInfo.Symbol is ITypeSymbol { TypeKind: not TypeKind.Interface })
+        {
+            context.ReportDiagnostic(Diagnostic.Create(Rule, typeArgument.GetLocation()));
         }
     }
 }

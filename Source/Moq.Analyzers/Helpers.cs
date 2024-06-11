@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 namespace Moq.Analyzers;
 
@@ -7,20 +6,11 @@ internal static class Helpers
 {
     private static readonly MoqMethodDescriptorBase MoqSetupMethodDescriptor = new MoqSetupMethodDescriptor();
 
-    private static readonly MoqMethodDescriptorBase MoqAsMethodDescriptor = new MoqAsMethodDescriptor();
-
     internal static bool IsMoqSetupMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
     {
         // TODO: Plumb cancellationToken through
         CancellationToken cancellationToken = default;
         return MoqSetupMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
-    }
-
-    internal static bool IsMoqAsMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
-    {
-        // TODO: Plumb cancellationToken through
-        CancellationToken cancellationToken = default;
-        return MoqAsMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
     }
 
     internal static bool IsCallbackOrReturnInvocation(SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)
