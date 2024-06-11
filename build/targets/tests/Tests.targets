@@ -25,6 +25,11 @@
     <ItemGroup>
       <_CoverageFiles Include="$(_TestCoverageGlob)" />
     </ItemGroup>
-    <ReportGenerator ProjectDirectory="$(MSBuildProjectDirectory)" ReportFiles="@(_CoverageFiles)" TargetDirectory="$(_TestCoverageReportDirectory)" ReportTypes="MarkdownSummaryGithub;Cobertura;HtmlInline" />
+    <ReportGenerator
+      Condition=" '@(_CoverageFiles)' != '' "
+      ProjectDirectory="$(MSBuildProjectDirectory)"
+      ReportFiles="@(_CoverageFiles)"
+      TargetDirectory="$(_TestCoverageReportDirectory)"
+      ReportTypes="MarkdownSummaryGithub;Cobertura;HtmlInline" />
   </Target>
 </Project>
