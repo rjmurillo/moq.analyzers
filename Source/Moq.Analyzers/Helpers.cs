@@ -7,7 +7,7 @@ internal static class Helpers
 {
     private static readonly MoqMethodDescriptorBase MoqSetupMethodDescriptor = new MoqMethodDescriptor("Setup", new Regex("^Moq\\.Mock<.*>\\.Setup\\.*"));
 
-    private static readonly MoqMethodDescriptorBase MoqAsMethodDescriptor = new MoqMethodDescriptor("As", new Regex("^Moq\\.Mock\\.As<\\.*"), isGeneric: true);
+    private static readonly MoqMethodDescriptorBase MoqAsMethodDescriptor = new MoqAsMethodDescriptor();
 
     internal static bool IsMoqSetupMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
     {
