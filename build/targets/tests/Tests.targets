@@ -3,5 +3,21 @@
     <!-- Enable test logging to TRX files and place them in the artifacts directory -->
     <VSTestLogger>trx%3bLogFileName=$(MSBuildProjectName).trx</VSTestLogger>
     <VSTestResultsDirectory Condition="'$(VSTestResultsDirectory)' == ''">$(ArtifactsTestResultsPath)/$(TargetFramework)</VSTestResultsDirectory>
+    <_TestCodeCoverageMergedReport>$(ArtifactsTestResultsPath)/report.cobertura.xml</_TestCodeCoverageMergedReport>
   </PropertyGroup>
+
+  <!-- <Target Name="MergeCoverageReports" AfterTargets="Test;VSTest" Inputs="@(_TestCodeCoverageFiles)" Outputs="$(_TestCodeCoverageMergedReport)">
+    <ItemGroup>
+      <_TestCodeCoverageFiles Include="$(ArtifactsTestResultsPath)/**/*.coverage" />
+    </ItemGroup>
+
+    <Exec Command="dotnet tool restore" />
+    <Exec Command="dotnet coverage merge @(_TestCodeCoverageFiles) -f cobertura -o $(_TestCodeCoverageMergedReport)" />
+  </Target> -->
+  <Target Name="GenerageCodeCoverageReport" AfterTargets="Test;VSTest" Condition=" '$(IsTestProject)' == 'true' ">
+    <ItemGroup>
+      <_CoverageFiles Include="$(ArtifactsTestResultsPath)/**/*.cobertura.xml" />
+    </ItemGroup>
+    <ReportGenerator ProjectDirectory="$(MSBuildProjectDirectory)" ReportFiles="@(_CoverageFiles)" TargetDirectory="report" ReportTypes="Html;Latex" HistoryDirectory="history" />
+  </Target>
 </Project>
