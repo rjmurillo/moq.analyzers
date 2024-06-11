@@ -7,6 +7,20 @@
         <Configuration>
           <Format>cobertura</Format>
           <IncludeTestAssembly>False</IncludeTestAssembly>
+          <CodeCoverage>
+            <EnableStaticNativeInstrumentation>False</EnableStaticNativeInstrumentation>
+            <EnableDynamicNativeInstrumentation>False</EnableDynamicNativeInstrumentation>
+            <ModulePaths>
+              <Include>
+                <!--
+                  Limit code coverage to the shipping binary.
+                  TODO: Consider using a "Just my code"-esque tool to automatically include all project references.
+                  Discuss in https://github.com/microsoft/codecoverage.
+                -->
+                <ModulePath>.*Moq\.Analyzers\.dll$</ModulePath>
+              </Include>
+            </ModulePaths>
+          </CodeCoverage>
         </Configuration>
       </DataCollector>
     </DataCollectors>
