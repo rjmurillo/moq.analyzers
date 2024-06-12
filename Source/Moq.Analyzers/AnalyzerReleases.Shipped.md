@@ -50,3 +50,11 @@ Moq1000 | Moq | Warning | NoSealedClassMocksAnalyzer
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 Moq1002 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer
+
+## Release 0.0.7
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+Moq1200 | Moq | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer
