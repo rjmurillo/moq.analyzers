@@ -58,3 +58,11 @@ Moq1002 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 Moq1200 | Moq | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer
+
+## Release 0.0.8
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+Moq1300 | Moq | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer
