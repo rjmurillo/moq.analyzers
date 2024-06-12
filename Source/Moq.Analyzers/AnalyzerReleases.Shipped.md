@@ -42,3 +42,11 @@ Rule ID | Category | Severity | Notes
 Moq1001 | Moq | Warning | NoConstructorArgumentsForInterfaceMockAnalyzer
 Moq1101 | Moq | Warning | NoMethodsInPropertySetupAnalyzer
 Moq1000 | Moq | Warning | NoSealedClassMocksAnalyzer
+
+## Release 0.0.6
+
+### Changed Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+Moq1002 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer
