@@ -3,6 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
+  <Import Project="build/targets/compiler/Packages.props" />
   <Import Project="build/targets/reproducible/Packages.props" />
   <Import Project="build/targets/tests/Packages.props" />
   <Import Project="build/targets/codeanalysis/Packages.props" />

@@ -1,22 +1,14 @@
 ﻿using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 namespace Moq.Analyzers;
 
 internal static class Helpers
 {
-    private static readonly MoqMethodDescriptor MoqSetupMethodDescriptor = new("Setup", new Regex("^Moq\\.Mock<.*>\\.Setup\\.*"));
+    private static readonly MoqMethodDescriptorBase MoqSetupMethodDescriptor = new MoqSetupMethodDescriptor();
 
-    private static readonly MoqMethodDescriptor MoqAsMethodDescriptor = new("As", new Regex("^Moq\\.Mock\\.As<\\.*"), isGeneric: true);
-
-    internal static bool IsMoqSetupMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
+    internal static bool IsMoqSetupMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method, CancellationToken cancellationToken)
     {
-        return MoqSetupMethodDescriptor.IsMoqMethod(semanticModel, method);
-    }
-
-    internal static bool IsMoqAsMethod(SemanticModel semanticModel, MemberAccessExpressionSyntax method)
-    {
-        return MoqAsMethodDescriptor.IsMoqMethod(semanticModel, method);
+        return MoqSetupMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
     }
 
     internal static bool IsCallbackOrReturnInvocation(SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)
@@ -48,12 +40,12 @@ internal static class Helpers
         };
     }
 
-    internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(SemanticModel semanticModel, ExpressionSyntax expression)
+    internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
     {
         InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
         if (invocation?.Expression is not MemberAccessExpressionSyntax method) return null;
-        if (IsMoqSetupMethod(semanticModel, method)) return invocation;
-        return FindSetupMethodFromCallbackInvocation(semanticModel, method.Expression);
+        if (IsMoqSetupMethod(semanticModel, method, cancellationToken)) return invocation;
+        return FindSetupMethodFromCallbackInvocation(semanticModel, method.Expression, cancellationToken);
     }
 
     internal static InvocationExpressionSyntax? FindMockedMethodInvocationFromSetupMethod(InvocationExpressionSyntax? setupInvocation)
