@@ -66,3 +66,11 @@ Moq1200 | Moq | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 Moq1300 | Moq | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer
+
+## Release 0.0.9
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+Moq1201 | Moq | Error | SetupShouldNotIncludeAsyncResultAnalyzer
