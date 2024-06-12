@@ -3,13 +3,14 @@
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 {
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         Diagnostics.SetupShouldNotIncludeAsyncResultId,
         Diagnostics.SetupShouldNotIncludeAsyncResultTitle,
         Diagnostics.SetupShouldNotIncludeAsyncResultMessage,
         Diagnostics.Category,
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        isEnabledByDefault: true,
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{Diagnostics.SetupShouldNotIncludeAsyncResultId}.md");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
