@@ -6,17 +6,17 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
-        foreach (string @namespace in new[] { string.Empty, "namespace MyNamespace; "})
+        return new object[][]
         {
-            yield return [@namespace, """new Mock<AsyncClient>().Setup(c => c.TaskAsync());"""];
-            yield return [@namespace, """new Mock<AsyncClient>().Setup(c => c.GenericTaskAsync()).ReturnsAsync(string.Empty);"""];
-            yield return [@namespace, """new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""];
-        }
+            ["""new Mock<AsyncClient>().Setup(c => c.TaskAsync());"""],
+            ["""new Mock<AsyncClient>().Setup(c => c.GenericTaskAsync()).ReturnsAsync(string.Empty);"""],
+            ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""],
+        }.WithNamespaces().WithReferenceAssemblyGroups();
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShouldAnalyzeSetupForAsyncResult(string @namespace, string mock)
+    public async Task ShouldAnalyzeSetupForAsyncResult(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
@@ -36,6 +36,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests
                         {{mock}}
                     }
                 }
-                """);
+                """,
+                referenceAssemblyGroup);
     }
 }

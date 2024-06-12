@@ -8,13 +8,23 @@ namespace Moq.Analyzers.Test.Helpers;
 /// package resolution only happens once for a given configuration.
 /// </summary>
 /// <remarks>
-/// This class is currently very simple and assumes that the only package that will be resolved is Moq for .NET 8.0. As our testing needs
-/// get more complicated, we can either manage the combinations ourselves
-/// (as done in https://github.com/dotnet/roslyn-analyzers/blob/4d5fd9da36d64d4c3370b8813122e226844fc6ed/src/Test.Utilities/AdditionalMetadataReferences.cs)
-/// or consider filing an issue in https://github.com/dotnet/roslyn-sdk to clarify best practices.
+/// It would be more straightforward to pass around ReferenceAssemblies instances directly, but using non-primitive types causes
+/// Visual Studio's Test Explorer to collapse all test cases down to a single entry, which makes it harder to see which test cases
+/// are failing or debug a single test case.
 /// </remarks>
 internal static class ReferenceAssemblyCatalog
 {
-    // TODO: We should also be testing a newer version of Moq. See https://github.com/rjmurillo/moq.analyzers/issues/58.
-    public static ReferenceAssemblies Net80WithOldMoq { get; } = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.8.2")]);
+    public static string Net80WithOldMoq => nameof(Net80WithOldMoq);
+
+    public static string Net80WithNewMoq => nameof(Net80WithNewMoq);
+
+    public static IReadOnlyDictionary<string, ReferenceAssemblies> Catalog { get; } = new Dictionary<string, ReferenceAssemblies>(StringComparer.Ordinal)
+    {
+        // 4.8.2 was one of the first popular versions of Moq. Ensure this version is prior to 4.13.1, as it changed the internal
+        // implementation of `.As<T>()` (see https://github.com/devlooped/moq/commit/b552aeddd82090ee0f4743a1ab70a16f3e6d2d11).
+        { nameof(Net80WithOldMoq), ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.8.2")]) },
+
+        // 4.18.4 is currently the most downloaded version of Moq.
+        { nameof(Net80WithNewMoq), ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]) },
+    };
 }

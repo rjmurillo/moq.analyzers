@@ -6,22 +6,22 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
-        foreach (string @namespace in new[] { string.Empty, "namespace MyNamespace;" })
+        return new object[][]
         {
-            yield return [@namespace, """new Mock<BaseSampleClass>().Setup(x => {|Moq1200:x.Calculate()|});"""];
-            yield return [@namespace, """new Mock<SampleClass>().Setup(x => {|Moq1200:x.Property|});"""];
-            yield return [@namespace, """new Mock<SampleClass>().Setup(x => {|Moq1200:x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())|});"""];
-            yield return [@namespace, """new Mock<BaseSampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""];
-            yield return [@namespace, """new Mock<ISampleInterface>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""];
-            yield return [@namespace, """new Mock<ISampleInterface>().Setup(x => x.TestProperty);"""];
-            yield return [@namespace, """new Mock<SampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""];
-            yield return [@namespace, """new Mock<SampleClass>().Setup(x => x.DoSth());"""];
-        }
+            ["""new Mock<BaseSampleClass>().Setup(x => {|Moq1200:x.Calculate()|});"""],
+            ["""new Mock<SampleClass>().Setup(x => {|Moq1200:x.Property|});"""],
+            ["""new Mock<SampleClass>().Setup(x => {|Moq1200:x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())|});"""],
+            ["""new Mock<BaseSampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
+            ["""new Mock<ISampleInterface>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
+            ["""new Mock<ISampleInterface>().Setup(x => x.TestProperty);"""],
+            ["""new Mock<SampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
+            ["""new Mock<SampleClass>().Setup(x => x.DoSth());"""],
+        }.WithNamespaces().WithReferenceAssemblyGroups();
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShouldAnalyzeSetupForOverridableMembers(string @namespace, string mock)
+    public async Task ShouldAnalyzeSetupForOverridableMembers(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
@@ -55,6 +55,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
                         {{mock}}
                     }
                 }
-                """);
+                """,
+                referenceAssemblyGroup);
     }
 }

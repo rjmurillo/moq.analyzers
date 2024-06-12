@@ -6,16 +6,16 @@ public class NoSealedClassMocksAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
-        foreach (string @namespace in new[] { string.Empty, "namespace MyNamespace;" })
+        return new object[][]
         {
-            yield return [@namespace, """new Mock<{|Moq1000:FooSealed|}>();"""];
-            yield return [@namespace, """new Mock<Foo>();"""];
-        }
+            ["""new Mock<{|Moq1000:FooSealed|}>();"""],
+            ["""new Mock<Foo>();"""],
+        }.WithNamespaces().WithReferenceAssemblyGroups();
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShoulAnalyzeSealedClassMocks(string @namespace, string mock)
+    public async Task ShoulAnalyzeSealedClassMocks(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
@@ -32,6 +32,7 @@ public class NoSealedClassMocksAnalyzerTests
                         {{mock}}
                     }
                 }
-                """);
+                """,
+                referenceAssemblyGroup);
     }
 }
