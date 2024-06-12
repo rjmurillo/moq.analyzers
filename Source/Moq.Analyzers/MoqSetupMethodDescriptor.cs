@@ -1,5 +1,9 @@
 ﻿namespace Moq.Analyzers;
 
+/// <summary>
+/// A class that, given a <see cref="SemanticModel"/> and a <see cref="MemberAccessExpressionSyntax"/>, determines if
+/// it is a call to the Moq `Mock.Setup()` method.
+/// </summary>
 internal class MoqSetupMethodDescriptor : MoqMethodDescriptorBase
 {
     private const string MethodName = "Setup";

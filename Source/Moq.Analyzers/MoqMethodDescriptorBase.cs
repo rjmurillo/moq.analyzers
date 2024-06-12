@@ -1,5 +1,14 @@
 ﻿namespace Moq.Analyzers;
 
+/// <summary>
+/// A base that that provides common functionality for identifying if a given <see cref="SyntaxNode"/>
+/// is a specific Moq method.
+/// </summary>
+/// <remarks>
+/// Currently the <see cref="IsMatch(SemanticModel, MemberAccessExpressionSyntax, CancellationToken)"/> abstract method
+/// is specific to <see cref="MemberAccessExpressionSyntax"/> because that's the only type of syntax in use. I expect we'll need
+/// to loosen this restriction if we start using other types of syntax.
+/// </remarks>
 internal abstract class MoqMethodDescriptorBase
 {
     private const string ContainingNamespace = "Moq";
