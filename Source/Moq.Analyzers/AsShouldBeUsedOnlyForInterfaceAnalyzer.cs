@@ -3,16 +3,20 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 {
+    internal const string RuleId = "Moq1300";
+    private const string Title = "Moq: Invalid As type parameter";
+    private const string Message = "Mock.As() should take interfaces only";
+
     private static readonly MoqMethodDescriptorBase MoqAsMethodDescriptor = new MoqAsMethodDescriptor();
 
     private static readonly DiagnosticDescriptor Rule = new(
-        Diagnostics.AsShouldBeUsedOnlyForInterfaceId,
-        Diagnostics.AsShouldBeUsedOnlyForInterfaceTitle,
-        Diagnostics.AsShouldBeUsedOnlyForInterfaceMessage,
-        Diagnostics.Category,
+        RuleId,
+        Title,
+        Message,
+        DiagnosticCategory.Moq,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{Diagnostics.AsShouldBeUsedOnlyForInterfaceId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
