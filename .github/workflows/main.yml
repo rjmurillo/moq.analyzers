@@ -104,3 +104,11 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:csharp"
+
+    - name: Run DevSkim scanner
+      uses: microsoft/DevSkim-Action@v1
+
+    - name: Upload DevSkim scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: devskim-results.sarif
