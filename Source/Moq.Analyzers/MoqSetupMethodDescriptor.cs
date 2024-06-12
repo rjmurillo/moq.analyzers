@@ -29,9 +29,4 @@ internal class MoqSetupMethodDescriptor : MoqMethodDescriptorBase
 
         return methodSymbol.Name.AsSpan().SequenceEqual(MethodName.AsSpan()) && methodSymbol.IsGenericMethod;
     }
-
-    private static bool IsFastMatch(MemberAccessExpressionSyntax memberAccessSyntax)
-    {
-        return string.Equals(memberAccessSyntax.Name.Identifier.Text, MethodName, StringComparison.Ordinal);
-    }
 }
