@@ -6,23 +6,23 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
 {
     public static IEnumerable<object[]> InterfaceMockingTestData()
     {
-        foreach (string @namespace in new[] { string.Empty, "namespace MyNamespace;" })
+        return new object[][]
         {
-            yield return [@namespace, """new Mock<IMyService>{|Moq1001:(25, true)|};"""];
-            yield return [@namespace, """new Mock<IMyService>{|Moq1001:("123")|};"""];
-            yield return [@namespace, """new Mock<IMyService>{|Moq1001:(MockBehavior.Default, "123")|};"""];
-            yield return [@namespace, """new Mock<IMyService>{|Moq1001:(MockBehavior.Strict, 25, true)|};"""];
-            yield return [@namespace, """new Mock<IMyService>{|Moq1001:(MockBehavior.Loose, 25, true)|};"""];
-            yield return [@namespace, """new Mock<IMyService>();"""];
-            yield return [@namespace, """new Mock<IMyService>(MockBehavior.Default);"""];
-            yield return [@namespace, """new Mock<IMyService>(MockBehavior.Strict);"""];
-            yield return [@namespace, """new Mock<IMyService>(MockBehavior.Loose);"""];
-        }
+            ["""new Mock<IMyService>{|Moq1001:(25, true)|};"""],
+            ["""new Mock<IMyService>{|Moq1001:("123")|};"""],
+            ["""new Mock<IMyService>{|Moq1001:(MockBehavior.Default, "123")|};"""],
+            ["""new Mock<IMyService>{|Moq1001:(MockBehavior.Strict, 25, true)|};"""],
+            ["""new Mock<IMyService>{|Moq1001:(MockBehavior.Loose, 25, true)|};"""],
+            ["""new Mock<IMyService>();"""],
+            ["""new Mock<IMyService>(MockBehavior.Default);"""],
+            ["""new Mock<IMyService>(MockBehavior.Strict);"""],
+            ["""new Mock<IMyService>(MockBehavior.Loose);"""],
+        }.WithNamespaces().WithReferenceAssemblyGroups();
     }
 
     [Theory]
     [MemberData(nameof(InterfaceMockingTestData))]
-    public async Task ShouldAnalyzeInterfaceConstructors(string @namespace, string mock)
+    public async Task ShouldAnalyzeInterfaceConstructors(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
@@ -40,7 +40,8 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
                         {{mock}}
                     }
                 }
-                """);
+                """,
+                referenceAssemblyGroup);
     }
 
     // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
@@ -87,7 +88,8 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
                         var mock6 = new Mock<IMyService>(MockBehavior.Loose);
                     }
                 }
-                """);
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
@@ -134,7 +136,8 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
                         var mock6 = new Moq.Mock<IMyService>{|Moq1001:(MockBehavior.Default)|};
                     }
                 }
-                """);
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
@@ -177,6 +180,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
                         var mock2 = new Moq.Mock<IMyService>(Moq.MockBehavior.Default);
                     }
                 }
-                """);
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 }

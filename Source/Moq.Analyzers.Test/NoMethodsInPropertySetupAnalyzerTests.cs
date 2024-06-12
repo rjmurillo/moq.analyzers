@@ -6,21 +6,21 @@ public class NoMethodsInPropertySetupAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
-        foreach (string @namespace in new[] { string.Empty, "namespace MyNamespace;" })
+        return new object[][]
         {
-            yield return [@namespace, """new Mock<IFoo>().SetupGet(x => x.Prop1);"""];
-            yield return [@namespace, """new Mock<IFoo>().SetupGet(x => x.Prop2);"""];
-            yield return [@namespace, """new Mock<IFoo>().SetupSet(x => x.Prop1 = "1");"""];
-            yield return [@namespace, """new Mock<IFoo>().SetupSet(x => x.Prop3 = "2");"""];
-            yield return [@namespace, """new Mock<IFoo>().Setup(x => x.Method());"""];
-            yield return [@namespace, """new Mock<IFoo>().SetupGet(x => {|Moq1101:x.Method()|});"""];
-            yield return [@namespace, """new Mock<IFoo>().SetupSet(x => {|Moq1101:x.Method()|});"""];
-        }
+            ["""new Mock<IFoo>().SetupGet(x => x.Prop1);"""],
+            ["""new Mock<IFoo>().SetupGet(x => x.Prop2);"""],
+            ["""new Mock<IFoo>().SetupSet(x => x.Prop1 = "1");"""],
+            ["""new Mock<IFoo>().SetupSet(x => x.Prop3 = "2");"""],
+            ["""new Mock<IFoo>().Setup(x => x.Method());"""],
+            ["""new Mock<IFoo>().SetupGet(x => {|Moq1101:x.Method()|});"""],
+            ["""new Mock<IFoo>().SetupSet(x => {|Moq1101:x.Method()|});"""],
+        }.WithNamespaces().WithReferenceAssemblyGroups();
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShouldAnalyzePropertySetup(string @namespace, string mock)
+    public async Task ShouldAnalyzePropertySetup(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
@@ -44,6 +44,7 @@ public class NoMethodsInPropertySetupAnalyzerTests
                         {{mock}}
                     }
                 }
-                """);
+                """,
+                referenceAssemblyGroup);
     }
 }

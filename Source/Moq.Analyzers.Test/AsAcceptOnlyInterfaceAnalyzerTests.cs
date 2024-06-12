@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.Testing;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.AsShouldBeUsedOnlyForInterfaceAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -6,20 +7,20 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
-        foreach (var @namespace in new[] { string.Empty, "namespace MyNamespace;" })
+        return new object[][]
         {
             // TODO: .As<BaseSampleClass> and .As<SampleClass> feels redundant
-            yield return [@namespace, """new Mock<BaseSampleClass>().As<{|Moq1300:BaseSampleClass|}>();"""];
-            yield return [@namespace, """new Mock<BaseSampleClass>().As<{|Moq1300:SampleClass|}>();"""];
-            yield return [@namespace, """new Mock<SampleClass>().As<ISampleInterface>();"""];
+            ["""new Mock<BaseSampleClass>().As<{|Moq1300:BaseSampleClass|}>();"""],
+            ["""new Mock<BaseSampleClass>().As<{|Moq1300:SampleClass|}>();"""],
+            ["""new Mock<SampleClass>().As<ISampleInterface>();"""],
             // TODO: Testing with .Setup() and .Returns() seems unnecessary.
-            yield return [@namespace, """new Mock<SampleClass>().As<ISampleInterface>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>())).Returns(10);"""];
-        }
+            ["""new Mock<SampleClass>().As<ISampleInterface>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>())).Returns(10);"""],
+        }.WithNamespaces().WithReferenceAssemblyGroups();
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShouldAnalyzeAs(string @namespace, string mock)
+    public async Task ShouldAnalyzeAs(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
@@ -48,6 +49,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
                         {{mock}}
                     }
                 }
-                """);
+                """,
+                referenceAssemblyGroup);
     }
 }
