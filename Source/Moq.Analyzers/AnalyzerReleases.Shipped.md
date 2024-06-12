@@ -25,3 +25,20 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 Moq1001 | Moq | Warning | NoMocksForSealedClassesAnalyzer
 Moq1002 | Moq | Warning | NoParametersForMockedInterfacesAnalyzer
+
+## Release 0.0.4.43043
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+Moq1100 | Moq | Warning | CallbackSignatureShouldMatchMockedMethodAnalyzer
+Moq1000 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer
+
+### Changed Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+Moq1001 | Moq | Warning | NoConstructorArgumentsForInterfaceMockAnalyzer
+Moq1101 | Moq | Warning | NoMethodsInPropertySetupAnalyzer
+Moq1000 | Moq | Warning | NoSealedClassMocksAnalyzer
