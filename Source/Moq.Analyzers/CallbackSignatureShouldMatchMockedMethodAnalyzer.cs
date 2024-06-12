@@ -3,13 +3,14 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyzer
 {
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         Diagnostics.CallbackSignatureShouldMatchMockedMethodId,
         Diagnostics.CallbackSignatureShouldMatchMockedMethodTitle,
         Diagnostics.CallbackSignatureShouldMatchMockedMethodMessage,
         Diagnostics.Category,
         DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
+        isEnabledByDefault: true,
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{Diagnostics.CallbackSignatureShouldMatchMockedMethodId}.md");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {

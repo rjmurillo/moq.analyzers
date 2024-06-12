@@ -3,13 +3,14 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnalyzer
 {
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         Diagnostics.SetupShouldBeUsedOnlyForOverridableMembersId,
         Diagnostics.SetupShouldBeUsedOnlyForOverridableMembersTitle,
         Diagnostics.SetupShouldBeUsedOnlyForOverridableMembersMessage,
         Diagnostics.Category,
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        isEnabledByDefault: true,
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{Diagnostics.SetupShouldBeUsedOnlyForOverridableMembersId}.md");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

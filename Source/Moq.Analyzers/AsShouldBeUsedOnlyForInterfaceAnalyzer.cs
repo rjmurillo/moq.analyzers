@@ -5,13 +5,14 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 {
     private static readonly MoqMethodDescriptorBase MoqAsMethodDescriptor = new MoqAsMethodDescriptor();
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         Diagnostics.AsShouldBeUsedOnlyForInterfaceId,
         Diagnostics.AsShouldBeUsedOnlyForInterfaceTitle,
         Diagnostics.AsShouldBeUsedOnlyForInterfaceMessage,
         Diagnostics.Category,
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        isEnabledByDefault: true,
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{Diagnostics.AsShouldBeUsedOnlyForInterfaceId}.md");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
