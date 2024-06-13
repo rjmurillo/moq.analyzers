@@ -1,5 +1,8 @@
 ﻿namespace Moq.Analyzers;
 
+/// <summary>
+/// Setup of async method should use ReturnsAsync instead of .Result.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 {
@@ -16,8 +19,10 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
+    /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
+    /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
     {
         context.EnableConcurrentExecution();

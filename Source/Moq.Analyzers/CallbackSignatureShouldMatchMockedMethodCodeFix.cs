@@ -6,20 +6,26 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Moq.Analyzers;
 
+/// <summary>
+/// Fixes <see cref="CallbackSignatureShouldMatchMockedMethodAnalyzer"/>.
+/// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CallbackSignatureShouldMatchMockedMethodCodeFix))]
 [Shared]
 public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
 {
+    /// <inheritdoc />
     public sealed override ImmutableArray<string> FixableDiagnosticIds
     {
         get { return ImmutableArray.Create(CallbackSignatureShouldMatchMockedMethodAnalyzer.RuleId); }
     }
 
+    /// <inheritdoc />
     public sealed override FixAllProvider GetFixAllProvider()
     {
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    /// <inheritdoc />
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         SyntaxNode? root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);

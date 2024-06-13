@@ -1,5 +1,8 @@
 namespace Moq.Analyzers;
 
+/// <summary>
+/// Setup should be used only for overridable members.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnalyzer
 {
@@ -16,8 +19,10 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         isEnabledByDefault: true,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
+    /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
+    /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
     {
         context.EnableConcurrentExecution();

@@ -1,5 +1,8 @@
 namespace Moq.Analyzers;
 
+/// <summary>
+/// Callback signature must match the signature of the mocked method.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyzer
 {
@@ -16,11 +19,13 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         isEnabledByDefault: true,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
+    /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get { return ImmutableArray.Create(Rule); }
     }
 
+    /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
     {
         context.EnableConcurrentExecution();

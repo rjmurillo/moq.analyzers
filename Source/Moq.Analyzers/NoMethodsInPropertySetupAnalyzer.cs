@@ -1,5 +1,8 @@
 namespace Moq.Analyzers;
 
+/// <summary>
+/// SetupGet/SetupSet should be used for properties, not for methods.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
 {
@@ -16,11 +19,13 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
+    /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get { return ImmutableArray.Create(Rule); }
     }
 
+    /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
     {
         context.EnableConcurrentExecution();
