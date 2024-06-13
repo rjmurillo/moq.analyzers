@@ -3,14 +3,18 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnalyzer
 {
+    internal const string RuleId = "Moq1200";
+    private const string Title = "Moq: Invalid setup parameter";
+    private const string Message = "Setup should be used only for overridable members";
+
     private static readonly DiagnosticDescriptor Rule = new(
-        Diagnostics.SetupShouldBeUsedOnlyForOverridableMembersId,
-        Diagnostics.SetupShouldBeUsedOnlyForOverridableMembersTitle,
-        Diagnostics.SetupShouldBeUsedOnlyForOverridableMembersMessage,
-        Diagnostics.Category,
+        RuleId,
+        Title,
+        Message,
+        DiagnosticCategory.Moq,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{Diagnostics.SetupShouldBeUsedOnlyForOverridableMembersId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

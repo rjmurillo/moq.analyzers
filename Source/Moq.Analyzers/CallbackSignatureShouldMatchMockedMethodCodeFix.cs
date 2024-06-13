@@ -12,7 +12,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds
     {
-        get { return ImmutableArray.Create(Diagnostics.CallbackSignatureShouldMatchMockedMethodId); }
+        get { return ImmutableArray.Create(CallbackSignatureShouldMatchMockedMethodAnalyzer.RuleId); }
     }
 
     public sealed override FixAllProvider GetFixAllProvider()

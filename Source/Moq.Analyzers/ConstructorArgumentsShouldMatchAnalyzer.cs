@@ -5,14 +5,18 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 {
+    internal const string RuleId = "Moq1002";
+    private const string Title = "Moq: No matching constructor";
+    private const string Message = "Parameters provided into mock do not match any existing constructors";
+
     private static readonly DiagnosticDescriptor Rule = new(
-        Diagnostics.ConstructorArgumentsShouldMatchId,
-        Diagnostics.ConstructorArgumentsShouldMatchTitle,
-        Diagnostics.ConstructorArgumentsShouldMatchMessage,
-        Diagnostics.Category,
+        RuleId,
+        Title,
+        Message,
+        DiagnosticCategory.Moq,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{Diagnostics.ConstructorArgumentsShouldMatchId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {

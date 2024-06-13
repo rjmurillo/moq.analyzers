@@ -5,14 +5,18 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
 {
+    internal const string RuleId = "Moq1001";
+    private const string Title = "Moq: Parameters specified for mocked interface";
+    private const string Message = "Mocked interfaces cannot have constructor parameters";
+
     private static readonly DiagnosticDescriptor Rule = new(
-        Diagnostics.NoConstructorArgumentsForInterfaceMockId,
-        Diagnostics.NoConstructorArgumentsForInterfaceMockTitle,
-        Diagnostics.NoConstructorArgumentsForInterfaceMockMessage,
-        Diagnostics.Category,
+        RuleId,
+        Title,
+        Message,
+        DiagnosticCategory.Moq,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{Diagnostics.NoConstructorArgumentsForInterfaceMockId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
