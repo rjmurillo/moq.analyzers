@@ -1,5 +1,8 @@
 namespace Moq.Analyzers;
 
+/// <summary>
+/// Mock.As() should take interfaces only.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 {
@@ -18,8 +21,10 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
+    /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
+    /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
     {
         context.EnableConcurrentExecution();

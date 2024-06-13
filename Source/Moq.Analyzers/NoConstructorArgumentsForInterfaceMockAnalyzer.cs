@@ -2,6 +2,9 @@ using System.Diagnostics;
 
 namespace Moq.Analyzers;
 
+/// <summary>
+/// Mocked interfaces cannot have constructor parameters.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
 {
@@ -18,11 +21,13 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
+    /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get { return ImmutableArray.Create(Rule); }
     }
 
+    /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
     {
         context.EnableConcurrentExecution();

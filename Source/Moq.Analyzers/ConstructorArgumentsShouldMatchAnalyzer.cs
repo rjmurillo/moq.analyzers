@@ -2,6 +2,9 @@ using System.Diagnostics;
 
 namespace Moq.Analyzers;
 
+/// <summary>
+/// Parameters provided into mock do not match any existing constructors.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 {
@@ -18,6 +21,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
 
+    /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get { return ImmutableArray.Create(Rule); }
