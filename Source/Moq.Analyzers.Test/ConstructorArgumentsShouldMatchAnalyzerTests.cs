@@ -35,6 +35,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<AbstractGenericClassDefaultCtor<object>>{|Moq1002:(42)|};"""],
             ["""new Mock<AbstractGenericClassDefaultCtor<object>>();"""],
             ["""new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);"""],
+
             // TODO: "I think this _should_ fail, but currently passes. Tracked by #55."
             // ["""new Mock<AbstractClassWithCtor>();"""],
             ["""new Mock<AbstractClassWithCtor>{|Moq1002:("42")|};"""],
