@@ -49,7 +49,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
         context.RegisterCodeFix(
             CodeAction.Create(
                 title: "Fix Moq callback signature",
-                createChangedDocument: c => FixCallbackSignatureAsync(root, context.Document, badArgumentListSyntax, c),
+                createChangedDocument: cancellationToken => FixCallbackSignatureAsync(root, context.Document, badArgumentListSyntax, cancellationToken),
                 equivalenceKey: "Fix Moq callback signature"),
             diagnostic);
     }
@@ -81,10 +81,10 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
         }
 
         ParameterListSyntax? newParameters = SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(matchingMockedMethods[0].Parameters.Select(
-            p =>
+            parameterSymbol =>
             {
-                TypeSyntax? type = SyntaxFactory.ParseTypeName(p.Type.ToMinimalDisplayString(semanticModel, oldParameters.SpanStart));
-                return SyntaxFactory.Parameter(default, SyntaxFactory.TokenList(), type, SyntaxFactory.Identifier(p.Name), null);
+                TypeSyntax? type = SyntaxFactory.ParseTypeName(parameterSymbol.Type.ToMinimalDisplayString(semanticModel, oldParameters.SpanStart));
+                return SyntaxFactory.Parameter(default, SyntaxFactory.TokenList(), type, SyntaxFactory.Identifier(parameterSymbol.Name), null);
             })));
 
         SyntaxNode? newRoot = root.ReplaceNode(oldParameters, newParameters);

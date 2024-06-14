@@ -2,6 +2,7 @@
 
 namespace Moq.Analyzers;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "AV1708:Type name contains term that should be avoided", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
 internal static class Helpers
 {
     private static readonly MoqMethodDescriptorBase MoqSetupMethodDescriptor = new MoqSetupMethodDescriptor();

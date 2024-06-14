@@ -11,7 +11,7 @@ public class PackageTests
         Package = new FileInfo(Assembly.GetExecutingAssembly().Location)
             .Directory!
             .GetFiles("Moq.Analyzers*.nupkg")
-            .OrderByDescending(f => f.LastWriteTimeUtc)
+            .OrderByDescending(fileInfo => fileInfo.LastWriteTimeUtc)
             .First();
     }
 

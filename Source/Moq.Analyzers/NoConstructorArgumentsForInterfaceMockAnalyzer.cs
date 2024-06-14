@@ -65,7 +65,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
         }
 
         if (constructorSymbol.Parameters == null || constructorSymbol.Parameters.Length == 0) return;
-        if (!constructorSymbol.Parameters.Any(x => x.IsParams)) return;
+        if (!constructorSymbol.Parameters.Any(parameterSymbol => parameterSymbol.IsParams)) return;
 
         // Find mocked type
         SeparatedSyntaxList<TypeSyntax> typeArguments = genericName.TypeArgumentList.Arguments;
