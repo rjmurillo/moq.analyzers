@@ -82,6 +82,8 @@ dotnet_style_readonly_field = true:warning
 
 # Parameter preferences
 dotnet_code_quality_unused_parameters = all:suggestion
+# AV1561: Signature contains too many parameters
+dotnet_diagnostic.AV1561.severity = suggestion
 
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
