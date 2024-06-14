@@ -11,6 +11,7 @@ internal static class Helpers
         return MoqSetupMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     internal static bool IsCallbackOrReturnInvocation(SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)
     {
         MemberAccessExpressionSyntax? callbackOrReturnsMethod = callbackOrReturnsInvocation.Expression as MemberAccessExpressionSyntax;
@@ -68,22 +69,31 @@ internal static class Helpers
         return GetAllMatchingSymbols<IMethodSymbol>(semanticModel, mockedMethodInvocation);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     internal static IEnumerable<T> GetAllMatchingSymbols<T>(SemanticModel semanticModel, ExpressionSyntax? expression)
         where T : class
     {
-        List<T>? matchingSymbols = new List<T>();
-        if (expression != null)
+        if (expression == null)
         {
-            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
-            if (symbolInfo is { CandidateReason: CandidateReason.None, Symbol: T })
-            {
-                matchingSymbols.Add(symbolInfo.Symbol as T);
-            }
-            else if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
-            {
-                matchingSymbols.AddRange(symbolInfo.CandidateSymbols.OfType<T>());
-            }
+            return Enumerable.Empty<T>();
         }
+
+        List<T> matchingSymbols = new();
+
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
+        if (symbolInfo is { CandidateReason: CandidateReason.None, Symbol: T })
+        {
+            matchingSymbols.Add(symbolInfo.Symbol as T);
+        }
+        else if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
+        {
+            matchingSymbols.AddRange(symbolInfo.CandidateSymbols.OfType<T>());
+        }
+        else
+        {
+            throw new NotSupportedException("Symbol not supported.");
+        }
+
 
         return matchingSymbols;
     }
