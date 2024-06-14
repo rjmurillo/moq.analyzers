@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Moq.Analyzers;
 
 /// <summary>
@@ -68,10 +70,21 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         {
             for (int i = 0; i < mockedMethodArguments.Count; i++)
             {
+                TypeSyntax? lambdaParameterTypeSyntax = lambdaParameters[i].Type;
+                Debug.Assert(lambdaParameterTypeSyntax != null, nameof(lambdaParameterTypeSyntax) + " != null");
+
+                // TODO: Don't know if continue or break is the right thing to do here
+#pragma warning disable S2589 // Boolean expressions should not be gratuitous
+                if (lambdaParameterTypeSyntax is null) continue;
+#pragma warning restore S2589 // Boolean expressions should not be gratuitous
+
+                TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
+
                 TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[i].Expression, context.CancellationToken);
-                TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameters[i].Type, context.CancellationToken);
+
                 string? mockedMethodTypeName = mockedMethodArgumentType.ConvertedType?.ToString();
                 string? lambdaParameterTypeName = lambdaParameterType.ConvertedType?.ToString();
+
                 if (!string.Equals(mockedMethodTypeName, lambdaParameterTypeName, StringComparison.Ordinal))
                 {
                     Diagnostic? diagnostic = Diagnostic.Create(Rule, callbackLambda.ParameterList.GetLocation());

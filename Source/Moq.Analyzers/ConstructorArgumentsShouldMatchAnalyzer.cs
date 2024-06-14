@@ -35,6 +35,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.ObjectCreationExpression);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Tracked in #90")]
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         ObjectCreationExpressionSyntax? objectCreation = (ObjectCreationExpressionSyntax)context.Node;
@@ -47,18 +48,17 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // Full check that we are calling new Mock<T>()
         IMethodSymbol? constructorSymbol = GetConstructorSymbol(context, objectCreation);
 
-        // Vararg parameter is the one that takes all arguments for mocked class constructor
-        IParameterSymbol? varArgsConstructorParameter = constructorSymbol?.Parameters.FirstOrDefault(x => x.IsParams);
+        Debug.Assert(constructorSymbol != null, nameof(constructorSymbol) + " != null");
+
+#pragma warning disable S2589 // Boolean expressions should not be gratuitous
+        if (constructorSymbol is null) return;
+#pragma warning restore S2589 // Boolean expressions should not be gratuitous
+
+            // Vararg parameter is the one that takes all arguments for mocked class constructor
+        IParameterSymbol? varArgsConstructorParameter = constructorSymbol.Parameters.FirstOrDefault(x => x.IsParams);
 
         // Vararg parameter are not used, so there are no arguments for mocked class constructor
         if (varArgsConstructorParameter == null) return;
-
-        Debug.Assert(constructorSymbol != null, nameof(constructorSymbol) + " != null");
-
-        if (constructorSymbol == null)
-        {
-            return;
-        }
 
         int varArgsConstructorParameterIdx = constructorSymbol.Parameters.IndexOf(varArgsConstructorParameter);
 
@@ -166,6 +166,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     {
         SymbolInfo constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation, context.CancellationToken);
         IMethodSymbol? constructorSymbol = constructorSymbolInfo.Symbol as IMethodSymbol;
+
         return constructorSymbol?.MethodKind == MethodKind.Constructor &&
                string.Equals(
                    constructorSymbol.ContainingType?.ConstructedFrom.ToDisplayString(),

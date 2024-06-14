@@ -60,10 +60,12 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
 
         Debug.Assert(semanticModel != null, nameof(semanticModel) + " != null");
 
+#pragma warning disable S2583 // Conditionally executed code should be reachable
         if (semanticModel == null)
         {
             return document;
         }
+#pragma warning restore S2583 // Conditionally executed code should be reachable
 
         if (oldParameters?.Parent?.Parent?.Parent?.Parent is not InvocationExpressionSyntax callbackInvocation)
         {
@@ -72,9 +74,9 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
 
         InvocationExpressionSyntax? setupMethodInvocation = Helpers.FindSetupMethodFromCallbackInvocation(semanticModel, callbackInvocation, cancellationToken);
         Debug.Assert(setupMethodInvocation != null, nameof(setupMethodInvocation) + " != null");
-        IMethodSymbol[]? matchingMockedMethods = Helpers.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(semanticModel, setupMethodInvocation).ToArray();
+        IMethodSymbol[] matchingMockedMethods = Helpers.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(semanticModel, setupMethodInvocation).ToArray();
 
-        if (matchingMockedMethods.Length != 1 || oldParameters == null)
+        if (matchingMockedMethods.Length != 1)
         {
             return document;
         }

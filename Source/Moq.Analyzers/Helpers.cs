@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Linq.Expressions;
 
 namespace Moq.Analyzers;
 
@@ -17,12 +18,14 @@ internal static class Helpers
 
         Debug.Assert(callbackOrReturnsMethod != null, nameof(callbackOrReturnsMethod) + " != null");
 
+#pragma warning disable S2583 // Conditionally executed code should be reachable
         if (callbackOrReturnsMethod == null)
         {
             return false;
         }
+#pragma warning restore S2583 // Conditionally executed code should be reachable
 
-        string? methodName = callbackOrReturnsMethod.Name.ToString();
+        string methodName = callbackOrReturnsMethod.Name.ToString();
 
         // First fast check before walking semantic model
         if (!string.Equals(methodName, "Callback", StringComparison.Ordinal)
@@ -65,24 +68,32 @@ internal static class Helpers
         LambdaExpressionSyntax? setupLambdaArgument = setupMethodInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
         InvocationExpressionSyntax? mockedMethodInvocation = setupLambdaArgument?.Body as InvocationExpressionSyntax;
 
-        return GetAllMatchingSymbols<IMethodSymbol>(semanticModel, mockedMethodInvocation);
+        return mockedMethodInvocation == null
+            ? []
+            : GetAllMatchingSymbols<IMethodSymbol>(semanticModel, mockedMethodInvocation);
     }
 
-    internal static IEnumerable<T> GetAllMatchingSymbols<T>(SemanticModel semanticModel, ExpressionSyntax? expression)
+    internal static IEnumerable<T> GetAllMatchingSymbols<T>(SemanticModel semanticModel, ExpressionSyntax expression)
         where T : class
     {
-        List<T>? matchingSymbols = new List<T>();
-        if (expression != null)
+        List<T> matchingSymbols = new();
+
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
+        if (symbolInfo is { CandidateReason: CandidateReason.None, Symbol: T })
         {
-            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
-            if (symbolInfo is { CandidateReason: CandidateReason.None, Symbol: T })
+            T? value = symbolInfo.Symbol as T;
+            Debug.Assert(value != null, "Value should not be null.");
+
+#pragma warning disable S2589 // Boolean expressions should not be gratuitous
+            if (value != default(T))
             {
-                matchingSymbols.Add(symbolInfo.Symbol as T);
+                matchingSymbols.Add(value);
             }
-            else if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
-            {
-                matchingSymbols.AddRange(symbolInfo.CandidateSymbols.OfType<T>());
-            }
+#pragma warning restore S2589 // Boolean expressions should not be gratuitous
+        }
+        else if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
+        {
+            matchingSymbols.AddRange(symbolInfo.CandidateSymbols.OfType<T>());
         }
 
         return matchingSymbols;

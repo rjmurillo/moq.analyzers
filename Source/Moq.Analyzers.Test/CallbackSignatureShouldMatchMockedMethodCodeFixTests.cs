@@ -4,6 +4,7 @@ namespace Moq.Analyzers.Test;
 
 public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Contains test data")]
     public static IEnumerable<object[]> TestData()
     {
         return new object[][]
