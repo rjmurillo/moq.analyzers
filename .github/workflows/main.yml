@@ -104,3 +104,7 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:csharp"
+
+    - name: Upload coverage data to codacy
+      run: bash <(curl -Ls https://coverage.codacy.com/get.sh)
+      if: runner.os == 'Linux'
