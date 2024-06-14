@@ -38,6 +38,7 @@ insert_final_newline = true
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = true
 file_header_template = unset
+dotnet_diagnostic.SA1633.severity = silent # A C# code file is missing a standard file header. https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1633.md
 
 # this. and Me. preferences
 dotnet_style_qualification_for_event = false:silent
