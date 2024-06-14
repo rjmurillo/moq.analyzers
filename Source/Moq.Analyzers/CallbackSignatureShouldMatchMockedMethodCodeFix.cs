@@ -48,9 +48,9 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
         // Register a code action that will invoke the fix.
         context.RegisterCodeFix(
             CodeAction.Create(
-                title: "Fix Moq callback signature",
-                createChangedDocument: cancellationToken => FixCallbackSignatureAsync(root, context.Document, badArgumentListSyntax, cancellationToken),
-                equivalenceKey: "Fix Moq callback signature"),
+                "Fix Moq callback signature",
+                cancellationToken => FixCallbackSignatureAsync(root, context.Document, badArgumentListSyntax, cancellationToken),
+                "Fix Moq callback signature"),
             diagnostic);
     }
 
