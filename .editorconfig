@@ -85,6 +85,10 @@ dotnet_code_quality_unused_parameters = all:suggestion
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
 
+# XMLDocs preferences
+# SA1600: Elements should be documented. We disable this it requires xmldocs for _all_ members. CS1591 already covers documenting public members.
+dotnet_diagnostic.SA1600.severity = silent
+
 #### C# Coding Conventions ####
 [*.cs]
 
