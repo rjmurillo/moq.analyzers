@@ -93,6 +93,7 @@ jobs:
       uses: 5monkeys/cobertura-action@v14
       with:
         path: artifacts/TestResults/coverage/*.xml
+        minimum_coverage: 75
 
     - name: Upload coverage data to Codacy      
       if: ${{ runner.os == 'Linux' && env.IS_COVERAGE_ALLOWED == 'true' && env.IS_MASTER_BRANCH == 'true' }}
