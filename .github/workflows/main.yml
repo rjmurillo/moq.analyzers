@@ -28,7 +28,6 @@ jobs:
 
     env:
       IS_COVERAGE_ALLOWED: ${{ secrets.CODACY_PROJECT_TOKEN != '' }}
-      IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
     - uses: actions/checkout@v4
