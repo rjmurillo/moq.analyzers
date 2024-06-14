@@ -95,7 +95,6 @@ internal static class Helpers
             throw new NotSupportedException("Symbol not supported.");
         }
 
-
         return matchingSymbols;
     }
 
