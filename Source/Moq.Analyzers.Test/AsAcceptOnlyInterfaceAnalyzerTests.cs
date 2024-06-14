@@ -9,11 +9,9 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
     {
         return new object[][]
         {
-            // TODO: .As<BaseSampleClass> and .As<SampleClass> feels redundant
             ["""new Mock<BaseSampleClass>().As<{|Moq1300:BaseSampleClass|}>();"""],
             ["""new Mock<BaseSampleClass>().As<{|Moq1300:SampleClass|}>();"""],
             ["""new Mock<SampleClass>().As<ISampleInterface>();"""],
-            // TODO: Testing with .Setup() and .Returns() seems unnecessary.
             ["""new Mock<SampleClass>().As<ISampleInterface>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>())).Returns(10);"""],
         }.WithNamespaces().WithReferenceAssemblyGroups();
     }
