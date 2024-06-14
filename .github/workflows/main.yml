@@ -89,14 +89,8 @@ jobs:
       run: cat artifacts/TestResults/coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
       shell: bash
 
-    - name: cobertura-report
-      uses: 5monkeys/cobertura-action@v14
-      with:
-        path: artifacts/TestResults/coverage/*.xml
-        minimum_coverage: 75
-
     - name: Upload coverage data to Codacy      
-      if: ${{ runner.os == 'Linux' && env.IS_COVERAGE_ALLOWED == 'true' && env.IS_MASTER_BRANCH == 'true' }}
+      if: ${{ runner.os == 'Linux' && env.IS_COVERAGE_ALLOWED == 'true' }}
       uses: codacy/codacy-coverage-reporter-action@v1.3.0
       with:
         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
