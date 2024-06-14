@@ -111,7 +111,7 @@ jobs:
 
     - name: Upload coverage data to codacy      
       if: ${{ runner.os == 'Linux' && env.IS_COVERAGE_ALLOWED == 'true' && env.IS_MASTER_BRANCH == 'true' }}
-      uses: codacy/codacy-coverage-reporter-action@master
+      uses: codacy/codacy-coverage-reporter-action@v1.3.0
       with:
         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
         coverage-reports: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
