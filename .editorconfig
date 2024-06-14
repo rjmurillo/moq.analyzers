@@ -38,12 +38,14 @@ insert_final_newline = true
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = true
 file_header_template = unset
+dotnet_diagnostic.SA1633.severity = silent # A C# code file is missing a standard file header. https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1633.md
 
 # this. and Me. preferences
 dotnet_style_qualification_for_event = false:silent
 dotnet_style_qualification_for_field = false:silent
 dotnet_style_qualification_for_method = false:silent
 dotnet_style_qualification_for_property = false:silent
+dotnet_diagnostic.SA1101.severity = silent # SA1101: Prefix local calls with this
 
 # Language keywords vs BCL types preferences
 dotnet_style_predefined_type_for_locals_parameters_members = true:silent
@@ -83,6 +85,10 @@ dotnet_code_quality_unused_parameters = all:suggestion
 
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
+
+# XMLDocs preferences
+# SA1600: Elements should be documented. We disable this it requires xmldocs for _all_ members. CS1591 already covers documenting public members.
+dotnet_diagnostic.SA1600.severity = silent
 
 #### C# Coding Conventions ####
 [*.cs]
