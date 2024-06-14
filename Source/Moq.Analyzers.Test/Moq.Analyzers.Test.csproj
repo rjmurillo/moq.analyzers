@@ -23,7 +23,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Verify.Nupkg" />
-    <PackageReference Include="Verify.Xunit" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Moq.Analyzers\Moq.Analyzers.csproj" AddPackageAsOutput="true" />

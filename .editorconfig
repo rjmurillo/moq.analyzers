@@ -89,6 +89,8 @@ dotnet_remove_unnecessary_suppression_exclusions = none
 # XMLDocs preferences
 # SA1600: Elements should be documented. We disable this it requires xmldocs for _all_ members. CS1591 already covers documenting public members.
 dotnet_diagnostic.SA1600.severity = silent
+# AV2305: Missing XML comment for internally visible type, member or parameter
+dotnet_diagnostic.AV2305.severity = silent
 
 #### C# Coding Conventions ####
 [*.cs]
@@ -380,6 +382,14 @@ dotnet_naming_style.s_camelcase.required_prefix = s_
 dotnet_naming_style.s_camelcase.required_suffix =
 dotnet_naming_style.s_camelcase.word_separator =
 dotnet_naming_style.s_camelcase.capitalization = camel_case
+
+# AV1580: Method argument calls a nested method
+# Because debugger breakpoints cannot be set inside expressions, avoid overuse of nested method calls.
+# Example: string result = ConvertToXml(ApplyTransforms(ExecuteQuery(GetConfigurationSettings(source))));
+# requires extra steps to inspect intermediate method return values. On the other hard, were this expression broken into intermediate variables, setting a breakpoint on one of them would be sufficient.
+#
+# This is moved to silent because it's flagging foo.AsSpan()
+dotnet_diagnostic.AV1580.severity = silent
 
 # MA0040: Forward the CancellationToken parameter to methods that take one
 dotnet_diagnostic.MA0040.severity = error
