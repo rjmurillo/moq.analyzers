@@ -11,3 +11,13 @@ updates:
     schedule:
       interval: "daily"
       time: "08:30"
+    ignore:
+      # Microsoft.CodeAnalysis.* packages defined in the analyzer project can impact compatibility with older SDKs for
+      # our users. We don't want to bump these without first considering the user impact.
+      #
+      # We don't wildcard Microsoft.CodeAnalysis.* here though, as there are testing libraries and analyzers that
+      # can be upgraded without impacting our users.
+      - dependency-name: "Microsoft.CodeAnalysis.CSharp"
+      - dependency-name: "Microsoft.CodeAnalysis.CSharp.Workspaces"
+      - dependency-name: "Microsoft.CodeAnalysis.Common"
+      - dependency-name: "Microsoft.CodeAnalysis.Workspaces.Common"
