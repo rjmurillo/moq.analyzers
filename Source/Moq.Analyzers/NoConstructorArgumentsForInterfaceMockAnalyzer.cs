@@ -35,6 +35,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.ObjectCreationExpression);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         ObjectCreationExpressionSyntax? objectCreation = (ObjectCreationExpressionSyntax)context.Node;
@@ -70,7 +71,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
         }
 
         if (constructorSymbol.Parameters.Length == 0) return;
-        if (!constructorSymbol.Parameters.Any(x => x.IsParams)) return;
+        if (!constructorSymbol.Parameters.Any(parameterSymbol => parameterSymbol.IsParams)) return;
 
         // Find mocked type
         SeparatedSyntaxList<TypeSyntax> typeArguments = genericName.TypeArgumentList.Arguments;

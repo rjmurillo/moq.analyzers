@@ -35,6 +35,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.ObjectCreationExpression);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Tracked in #90")]
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
@@ -55,19 +56,19 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 #pragma warning restore S2589 // Boolean expressions should not be gratuitous
 
             // Vararg parameter is the one that takes all arguments for mocked class constructor
-        IParameterSymbol? varArgsConstructorParameter = constructorSymbol.Parameters.FirstOrDefault(x => x.IsParams);
+        IParameterSymbol? varArgsConstructorParameter = constructorSymbol.Parameters.FirstOrDefault(parameterSymbol => parameterSymbol.IsParams);
 
         // Vararg parameter are not used, so there are no arguments for mocked class constructor
         if (varArgsConstructorParameter == null) return;
 
-        int varArgsConstructorParameterIdx = constructorSymbol.Parameters.IndexOf(varArgsConstructorParameter);
+        int varArgsConstructorParameterIndex = constructorSymbol.Parameters.IndexOf(varArgsConstructorParameter);
 
         // Find mocked type
         INamedTypeSymbol? mockedTypeSymbol = GetMockedSymbol(context, genericName);
         if (mockedTypeSymbol == null) return;
 
         // Skip first argument if it is not vararg - typically it is MockingBehavior argument
-        ArgumentSyntax[]? constructorArguments = objectCreation.ArgumentList?.Arguments.Skip(varArgsConstructorParameterIdx == 0 ? 0 : 1).ToArray();
+        ArgumentSyntax[]? constructorArguments = objectCreation.ArgumentList?.Arguments.Skip(varArgsConstructorParameterIndex == 0 ? 0 : 1).ToArray();
 
         if (!mockedTypeSymbol.IsAbstract)
         {
@@ -93,9 +94,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                     .ToArray()!;
 
                 // Check all constructors of the abstract type
-                for (int i = 0; i < mockedTypeSymbol.Constructors.Length; i++)
+                for (int constructorIndex = 0; constructorIndex < mockedTypeSymbol.Constructors.Length; constructorIndex++)
                 {
-                    IMethodSymbol constructor = mockedTypeSymbol.Constructors[i];
+                    IMethodSymbol constructor = mockedTypeSymbol.Constructors[constructorIndex];
                     if (AreParametersMatching(constructor.Parameters, argumentTypes))
                     {
                         return; // Found a matching constructor
@@ -130,9 +131,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         // Check if each parameter type matches in order
-        for (int i = 0; i < constructorParameters.Length; i++)
+        for (int constructorParameterIndex = 0; constructorParameterIndex < constructorParameters.Length; constructorParameterIndex++)
         {
-            if (!constructorParameters[i].Type.Equals(argumentTypes2[i], SymbolEqualityComparer.IncludeNullability))
+            if (!constructorParameters[constructorParameterIndex].Type.Equals(argumentTypes2[constructorParameterIndex], SymbolEqualityComparer.IncludeNullability))
             {
                 return false;
             }
