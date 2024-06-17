@@ -59,14 +59,10 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
     {
         SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        Debug.Assert(semanticModel != null, nameof(semanticModel) + " != null");
-
-#pragma warning disable S2583 // Conditionally executed code should be reachable
         if (semanticModel == null)
         {
             return document;
         }
-#pragma warning restore S2583 // Conditionally executed code should be reachable
 
         if (oldParameters?.Parent?.Parent?.Parent?.Parent is not InvocationExpressionSyntax callbackInvocation)
         {

@@ -18,14 +18,10 @@ internal static class Helpers
     {
         MemberAccessExpressionSyntax? callbackOrReturnsMethod = callbackOrReturnsInvocation.Expression as MemberAccessExpressionSyntax;
 
-        Debug.Assert(callbackOrReturnsMethod != null, nameof(callbackOrReturnsMethod) + " != null");
-
-#pragma warning disable S2583 // Conditionally executed code should be reachable
         if (callbackOrReturnsMethod == null)
         {
             return false;
         }
-#pragma warning restore S2583 // Conditionally executed code should be reachable
 
         string methodName = callbackOrReturnsMethod.Name.ToString();
 
