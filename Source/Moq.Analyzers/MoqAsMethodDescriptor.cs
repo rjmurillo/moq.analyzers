@@ -8,6 +8,7 @@ internal class MoqAsMethodDescriptor : MoqMethodDescriptorBase
 {
     private const string MethodName = "As";
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     public override bool IsMatch(SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccessSyntax, CancellationToken cancellationToken)
     {
         if (!IsFastMatch(memberAccessSyntax, MethodName.AsSpan()))
