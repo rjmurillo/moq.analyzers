@@ -19,7 +19,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Verify.Nupkg" />
