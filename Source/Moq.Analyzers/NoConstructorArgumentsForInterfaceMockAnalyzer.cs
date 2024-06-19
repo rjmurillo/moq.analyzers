@@ -54,7 +54,13 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
 
         // Full check
         SymbolInfo constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation, context.CancellationToken);
-        if (constructorSymbolInfo.Symbol is not IMethodSymbol constructorSymbol || constructorSymbol.ContainingType == null || constructorSymbol.ContainingType.ConstructedFrom == null) return;
+        if (constructorSymbolInfo.Symbol is not IMethodSymbol constructorSymbol
+            || constructorSymbol.ContainingType == null
+            || constructorSymbol.ContainingType.ConstructedFrom == null)
+        {
+            return;
+        }
+
         if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
         if (!string.Equals(
                 constructorSymbol.ContainingType.ConstructedFrom.ToDisplayString(),
@@ -64,7 +70,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (constructorSymbol.Parameters == null || constructorSymbol.Parameters.Length == 0) return;
+        if (constructorSymbol.Parameters.Length == 0) return;
         if (!constructorSymbol.Parameters.Any(parameterSymbol => parameterSymbol.IsParams)) return;
 
         // Find mocked type

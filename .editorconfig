@@ -407,3 +407,5 @@ dotnet_diagnostic.CA2016.severity = error
 dotnet_diagnostic.S1135.severity = suggestion
 # AV2318: Work-tracking TODO comment should be removed
 dotnet_diagnostic.AV2318.severity = none
+# MA0026: Fix TODO comment
+dotnet_diagnostic.MA0026.severity = none

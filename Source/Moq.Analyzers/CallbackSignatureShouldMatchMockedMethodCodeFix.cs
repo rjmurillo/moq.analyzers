@@ -59,8 +59,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
     {
         SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        Debug.Assert(semanticModel != null, nameof(semanticModel) + " != null");
-
         if (semanticModel == null)
         {
             return document;
@@ -73,9 +71,9 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
 
         InvocationExpressionSyntax? setupMethodInvocation = Helpers.FindSetupMethodFromCallbackInvocation(semanticModel, callbackInvocation, cancellationToken);
         Debug.Assert(setupMethodInvocation != null, nameof(setupMethodInvocation) + " != null");
-        IMethodSymbol[]? matchingMockedMethods = Helpers.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(semanticModel, setupMethodInvocation).ToArray();
+        IMethodSymbol[] matchingMockedMethods = Helpers.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(semanticModel, setupMethodInvocation).ToArray();
 
-        if (matchingMockedMethods.Length != 1 || oldParameters == null)
+        if (matchingMockedMethods.Length != 1)
         {
             return document;
         }
