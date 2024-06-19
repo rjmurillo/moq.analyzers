@@ -8,6 +8,10 @@ on:
   push:
     branches:
       - main
+  merge_group:
+    branches:
+      - main
+    
   workflow_call: # Allow to be called from the release workflow
   schedule:
     - cron: '31 15 * * 0' # Run periodically to keep CodeQL database updated
