@@ -2,6 +2,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.Diagnostics.Tracing;
 
 namespace Moq.Analyzers.Benchmarks;
@@ -92,7 +93,7 @@ internal class {name}
             ("build_property._SupportedPlatformList", "Linux,macOS"),
         };
         var (compilation, options) = CSharpCompilationCreator.CreateWithOptionsAsync(sources.ToArray(), properties).GetAwaiter().GetResult();
-        BaselineCompilationWithAnalyzers = compilation.WithAnalyzers([new EmptyAnalyzer()], options, CancellationToken.None);
+        BaselineCompilationWithAnalyzers = compilation.WithAnalyzers([new EmptyDiagnosticAnalyzer()], options, CancellationToken.None);
         CompilationWithAnalyzers = compilation.WithAnalyzers([new AsShouldBeUsedOnlyForInterfaceAnalyzer()], options, CancellationToken.None);
     }
 

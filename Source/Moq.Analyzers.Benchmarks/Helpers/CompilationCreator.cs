@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Testing.Model;
 using Microsoft.VisualStudio.Composition;
 
 namespace Moq.Analyzers.Benchmarks.Helpers;
@@ -23,13 +24,13 @@ internal static class CompilationCreator
         CompilationOptions compilationOptions,
         ParseOptions parseOptions)
     {
-        var projectState = ProjectState.Create(name, language, defaultPrefix, defaultExtension);
+        var projectState = new ProjectState(name, language, defaultPrefix, defaultExtension);
         foreach (var (filename, content) in sourceFiles)
         {
             projectState.Sources.Add((defaultPrefix + filename + "." + defaultExtension, content));
         }
 
-        var evaluatedProj = EvaluatedProjectState.Create(projectState, ReferenceAssemblies);
+        var evaluatedProj = new EvaluatedProjectState(projectState, ReferenceAssemblies);
 
         var project = await CreateProjectAsync(evaluatedProj, compilationOptions, parseOptions);
 
