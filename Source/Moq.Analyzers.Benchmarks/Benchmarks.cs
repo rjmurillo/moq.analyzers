@@ -1,9 +1,9 @@
 ﻿using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.Diagnostics.Tracing;
 
 namespace Moq.Analyzers.Benchmarks;
 
@@ -11,13 +11,18 @@ namespace Moq.Analyzers.Benchmarks;
 [MemoryDiagnoser]
 public class CSharp_CA1416
 {
+    private static CompilationWithAnalyzers? BaselineCompilationWithAnalyzers { get; set; }
+
+    private static CompilationWithAnalyzers? CompilationWithAnalyzers { get; set; }
+
     [IterationSetup]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet. See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public static void CreateEnvironmentCA1416()
     {
-        var sources = new List<(string name, string content)>();
-        for (var i = 0; i < Constants.NumberOfCodeFiles; i++)
+        List<(string Name, string Content)> sources = [];
+        for (int i = 0; i < Constants.NumberOfCodeFiles; i++)
         {
-            var name = "TypeName" + i;
+            string name = "TypeName" + i;
             sources.Add((name, @$"
 using System;
 using Moq;
@@ -36,75 +41,18 @@ internal class {name}
     }}
 }}
 "));
-//            name += "Unsupported";
-//            sources.Add((name + "Unsupport", @$"
-//using System;
-//using PlatformCompatDemo.SupportedUnupported;
-
-//class {name}
-//{{
-//    private B field = new B();
-//    public void M1()
-//    {{
-//        field.M3();
-//    }}
-//}}
-//"));
-
-//            name += "Flow";
-//            sources.Add((name, @$"
-//using System;
-//using PlatformCompatDemo.SupportedUnupported;
-
-//class {name}
-//{{
-//    private B field = new B();
-//    public void M1()
-//    {{
-//        if (OperatingSystem.IsWindowsVersionAtLeast(10, 2))
-//        {{
-//            field.M2();
-//        }}
-//        else
-//        {{
-//            field.M2();
-//        }}
-//    }}
-//}}
-//"));
         }
 
-//        var targetTypesForTest = @"
-//using System.Runtime.Versioning;
-//namespace PlatformCompatDemo.SupportedUnupported
-//{
-//    public class B
-//    {
-//        [SupportedOSPlatform(""Windows10.1.1.1"")]
-//        public void M2() { }
-//        [UnsupportedOSPlatform(""macOS11.0.1"")]
-//        public void M3() {}
-//    }
-//}";
-//        sources.Add((nameof(targetTypesForTest), targetTypesForTest));
-        (string, string)[] properties = new[]
-        {
-            ("build_property.TargetFramework", "net8.0"),
-            ("build_property._SupportedPlatformList", "Linux,macOS"),
-        };
-        var (compilation, options) = CSharpCompilationCreator.CreateWithOptionsAsync(sources.ToArray(), properties).GetAwaiter().GetResult();
-        BaselineCompilationWithAnalyzers = compilation.WithAnalyzers([new EmptyDiagnosticAnalyzer()], options, CancellationToken.None);
-        CompilationWithAnalyzers = compilation.WithAnalyzers([new AsShouldBeUsedOnlyForInterfaceAnalyzer()], options, CancellationToken.None);
+        Compilation? compilation = CSharpCompilationCreator.CreateAsync(sources.ToArray()).GetAwaiter().GetResult();
+        BaselineCompilationWithAnalyzers = compilation.WithAnalyzers([new EmptyDiagnosticAnalyzer()], null, CancellationToken.None);
+        CompilationWithAnalyzers = compilation.WithAnalyzers([new AsShouldBeUsedOnlyForInterfaceAnalyzer()], null, CancellationToken.None);
     }
-
-    private static CompilationWithAnalyzers BaselineCompilationWithAnalyzers;
-    private static CompilationWithAnalyzers CompilationWithAnalyzers;
 
     [Benchmark]
     public async Task CA1416_DiagnosticsProduced()
     {
-        AnalysisResult analysisResult = await CompilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None);
-        ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics = analysisResult.GetAllDiagnostics(analysisResult.Analyzers.First());
+        AnalysisResult analysisResult = await CompilationWithAnalyzers!.GetAnalysisResultAsync(CancellationToken.None).ConfigureAwait(false);
+        ImmutableArray<Diagnostic> diagnostics = analysisResult.GetAllDiagnostics(analysisResult.Analyzers.First());
         if (analysisResult.Analyzers.Length != 1)
         {
             throw new InvalidOperationException($"Expected a single analyzer but found '{analysisResult.Analyzers.Length}'");
@@ -124,8 +72,8 @@ internal class {name}
     [Benchmark(Baseline = true)]
     public async Task CA1416_Baseline()
     {
-        AnalysisResult analysisResult = await BaselineCompilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None);
-        ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics = analysisResult.GetAllDiagnostics(analysisResult.Analyzers.First());
+        AnalysisResult analysisResult = await BaselineCompilationWithAnalyzers!.GetAnalysisResultAsync(CancellationToken.None).ConfigureAwait(false);
+        ImmutableArray<Diagnostic> diagnostics = analysisResult.GetAllDiagnostics(analysisResult.Analyzers.First());
         if (analysisResult.Analyzers.Length != 1)
         {
             throw new InvalidOperationException($"Expected a single analyzer but found '{analysisResult.Analyzers.Length}'");

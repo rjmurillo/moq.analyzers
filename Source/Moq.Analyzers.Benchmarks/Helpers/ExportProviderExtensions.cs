@@ -23,30 +23,31 @@ internal static class ExportProviderExtensions
             _exportProvider = exportProvider;
         }
 
+        [SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Minimizing divergence from upstream")]
         public override bool TryGetExport(CompositionContract contract, [NotNullWhen(true)] out object? export)
         {
-            var importMany = contract.MetadataConstraints.Contains(new KeyValuePair<string, object>("IsImportMany", true));
-            var (contractType, metadataType) = GetContractType(contract.ContractType, importMany);
+            bool importMany = contract.MetadataConstraints.Contains(new KeyValuePair<string, object>("IsImportMany", true));
+            (Type contractType, Type metadataType) = GetContractType(contract.ContractType, importMany);
 
             if (metadataType != null)
             {
-                var methodInfo = (from method in _exportProvider.GetType().GetTypeInfo().GetMethods()
-                                  where method.Name == nameof(ExportProvider.GetExports)
-                                  where method.IsGenericMethod && method.GetGenericArguments().Length == 2
+                MethodInfo methodInfo = (from method in _exportProvider.GetType().GetTypeInfo().GetMethods()
+                                  where string.Equals(method.Name, nameof(ExportProvider.GetExports), StringComparison.Ordinal)
+                                         where method.IsGenericMethod && method.GetGenericArguments().Length == 2
                                   where method.GetParameters().Length == 1 && method.GetParameters()[0].ParameterType == typeof(string)
                                   select method).Single();
-                var parameterizedMethod = methodInfo.MakeGenericMethod(contractType, metadataType);
-                export = parameterizedMethod.Invoke(_exportProvider, new[] { contract.ContractName });
+                MethodInfo parameterizedMethod = methodInfo.MakeGenericMethod(contractType, metadataType);
+                export = parameterizedMethod.Invoke(_exportProvider, [contract.ContractName]);
             }
             else
             {
-                var methodInfo = (from method in _exportProvider.GetType().GetTypeInfo().GetMethods()
-                                  where method.Name == nameof(ExportProvider.GetExports)
-                                  where method.IsGenericMethod && method.GetGenericArguments().Length == 1
+                MethodInfo methodInfo = (from method in _exportProvider.GetType().GetTypeInfo().GetMethods()
+                                  where string.Equals(method.Name, nameof(ExportProvider.GetExports), StringComparison.Ordinal)
+                                         where method.IsGenericMethod && method.GetGenericArguments().Length == 1
                                   where method.GetParameters().Length == 1 && method.GetParameters()[0].ParameterType == typeof(string)
                                   select method).Single();
-                var parameterizedMethod = methodInfo.MakeGenericMethod(contractType);
-                export = parameterizedMethod.Invoke(_exportProvider, new[] { contract.ContractName });
+                MethodInfo parameterizedMethod = methodInfo.MakeGenericMethod(contractType);
+                export = parameterizedMethod.Invoke(_exportProvider, [contract.ContractName]);
             }
 
 #pragma warning disable CS8762 // Parameter must have a non-null value when exiting in some condition.
@@ -54,16 +55,15 @@ internal static class ExportProviderExtensions
 #pragma warning restore CS8762 // Parameter must have a non-null value when exiting in some condition.
         }
 
-        private static (Type exportType, Type? metadataType) GetContractType(Type contractType, bool importMany)
+        [SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Minimizing divergence from upstream")]
+        private static (Type ExportType, Type? MetadataType) GetContractType(Type contractType, bool importMany)
         {
-            if (importMany && contractType.IsConstructedGenericType)
-            {
-                if (contractType.GetGenericTypeDefinition() == typeof(IList<>)
+            if (importMany && contractType.IsConstructedGenericType &&
+                (contractType.GetGenericTypeDefinition() == typeof(IList<>)
                     || contractType.GetGenericTypeDefinition() == typeof(ICollection<>)
-                    || contractType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                {
-                    contractType = contractType.GenericTypeArguments[0];
-                }
+                    || contractType.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+            {
+                contractType = contractType.GenericTypeArguments[0];
             }
 
             if (contractType.IsConstructedGenericType)
