@@ -6,6 +6,7 @@ using Moq.Analyzers.Benchmarks.Helpers;
 namespace Moq.Analyzers.Benchmarks;
 
 // Originally from https://github.com/dotnet/roslyn-analyzers/blob/f1115edce8633ebe03a86191bc05c6969ed9a821/src/PerformanceTests/Utilities/CSharp/CSharpCompilationHelper.cs
+
 internal static class CSharpCompilationCreator
 {
     public static async Task<Compilation?> CreateAsync((string, string)[] sourceFiles)
