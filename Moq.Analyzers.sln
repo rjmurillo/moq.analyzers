@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Moq.Analyzers", "src\Moq.An
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Moq.Analyzers.Test", "tests\Moq.Analyzers.Test\Moq.Analyzers.Test.csproj", "{D2348836-7129-4BE5-8AE6-D05FC8C28FC1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.Analyzers.Benchmarks", "Source\Moq.Analyzers.Benchmarks\Moq.Analyzers.Benchmarks.csproj", "{11B3412F-456C-452E-94D2-B42D5C52F61C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,11 +23,18 @@ Global
 		{D2348836-7129-4BE5-8AE6-D05FC8C28FC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2348836-7129-4BE5-8AE6-D05FC8C28FC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2348836-7129-4BE5-8AE6-D05FC8C28FC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11B3412F-456C-452E-94D2-B42D5C52F61C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11B3412F-456C-452E-94D2-B42D5C52F61C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11B3412F-456C-452E-94D2-B42D5C52F61C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11B3412F-456C-452E-94D2-B42D5C52F61C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8C917BC1-C0DE-4A46-BEE8-32FD66B447B1}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{11B3412F-456C-452E-94D2-B42D5C52F61C} = {7FBEE732-6BD0-4EFD-A3DF-6A2A6034F58A}
 	EndGlobalSection
 EndGlobal
