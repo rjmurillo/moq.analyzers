@@ -19,14 +19,14 @@ public class Moq1300Benchmarks
     public static void SetupCompilation()
     {
         List<(string Name, string Content)> sources = [];
-        for (int i = 0; i < Constants.NumberOfCodeFiles; i++)
+        for (int index = 0; index < Constants.NumberOfCodeFiles; index++)
         {
-            string name = "TypeName" + i;
+            string name = "TypeName" + index;
             sources.Add((name, @$"
 using System;
 using Moq;
 
-public class SampleClass{i}
+public class SampleClass{index}
 {{
 
     public int Calculate() => 0;
@@ -36,7 +36,7 @@ internal class {name}
 {{
     private void Test()
     {{
-        new Mock<SampleClass{i}>().As<SampleClass{i}>();
+        new Mock<SampleClass{index}>().As<SampleClass{index}>();
     }}
 }}
 "));
@@ -44,7 +44,7 @@ internal class {name}
 
         (BaselineCompilation, TestCompilation) =
             BenchmarkCSharpCompilationCreator<AsShouldBeUsedOnlyForInterfaceAnalyzer>
-            .Create(sources.ToArray())
+            .CreateAsync(sources.ToArray())
             .GetAwaiter()
             .GetResult();
     }

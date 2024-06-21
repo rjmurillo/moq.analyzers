@@ -15,6 +15,7 @@ internal static class CompilationCreator
 {
     private static readonly ReferenceAssemblies ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]);
 
+    [SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Minimizing divergence from upstream code.")]
     public static async Task<(Project Project, AnalyzerOptions Options)> CreateProjectAsync(
         (string, string)[] sourceFiles,
         (string, string)[]? globalOptions,

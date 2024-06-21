@@ -14,5 +14,7 @@ dotnet_diagnostic.CS1591.severity = suggestion
 dotnet_diagnostic.CS1712.severity = suggestion
 
 # VSTHRD200: Use "Async" suffix for async methods
+# AV1755: Postfix asynchronous methods with Async or TaskAsync
 # Just about every test method is async, doesn't provide any real value and clustters up test window
 dotnet_diagnostic.VSTHRD200.severity = none
+dotnet_diagnostic.AV1755.severity = none

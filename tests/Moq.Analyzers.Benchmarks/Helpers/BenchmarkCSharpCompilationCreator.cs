@@ -4,10 +4,10 @@ using Microsoft.CodeAnalysis.Testing;
 
 namespace Moq.Analyzers.Benchmarks.Helpers;
 
-internal class BenchmarkCSharpCompilationCreator<TAnalyzer>
+internal static class BenchmarkCSharpCompilationCreator<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
-    public static async Task<(CompilationWithAnalyzers Baseline, CompilationWithAnalyzers Test)> Create(
+    public static async Task<(CompilationWithAnalyzers Baseline, CompilationWithAnalyzers Test)> CreateAsync(
         (string Name, string Contents)[] sources,
         AnalyzerOptions? options = null)
     {
