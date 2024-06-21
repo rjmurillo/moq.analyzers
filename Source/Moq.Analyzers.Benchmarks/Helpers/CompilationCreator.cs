@@ -124,7 +124,7 @@ internal static class CompilationCreator
     }
 
     /// <summary>
-    /// This class just passes argument through to the projects options provider and it used to provider custom global options
+    /// This class just passes argument through to the projects options provider and it used to provider custom global options.
     /// </summary>
     private sealed class OptionsProvider : AnalyzerConfigOptionsProvider
     {
@@ -150,7 +150,7 @@ internal static class CompilationCreator
         private readonly Dictionary<string, string> _globalOptions;
 
         public ConfigOptions((string, string)[] globalOptions)
-            => _globalOptions = globalOptions.ToDictionary(kvp => kvp.Item1, t => t.Item2, StringComparer.OrdinalIgnoreCase);
+            => _globalOptions = globalOptions.ToDictionary(kvp => kvp.Item1, kvp => kvp.Item2, StringComparer.OrdinalIgnoreCase);
 
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             => _globalOptions.TryGetValue(key, out value);

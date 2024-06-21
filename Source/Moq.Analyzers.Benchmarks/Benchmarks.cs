@@ -44,8 +44,8 @@ internal class {name}
         }
 
         Compilation? compilation = CSharpCompilationCreator.CreateAsync(sources.ToArray()).GetAwaiter().GetResult();
-        BaselineCompilationWithAnalyzers = compilation.WithAnalyzers([new EmptyDiagnosticAnalyzer()], null, CancellationToken.None);
-        CompilationWithAnalyzers = compilation.WithAnalyzers([new AsShouldBeUsedOnlyForInterfaceAnalyzer()], null, CancellationToken.None);
+        BaselineCompilationWithAnalyzers = compilation?.WithAnalyzers([new EmptyDiagnosticAnalyzer()], options: null, CancellationToken.None);
+        CompilationWithAnalyzers = compilation?.WithAnalyzers([new AsShouldBeUsedOnlyForInterfaceAnalyzer()], options: null, CancellationToken.None);
     }
 
     [Benchmark]
