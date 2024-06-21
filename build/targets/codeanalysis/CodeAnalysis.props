@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="$(RepoRoot)/Source/stylecop.json" Visible="false" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)/stylecop.json" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
