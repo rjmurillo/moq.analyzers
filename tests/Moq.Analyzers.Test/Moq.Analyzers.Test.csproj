@@ -23,7 +23,7 @@
     <PackageReference Include="Verify.Nupkg" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Moq.Analyzers\Moq.Analyzers.csproj" AddPackageAsOutput="true" />
+    <ProjectReference Include="$(RepoRoot)/src/Moq.Analyzers/Moq.Analyzers.csproj" AddPackageAsOutput="true" />
   </ItemGroup>
 
 </Project>
