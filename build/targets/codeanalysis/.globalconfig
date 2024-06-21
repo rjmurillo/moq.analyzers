@@ -1,0 +1,9 @@
+is_global=true
+
+# Prefer configuring diagnostics in .editorconfig over this .globalconfig because it is understood by more editors.
+# Only use this file for configuring diagnostics that aren't tied to a source file, and thus can't be placed under
+# any .editorconfig section.
+
+# AV2210 : Pass -warnaserror to the compiler or add <TreatWarningsAsErrors>True</TreatWarningsAsErrors> to your project file
+# This is set as part of the CI build. It is intentionally not set locally to allow for a fast inner dev loop.
+dotnet_diagnostic.AV2210.severity = none

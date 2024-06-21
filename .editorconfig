@@ -242,6 +242,9 @@ dotnet_naming_rule.public_fields_should_be_pascalcase.style = pascalcase
 dotnet_naming_rule.private_fields_should_be__camelcase.severity = suggestion
 dotnet_naming_rule.private_fields_should_be__camelcase.symbols = private_fields
 dotnet_naming_rule.private_fields_should_be__camelcase.style = _camelcase
+# SA1309: Field names must not begin with underscore
+# Keep this aligned with `dotnet_naming_rule.private_fields_should_be__camelcase.style`
+dotnet_diagnostic.SA1309.severity = none
 
 dotnet_naming_rule.private_static_fields_should_be_s_camelcase.severity = suggestion
 dotnet_naming_rule.private_static_fields_should_be_s_camelcase.symbols = private_static_fields
@@ -397,6 +400,10 @@ dotnet_diagnostic.AV1580.severity = silent
 dotnet_diagnostic.MA0040.severity = error
 # Async analyzer
 dotnet_diagnostic.CA2016.severity = error
+
+# AV1555: Avoid using named arguments
+# Disabled because it's common to use a named argument when passing `null` or bool arguments to make the parameter's purpose clear
+dotnet_diagnostic.AV1555.severity = none
 
 #### Handling TODOs ####
 # This is a popular rule in analyzers. Everyone has an opinion and
