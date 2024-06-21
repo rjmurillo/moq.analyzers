@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Moq.Analyzers", "src\Moq.An
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Moq.Analyzers.Test", "tests\Moq.Analyzers.Test\Moq.Analyzers.Test.csproj", "{D2348836-7129-4BE5-8AE6-D05FC8C28FC1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.Analyzers.Benchmarks", "Source\Moq.Analyzers.Benchmarks\Moq.Analyzers.Benchmarks.csproj", "{11B3412F-456C-452E-94D2-B42D5C52F61C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.Analyzers.Benchmarks", "tests\Moq.Analyzers.Benchmarks\Moq.Analyzers.Benchmarks.csproj", "{11B3412F-456C-452E-94D2-B42D5C52F61C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
