@@ -9,7 +9,7 @@ dependencies:
 
 # Add '.NET' label to any change to a '.cs' file under Moq.Analyzers
 .NET
-  - 'Source/Moq.Analyzers/**/*.cs'
+  - 'src/Moq.Analyzers/**/*.cs'
 
 # Add 'documentation' label to any change within the 'docs' directory or any '.md' file
 documentation:
