@@ -1,17 +1,17 @@
 # Add 'build' label to any change in the 'build' directory
 build:
-  - build/**/*
+- build/**/*
 
 # Add 'dependencies' label to any change in one of the packages files
 dependencies:
-  - build/**/Packages.props
-  - Directory.Packages.props
+- build/**/Packages.props
+- Directory.Packages.props
 
 # Add '.NET' label to any change to a '.cs' file under Moq.Analyzers
 .NET
-  - 'src/Moq.Analyzers/**/*.cs'
+- 'src/Moq.Analyzers/**/*.cs'
 
 # Add 'documentation' label to any change within the 'docs' directory or any '.md' file
 documentation:
-  - docs/**/*
-  - '**/*.md'
+- docs/**/*
+- '**/*.md'
