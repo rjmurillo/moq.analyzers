@@ -158,17 +158,17 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
     private static GenericNameSyntax? GetGenericNameSyntax(TypeSyntax typeSyntax)
     {
-        if (typeSyntax is GenericNameSyntax genericNameSyntax)
+        // REVIEW: Switch and ifs are equal in this case, but switch is more readable
+        // The switch expression adds more instructions to do the same
+        switch (typeSyntax)
         {
-            return genericNameSyntax;
+            case GenericNameSyntax genericNameSyntax:
+                return genericNameSyntax;
+            case QualifiedNameSyntax qualifiedNameSyntax:
+                return qualifiedNameSyntax.Right as GenericNameSyntax;
+            default:
+                return null;
         }
-
-        if (typeSyntax is QualifiedNameSyntax qualifiedNameSyntax)
-        {
-            return qualifiedNameSyntax.Right as GenericNameSyntax;
-        }
-
-        return null;
     }
 
     private static bool IsMockGenericType(GenericNameSyntax genericName)
