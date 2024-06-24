@@ -35,7 +35,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
             return;
         }
 
-        Diagnostic? diagnostic = context.Diagnostics.First();
+        Diagnostic diagnostic = context.Diagnostics.First();
         TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
 
         // Find the type declaration identified by the diagnostic.
@@ -69,23 +69,23 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
             return document;
         }
 
-        InvocationExpressionSyntax? setupMethodInvocation = Helpers.FindSetupMethodFromCallbackInvocation(semanticModel, callbackInvocation, cancellationToken);
+        InvocationExpressionSyntax? setupMethodInvocation = semanticModel.FindSetupMethodFromCallbackInvocation(callbackInvocation, cancellationToken);
         Debug.Assert(setupMethodInvocation != null, nameof(setupMethodInvocation) + " != null");
-        IMethodSymbol[] matchingMockedMethods = Helpers.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(semanticModel, setupMethodInvocation).ToArray();
+        IMethodSymbol[] matchingMockedMethods = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupMethodInvocation).ToArray();
 
         if (matchingMockedMethods.Length != 1)
         {
             return document;
         }
 
-        ParameterListSyntax? newParameters = SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(matchingMockedMethods[0].Parameters.Select(
+        ParameterListSyntax newParameters = SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(matchingMockedMethods[0].Parameters.Select(
             parameterSymbol =>
             {
-                TypeSyntax? type = SyntaxFactory.ParseTypeName(parameterSymbol.Type.ToMinimalDisplayString(semanticModel, oldParameters.SpanStart));
+                TypeSyntax type = SyntaxFactory.ParseTypeName(parameterSymbol.Type.ToMinimalDisplayString(semanticModel, oldParameters.SpanStart));
                 return SyntaxFactory.Parameter(default, SyntaxFactory.TokenList(), type, SyntaxFactory.Identifier(parameterSymbol.Name), null);
             })));
 
-        SyntaxNode? newRoot = root.ReplaceNode(oldParameters, newParameters);
+        SyntaxNode newRoot = root.ReplaceNode(oldParameters, newParameters);
         return document.WithSyntaxRoot(newRoot);
     }
 }

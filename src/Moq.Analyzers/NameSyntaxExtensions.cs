@@ -3,9 +3,9 @@
 namespace Moq.Analyzers;
 
 /// <summary>
-/// Extensions methods for <see cref="SyntaxNode"/>s.
+/// Extensions methods for <see cref="NameSyntax"/>s.
 /// </summary>
-internal static class SyntaxExtensions
+internal static class NameSyntaxExtensions
 {
     /// <summary>
     /// Tries to get the generic arguments of a given <see cref="NameSyntax"/>.

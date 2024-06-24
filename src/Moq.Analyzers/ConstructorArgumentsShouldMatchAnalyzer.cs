@@ -47,12 +47,16 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (!IsMockGenericType(genericName)) return;
+        if (!IsMockGenericType(genericName))
+        {
+            return;
+        }
 
         // Full check that we are calling new Mock<T>()
         IMethodSymbol? mockCtorSymbol = GetConstructorSymbol(context, objectCreation);
 
-        if (mockCtorSymbol is null)
+        // If mockCtorSymbol is null we cannot proceed!
+        if (mockCtorSymbol == null)
         {
             return;
         }
