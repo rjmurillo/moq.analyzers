@@ -39,7 +39,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Tracked in #90")]
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        ObjectCreationExpressionSyntax? objectCreation = (ObjectCreationExpressionSyntax)context.Node;
+        ObjectCreationExpressionSyntax objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
         GenericNameSyntax? genericName = GetGenericNameSyntax(objectCreation.Type);
         if (genericName == null) return;
@@ -76,7 +76,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                 && IsConstructorMismatch(context, objectCreation, genericName, constructorArguments)
                 && objectCreation.ArgumentList != null)
             {
-                Diagnostic? diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
+                Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
         }
@@ -106,7 +106,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
             Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
 
-            Diagnostic? diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+            Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
             context.ReportDiagnostic(diagnostic);
         }
     }
@@ -179,7 +179,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
     private static bool IsConstructorMismatch(SyntaxNodeAnalysisContext context, ObjectCreationExpressionSyntax objectCreation, GenericNameSyntax genericName, ArgumentSyntax[] constructorArguments)
     {
-        ObjectCreationExpressionSyntax? fakeConstructorCall = SyntaxFactory.ObjectCreationExpression(
+        ObjectCreationExpressionSyntax fakeConstructorCall = SyntaxFactory.ObjectCreationExpression(
             genericName.TypeArgumentList.Arguments.First(),
             SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(constructorArguments)),
             null);
