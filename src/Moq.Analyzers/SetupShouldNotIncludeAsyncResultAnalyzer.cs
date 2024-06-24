@@ -33,11 +33,11 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        InvocationExpressionSyntax? setupInvocation = (InvocationExpressionSyntax)context.Node;
+        InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
 
-        if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && Helpers.IsMoqSetupMethod(context.SemanticModel, memberAccessExpression, context.CancellationToken))
+        if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && context.SemanticModel.IsMoqSetupMethod(memberAccessExpression, context.CancellationToken))
         {
-            ExpressionSyntax? mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
+            ExpressionSyntax? mockedMemberExpression = setupInvocation.FindMockedMemberExpressionFromSetupMethod();
             if (mockedMemberExpression == null)
             {
                 return;
@@ -48,7 +48,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
                 && !IsMethodOverridable(symbolInfo.Symbol)
                 && IsMethodReturnTypeTask(symbolInfo.Symbol))
             {
-                Diagnostic? diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
+                Diagnostic diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
         }
@@ -62,7 +62,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 
     private static bool IsMethodReturnTypeTask(ISymbol methodSymbol)
     {
-        string? type = methodSymbol.ToDisplayString();
+        string type = methodSymbol.ToDisplayString();
         return string.Equals(type, "System.Threading.Tasks.Task", StringComparison.Ordinal)
                || string.Equals(type, "System.Threading.ValueTask", StringComparison.Ordinal)
                || type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal)
