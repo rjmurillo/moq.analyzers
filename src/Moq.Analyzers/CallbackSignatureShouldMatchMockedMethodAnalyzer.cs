@@ -45,7 +45,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         // Ignoring Callback() and Return() calls without lambda arguments
         if (callbackOrReturnsMethodArguments.Count == 0) return;
 
-        if (!Helpers.IsCallbackOrReturnInvocation(context.SemanticModel, callbackOrReturnsInvocation)) return;
+        if (!context.SemanticModel.IsCallbackOrReturnInvocation(callbackOrReturnsInvocation)) return;
 
         ParenthesizedLambdaExpressionSyntax? callbackLambda = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ParenthesizedLambdaExpressionSyntax;
 
@@ -56,7 +56,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         SeparatedSyntaxList<ParameterSyntax> lambdaParameters = callbackLambda.ParameterList.Parameters;
         if (lambdaParameters.Count == 0) return;
 
-        InvocationExpressionSyntax? setupInvocation = Helpers.FindSetupMethodFromCallbackInvocation(context.SemanticModel, callbackOrReturnsInvocation, context.CancellationToken);
+        InvocationExpressionSyntax? setupInvocation = context.SemanticModel.FindSetupMethodFromCallbackInvocation(callbackOrReturnsInvocation, context.CancellationToken);
         InvocationExpressionSyntax? mockedMethodInvocation = Helpers.FindMockedMethodInvocationFromSetupMethod(setupInvocation);
         if (mockedMethodInvocation == null) return;
 

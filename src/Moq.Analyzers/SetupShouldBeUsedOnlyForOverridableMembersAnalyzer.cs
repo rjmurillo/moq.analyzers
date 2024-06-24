@@ -35,7 +35,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
     {
         InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
 
-        if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && Helpers.IsMoqSetupMethod(context.SemanticModel, memberAccessExpression, context.CancellationToken))
+        if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && context.SemanticModel.IsMoqSetupMethod(memberAccessExpression, context.CancellationToken))
         {
             ExpressionSyntax? mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
             if (mockedMemberExpression == null)
