@@ -92,52 +92,71 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
             // REVIEW: Assert the MockingBehavior is the first argument in this case
             // Skip first argument if it is not vararg - typically it is MockingBehavior argument
-            ArgumentSyntax[]? constructorArguments = objectCreation.ArgumentList?.Arguments
-                .Skip(varArgsConstructorParameterIndex == 0 ? 0 : 1).ToArray();
+            IEnumerable<ArgumentSyntax>? constructorArguments = objectCreation
+                                                                    .ArgumentList?
+                                                                    .Arguments
+                                                                    .Skip(varArgsConstructorParameterIndex == 0 ? 0 : 1);
 
             if (mockedTypeSymbol.IsAbstract)
             {
                 // Issue #1: Currently detection does not work well for abstract classes because they cannot be instantiated
 
                 // The mocked symbol is abstract, so we need to check if the constructor arguments match the abstract class constructor
-
-                // Extract types of arguments passed in the constructor call
-                if (constructorArguments != null)
-                {
-                    ITypeSymbol[] argumentTypes = constructorArguments
-                        .Select(arg =>
-                            context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
-                        .ToArray()!;
-
-                    // Check all constructors of the abstract type
-                    for (int constructorIndex = 0;
-                         constructorIndex < mockedTypeSymbol.Constructors.Length;
-                         constructorIndex++)
-                    {
-                        IMethodSymbol constructor = mockedTypeSymbol.Constructors[constructorIndex];
-                        if (AreParametersMatching(constructor.Parameters, argumentTypes))
-                        {
-                            return; // Found a matching constructor
-                        }
-                    }
-                }
-
-                Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
-
-                Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
-                context.ReportDiagnostic(diagnostic);
+                AnalyzeAbstract(context, constructorArguments, mockedTypeSymbol, objectCreation);
             }
             else
             {
-                if (constructorArguments != null
-                    && IsConstructorMismatch(context, objectCreation, genericName, constructorArguments)
-                    && objectCreation.ArgumentList != null)
+                AnalyzeConcrete(context, constructorArguments, objectCreation, genericName);
+            }
+        }
+    }
+
+    private static void AnalyzeConcrete(
+        SyntaxNodeAnalysisContext context,
+        IEnumerable<ArgumentSyntax>? constructorArguments,
+        ObjectCreationExpressionSyntax objectCreation,
+        GenericNameSyntax genericName)
+    {
+        if (constructorArguments != null
+            && IsConstructorMismatch(context, objectCreation, genericName, constructorArguments))
+        {
+            Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+            context.ReportDiagnostic(diagnostic);
+        }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
+    private static void AnalyzeAbstract(
+        SyntaxNodeAnalysisContext context,
+        IEnumerable<ArgumentSyntax>? constructorArguments,
+        INamedTypeSymbol mockedTypeSymbol,
+        ObjectCreationExpressionSyntax objectCreation)
+    {
+        // Extract types of arguments passed in the constructor call
+        if (constructorArguments != null)
+        {
+            ITypeSymbol[] argumentTypes = constructorArguments
+                .Select(arg =>
+                    context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
+                .ToArray()!;
+
+            // Check all constructors of the abstract type
+            for (int constructorIndex = 0;
+                 constructorIndex < mockedTypeSymbol.Constructors.Length;
+                 constructorIndex++)
+            {
+                IMethodSymbol constructor = mockedTypeSymbol.Constructors[constructorIndex];
+                if (AreParametersMatching(constructor.Parameters, argumentTypes))
                 {
-                    Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
-                    context.ReportDiagnostic(diagnostic);
+                    return;
                 }
             }
         }
+
+        Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
+
+        Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+        context.ReportDiagnostic(diagnostic);
     }
 
     private static INamedTypeSymbol? GetMockedSymbol(
@@ -153,10 +172,10 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
     private static bool AreParametersMatching(
         ImmutableArray<IParameterSymbol> constructorParameters,
-        ITypeSymbol[] argumentTypes2)
+        ITypeSymbol[] argumentTypes)
     {
         // Check if the number of parameters matches
-        if (constructorParameters.Length != argumentTypes2.Length)
+        if (constructorParameters.Length != argumentTypes.Length)
         {
             return false;
         }
@@ -164,7 +183,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // Check if each parameter type matches in order
         for (int constructorParameterIndex = 0; constructorParameterIndex < constructorParameters.Length; constructorParameterIndex++)
         {
-            if (!constructorParameters[constructorParameterIndex].Type.Equals(argumentTypes2[constructorParameterIndex], SymbolEqualityComparer.IncludeNullability))
+            if (!constructorParameters[constructorParameterIndex].Type.Equals(argumentTypes[constructorParameterIndex], SymbolEqualityComparer.IncludeNullability))
             {
                 return false;
             }
@@ -175,6 +194,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
     private static GenericNameSyntax? GetGenericNameSyntax(TypeSyntax typeSyntax)
     {
+        // REVIEW: Switch and ifs are equal in this case, but switch causes AV1535 to trigger
+        // The switch expression adds more instructions to do the same, so stick with ifs
         if (typeSyntax is GenericNameSyntax genericNameSyntax)
         {
             return genericNameSyntax;
@@ -208,12 +229,16 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             : null;
     }
 
-    private static bool IsConstructorMismatch(SyntaxNodeAnalysisContext context, ObjectCreationExpressionSyntax objectCreation, GenericNameSyntax genericName, ArgumentSyntax[] constructorArguments)
+    private static bool IsConstructorMismatch(
+        SyntaxNodeAnalysisContext context,
+        ObjectCreationExpressionSyntax objectCreation,
+        GenericNameSyntax genericName,
+        IEnumerable<ArgumentSyntax>? constructorArguments)
     {
         ObjectCreationExpressionSyntax fakeConstructorCall = SyntaxFactory.ObjectCreationExpression(
             genericName.TypeArgumentList.Arguments.First(),
             SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(constructorArguments)),
-            null);
+            initializer: null);
 
         SymbolInfo mockedClassConstructorSymbolInfo = context.SemanticModel.GetSpeculativeSymbolInfo(
             objectCreation.SpanStart, fakeConstructorCall, SpeculativeBindingOption.BindAsExpression);
