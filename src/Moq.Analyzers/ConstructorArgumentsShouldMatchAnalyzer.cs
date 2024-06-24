@@ -44,19 +44,25 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         GenericNameSyntax? genericName = GetGenericNameSyntax(objectCreation.Type);
         if (genericName == null) return;
 
-        if (!IsMockGenericType(genericName)) return;
+        if (!IsMockGenericType(genericName))
+        {
+            return;
+        }
 
         // Full check that we are calling new Mock<T>()
         IMethodSymbol? constructorSymbol = GetConstructorSymbol(context, objectCreation);
 
-        // Vararg parameter is the one that takes all arguments for mocked class constructor
-        IParameterSymbol? varArgsConstructorParameter = constructorSymbol?.Parameters.FirstOrDefault(parameterSymbol => parameterSymbol.IsParams);
-
-        // Vararg parameter are not used, so there are no arguments for mocked class constructor
-        if (varArgsConstructorParameter == null) return;
-
         // If constructorSymbol is null, we should have caught that earlier (and we cannot proceed)
         if (constructorSymbol == null)
+        {
+            return;
+        }
+
+        // Vararg parameter is the one that takes all arguments for mocked class constructor
+        IParameterSymbol? varArgsConstructorParameter = constructorSymbol.Parameters.FirstOrDefault(parameterSymbol => parameterSymbol.IsParams);
+
+        // Vararg parameter are not used, so there are no arguments for mocked class constructor
+        if (varArgsConstructorParameter == null)
         {
             return;
         }
@@ -65,7 +71,10 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         // Find mocked type
         INamedTypeSymbol? mockedTypeSymbol = GetMockedSymbol(context, genericName);
-        if (mockedTypeSymbol == null) return;
+        if (mockedTypeSymbol == null)
+        {
+            return;
+        }
 
         // Skip first argument if it is not vararg - typically it is MockingBehavior argument
         ArgumentSyntax[]? constructorArguments = objectCreation.ArgumentList?.Arguments.Skip(varArgsConstructorParameterIndex == 0 ? 0 : 1).ToArray();
@@ -83,6 +92,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     private static void AnalyzeAbstract(
         SyntaxNodeAnalysisContext context,
         ArgumentSyntax[]? constructorArguments,
@@ -113,8 +123,11 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static void AnalyzeConcrete(SyntaxNodeAnalysisContext context, ArgumentSyntax[]? constructorArguments,
-        ObjectCreationExpressionSyntax objectCreation, GenericNameSyntax genericName)
+    private static void AnalyzeConcrete(
+        SyntaxNodeAnalysisContext context,
+        ArgumentSyntax[]? constructorArguments,
+        ObjectCreationExpressionSyntax objectCreation,
+        GenericNameSyntax genericName)
     {
         if (constructorArguments != null
             && IsConstructorMismatch(context, objectCreation, genericName, constructorArguments)
