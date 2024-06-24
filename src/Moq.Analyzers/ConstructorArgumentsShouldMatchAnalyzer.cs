@@ -80,14 +80,17 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            // There is no default constructor on the mocked type
+            // There is no default or constructor with all optional parameters on the mocked type
             Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
             context.ReportDiagnostic(diagnostic);
         }
         else
         {
+            // Parameters were defined with the Mock ctor. We're only interested in the vararg parameter
+            // as that contains the arguments for the mocked type constructor
             int varArgsConstructorParameterIndex = mockCtorSymbol.Parameters.IndexOf(varArgsConstructorParameter);
 
+            // REVIEW: Assert the MockingBehavior is the first argument in this case
             // Skip first argument if it is not vararg - typically it is MockingBehavior argument
             ArgumentSyntax[]? constructorArguments = objectCreation.ArgumentList?.Arguments
                 .Skip(varArgsConstructorParameterIndex == 0 ? 0 : 1).ToArray();
