@@ -13,7 +13,9 @@ public class Moq1300Benchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
-    private static CompilationWithAnalyzers? TestCompilation { get; set; }
+    private static CompilationWithAnalyzers? OldTestCompilation { get; set; }
+
+    private static CompilationWithAnalyzers? NewTestCompilation { get; set; }
 
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
@@ -43,18 +45,40 @@ internal class {name}
 "));
         }
 
-        (BaselineCompilation, TestCompilation) =
+        (BaselineCompilation, OldTestCompilation) =
             BenchmarkCSharpCompilationCreator<AsShouldBeUsedOnlyForInterfaceAnalyzer>
+            .CreateAsync(sources.ToArray())
+            .GetAwaiter()
+            .GetResult();
+
+        (_, NewTestCompilation) =
+            BenchmarkCSharpCompilationCreator<AsShouldBeUsedOnlyForInterfaceAnalyzer2>
             .CreateAsync(sources.ToArray())
             .GetAwaiter()
             .GetResult();
     }
 
     [Benchmark]
-    public async Task Moq1300WithDiagnostics()
+    public async Task OldMoq1300WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
-            (await TestCompilation!
+            (await OldTestCompilation!
+            .GetAnalysisResultAsync(CancellationToken.None)
+            .ConfigureAwait(false))
+            .AssertValidAnalysisResult()
+            .GetAllDiagnostics();
+
+        if (diagnostics.Length != Constants.NumberOfCodeFiles)
+        {
+            throw new InvalidOperationException($"Expected '{Constants.NumberOfCodeFiles:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
+        }
+    }
+
+    [Benchmark]
+    public async Task NewMoq1300WithDiagnostics()
+    {
+        ImmutableArray<Diagnostic> diagnostics =
+            (await NewTestCompilation!
             .GetAnalysisResultAsync(CancellationToken.None)
             .ConfigureAwait(false))
             .AssertValidAnalysisResult()
