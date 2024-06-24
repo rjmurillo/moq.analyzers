@@ -9,9 +9,21 @@ internal static class SemanticModelExtensions
 {
     private static readonly MoqMethodDescriptorBase MoqSetupMethodDescriptor = new MoqSetupMethodDescriptor();
 
-    internal static bool IsMoqSetupMethod(this SemanticModel semanticModel, MemberAccessExpressionSyntax method, CancellationToken cancellationToken)
+    internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(this SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
     {
-        return MoqSetupMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
+        InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
+        if (invocation?.Expression is not MemberAccessExpressionSyntax method) return null;
+        if (IsMoqSetupMethod(semanticModel, method, cancellationToken)) return invocation;
+        return FindSetupMethodFromCallbackInvocation(semanticModel, method.Expression, cancellationToken);
+    }
+
+    internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax? setupMethodInvocation)
+    {
+        LambdaExpressionSyntax? setupLambdaArgument = setupMethodInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
+
+        return setupLambdaArgument?.Body is not InvocationExpressionSyntax mockedMethodInvocation
+            ? []
+            : semanticModel.GetAllMatchingSymbols<IMethodSymbol>(mockedMethodInvocation);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
@@ -42,12 +54,9 @@ internal static class SemanticModelExtensions
         };
     }
 
-    internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(this SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+    internal static bool IsMoqSetupMethod(this SemanticModel semanticModel, MemberAccessExpressionSyntax method, CancellationToken cancellationToken)
     {
-        InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
-        if (invocation?.Expression is not MemberAccessExpressionSyntax method) return null;
-        if (IsMoqSetupMethod(semanticModel, method, cancellationToken)) return invocation;
-        return FindSetupMethodFromCallbackInvocation(semanticModel, method.Expression, cancellationToken);
+        return MoqSetupMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
@@ -57,37 +66,38 @@ internal static class SemanticModelExtensions
         List<T> matchingSymbols = new();
 
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
-        if (symbolInfo is { CandidateReason: CandidateReason.None, Symbol: T })
+        switch (symbolInfo)
         {
-            T? value = symbolInfo.Symbol as T;
-            Debug.Assert(value != null, "Value should not be null.");
+            case { CandidateReason: CandidateReason.None, Symbol: T }:
+                {
+                    T? value = symbolInfo.Symbol as T;
+                    Debug.Assert(value != null, "Value should not be null.");
 
 #pragma warning disable S2589 // Boolean expressions should not be gratuitous
-            if (value != default(T))
-            {
-                matchingSymbols.Add(value);
-            }
+                    if (value != default(T))
+                    {
+                        matchingSymbols.Add(value);
+                    }
 #pragma warning restore S2589 // Boolean expressions should not be gratuitous
-        }
-        else if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
-        {
-            matchingSymbols.AddRange(symbolInfo.CandidateSymbols.OfType<T>());
-        }
-        else
-        {
-            return matchingSymbols;
+                    break;
+                }
+
+            default:
+                {
+                    if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
+                    {
+                        matchingSymbols.AddRange(symbolInfo.CandidateSymbols.OfType<T>());
+                    }
+                    else
+                    {
+                        return matchingSymbols;
+                    }
+
+                    break;
+                }
         }
 
         return matchingSymbols;
-    }
-
-    internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax? setupMethodInvocation)
-    {
-        LambdaExpressionSyntax? setupLambdaArgument = setupMethodInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
-
-        return setupLambdaArgument?.Body is not InvocationExpressionSyntax mockedMethodInvocation
-            ? []
-            : semanticModel.GetAllMatchingSymbols<IMethodSymbol>(mockedMethodInvocation);
     }
 
     private static bool IsCallbackOrReturnSymbol(ISymbol? symbol)

@@ -56,7 +56,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         if (varArgsConstructorParameter == null) return;
 
         // If constructorSymbol is null, we should have caught that earlier (and we cannot proceed)
-        Debug.Assert(constructorSymbol != null, nameof(constructorSymbol) + " != null");
         if (constructorSymbol == null)
         {
             return;
@@ -73,41 +72,55 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         if (!mockedTypeSymbol.IsAbstract)
         {
-            if (constructorArguments != null
-                && IsConstructorMismatch(context, objectCreation, genericName, constructorArguments)
-                && objectCreation.ArgumentList != null)
-            {
-                Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
-                context.ReportDiagnostic(diagnostic);
-            }
+            AnalyzeConcrete(context, constructorArguments, objectCreation, genericName);
         }
         else
         {
             // Issue #1: Currently detection does not work well for abstract classes because they cannot be instantiated
 
             // The mocked symbol is abstract, so we need to check if the constructor arguments match the abstract class constructor
+            AnalyzeAbstract(context, constructorArguments, mockedTypeSymbol, objectCreation);
+        }
+    }
 
-            // Extract types of arguments passed in the constructor call
-            if (constructorArguments != null)
+    private static void AnalyzeAbstract(
+        SyntaxNodeAnalysisContext context,
+        ArgumentSyntax[]? constructorArguments,
+        INamedTypeSymbol mockedTypeSymbol,
+        ObjectCreationExpressionSyntax objectCreation)
+    {
+        // Extract types of arguments passed in the constructor call
+        if (constructorArguments != null)
+        {
+            ITypeSymbol[] argumentTypes = constructorArguments
+                .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
+                .ToArray()!;
+
+            // Check all constructors of the abstract type
+            for (int constructorIndex = 0; constructorIndex < mockedTypeSymbol.Constructors.Length; constructorIndex++)
             {
-                ITypeSymbol[] argumentTypes = constructorArguments
-                    .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
-                    .ToArray()!;
-
-                // Check all constructors of the abstract type
-                for (int constructorIndex = 0; constructorIndex < mockedTypeSymbol.Constructors.Length; constructorIndex++)
+                IMethodSymbol constructor = mockedTypeSymbol.Constructors[constructorIndex];
+                if (AreParametersMatching(constructor.Parameters, argumentTypes))
                 {
-                    IMethodSymbol constructor = mockedTypeSymbol.Constructors[constructorIndex];
-                    if (AreParametersMatching(constructor.Parameters, argumentTypes))
-                    {
-                        return; // Found a matching constructor
-                    }
+                    return;
                 }
             }
+        }
 
-            Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
+        Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
 
-            Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+        Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    private static void AnalyzeConcrete(SyntaxNodeAnalysisContext context, ArgumentSyntax[]? constructorArguments,
+        ObjectCreationExpressionSyntax objectCreation, GenericNameSyntax genericName)
+    {
+        if (constructorArguments != null
+            && IsConstructorMismatch(context, objectCreation, genericName, constructorArguments)
+            && objectCreation.ArgumentList != null)
+        {
+            Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
             context.ReportDiagnostic(diagnostic);
         }
     }
