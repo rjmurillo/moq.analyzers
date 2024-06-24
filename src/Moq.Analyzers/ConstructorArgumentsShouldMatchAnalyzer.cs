@@ -196,7 +196,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         ObjectCreationExpressionSyntax fakeConstructorCall = SyntaxFactory.ObjectCreationExpression(
             genericName.TypeArgumentList.Arguments.First(),
             SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(constructorArguments)),
-            null);
+            initializer: null);
 
         SymbolInfo mockedClassConstructorSymbolInfo = context.SemanticModel.GetSpeculativeSymbolInfo(
             objectCreation.SpanStart, fakeConstructorCall, SpeculativeBindingOption.BindAsExpression);
