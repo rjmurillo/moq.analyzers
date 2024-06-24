@@ -42,7 +42,7 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
         if (!string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupGet", StringComparison.Ordinal)
             && !string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupSet", StringComparison.Ordinal)) return;
 
-        InvocationExpressionSyntax? mockedMethodCall = Helpers.FindMockedMethodInvocationFromSetupMethod(setupGetOrSetInvocation);
+        InvocationExpressionSyntax? mockedMethodCall = setupGetOrSetInvocation.FindMockedMethodInvocationFromSetupMethod();
         if (mockedMethodCall == null) return;
 
         ISymbol? mockedMethodSymbol = context.SemanticModel.GetSymbolInfo(mockedMethodCall, context.CancellationToken).Symbol;

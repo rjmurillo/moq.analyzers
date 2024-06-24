@@ -37,7 +37,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 
         if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && context.SemanticModel.IsMoqSetupMethod(memberAccessExpression, context.CancellationToken))
         {
-            ExpressionSyntax? mockedMemberExpression = Helpers.FindMockedMemberExpressionFromSetupMethod(setupInvocation);
+            ExpressionSyntax? mockedMemberExpression = setupInvocation.FindMockedMemberExpressionFromSetupMethod();
             if (mockedMemberExpression == null)
             {
                 return;
