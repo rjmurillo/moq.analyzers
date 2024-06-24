@@ -49,17 +49,18 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // Full check that we are calling new Mock<T>()
         IMethodSymbol? constructorSymbol = GetConstructorSymbol(context, objectCreation);
 
-        Debug.Assert(constructorSymbol != null, nameof(constructorSymbol) + " != null");
-
-#pragma warning disable S2589 // Boolean expressions should not be gratuitous
-        if (constructorSymbol is null) return;
-#pragma warning restore S2589 // Boolean expressions should not be gratuitous
-
-            // Vararg parameter is the one that takes all arguments for mocked class constructor
-        IParameterSymbol? varArgsConstructorParameter = constructorSymbol.Parameters.FirstOrDefault(parameterSymbol => parameterSymbol.IsParams);
+        // Vararg parameter is the one that takes all arguments for mocked class constructor
+        IParameterSymbol? varArgsConstructorParameter = constructorSymbol?.Parameters.FirstOrDefault(parameterSymbol => parameterSymbol.IsParams);
 
         // Vararg parameter are not used, so there are no arguments for mocked class constructor
         if (varArgsConstructorParameter == null) return;
+
+        // If constructorSymbol is null, we should have caught that earlier (and we cannot proceed)
+        Debug.Assert(constructorSymbol != null, nameof(constructorSymbol) + " != null");
+        if (constructorSymbol == null)
+        {
+            return;
+        }
 
         int varArgsConstructorParameterIndex = constructorSymbol.Parameters.IndexOf(varArgsConstructorParameter);
 
