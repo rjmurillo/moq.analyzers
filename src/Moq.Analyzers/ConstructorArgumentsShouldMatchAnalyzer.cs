@@ -73,8 +73,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // Vararg parameter are not used, so there are no arguments for mocked type constructor
         if (varArgsConstructorParameter == null)
         {
-            // Check if the mocked type has a default constructor
-            if (mockedTypeSymbol.Constructors.Any(methodSymbol => methodSymbol.Parameters.Length == 0))
+            // Check if the mocked type has a default constructor or a constructor with all optional parameters
+            if (mockedTypeSymbol.Constructors.Any(methodSymbol => methodSymbol.Parameters.Length == 0
+                || methodSymbol.Parameters.All(parameterSymbol => parameterSymbol.HasExplicitDefaultValue)))
             {
                 return;
             }
