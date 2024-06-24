@@ -1,5 +1,4 @@
-using Microsoft.CodeAnalysis.Testing;
-using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.AsShouldBeUsedOnlyForInterfaceAnalyzer>;
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.AsShouldBeUsedOnlyForInterfaceAnalyzer2>;
 
 namespace Moq.Analyzers.Test;
 

@@ -40,6 +40,7 @@ internal class {name}
     private void Test()
     {{
         new Mock<SampleClass{index}>().As<SampleClass{index}>();
+        _ = new SampleClass{index}().Calculate(); // Add an expression that looks similar but does not match
     }}
 }}
 "));
