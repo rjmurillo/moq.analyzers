@@ -51,7 +51,7 @@ internal static class SemanticModelExtensions
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
-    internal static IEnumerable<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
+    private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
         where T : class
     {
         List<T> matchingSymbols = new();
@@ -84,9 +84,8 @@ internal static class SemanticModelExtensions
     internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax? setupMethodInvocation)
     {
         LambdaExpressionSyntax? setupLambdaArgument = setupMethodInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
-        InvocationExpressionSyntax? mockedMethodInvocation = setupLambdaArgument?.Body as InvocationExpressionSyntax;
 
-        return mockedMethodInvocation == null
+        return setupLambdaArgument?.Body is not InvocationExpressionSyntax mockedMethodInvocation
             ? []
             : semanticModel.GetAllMatchingSymbols<IMethodSymbol>(mockedMethodInvocation);
     }
