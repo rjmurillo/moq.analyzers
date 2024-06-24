@@ -77,7 +77,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         // Skip first argument if it is not vararg - typically it is MockingBehavior argument
-        ArgumentSyntax[]? constructorArguments = objectCreation.ArgumentList?.Arguments.Skip(varArgsConstructorParameterIndex == 0 ? 0 : 1).ToArray();
+        IEnumerable<ArgumentSyntax>? constructorArguments = objectCreation.ArgumentList?.Arguments.Skip(varArgsConstructorParameterIndex == 0 ? 0 : 1);
 
         if (!mockedTypeSymbol.IsAbstract)
         {
@@ -95,7 +95,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     private static void AnalyzeAbstract(
         SyntaxNodeAnalysisContext context,
-        ArgumentSyntax[]? constructorArguments,
+        IEnumerable<ArgumentSyntax>? constructorArguments,
         INamedTypeSymbol mockedTypeSymbol,
         ObjectCreationExpressionSyntax objectCreation)
     {
@@ -125,7 +125,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeConcrete(
         SyntaxNodeAnalysisContext context,
-        ArgumentSyntax[]? constructorArguments,
+        IEnumerable<ArgumentSyntax>? constructorArguments,
         ObjectCreationExpressionSyntax objectCreation,
         GenericNameSyntax genericName)
     {
@@ -149,10 +149,12 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return mockedTypeSymbol;
     }
 
-    private static bool AreParametersMatching(ImmutableArray<IParameterSymbol> constructorParameters, ITypeSymbol[] argumentTypes2)
+    private static bool AreParametersMatching(
+        ImmutableArray<IParameterSymbol> constructorParameters,
+        ITypeSymbol[] argumentTypes)
     {
         // Check if the number of parameters matches
-        if (constructorParameters.Length != argumentTypes2.Length)
+        if (constructorParameters.Length != argumentTypes.Length)
         {
             return false;
         }
@@ -160,7 +162,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // Check if each parameter type matches in order
         for (int constructorParameterIndex = 0; constructorParameterIndex < constructorParameters.Length; constructorParameterIndex++)
         {
-            if (!constructorParameters[constructorParameterIndex].Type.Equals(argumentTypes2[constructorParameterIndex], SymbolEqualityComparer.IncludeNullability))
+            if (!constructorParameters[constructorParameterIndex].Type.Equals(argumentTypes[constructorParameterIndex], SymbolEqualityComparer.IncludeNullability))
             {
                 return false;
             }
@@ -204,7 +206,11 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             : null;
     }
 
-    private static bool IsConstructorMismatch(SyntaxNodeAnalysisContext context, ObjectCreationExpressionSyntax objectCreation, GenericNameSyntax genericName, ArgumentSyntax[] constructorArguments)
+    private static bool IsConstructorMismatch(
+        SyntaxNodeAnalysisContext context,
+        ObjectCreationExpressionSyntax objectCreation,
+        GenericNameSyntax genericName,
+        IEnumerable<ArgumentSyntax> constructorArguments)
     {
         ObjectCreationExpressionSyntax fakeConstructorCall = SyntaxFactory.ObjectCreationExpression(
             genericName.TypeArgumentList.Arguments.First(),
