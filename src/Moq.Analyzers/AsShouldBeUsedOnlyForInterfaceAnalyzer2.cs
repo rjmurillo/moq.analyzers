@@ -2,25 +2,6 @@
 
 namespace Moq.Analyzers;
 
-internal static class CompilationExtensions
-{
-    public static ImmutableArray<INamedTypeSymbol> GetTypesByMetadataNames(this Compilation compilation, ReadOnlySpan<string> metadataNames)
-    {
-        ImmutableArray<INamedTypeSymbol>.Builder builder = ImmutableArray.CreateBuilder<INamedTypeSymbol>(metadataNames.Length);
-
-        foreach (string metadataName in metadataNames)
-        {
-            INamedTypeSymbol? type = compilation.GetTypeByMetadataName(metadataName);
-            if (type is not null)
-            {
-                builder.Add(type);
-            }
-        }
-
-        return builder.ToImmutable();
-    }
-}
-
 /// <summary>
 /// Mock.As() should take interfaces only.
 /// </summary>
@@ -51,19 +32,19 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer2 : DiagnosticAnalyzer
 
         context.RegisterCompilationStartAction(static context =>
         {
-            ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetTypesByMetadataNames([WellKnownTypeNames.MoqMock, WellKnownTypeNames.MoqMock1]);
-
+            // Ensure Moq is referenced in the compilation
+            ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
             if (mockTypes.IsEmpty)
             {
                 return;
             }
 
+            // Look for the Mock.As() method and provide it to Analyze to avoid looking it up multiple times.
             ImmutableArray<IMethodSymbol> asMethods = mockTypes
                 .SelectMany(mockType => mockType.GetMembers("As"))
                 .OfType<IMethodSymbol>()
                 .Where(method => method.IsGenericMethod)
                 .ToImmutableArray();
-
             if (asMethods.IsEmpty)
             {
                 return;
@@ -81,8 +62,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer2 : DiagnosticAnalyzer
         }
 
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
-
-        if (!wellKnownAsMethods.Any(asMethod => asMethod.Equals(targetMethod.OriginalDefinition, SymbolEqualityComparer.Default)))
+        if (!targetMethod.IsInstanceOf(wellKnownAsMethods))
         {
             return;
         }
@@ -95,32 +75,12 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer2 : DiagnosticAnalyzer
 
         if (typeArguments[0] is ITypeSymbol { TypeKind: not TypeKind.Interface })
         {
+            // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.
+            // If that fails for any reason, report the diagnostic on the operation itself.
             NameSyntax? memberName = context.Operation.Syntax.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Select(mae => mae.Name).FirstOrDefault();
-
             Location location = memberName?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
 
             context.ReportDiagnostic(Diagnostic.Create(Rule, location));
         }
     }
 }
-
-//internal static class SyntaxNodeExtensions
-//{
-//    //public static bool TryGetSyntaxByName(this SyntaxNode parentNode, SemanticModel semanticModel, string name, out SyntaxNode? node)
-//    //{
-//    //    parentNode.DescendantNodesAndSelf()
-//    //        //.OfType<TypeSyntax>()
-//    //        .Where(n => semanticModel.GetDeclaredSymbol()
-//    //}
-
-//    public static IEnumerable<SyntaxNode> GetSyntaxNodesThatMatchSymbol(this SyntaxNode node, SemanticModel semanticModel, ISymbol symbol)
-//    {
-//        foreach (SyntaxNode descendant in node.DescendantNodesAndSelf())
-//        {
-//            if (semanticModel.GetSymbolInfo(descendant).Symbol?.Equals(symbol, SymbolEqualityComparer.Default) ?? false)
-//            {
-//                yield return descendant;
-//            }
-//        }
-//    }
-//}
