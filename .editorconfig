@@ -405,6 +405,9 @@ dotnet_diagnostic.CA2016.severity = error
 # Disabled because it's common to use a named argument when passing `null` or bool arguments to make the parameter's purpose clear
 dotnet_diagnostic.AV1555.severity = none
 
+# AV1500: Methods should not exceed 7 statements
+dotnet_diagnostic.AV1500.severity = silent
+
 #### Handling TODOs ####
 # This is a popular rule in analyzers. Everyone has an opinion and
 # some of the severity levels conflict. We don't need all of these
