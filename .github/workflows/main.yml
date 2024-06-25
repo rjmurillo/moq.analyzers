@@ -114,6 +114,12 @@ jobs:
           ./artifacts/package
         if-no-files-found: error
 
+    - name: Validate performance
+      shell: pwsh
+      # Uses ETL which needs Windows
+      if: ${{ runner.os == 'Windows' }} 
+      run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
+
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:

@@ -1,0 +1,114 @@
+### Configuration for PublicAPI analyzers executed on this folder ###
+[*.{cs,vb}]
+
+dotnet_diagnostic.IDE1030.severity = none
+dotnet_diagnostic.CA1052.severity = none
+dotnet_diagnostic.CA1063.severity = none
+dotnet_diagnostic.CA1724.severity = none
+dotnet_diagnostic.CA1819.severity = none
+
+### Suppress standards from our repo to this project since it came from dotnet team and we want to minimize changes ###
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = none
+# AV1130: Return type in method signature should be an interface to an unchangeable collection
+dotnet_diagnostic.AV1130.severity = none
+# AV1135: Do not return null for strings, collections or tasks
+dotnet_diagnostic.AV1135.severity = none
+# AV1500: Member or local function contains too many statements
+dotnet_diagnostic.AV1500.severity = none
+# AV1537: If-else-if construct should end with an unconditional else clause
+dotnet_diagnostic.AV1537.severity = none
+# AV1562: Do not declare a parameter as ref or out
+dotnet_diagnostic.AV1562.severity = none
+# AV1564: Parameter in public or internal member is of type bool or bool?
+dotnet_diagnostic.AV1564.severity = none
+# AV1706: Identifier contains an abbreviation or is too short
+dotnet_diagnostic.AV1706.severity = none
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none
+# IDE0008: Use explicit type
+dotnet_diagnostic.IDE0008.severity = none
+# IDE0161: Convert to file-scoped namespace
+dotnet_diagnostic.IDE0161.severity = none
+# MA0002: IEqualityComparer<string> or IComparer<string> is missing
+dotnet_diagnostic.MA0002.severity = none
+# MA0049: Type name should not match containing namespace
+dotnet_diagnostic.MA0049.severity = none
+# AV1130: Return type in method signature should be an interface to an unchangeable collection
+dotnet_diagnostic.AV1130.severity = none
+# MA0051: Method is too long
+dotnet_diagnostic.MA0051.severity = none
+# S1118: Utility classes should not have public constructors
+dotnet_diagnostic.S1118.severity = none
+# S1244: Floating point numbers should not be tested for equality
+dotnet_diagnostic.S1244.severity = none
+# S2629: Logging templates should be constant
+dotnet_diagnostic.S2629.severity = none
+# S2629: Logging templates should be constant
+dotnet_diagnostic.S2629.severity = none
+# SA1201: Elements should appear in the correct order
+dotnet_diagnostic.SA1201.severity = none
+# S2930: "IDisposables" should be disposed
+dotnet_diagnostic.S2930.severity = none
+# S6605: Collection-specific "Exists" method should be used instead of the "Any" extension
+dotnet_diagnostic.S6605.severity = none
+# S6667: Logging in a catch clause should pass the caught exception as a parameter.
+dotnet_diagnostic.S6667.severity = none
+# AV1580: Method argument calls a nested method
+dotnet_diagnostic.AV1580.severity = none
+# SA1009: Closing parenthesis should be spaced correctly
+dotnet_diagnostic.SA1009.severity = none
+# SA1208: System using directives should be placed before other using directives
+dotnet_diagnostic.SA1208.severity = none
+# SA1316: Tuple element names should use correct casing
+dotnet_diagnostic.SA1316.severity = none
+# SA1503: Braces should not be omitted
+dotnet_diagnostic.SA1503.severity = none
+# SA1515: Single-line comment should be preceded by blank line
+dotnet_diagnostic.SA1515.severity = none
+# SA1202: Elements should be ordered by access
+dotnet_diagnostic.SA1202.severity = none
+# SA1110: Opening parenthesis or bracket should be on declaration line
+dotnet_diagnostic.SA1110.severity = none
+# SA1111: Closing parenthesis should be on line of last parameter
+dotnet_diagnostic.SA1111.severity = none
+# SA1204: Static elements should appear before instance elements
+dotnet_diagnostic.SA1204.severity = none
+# SA1601: Partial elements should be documented
+dotnet_diagnostic.SA1601.severity = none
+# SA1308: Variable names should not be prefixed
+dotnet_diagnostic.SA1308.severity = none
+# AV1008: Class should not be static
+dotnet_diagnostic.AV1008.severity = none
+# IDE0022: Use block body for method
+dotnet_diagnostic.IDE0022.severity = none
+# AV1561: Signature contains too many parameters
+dotnet_diagnostic.AV1561.severity = none
+# AV1739: Unused lambda parameter should be renamed to underscore(s)
+dotnet_diagnostic.AV1739.severity = none
+# RCS1163: Unused parameter
+dotnet_diagnostic.RCS1163.severity = none
+# CA1860: Avoid using 'Enumerable.Any()' extension method
+dotnet_diagnostic.CA1860.severity = none
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = none
+# IDE0028: Simplify collection initialization
+dotnet_diagnostic.IDE0028.severity = none
+# IDE0046: Convert to conditional expression
+dotnet_diagnostic.IDE0046.severity = none
+# IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0290.severity = none
+# IDE0300: Simplify collection initialization
+dotnet_diagnostic.IDE0300.severity = none
+# IDE0301: Simplify collection initialization
+dotnet_diagnostic.IDE0301.severity = none
+# MA0071: Avoid using redundant else
+dotnet_diagnostic.MA0071.severity = none
+# IDE0305: Simplify collection initialization
+dotnet_diagnostic.IDE0305.severity = none
+# MA0076: Do not use implicit culture-sensitive ToString in interpolated strings
+dotnet_diagnostic.MA0076.severity = none
+# RCS1192: Unnecessary usage of verbatim string literal
+dotnet_diagnostic.RCS1192.severity = none
+# S1135: Track uses of "TODO" tags
+dotnet_diagnostic.S1135.severity = none
