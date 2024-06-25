@@ -77,7 +77,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         {
             // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.
             // If that fails for any reason, report the diagnostic on the operation itself.
-            NameSyntax? memberName = context.Operation.Syntax.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Select(mae => mae.Name).FirstOrDefault();
+            NameSyntax? memberName = context.Operation.Syntax.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Select(mae => mae.Name).SingleWhenOnly();
             Location location = memberName?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
 
             context.ReportDiagnostic(Diagnostic.Create(Rule, location));
