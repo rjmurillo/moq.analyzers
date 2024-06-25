@@ -32,6 +32,7 @@ jobs:
 
     env:
       IS_COVERAGE_ALLOWED: ${{ secrets.CODACY_PROJECT_TOKEN != '' }}
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
 
     steps:
     - uses: actions/checkout@v4
@@ -55,6 +56,7 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         global-json-file: ./global.json
+        cache: true
 
     - name: NuGet Restore
       run: dotnet restore
