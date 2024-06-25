@@ -95,7 +95,11 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer2 : DiagnosticAnalyzer
 
         if (typeArguments[0] is ITypeSymbol { TypeKind: not TypeKind.Interface })
         {
-            context.ReportDiagnostic(Diagnostic.Create(Rule, invocationOperation.Syntax.GetLocation()));
+            NameSyntax? memberName = context.Operation.Syntax.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Select(mae => mae.Name).FirstOrDefault();
+
+            Location location = memberName?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
+
+            context.ReportDiagnostic(Diagnostic.Create(Rule, location));
         }
     }
 }

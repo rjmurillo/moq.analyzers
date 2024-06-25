@@ -8,7 +8,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
     {
         return new object[][]
         {
-            ["""new Mock<BaseSampleClass>().As<{|Moq1300:BaseSampleClass|}>();"""],
+            ["""new Mock<BaseSampleClass>().{|Moq1300:As<BaseSampleClass>|}();"""],
             ["""new Mock<BaseSampleClass>().As<{|Moq1300:SampleClass|}>();"""],
             ["""new Mock<SampleClass>().As<ISampleInterface>();"""],
             ["""new Mock<SampleClass>().As<ISampleInterface>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>())).Returns(10);"""],
