@@ -59,7 +59,7 @@ jobs:
         cache: true
 
     - name: NuGet Restore
-      run: dotnet restore
+      run: dotnet restore --locked-mode
 
     - name: Build
       run: dotnet build --no-restore --configuration Release /bl:./artifacts/logs/release/build.release.binlog
