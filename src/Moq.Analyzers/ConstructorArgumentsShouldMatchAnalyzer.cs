@@ -39,10 +39,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Tracked in #90")]
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
+        // Pre-requisite checks
         ObjectCreationExpressionSyntax objectCreation = (ObjectCreationExpressionSyntax)context.Node;
-
         GenericNameSyntax? genericName = GetGenericNameSyntax(objectCreation.Type);
-        if (genericName == null) return;
+        if (genericName == null)
+        {
+            return;
+        }
 
         if (!IsMockGenericType(genericName))
         {
@@ -50,24 +53,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         // Full check that we are calling new Mock<T>()
-        IMethodSymbol? constructorSymbol = GetConstructorSymbol(context, objectCreation);
+        IMethodSymbol? mockCtorSymbol = GetConstructorSymbol(context, objectCreation);
 
-        // If constructorSymbol is null, we should have caught that earlier (and we cannot proceed)
-        if (constructorSymbol == null)
+        // If mockCtorSymbol is null we cannot proceed!
+        if (mockCtorSymbol == null)
         {
             return;
         }
-
-        // Vararg parameter is the one that takes all arguments for mocked class constructor
-        IParameterSymbol? varArgsConstructorParameter = constructorSymbol.Parameters.FirstOrDefault(parameterSymbol => parameterSymbol.IsParams);
-
-        // Vararg parameter are not used, so there are no arguments for mocked class constructor
-        if (varArgsConstructorParameter == null)
-        {
-            return;
-        }
-
-        int varArgsConstructorParameterIndex = constructorSymbol.Parameters.IndexOf(varArgsConstructorParameter);
 
         // Find mocked type
         INamedTypeSymbol? mockedTypeSymbol = GetMockedSymbol(context, genericName);
@@ -76,19 +68,64 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Skip first argument if it is not vararg - typically it is MockingBehavior argument
-        IEnumerable<ArgumentSyntax>? constructorArguments = objectCreation.ArgumentList?.Arguments.Skip(varArgsConstructorParameterIndex == 0 ? 0 : 1);
+        // All the basic checks are done, now we need to check if the constructor arguments match
+        // the mocked class constructor
 
-        if (!mockedTypeSymbol.IsAbstract)
+        // Vararg parameter is the one that takes all arguments for mocked class constructor
+        IParameterSymbol? varArgsConstructorParameter = mockCtorSymbol.Parameters.FirstOrDefault(parameterSymbol => parameterSymbol.IsParams);
+
+        // Vararg parameter are not used, so there are no arguments for mocked type constructor
+        if (varArgsConstructorParameter == null)
         {
-            AnalyzeConcrete(context, constructorArguments, objectCreation, genericName);
+            // Check if the mocked type has a default constructor or a constructor with all optional parameters
+            if (mockedTypeSymbol.Constructors.Any(methodSymbol => methodSymbol.Parameters.Length == 0
+                || methodSymbol.Parameters.All(parameterSymbol => parameterSymbol.HasExplicitDefaultValue)))
+            {
+                return;
+            }
+
+            // There is no default or constructor with all optional parameters on the mocked type
+            Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+            context.ReportDiagnostic(diagnostic);
         }
         else
         {
-            // Issue #1: Currently detection does not work well for abstract classes because they cannot be instantiated
+            // Parameters were defined with the Mock ctor. We're only interested in the vararg parameter
+            // as that contains the arguments for the mocked type constructor
+            int varArgsConstructorParameterIndex = mockCtorSymbol.Parameters.IndexOf(varArgsConstructorParameter);
 
-            // The mocked symbol is abstract, so we need to check if the constructor arguments match the abstract class constructor
-            AnalyzeAbstract(context, constructorArguments, mockedTypeSymbol, objectCreation);
+            // REVIEW: Assert the MockingBehavior is the first argument in this case
+            // Skip first argument if it is not vararg - typically it is MockingBehavior argument
+            IEnumerable<ArgumentSyntax>? constructorArguments = objectCreation
+                                                                    .ArgumentList?
+                                                                    .Arguments
+                                                                    .Skip(varArgsConstructorParameterIndex == 0 ? 0 : 1);
+
+            if (mockedTypeSymbol.IsAbstract)
+            {
+                // Issue #1: Currently detection does not work well for abstract classes because they cannot be instantiated
+
+                // The mocked symbol is abstract, so we need to check if the constructor arguments match the abstract class constructor
+                AnalyzeAbstract(context, constructorArguments, mockedTypeSymbol, objectCreation);
+            }
+            else
+            {
+                AnalyzeConcrete(context, constructorArguments, objectCreation, genericName);
+            }
+        }
+    }
+
+    private static void AnalyzeConcrete(
+        SyntaxNodeAnalysisContext context,
+        IEnumerable<ArgumentSyntax>? constructorArguments,
+        ObjectCreationExpressionSyntax objectCreation,
+        GenericNameSyntax genericName)
+    {
+        if (constructorArguments != null
+            && IsConstructorMismatch(context, objectCreation, genericName, constructorArguments))
+        {
+            Diagnostic diagnostic = objectCreation.ArgumentList.CreateDiagnostic(Rule);
+            context.ReportDiagnostic(diagnostic);
         }
     }
 
@@ -103,11 +140,14 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         if (constructorArguments != null)
         {
             ITypeSymbol[] argumentTypes = constructorArguments
-                .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
+                .Select(arg =>
+                    context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
                 .ToArray()!;
 
             // Check all constructors of the abstract type
-            for (int constructorIndex = 0; constructorIndex < mockedTypeSymbol.Constructors.Length; constructorIndex++)
+            for (int constructorIndex = 0;
+                 constructorIndex < mockedTypeSymbol.Constructors.Length;
+                 constructorIndex++)
             {
                 IMethodSymbol constructor = mockedTypeSymbol.Constructors[constructorIndex];
                 if (AreParametersMatching(constructor.Parameters, argumentTypes))
@@ -119,23 +159,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
 
-        Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+        Diagnostic diagnostic = objectCreation.ArgumentList.CreateDiagnostic(Rule);
         context.ReportDiagnostic(diagnostic);
-    }
-
-    private static void AnalyzeConcrete(
-        SyntaxNodeAnalysisContext context,
-        IEnumerable<ArgumentSyntax>? constructorArguments,
-        ObjectCreationExpressionSyntax objectCreation,
-        GenericNameSyntax genericName)
-    {
-        if (constructorArguments != null
-            && IsConstructorMismatch(context, objectCreation, genericName, constructorArguments)
-            && objectCreation.ArgumentList != null)
-        {
-            Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList.GetLocation());
-            context.ReportDiagnostic(diagnostic);
-        }
     }
 
     private static INamedTypeSymbol? GetMockedSymbol(
@@ -212,7 +237,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         SyntaxNodeAnalysisContext context,
         ObjectCreationExpressionSyntax objectCreation,
         GenericNameSyntax genericName,
-        IEnumerable<ArgumentSyntax> constructorArguments)
+        IEnumerable<ArgumentSyntax>? constructorArguments)
     {
         ObjectCreationExpressionSyntax fakeConstructorCall = SyntaxFactory.ObjectCreationExpression(
             genericName.TypeArgumentList.Arguments.First(),

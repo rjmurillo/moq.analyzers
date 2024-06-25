@@ -84,7 +84,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzer : DiagnosticAnalyzer
         {
             Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
 
-            Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+            Diagnostic diagnostic = objectCreation.ArgumentList.CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
         }
     }
