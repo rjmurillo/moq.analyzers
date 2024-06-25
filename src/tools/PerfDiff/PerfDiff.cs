@@ -63,7 +63,7 @@ namespace PerfDiff
         {
             var regressionDetected = false;
 
-            // try look for ETL traces 
+            // try look for ETL traces
             if (!TryGetETLPaths(baselineFolder, out var baselineEtlPath))
             {
                 return (false, regressionDetected);
