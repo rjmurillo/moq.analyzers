@@ -8,9 +8,9 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
     {
         return new object[][]
         {
-            ["""new Mock<Foo>(MockBehavior.Default);"""],
-            ["""new Mock<Foo>(MockBehavior.Strict);"""],
-            ["""new Mock<Foo>(MockBehavior.Loose);"""],
+            ["""new Mock<Foo>{|Moq1002:(MockBehavior.Default)|};"""],
+            ["""new Mock<Foo>{|Moq1002:(MockBehavior.Strict)|};"""],
+            ["""new Mock<Foo>{|Moq1002:(MockBehavior.Loose)|};"""],
             ["""new Mock<Foo>("3");"""],
             ["""new Mock<Foo>("4");"""],
             ["""new Mock<Foo>(MockBehavior.Default, "5");"""],
@@ -35,9 +35,15 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<AbstractGenericClassDefaultCtor<object>>{|Moq1002:(42)|};"""],
             ["""new Mock<AbstractGenericClassDefaultCtor<object>>();"""],
             ["""new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);"""],
-
-            // TODO: "I think this _should_ fail, but currently passes. Tracked by #55."
-            // ["""new Mock<AbstractClassWithCtor>();"""],
+            ["""new Mock<AbstractClassWithCtor>{|Moq1002:()|};"""],
+            ["""new Mock<AbstractClassWithCtor>{|Moq1002:(MockBehavior.Strict)|};"""],
+            ["""new Mock<AbstractClassWithCtor>{|Moq1002:(MockBehavior.Loose)|};"""],
+            ["""new Mock<AbstractClassWithDefaultParamCtor>();"""],
+            ["""new Mock<AbstractClassWithDefaultParamCtor>(MockBehavior.Strict);"""],
+            ["""new Mock<AbstractClassWithDefaultParamCtor>(MockBehavior.Loose);"""],
+            ["""new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:()|};"""],
+            ["""new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:(MockBehavior.Strict)|};"""],
+            ["""new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:(MockBehavior.Loose)|};"""],
             ["""new Mock<AbstractClassWithCtor>{|Moq1002:("42")|};"""],
             ["""new Mock<AbstractClassWithCtor>{|Moq1002:("42", 42)|};"""],
             ["""new Mock<AbstractClassDefaultCtor>{|Moq1002:(42)|};"""],
@@ -75,6 +81,11 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
                 internal abstract class AbstractGenericClassDefaultCtor<T>
                 {
                     protected AbstractGenericClassDefaultCtor() { }
+                }
+
+                internal abstract class AbstractClassWithDefaultParamCtor
+                {
+                    protected AbstractClassWithDefaultParamCtor(int a = 42) { }
                 }
 
                 internal abstract class AbstractClassWithCtor
