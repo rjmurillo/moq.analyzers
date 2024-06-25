@@ -80,7 +80,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
             NameSyntax? memberName = context.Operation.Syntax.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Select(mae => mae.Name).DefaultIfNotSingle();
             Location location = memberName?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
 
-            context.ReportDiagnostic(Diagnostic.Create(Rule, location));
+            context.ReportDiagnostic(location.CreateDiagnostic(Rule));
         }
     }
 }

@@ -48,7 +48,7 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
         ISymbol? mockedMethodSymbol = context.SemanticModel.GetSymbolInfo(mockedMethodCall, context.CancellationToken).Symbol;
         if (mockedMethodSymbol == null) return;
 
-        Diagnostic diagnostic = Diagnostic.Create(Rule, mockedMethodCall.GetLocation());
+        Diagnostic diagnostic = mockedMethodCall.CreateDiagnostic(Rule);
         context.ReportDiagnostic(diagnostic);
     }
 }
