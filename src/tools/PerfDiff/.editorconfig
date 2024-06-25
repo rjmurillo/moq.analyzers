@@ -48,3 +48,67 @@ dotnet_diagnostic.S2629.severity = none
 dotnet_diagnostic.S2629.severity = none
 # SA1201: Elements should appear in the correct order
 dotnet_diagnostic.SA1201.severity = none
+# S2930: "IDisposables" should be disposed
+dotnet_diagnostic.S2930.severity = none
+# S6605: Collection-specific "Exists" method should be used instead of the "Any" extension
+dotnet_diagnostic.S6605.severity = none
+# S6667: Logging in a catch clause should pass the caught exception as a parameter.
+dotnet_diagnostic.S6667.severity = none
+# AV1580: Method argument calls a nested method
+dotnet_diagnostic.AV1580.severity = none
+# SA1009: Closing parenthesis should be spaced correctly
+dotnet_diagnostic.SA1009.severity = none
+# SA1208: System using directives should be placed before other using directives
+dotnet_diagnostic.SA1208.severity = none
+# SA1316: Tuple element names should use correct casing
+dotnet_diagnostic.SA1316.severity = none
+# SA1503: Braces should not be omitted
+dotnet_diagnostic.SA1503.severity = none
+# SA1515: Single-line comment should be preceded by blank line
+dotnet_diagnostic.SA1515.severity = none
+# SA1202: Elements should be ordered by access
+dotnet_diagnostic.SA1202.severity = none
+# SA1110: Opening parenthesis or bracket should be on declaration line
+dotnet_diagnostic.SA1110.severity = none
+# SA1111: Closing parenthesis should be on line of last parameter
+dotnet_diagnostic.SA1111.severity = none
+# SA1204: Static elements should appear before instance elements
+dotnet_diagnostic.SA1204.severity = none
+# SA1601: Partial elements should be documented
+dotnet_diagnostic.SA1601.severity = none
+# SA1308: Variable names should not be prefixed
+dotnet_diagnostic.SA1308.severity = none
+# AV1008: Class should not be static
+dotnet_diagnostic.AV1008.severity = none
+# IDE0022: Use block body for method
+dotnet_diagnostic.IDE0022.severity = none
+# AV1561: Signature contains too many parameters
+dotnet_diagnostic.AV1561.severity = none
+# AV1739: Unused lambda parameter should be renamed to underscore(s)
+dotnet_diagnostic.AV1739.severity = none
+# RCS1163: Unused parameter
+dotnet_diagnostic.RCS1163.severity = none
+# CA1860: Avoid using 'Enumerable.Any()' extension method
+dotnet_diagnostic.CA1860.severity = none
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = none
+# IDE0028: Simplify collection initialization
+dotnet_diagnostic.IDE0028.severity = none
+# IDE0046: Convert to conditional expression
+dotnet_diagnostic.IDE0046.severity = none
+# IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0290.severity = none
+# IDE0300: Simplify collection initialization
+dotnet_diagnostic.IDE0300.severity = none
+# IDE0301: Simplify collection initialization
+dotnet_diagnostic.IDE0301.severity = none
+# MA0071: Avoid using redundant else
+dotnet_diagnostic.MA0071.severity = none
+# IDE0305: Simplify collection initialization
+dotnet_diagnostic.IDE0305.severity = none
+# MA0076: Do not use implicit culture-sensitive ToString in interpolated strings
+dotnet_diagnostic.MA0076.severity = none
+# RCS1192: Unnecessary usage of verbatim string literal
+dotnet_diagnostic.RCS1192.severity = none
+# S1135: Track uses of "TODO" tags
+dotnet_diagnostic.S1135.severity = none
