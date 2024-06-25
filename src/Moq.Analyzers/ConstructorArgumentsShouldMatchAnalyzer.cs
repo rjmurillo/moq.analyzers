@@ -124,7 +124,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         if (constructorArguments != null
             && IsConstructorMismatch(context, objectCreation, genericName, constructorArguments))
         {
-            Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+            Diagnostic diagnostic = objectCreation.ArgumentList.CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
         }
     }
@@ -159,7 +159,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
 
-        Diagnostic diagnostic = Diagnostic.Create(Rule, objectCreation.ArgumentList?.GetLocation());
+        Diagnostic diagnostic = objectCreation.ArgumentList.CreateDiagnostic(Rule);
         context.ReportDiagnostic(diagnostic);
     }
 
