@@ -2,10 +2,10 @@
 
 internal static class EnumerableExtensions
 {
-    /// <inheritdoc cref="SingleWhenOnly{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
-    public static TSource? SingleWhenOnly<TSource>(this IEnumerable<TSource> source)
+    /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+    public static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source)
     {
-        return source.SingleWhenOnly(_ => true);
+        return source.DefaultIfNotSingle(_ => true);
     }
 
     /// <summary>
@@ -21,7 +21,7 @@ internal static class EnumerableExtensions
     /// This should be equivalent to calling <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
     /// combined with a catch that returns <see langword="null"/>.
     /// </remarks>
-    public static TSource? SingleWhenOnly<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+    public static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
     {
         bool isFound = false;
         TSource? item = default;
