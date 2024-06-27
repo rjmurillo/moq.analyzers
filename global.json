@@ -4,6 +4,6 @@
     "rollForward": "latestFeature"
   },
   "msbuild-sdks": {
-    "DotNet.ReproducibleBuilds.Isolated": "1.1.1"
+    "DotNet.ReproducibleBuilds.Isolated": "1.2.4"
   }
 }
