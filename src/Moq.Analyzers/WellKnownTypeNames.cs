@@ -7,4 +7,5 @@ internal static class WellKnownTypeNames
     internal const string MoqMock = "Moq.Mock";
     internal const string MoqMock1 = "Moq.Mock`1";
     internal const string MoqMetadata = "Moq.MockRepository";
+    internal const string As = "As";
 }

@@ -20,7 +20,7 @@ public abstract class SingleDiagnosticAnalyzer : DiagnosticAnalyzerBase
         DiagnosticId id,
         string title,
         string messageFormat,
-        string description,
+        string? description,
         string category,
         DiagnosticSeverity severity = DiagnosticSeverity.Error,
         bool isEnabled = true)

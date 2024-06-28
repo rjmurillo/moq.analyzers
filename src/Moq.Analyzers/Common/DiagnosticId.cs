@@ -14,4 +14,9 @@ public enum DiagnosticId
     /// The Mock arguments must match the constructor parameters.
     /// </summary>
     NoMatchingConstructor = 1002,
+
+    /// <summary>
+    /// Mock.As() should only be used for interfaces.
+    /// </summary>
+    AsShouldOnlyBeUsedForInterfaces = 1300,
 }

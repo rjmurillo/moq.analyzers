@@ -28,7 +28,9 @@ public abstract class DiagnosticAnalyzerBase : DiagnosticAnalyzer
     /// and/or collect state information to be used in diagnostic analysis.
     /// </summary>
     /// <param name="startContext">Context for an operation block start action.</param>
-    protected abstract void RegisterOperationBlockStartAction(OperationBlockStartAnalysisContext startContext);
+    protected virtual void RegisterOperationBlockStartAction(OperationBlockStartAnalysisContext startContext)
+    {
+    }
 
     /// <summary>
     /// An action to be executed at compilation start. A compilation start action can register
