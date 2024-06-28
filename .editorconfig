@@ -419,3 +419,8 @@ dotnet_diagnostic.S1135.severity = suggestion
 dotnet_diagnostic.AV2318.severity = none
 # MA0026: Fix TODO comment
 dotnet_diagnostic.MA0026.severity = none
+
+### MISC ###
+# AV1535: Missing block in case or default clause of switch statement
+# Disabled because it's flagging switch statements incorrectly that have a default case
+dotnet_diagnostic.AV1535.severity = none

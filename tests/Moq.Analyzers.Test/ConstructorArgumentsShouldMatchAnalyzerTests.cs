@@ -4,17 +4,25 @@ namespace Moq.Analyzers.Test;
 
 public class ConstructorArgumentsShouldMatchAnalyzerTests
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "All test cases")]
     public static IEnumerable<object[]> TestData()
     {
         return new object[][]
         {
-            ["""new Mock<Foo>{|Moq1002:(MockBehavior.Default)|};"""],
-            ["""new Mock<Foo>("3");"""],
-            ["""new Mock<Foo>(MockBehavior.Default, "5");"""],
+            ["""new Mock<IFoo>(MockBehavior.Default);"""],
+            ["""new Mock<IFoo>();"""],
+
+            // This is allowed because there's a ctor with a single params parameter
+            ["""new Mock<ClassWithParams>(MockBehavior.Default);"""],
+            ["""new Mock<ClassWithParams>();"""],
+            ["""new Mock<ClassWithParams>(MockBehavior.Default, DateTime.Now, DateTime.Now);"""],
+            ["""new Mock<ClassWithParams>(DateTime.Now, DateTime.Now);"""],
+            ["""new Mock<ClassWithParams>(MockBehavior.Default, "42", DateTime.Now, DateTime.Now);"""],
+            ["""new Mock<ClassWithParams>("42", DateTime.Now, DateTime.Now);"""],
+
             ["""new Mock<Foo>(false, 0);"""],
             ["""new Mock<Foo>(MockBehavior.Default, true, 1);"""],
-            ["""new Mock<Foo>(DateTime.Now, DateTime.Now);"""],
-            ["""new Mock<Foo>(MockBehavior.Default, DateTime.Now, DateTime.Now);"""],
+
             ["""new Mock<Foo>(MockBehavior.Default, new List<string>());"""],
             ["""new Mock<Foo>(new List<string>());"""],
             ["""new Mock<Foo>(MockBehavior.Default, new List<string>(), "8");"""],
@@ -25,6 +33,15 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<Foo>{|Moq1002:(MockBehavior.Default, "2", 6)|};"""],
             ["""new Mock<Foo>{|Moq1002:(new int[] { 1, 2, 3 })|};"""],
             ["""new Mock<Foo>{|Moq1002:(MockBehavior.Default, 4, true)|};"""],
+
+            ["""new Mock<ClassDefaultCtor>(MockBehavior.Default);"""],
+            ["""new Mock<ClassDefaultCtor>();"""],
+
+            ["""new Mock<ClassWithDefaultParamCtor>(MockBehavior.Default);"""],
+            ["""new Mock<ClassWithDefaultParamCtor>();"""],
+
+            ["""new Mock<ClassWithRequiredParamCtor>{|Moq1002:(MockBehavior.Default)|};"""],
+            ["""new Mock<ClassWithRequiredParamCtor>{|Moq1002:()|};"""],
 
             ["""new Mock<AbstractGenericClassDefaultCtor<object>>(MockBehavior.Default);"""],
             ["""new Mock<AbstractGenericClassDefaultCtor<object>>();"""],
@@ -68,12 +85,34 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
                 $$"""
                 {{@namespace}}
 
+                internal interface IFoo
+                {
+                }
+
                 internal class Foo
                 {
-                    public Foo(string s) { }
                     public Foo(bool b, int i) { }
-                    public Foo(params DateTime[] dates) { }
                     public Foo(List<string> l, string s = "A") { }
+                }
+
+                internal class ClassDefaultCtor
+                {
+                }
+
+                internal class ClassWithDefaultParamCtor
+                {
+                    public ClassWithDefaultParamCtor(int a = 42) { }
+                }
+
+                internal class ClassWithRequiredParamCtor
+                {
+                    public ClassWithRequiredParamCtor(int a) { }
+                }
+
+                internal class ClassWithParams
+                {
+                    public ClassWithParams(params DateTime[] dates) { }
+                    public ClassWithParams(string s, params DateTime[] dates) { }
                 }
 
                 internal abstract class AbstractClassDefaultCtor
