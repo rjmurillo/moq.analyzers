@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis.Operations;
-using Moq.Analyzers.Common;
 
 namespace Moq.Analyzers;
 
@@ -12,16 +11,20 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : SingleDiagnosticAnalyzer
     private const string Title = "Moq: Invalid As type parameter";
     private const string Message = "Mock.As() should take interfaces only";
 
+    private static readonly DiagnosticDescriptor Rule = new(
+        DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId,
+        Title,
+        Message,
+        DiagnosticCategory.Moq,
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        helpLinkUri: DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId.ToHelpLinkUrl());
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AsShouldBeUsedOnlyForInterfaceAnalyzer"/> class.
     /// </summary>
     public AsShouldBeUsedOnlyForInterfaceAnalyzer()
-        : base(
-            DiagnosticId.AsShouldOnlyBeUsedForInterfaces,
-            Title,
-            Message,
-            description: null,
-            category: Categories.RuntimeFailure)
+        : base(Rule)
     {
     }
 

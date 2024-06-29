@@ -1,7 +1,3 @@
-using System.Diagnostics;
-using Microsoft.CodeAnalysis;
-using Moq.Analyzers.Common;
-
 namespace Moq.Analyzers;
 
 /// <summary>
@@ -14,20 +10,25 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
 {
-    private const string Description = "Parameters provided into mock do not match any existing constructors";
+    private const string Description = "Parameters provided into mock do not match any existing constructors.";
     private const string MessageFormat = "Could not find a matching constructor for {0}";
     private const string Title = "Mock<T> construction must call an existing constructor";
+
+    private static readonly DiagnosticDescriptor Rule = new(
+        DiagnosticIds.NoMatchingConstructorRuleId,
+        Title,
+        MessageFormat,
+        DiagnosticCategory.Moq,
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: Description,
+        helpLinkUri: DiagnosticIds.NoMatchingConstructorRuleId.ToHelpLinkUrl());
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ConstructorArgumentsShouldMatchAnalyzer"/> class.
     /// </summary>
     public ConstructorArgumentsShouldMatchAnalyzer()
-        : base(
-            DiagnosticId.NoMatchingConstructor,
-            Title,
-            MessageFormat,
-            Description,
-            Categories.RuntimeFailure,
-            DiagnosticSeverity.Warning)
+        : base(Rule)
     {
     }
 
@@ -40,11 +41,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
         }
 
         context.RegisterSyntaxNodeAction(AnalyzeNewObject, SyntaxKind.ObjectCreationExpression);
-    }
-
-    /// <inheritdoc />
-    protected override void RegisterOperationBlockStartAction(OperationBlockStartAnalysisContext startContext)
-    {
     }
 
     /// <summary>

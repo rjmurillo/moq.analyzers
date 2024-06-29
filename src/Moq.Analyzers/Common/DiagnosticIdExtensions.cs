@@ -2,10 +2,16 @@
 
 internal static class DiagnosticIdExtensions
 {
-    internal static string ToId(this DiagnosticId id) => FormattableString.Invariant($"Moq{(int)id:D4}");
-
-    internal static string ToHelpLinkUrl(this DiagnosticId id)
+    internal static string ToHelpLinkUrl(this string id)
     {
-        return $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{id.ToId()}.md";
+        if (!id.StartsWith(WellKnownTypeNames.Moq))
+        {
+            throw new NotSupportedException();
+        }
+
+        // This is always "Moq" + 4 digits
+        var numericId = id.AsSpan().Slice(3, 4);
+
+        return $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{numericId.ToString()}.md";
     }
 }
