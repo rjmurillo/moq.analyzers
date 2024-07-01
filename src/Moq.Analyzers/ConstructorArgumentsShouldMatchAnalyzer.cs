@@ -40,6 +40,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
             return;
         }
 
+        // Ensure Moq is referenced in the compilation
+        ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
+        if (mockTypes.IsEmpty)
+        {
+            return;
+        }
+
         context.RegisterSyntaxNodeAction(AnalyzeNewObject, SyntaxKind.ObjectCreationExpression);
     }
 
@@ -72,7 +79,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
     /// match an existing constructor of the mocked class.
     /// </summary>
     /// <param name="context">The context.</param>
-    /// <returns></returns>
     private void AnalyzeNewObject(SyntaxNodeAnalysisContext context)
     {
         ObjectCreationExpressionSyntax objectCreationExpressionSyntax = (ObjectCreationExpressionSyntax)context.Node;
