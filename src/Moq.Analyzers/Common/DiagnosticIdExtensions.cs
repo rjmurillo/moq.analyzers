@@ -4,13 +4,13 @@ internal static class DiagnosticIdExtensions
 {
     internal static string ToHelpLinkUrl(this string id)
     {
-        if (!id.StartsWith(WellKnownTypeNames.Moq))
+        if (!id.StartsWith(WellKnownTypeNames.Moq, StringComparison.Ordinal))
         {
             throw new NotSupportedException();
         }
 
         // This is always "Moq" + 4 digits
-        var numericId = id.AsSpan().Slice(3, 4);
+        ReadOnlySpan<char> numericId = id.AsSpan().Slice(3, 4);
 
         return $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{numericId.ToString()}.md";
     }

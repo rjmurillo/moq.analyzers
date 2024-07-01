@@ -11,25 +11,7 @@ public abstract class DiagnosticAnalyzerBase : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GetGeneratedCodeAnalysisFlags());
         context.EnableConcurrentExecution();
 
-        context.RegisterOperationBlockStartAction(startContext =>
-        {
-            RegisterOperationBlockStartAction(startContext);
-        });
-
-        context.RegisterCompilationStartAction(startContext =>
-        {
-            RegisterCompilationStartAction(startContext);
-        });
-    }
-
-    /// <summary>
-    /// An action to be executed at the start of semantic analysis of a method body or an expression
-    /// appearing outside a method body.  An operation block start action can register other actions
-    /// and/or collect state information to be used in diagnostic analysis.
-    /// </summary>
-    /// <param name="startContext">Context for an operation block start action.</param>
-    protected virtual void RegisterOperationBlockStartAction(OperationBlockStartAnalysisContext startContext)
-    {
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
     /// <summary>

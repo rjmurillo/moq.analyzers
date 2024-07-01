@@ -5,7 +5,6 @@ namespace Moq.Analyzers.Common;
 /// </summary>
 public abstract class SingleDiagnosticAnalyzer : DiagnosticAnalyzerBase
 {
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SingleDiagnosticAnalyzer"/> class.
     /// </summary>

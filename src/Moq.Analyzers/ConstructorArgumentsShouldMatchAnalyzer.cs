@@ -202,13 +202,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
         return false;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1562:Do not declare a parameter as ref or out", Justification = "<Pending>")]
-    private bool ConstructorIsEmpty(
+    private (bool IsEmpty, Location Location) ConstructorIsEmpty(
         ImmutableArray<IMethodSymbol> constructors,
         ArgumentListSyntax? argumentList,
-        SyntaxNodeAnalysisContext context,
-        out Location location)
+        SyntaxNodeAnalysisContext context)
     {
+        Location location;
+
         if (argumentList != null)
         {
             location = argumentList.GetLocation();
@@ -218,7 +218,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
             location = context.Node.GetLocation();
         }
 
-        return constructors.IsEmpty;
+        return (constructors.IsEmpty, location);
     }
 
     private bool IsFirstArgumentMockBehavior(ArgumentListSyntax? argumentList)
@@ -290,9 +290,10 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
             .ToImmutableArray();
 
         // Bail out early if there are no arguments on constructors or no constructors at all
-        if (ConstructorIsEmpty(constructors, argumentList, context, out Location location))
+        (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
+        if (constructorIsEmpty.IsEmpty)
         {
-            context.ReportDiagnostic(Diagnostic.Create(Rule, location, argumentList));
+            context.ReportDiagnostic(Diagnostic.Create(Rule, constructorIsEmpty.Location, argumentList));
             return;
         }
 
