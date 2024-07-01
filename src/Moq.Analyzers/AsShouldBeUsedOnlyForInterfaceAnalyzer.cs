@@ -18,7 +18,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : SingleDiagnosticAnalyzer
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        helpLinkUri: DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId.ToHelpLinkUrl());
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId}.md");
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AsShouldBeUsedOnlyForInterfaceAnalyzer"/> class.

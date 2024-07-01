@@ -22,7 +22,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: Description,
-        helpLinkUri: DiagnosticIds.NoMatchingConstructorRuleId.ToHelpLinkUrl());
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.NoMatchingConstructorRuleId}.md");
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConstructorArgumentsShouldMatchAnalyzer"/> class.

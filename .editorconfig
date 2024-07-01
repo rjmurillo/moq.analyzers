@@ -408,6 +408,10 @@ dotnet_diagnostic.AV1555.severity = none
 # AV1500: Methods should not exceed 7 statements
 dotnet_diagnostic.AV1500.severity = silent
 
+# AV1008: Class should not be static
+# Disabled because we use static classes for groups of constants
+dotnet_diagnostic.AV1008.severity = none
+
 #### Handling TODOs ####
 # This is a popular rule in analyzers. Everyone has an opinion and
 # some of the severity levels conflict. We don't need all of these
