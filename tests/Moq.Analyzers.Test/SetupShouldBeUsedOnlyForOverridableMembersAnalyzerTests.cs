@@ -16,7 +16,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
             ["""new Mock<ISampleInterface>().Setup(x => x.TestProperty);"""],
             ["""new Mock<SampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
             ["""new Mock<SampleClass>().Setup(x => x.DoSth());"""],
-        }.WithNamespaces().WithReferenceAssemblyGroups();
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]

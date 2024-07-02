@@ -1,4 +1,4 @@
-using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoConstructorArgumentsForInterfaceMockAnalyzer>;
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.ConstructorArgumentsShouldMatchAnalyzer>;
 
 namespace Moq.Analyzers.Test;
 
@@ -17,7 +17,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
             ["""new Mock<IMyService>(MockBehavior.Default);"""],
             ["""new Mock<IMyService>(MockBehavior.Strict);"""],
             ["""new Mock<IMyService>(MockBehavior.Loose);"""],
-        }.WithNamespaces().WithReferenceAssemblyGroups();
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]

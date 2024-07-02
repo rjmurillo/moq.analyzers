@@ -11,7 +11,7 @@ internal static class TestDataExtensions
         }
     }
 
-    public static IEnumerable<object[]> WithReferenceAssemblyGroups(this IEnumerable<object[]> data)
+    public static IEnumerable<object[]> WithMoqReferenceAssemblyGroups(this IEnumerable<object[]> data)
     {
         foreach (object[] item in data)
         {

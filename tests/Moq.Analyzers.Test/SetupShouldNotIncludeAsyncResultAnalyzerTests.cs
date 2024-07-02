@@ -11,7 +11,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests
             ["""new Mock<AsyncClient>().Setup(c => c.TaskAsync());"""],
             ["""new Mock<AsyncClient>().Setup(c => c.GenericTaskAsync()).ReturnsAsync(string.Empty);"""],
             ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""],
-        }.WithNamespaces().WithReferenceAssemblyGroups();
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]
