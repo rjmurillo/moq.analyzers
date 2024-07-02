@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace Moq.Analyzers;
 
 /// <summary>
@@ -47,6 +45,11 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     private void AnalyzeCompilation(CompilationStartAnalysisContext context)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
+        if (context.Compilation.Options.IsAnalyzerSuppressed(InterfaceMustNotHaveConstructorParameters)
+            && context.Compilation.Options.IsAnalyzerSuppressed(ClassMustHaveMatchingConstructor))
+        {
+            return;
+        }
 
         // We're interested in the few ways to create mocks:
         //  - new Mock<T>()
@@ -63,66 +66,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // These are for classes
         context.RegisterSyntaxNodeAction(AnalyzeNewObject, SyntaxKind.ObjectCreationExpression);
         context.RegisterSyntaxNodeAction(AnalyzeInstanceCall, SyntaxKind.InvocationExpression);
-    }
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
-    private static void Analyze(SyntaxNodeAnalysisContext context)
-    {
-        ObjectCreationExpressionSyntax objectCreation = (ObjectCreationExpressionSyntax)context.Node;
-
-        // TODO Think how to make this piece more elegant while fast
-        GenericNameSyntax? genericName = objectCreation.Type as GenericNameSyntax;
-        if (objectCreation.Type is QualifiedNameSyntax qualifiedName)
-        {
-            genericName = qualifiedName.Right as GenericNameSyntax;
-        }
-
-        if (genericName?.Identifier == null || genericName.TypeArgumentList == null) return;
-
-        // Quick and dirty check
-        if (!string.Equals(
-                genericName.Identifier.ToFullString(),
-                WellKnownTypeNames.MockName,
-                StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        // Full check
-        SymbolInfo constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation, context.CancellationToken);
-        if (constructorSymbolInfo.Symbol is not IMethodSymbol constructorSymbol
-            || constructorSymbol.ContainingType == null
-            || constructorSymbol.ContainingType.ConstructedFrom == null)
-        {
-            return;
-        }
-
-        if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
-        if (!string.Equals(
-                constructorSymbol.ContainingType.ConstructedFrom.ToDisplayString(),
-                "Moq.Mock<T>",
-                StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        if (constructorSymbol.Parameters.Length == 0) return;
-        if (!constructorSymbol.Parameters.Any(parameterSymbol => parameterSymbol.IsParams)) return;
-
-        // Find mocked type
-        SeparatedSyntaxList<TypeSyntax> typeArguments = genericName.TypeArgumentList.Arguments;
-        if (typeArguments.Count != 1) return;
-        SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0], context.CancellationToken);
-        if (symbolInfo.Symbol is not INamedTypeSymbol symbol) return;
-
-        // Checked mocked type
-        if (symbol.TypeKind == TypeKind.Interface)
-        {
-            Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
-
-            Diagnostic diagnostic = objectCreation.ArgumentList.CreateDiagnostic(InterfaceMustNotHaveConstructorParameters);
-            context.ReportDiagnostic(diagnostic);
-        }
     }
 
     private void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context)
@@ -219,9 +162,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <param name="context">The context.</param>
     private void AnalyzeNewObject(SyntaxNodeAnalysisContext context)
     {
-        ObjectCreationExpressionSyntax objectCreationExpressionSyntax = (ObjectCreationExpressionSyntax)context.Node;
+        ObjectCreationExpressionSyntax newExpression = (ObjectCreationExpressionSyntax)context.Node;
 
-        GenericNameSyntax? genericNameSyntax = GetGenericNameSyntax(objectCreationExpressionSyntax.Type);
+        GenericNameSyntax? genericNameSyntax = GetGenericNameSyntax(newExpression.Type);
         if (genericNameSyntax == null)
         {
             return;
@@ -236,7 +179,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         SymbolInfo symbolInfo =
-            context.SemanticModel.GetSymbolInfo(objectCreationExpressionSyntax, context.CancellationToken);
+            context.SemanticModel.GetSymbolInfo(newExpression, context.CancellationToken);
 
         if (symbolInfo.Symbol is not IMethodSymbol mockConstructorMethod)
         {
@@ -250,7 +193,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         ITypeSymbol mockedClass = typeSymbol.TypeArguments[0];
 
-        VerifyMockAttempt(context, mockedClass, objectCreationExpressionSyntax.ArgumentList, true);
+        VerifyMockAttempt(context, mockedClass, newExpression.ArgumentList, true);
     }
 
     /// <summary>
