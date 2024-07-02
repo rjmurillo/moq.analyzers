@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Moq.Analyzers;
 
 /// <summary>
@@ -8,38 +10,49 @@ namespace Moq.Analyzers;
 /// This analyzer helps catch runtime failures related to constructor mismatches in Moq-based unit tests.
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
+public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 {
-    private const string Description = "Parameters provided into mock do not match any existing constructors.";
-    private const string MessageFormat = "Could not find a matching constructor for {0}";
-    private const string Title = "Mock<T> construction must call an existing constructor";
-
-    private static readonly DiagnosticDescriptor Rule = new(
+    private static readonly DiagnosticDescriptor ClassMustHaveMatchingConstructor = new(
         DiagnosticIds.NoMatchingConstructorRuleId,
-        Title,
-        MessageFormat,
+        "Mock<T> construction must call an existing type constructor",
+        "Could not find a matching constructor for {0}",
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: Description,
+        description: "Parameters provided into mock do not match any existing constructors.",
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.NoMatchingConstructorRuleId}.md");
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ConstructorArgumentsShouldMatchAnalyzer"/> class.
-    /// </summary>
-    public ConstructorArgumentsShouldMatchAnalyzer()
-        : base(Rule)
-    {
-    }
+    private static readonly DiagnosticDescriptor InterfaceMustNotHaveConstructorParameters = new(
+        DiagnosticIds.NoConstructorArgumentsForInterfaceMockRuleId,
+        "Mock<T> construction must not specify parameters for interfaces",
+        "Mocked interface cannot have constructor parameters {0}",
+        DiagnosticCategory.Moq,
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "Parameters provided into mock of interface cannot contain constructor parameters",
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.NoConstructorArgumentsForInterfaceMockRuleId}.md");
 
     /// <inheritdoc />
-    protected override void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        if (context.Compilation.GetTypeByMetadataName(WellKnownTypeNames.MoqMetadata) == null)
-        {
-            return;
-        }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ClassMustHaveMatchingConstructor, InterfaceMustNotHaveConstructorParameters);
 
+    /// <inheritdoc />
+    public sealed override void Initialize(AnalysisContext context)
+    {
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
+
+        context.RegisterCompilationStartAction(AnalyzeCompilation);
+    }
+
+    private void AnalyzeCompilation(CompilationStartAnalysisContext context)
+    {
+        context.CancellationToken.ThrowIfCancellationRequested();
+
+        // We're interested in the few ways to create mocks:
+        //  - new Mock<T>()
+        //  - Mock.Of<T>()
+        //  - Using the MockRepository with MockRepository.Create<T>();
+        //
         // Ensure Moq is referenced in the compilation
         ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
         if (mockTypes.IsEmpty)
@@ -47,8 +60,69 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
             return;
         }
 
+        // These are for classes
         context.RegisterSyntaxNodeAction(AnalyzeNewObject, SyntaxKind.ObjectCreationExpression);
         context.RegisterSyntaxNodeAction(AnalyzeInstanceCall, SyntaxKind.InvocationExpression);
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
+    private static void Analyze(SyntaxNodeAnalysisContext context)
+    {
+        ObjectCreationExpressionSyntax objectCreation = (ObjectCreationExpressionSyntax)context.Node;
+
+        // TODO Think how to make this piece more elegant while fast
+        GenericNameSyntax? genericName = objectCreation.Type as GenericNameSyntax;
+        if (objectCreation.Type is QualifiedNameSyntax qualifiedName)
+        {
+            genericName = qualifiedName.Right as GenericNameSyntax;
+        }
+
+        if (genericName?.Identifier == null || genericName.TypeArgumentList == null) return;
+
+        // Quick and dirty check
+        if (!string.Equals(
+                genericName.Identifier.ToFullString(),
+                WellKnownTypeNames.MockName,
+                StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        // Full check
+        SymbolInfo constructorSymbolInfo = context.SemanticModel.GetSymbolInfo(objectCreation, context.CancellationToken);
+        if (constructorSymbolInfo.Symbol is not IMethodSymbol constructorSymbol
+            || constructorSymbol.ContainingType == null
+            || constructorSymbol.ContainingType.ConstructedFrom == null)
+        {
+            return;
+        }
+
+        if (constructorSymbol.MethodKind != MethodKind.Constructor) return;
+        if (!string.Equals(
+                constructorSymbol.ContainingType.ConstructedFrom.ToDisplayString(),
+                "Moq.Mock<T>",
+                StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (constructorSymbol.Parameters.Length == 0) return;
+        if (!constructorSymbol.Parameters.Any(parameterSymbol => parameterSymbol.IsParams)) return;
+
+        // Find mocked type
+        SeparatedSyntaxList<TypeSyntax> typeArguments = genericName.TypeArgumentList.Arguments;
+        if (typeArguments.Count != 1) return;
+        SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(typeArguments[0], context.CancellationToken);
+        if (symbolInfo.Symbol is not INamedTypeSymbol symbol) return;
+
+        // Checked mocked type
+        if (symbol.TypeKind == TypeKind.Interface)
+        {
+            Debug.Assert(objectCreation.ArgumentList != null, "objectCreation.ArgumentList != null");
+
+            Diagnostic diagnostic = objectCreation.ArgumentList.CreateDiagnostic(InterfaceMustNotHaveConstructorParameters);
+            context.ReportDiagnostic(diagnostic);
+        }
     }
 
     private void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context)
@@ -71,7 +145,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
                 AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockFactory, true, true);
                 break;
             case WellKnownTypeNames.Of:
-                AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockName, false, false);
+                AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockName, false, true);
                 break;
             default:
                 return;
@@ -94,7 +168,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
             return;
         }
 
-        if (method.ContainingType.Name != expectedClassName)
+        if (!string.Equals(method.ContainingType.Name, expectedClassName, StringComparison.Ordinal))
         {
             return;
         }
@@ -319,7 +393,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
         ImmutableArray<ArgumentSyntax> arguments =
             argumentList?.Arguments.ToImmutableArray() ?? ImmutableArray<ArgumentSyntax>.Empty;
 
-        if (arguments.Length > 0 && IsFirstArgumentMockBehavior(argumentList))
+        if (hasMockBehavior && arguments.Length > 0 && IsFirstArgumentMockBehavior(argumentList))
         {
             // They passed a mock behavior as the first argument; ignore as Moq swallows it
             arguments = arguments.RemoveAt(0);
@@ -328,6 +402,19 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
         switch (mockedClass.TypeKind)
         {
             case TypeKind.Interface:
+                // Interfaces and delegates don't have ctors, so bail out early
+                if (arguments.Length == 0)
+                {
+                    return;
+                }
+
+
+
+                    context.ReportDiagnostic(Diagnostic.Create(InterfaceMustNotHaveConstructorParameters, argumentList?.GetLocation(), argumentList));
+                    return;
+
+                break;
+
             case TypeKind.Delegate:
                 // Interfaces and delegates don't have ctors, so bail out early
                 if (arguments.Length == 0)
@@ -335,9 +422,11 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
                     return;
                 }
 
+
+
                 if (mockedClass.TypeKind == TypeKind.Delegate)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, argumentList?.GetLocation(), argumentList));
+                    context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
                     return;
                 }
 
@@ -358,14 +447,14 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
         (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
         if (constructorIsEmpty.IsEmpty)
         {
-            context.ReportDiagnostic(Diagnostic.Create(Rule, constructorIsEmpty.Location, argumentList));
+            context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, constructorIsEmpty.Location, argumentList));
             return;
         }
 
         // We have constructors, now we need to check if the arguments match any of them
         if (!AnyConstructorsFound(constructors, arguments, context))
         {
-            context.ReportDiagnostic(Diagnostic.Create(Rule, argumentList?.GetLocation(), argumentList));
+            context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
         }
     }
 }

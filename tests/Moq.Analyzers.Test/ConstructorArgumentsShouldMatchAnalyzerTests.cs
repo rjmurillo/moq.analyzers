@@ -9,9 +9,6 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
     {
         return new object[][]
         {
-            ["""new Mock<IFoo>(MockBehavior.Default);"""],
-            ["""new Mock<IFoo>();"""],
-
             // This is allowed because there's a ctor with a single params parameter
             ["""new Mock<ClassWithParams>(MockBehavior.Default);"""],
             ["""new Mock<ClassWithParams>();"""],
@@ -33,9 +30,6 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<Foo>{|Moq1002:(MockBehavior.Default, "2", 6)|};"""],
             ["""new Mock<Foo>{|Moq1002:(new int[] { 1, 2, 3 })|};"""],
             ["""new Mock<Foo>{|Moq1002:(MockBehavior.Default, 4, true)|};"""],
-
-            ["""new Mock<ClassDefaultCtor>(MockBehavior.Default);"""],
-            ["""new Mock<ClassDefaultCtor>();"""],
 
             ["""new Mock<ClassWithDefaultParamCtor>(MockBehavior.Default);"""],
             ["""new Mock<ClassWithDefaultParamCtor>();"""],
@@ -75,11 +69,147 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:()|};"""],
             ["""new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:(MockBehavior.Default)|};"""],
 
-            // LINQ versions don't have ctors, so we can skip those
+            // LINQ versions don't have capacity to specify ctors, so we can't use
+            // types that don't have a default ctor
+            ["""Mock.Of<ClassDefaultCtor>();"""],
+            ["""Mock.Of<ClassWithDefaultParamCtor>();"""],
+            ["""Mock.Of<Foo>{|Moq1002:()|};"""],
 
             // Repository versions
-            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<Foo>{|Moq1002:()|}; repository.Verify(); Assert.NotNull(mock.Object); """],
-        }.WithNamespaces().WithReferenceAssemblyGroups();
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<Foo>{|Moq1002:(MockBehavior.Default)|}; repository.Verify();"""],
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<Foo>{|Moq1002:()|}; repository.Verify();"""],
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<Foo>(false, 42); repository.Verify();"""],
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<Foo>(MockBehavior.Default, false, 42); repository.Verify();"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> InterfaceTestData()
+    {
+        return new object[][]
+        {
+            // Regular code (to make sure we bail out early)
+            ["""IFoo foo;"""],
+
+            // Regular
+            ["""new Mock<IFoo>(MockBehavior.Default);"""],
+            ["""new Mock<IFoo>();"""],
+            ["""new Mock<IFoo>{|Moq1001:(MockBehavior.Default, 42)|};"""],
+            ["""new Mock<IFoo>{|Moq1001:(42)|};"""],
+
+            // LINQ
+            ["""Mock.Of<IFoo>(MockBehavior.Default);"""],
+            ["""Mock.Of<IFoo>();"""],
+
+            // Repository
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<IFoo>(MockBehavior.Default); repository.Verify();"""],
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<IFoo>(); repository.Verify();"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> ClassWithDefaultCtorTestData()
+    {
+        return new object[][]
+        {
+            ["""new Mock<ClassDefaultCtor>(MockBehavior.Default);"""],
+            ["""new Mock<ClassDefaultCtor>();"""],
+
+            ["""Mock.Of<ClassDefaultCtor>(MockBehavior.Default);"""],
+            ["""Mock.Of<ClassDefaultCtor>();"""],
+
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(MockBehavior.Default); repository.Verify();"""],
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(); repository.Verify();"""],
+
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> ClassWithDefaultParamCtorTestData()
+    {
+        return new object[][]
+        {
+            ["""new Mock<ClassWithDefaultParamCtor>(MockBehavior.Default);"""],
+            ["""new Mock<ClassWithDefaultParamCtor>();"""],
+            ["""new Mock<ClassWithDefaultParamCtor>(MockBehavior.Default, 21);"""],
+            ["""new Mock<ClassWithDefaultParamCtor>(21);"""],
+
+            ["""Mock.Of<ClassWithDefaultParamCtor>(MockBehavior.Default);"""],
+            ["""Mock.Of<ClassWithDefaultParamCtor>();"""],
+
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(MockBehavior.Default); repository.Verify();"""],
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(); repository.Verify();"""],
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(MockBehavior.Default, 21); repository.Verify();"""],
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(21); repository.Verify();"""],
+
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    [Theory]
+    [MemberData(nameof(ClassWithDefaultParamCtorTestData))]
+    public async Task ShouldAnalyzeClassWithDefaultParamCtor(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+
+              internal class ClassWithDefaultParamCtor
+              {
+                  public ClassWithDefaultParamCtor(int a = 42) { }
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      {{mock}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(ClassWithDefaultCtorTestData))]
+    public async Task ShouldAnalyzeClassWithDefaultCtor(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+
+              public class ClassDefaultCtor
+              {
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      {{mock}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(InterfaceTestData))]
+    public async Task ShouldAnalyzeInterface(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+                $$"""
+                {{@namespace}}
+
+                public interface IFoo
+                {
+                }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        {{mock}}
+                    }
+                }
+                """,
+                referenceAssemblyGroup);
     }
 
     [Theory]

@@ -44,8 +44,8 @@ internal class {name}
         }
 
         (BaselineCompilation, TestCompilation) =
-            BenchmarkCSharpCompilationCreator<AsShouldBeUsedOnlyForInterfaceAnalyzer>
-            .CreateAsync(sources.ToArray())
+            BenchmarkCSharpCompilationFactory
+            .CreateAsync<AsShouldBeUsedOnlyForInterfaceAnalyzer>(sources.ToArray())
             .GetAwaiter()
             .GetResult();
     }
