@@ -74,6 +74,11 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:("42", 42)|};"""],
             ["""new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:()|};"""],
             ["""new Mock<AbstractGenericClassWithCtor<object>>{|Moq1002:(MockBehavior.Default)|};"""],
+
+            // LINQ versions don't have ctors, so we can skip those
+
+            // Repository versions
+            ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<Foo>{|Moq1002:()|}; repository.Verify(); Assert.NotNull(mock.Object); """],
         }.WithNamespaces().WithReferenceAssemblyGroups();
     }
 

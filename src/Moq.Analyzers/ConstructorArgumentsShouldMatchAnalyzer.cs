@@ -48,6 +48,70 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
         }
 
         context.RegisterSyntaxNodeAction(AnalyzeNewObject, SyntaxKind.ObjectCreationExpression);
+        context.RegisterSyntaxNodeAction(AnalyzeInstanceCall, SyntaxKind.InvocationExpression);
+    }
+
+    private void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context)
+    {
+        InvocationExpressionSyntax invocationExpressionSyntax = (InvocationExpressionSyntax)context.Node;
+
+        if (invocationExpressionSyntax.Expression is not MemberAccessExpressionSyntax memberAccessExpressionSyntax)
+        {
+            return;
+        }
+
+        if (memberAccessExpressionSyntax.Name is not GenericNameSyntax genericNameSyntax)
+        {
+            return;
+        }
+
+        switch (genericNameSyntax.Identifier.Value)
+        {
+            case WellKnownTypeNames.Create:
+                AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockFactory, true, true);
+                break;
+            case WellKnownTypeNames.Of:
+                AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockName, false, false);
+                break;
+            default:
+                return;
+        }
+    }
+
+    private void AnalyzeInvocation(
+        SyntaxNodeAnalysisContext context,
+        InvocationExpressionSyntax invocationExpressionSyntax,
+        string expectedClassName,
+        bool hasReturnedMock,
+        bool hasMockBehavior)
+    {
+        // We are calling Foo.Create<T> or Foo.Of.  Drop to the semantic model
+        // Determine if this is this MockRepository.Create<T> or Mock.Of<T>
+        SymbolInfo symbol = context.SemanticModel.GetSymbolInfo(invocationExpressionSyntax, context.CancellationToken);
+
+        if (symbol.Symbol is not IMethodSymbol method)
+        {
+            return;
+        }
+
+        if (method.ContainingType.Name != expectedClassName)
+        {
+            return;
+        }
+
+        ITypeSymbol returnType = method.ReturnType;
+        if (hasReturnedMock)
+        {
+            if (returnType is not INamedTypeSymbol { IsGenericType: true } typeSymbol)
+            {
+                return;
+            }
+
+            returnType = typeSymbol.TypeArguments[0];
+        }
+
+        // We are calling MockRepository.Create<T>
+        VerifyMockAttempt(context, returnType, invocationExpressionSyntax.ArgumentList, hasMockBehavior);
     }
 
     /// <summary>
@@ -112,7 +176,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
 
         ITypeSymbol mockedClass = typeSymbol.TypeArguments[0];
 
-        VerifyMockAttempt(context, mockedClass, objectCreationExpressionSyntax.ArgumentList);
+        VerifyMockAttempt(context, mockedClass, objectCreationExpressionSyntax.ArgumentList, true);
     }
 
     /// <summary>
@@ -244,7 +308,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : SingleDiagnosticAnalyzer
     private void VerifyMockAttempt(
                     SyntaxNodeAnalysisContext context,
                     ITypeSymbol mockedClass,
-                    ArgumentListSyntax? argumentList)
+                    ArgumentListSyntax? argumentList,
+                    bool hasMockBehavior)
     {
         if (mockedClass is IErrorTypeSymbol)
         {
