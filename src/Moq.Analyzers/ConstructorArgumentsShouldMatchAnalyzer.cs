@@ -45,6 +45,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     private void AnalyzeCompilation(CompilationStartAnalysisContext context)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
+
         if (context.Compilation.Options.IsAnalyzerSuppressed(InterfaceMustNotHaveConstructorParameters)
             && context.Compilation.Options.IsAnalyzerSuppressed(ClassMustHaveMatchingConstructor))
         {

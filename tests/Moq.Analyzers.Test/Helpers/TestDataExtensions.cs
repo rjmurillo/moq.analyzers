@@ -19,4 +19,12 @@ internal static class TestDataExtensions
             yield return item.Prepend(ReferenceAssemblyCatalog.Net80WithNewMoq).ToArray();
         }
     }
+
+    public static IEnumerable<object[]> WithNewMoqReferenceAssemblyGroups(this IEnumerable<object[]> data)
+    {
+        foreach (object[] item in data)
+        {
+            yield return item.Prepend(ReferenceAssemblyCatalog.Net80WithNewMoq).ToArray();
+        }
+    }
 }

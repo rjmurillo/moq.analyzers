@@ -114,7 +114,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
 
     public static IEnumerable<object[]> InterfaceTestData()
     {
-        return new object[][]
+        IEnumerable<object[]> all = new object[][]
         {
             // Regular code (to make sure we bail out early)
             ["""IFoo foo;"""],
@@ -126,13 +126,20 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<IFoo>{|Moq1001:(42)|};"""],
 
             // LINQ
-            ["""Mock.Of<IFoo>(MockBehavior.Default);"""],
             ["""Mock.Of<IFoo>();"""],
 
             // Repository
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<IFoo>(MockBehavior.Default); repository.Verify();"""],
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<IFoo>(); repository.Verify();"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+
+        IEnumerable<object[]> @new = new object[][]
+        {
+            // LINQ
+            ["""Mock.Of<IFoo>(MockBehavior.Default);"""],   // This is only available in newer versions of
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+
+        return all.Union(@new);
     }
 
     public static IEnumerable<object[]> ClassWithDefaultCtorTestData()
@@ -154,21 +161,31 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
 
     public static IEnumerable<object[]> ClassWithDefaultParamCtorTestData()
     {
-        return new object[][]
+        var all = new object[][]
         {
+            // Regular
             ["""new Mock<ClassWithDefaultParamCtor>(MockBehavior.Default);"""],
             ["""new Mock<ClassWithDefaultParamCtor>();"""],
             ["""new Mock<ClassWithDefaultParamCtor>(MockBehavior.Default, 21);"""],
             ["""new Mock<ClassWithDefaultParamCtor>(21);"""],
 
-            ["""Mock.Of<ClassWithDefaultParamCtor>(MockBehavior.Default);"""],
+            // LINQ
             ["""Mock.Of<ClassWithDefaultParamCtor>();"""],
 
+            // Repository
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(MockBehavior.Default); repository.Verify();"""],
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(); repository.Verify();"""],
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(MockBehavior.Default, 21); repository.Verify();"""],
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(21); repository.Verify();"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+
+        var @new = new object[][]
+        {
+            // LINQ
+            ["""Mock.Of<ClassWithDefaultParamCtor>(MockBehavior.Default);"""],
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+
+        return all.Union(@new);
     }
 
     [Theory]
