@@ -351,10 +351,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                     return;
                 }
 
-
-
-                    context.ReportDiagnostic(Diagnostic.Create(InterfaceMustNotHaveConstructorParameters, argumentList?.GetLocation(), argumentList));
-                    return;
+                context.ReportDiagnostic(Diagnostic.Create(InterfaceMustNotHaveConstructorParameters, argumentList?.GetLocation(), argumentList));
+                return;
 
                 break;
 
@@ -365,13 +363,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                     return;
                 }
 
-
-
-                if (mockedClass.TypeKind == TypeKind.Delegate)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
-                    return;
-                }
+                context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
+                return;
 
                 break;
 

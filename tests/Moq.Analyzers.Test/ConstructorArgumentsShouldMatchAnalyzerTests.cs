@@ -4,6 +4,35 @@ namespace Moq.Analyzers.Test;
 
 public class ConstructorArgumentsShouldMatchAnalyzerTests
 {
+    public static IEnumerable<object[]> DelegateTestData()
+    {
+        return new object[][]
+        {
+            ["""new Mock<DelegateWithParam>();"""]
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    [Theory]
+    [MemberData(nameof(DelegateTestData))]
+    public async Task ShouldAnalyzeDelegate(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+
+              public delegate void DelegateWithParam(int a);
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      {{mock}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup);
+    }
+
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "All test cases")]
     public static IEnumerable<object[]> TestData()
     {
@@ -115,6 +144,8 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
 
             ["""Mock.Of<ClassDefaultCtor>(MockBehavior.Default);"""],
             ["""Mock.Of<ClassDefaultCtor>();"""],
+            ["""Mock.Of<ClassDefaultCtor>(m => true);"""],
+            ["""Mock.Of<ClassDefaultCtor>(m => true, MockBehavior.Default);"""],
 
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(MockBehavior.Default); repository.Verify();"""],
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(); repository.Verify();"""],
