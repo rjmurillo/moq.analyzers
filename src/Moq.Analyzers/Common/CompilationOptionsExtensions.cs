@@ -1,4 +1,5 @@
 ﻿namespace Moq.Analyzers.Common;
+
 internal static class CompilationOptionsExtensions
 {
     /// <summary>

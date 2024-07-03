@@ -8,7 +8,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
     {
         return new object[][]
         {
-            ["""new Mock<DelegateWithParam>();"""]
+            ["""new Mock<DelegateWithParam>();"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -149,7 +149,6 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
 
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(MockBehavior.Default); repository.Verify();"""],
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(); repository.Verify();"""],
-
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -169,7 +168,6 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(); repository.Verify();"""],
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(MockBehavior.Default, 21); repository.Verify();"""],
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(21); repository.Verify();"""],
-
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 

@@ -27,7 +27,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Parameters provided into mock of interface cannot contain constructor parameters",
+        description: "Parameters provided into mock of interface cannot contain constructor parameters.",
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.NoConstructorArgumentsForInterfaceMockRuleId}.md");
 
     /// <inheritdoc />
@@ -354,8 +354,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                 context.ReportDiagnostic(Diagnostic.Create(InterfaceMustNotHaveConstructorParameters, argumentList?.GetLocation(), argumentList));
                 return;
 
-                break;
-
             case TypeKind.Delegate:
                 // Interfaces and delegates don't have ctors, so bail out early
                 if (arguments.Length == 0)
@@ -365,8 +363,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
                 context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
                 return;
-
-                break;
 
             default:
                 break;

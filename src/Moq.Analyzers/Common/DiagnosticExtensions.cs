@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Moq.Analyzers.Common;
 
-namespace Moq.Analyzers.Common;
 internal static class DiagnosticExtensions
 {
     public static Diagnostic CreateDiagnostic(
@@ -133,13 +130,14 @@ internal static class DiagnosticExtensions
         ImmutableDictionary<string, string?>? properties,
         params object[] args)
     {
-        IEnumerable<Location> inSource = locations.Where(l => l.IsInSource);
+        IEnumerable<Location> inSource = locations.Where(location => location.IsInSource);
         if (!inSource.Any())
         {
-            return Diagnostic.Create(rule, null, args);
+            return Diagnostic.Create(rule, location: null, args);
         }
 
-        return Diagnostic.Create(rule,
+        return Diagnostic.Create(
+                 rule,
                  location: inSource.First(),
                  additionalLocations: inSource.Skip(1),
                  properties: properties,
