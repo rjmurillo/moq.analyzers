@@ -45,11 +45,25 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
     }
 
     // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
-    [Fact]
-    public async Task ShouldPassIfCustomMockClassIsUsed()
+    public static IEnumerable<object[]> CustomMockClassIsUsedData()
+    {
+        return new object[][]
+        {
+            ["""var mock1 = new Mock<IMyService>("4");"""],
+            ["""var mock2 = new Mock<IMyService>(5, true);"""],
+            ["""var mock3 = new Mock<IMyService>(MockBehavior.Strict, 6, true);"""],
+            ["""var mock4 = new Mock<IMyService>(Moq.MockBehavior.Default, "5");"""],
+            ["""var mock5 = new Mock<IMyService>(MockBehavior.Strict);"""],
+            ["""var mock6 = new Mock<IMyService>(MockBehavior.Loose);"""],
+    };
+    }
+
+    [Theory]
+    [MemberData(nameof(CustomMockClassIsUsedData))]
+    public async Task ShouldPassIfCustomMockClassIsUsed(string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
-                """
+                $$"""
                 namespace NoConstructorArgumentsForInterfaceMock.TestFakeMoq;
 
                 public enum MockBehavior
@@ -80,12 +94,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
                 {
                     private void TestFakeMoq()
                     {
-                        var mock1 = new Mock<IMyService>("4");
-                        var mock2 = new Mock<IMyService>(5, true);
-                        var mock3 = new Mock<IMyService>(MockBehavior.Strict, 6, true);
-                        var mock4 = new Mock<IMyService>(Moq.MockBehavior.Default, "5");
-                        var mock5 = new Mock<IMyService>(MockBehavior.Strict);
-                        var mock6 = new Mock<IMyService>(MockBehavior.Loose);
+                        {{mock}}
                     }
                 }
                 """,

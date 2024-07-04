@@ -144,19 +144,27 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
 
     public static IEnumerable<object[]> ClassWithDefaultCtorTestData()
     {
-        return new object[][]
+        var all = new object[][]
         {
             ["""new Mock<ClassDefaultCtor>(MockBehavior.Default);"""],
             ["""new Mock<ClassDefaultCtor>();"""],
 
-            ["""Mock.Of<ClassDefaultCtor>(MockBehavior.Default);"""],
+
             ["""Mock.Of<ClassDefaultCtor>();"""],
             ["""Mock.Of<ClassDefaultCtor>(m => true);"""],
-            ["""Mock.Of<ClassDefaultCtor>(m => true, MockBehavior.Default);"""],
+
 
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(MockBehavior.Default); repository.Verify();"""],
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(); repository.Verify();"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+
+        var @new = new object[][]
+        {
+            ["""Mock.Of<ClassDefaultCtor>(m => true, MockBehavior.Default);"""],
+            ["""Mock.Of<ClassDefaultCtor>(MockBehavior.Default);"""],
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+
+        return all.Union(@new);
     }
 
     public static IEnumerable<object[]> ClassWithDefaultParamCtorTestData()

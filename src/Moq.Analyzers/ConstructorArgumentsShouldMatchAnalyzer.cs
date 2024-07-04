@@ -103,8 +103,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         bool hasReturnedMock,
         bool hasMockBehavior)
     {
-        // We are calling Foo.Create<T> or Foo.Of.  Drop to the semantic model
-        // Determine if this is this MockRepository.Create<T> or Mock.Of<T>
         SymbolInfo symbol = context.SemanticModel.GetSymbolInfo(invocationExpressionSyntax, context.CancellationToken);
 
         if (symbol.Symbol is not IMethodSymbol method)
@@ -128,8 +126,22 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             returnType = typeSymbol.TypeArguments[0];
         }
 
-        // We are calling MockRepository.Create<T>
-        VerifyMockAttempt(context, returnType, invocationExpressionSyntax.ArgumentList, hasMockBehavior);
+        // We are calling MockRepository.Create<T> or Mock.Of<T>, determine which
+        ArgumentListSyntax? argumentList = null;
+        if (WellKnownTypeNames.Of.Equals(method.Name, StringComparison.Ordinal))
+        {
+            // Mock.Of<T> can specify condition for construction and MockBehavior, but
+            // cannot specify constructor parameters
+            //
+            // The only parameters that can be passed are not relevant for verification
+            // to just strip them
+        }
+        else
+        {
+            argumentList = invocationExpressionSyntax.ArgumentList;
+        }
+
+        VerifyMockAttempt(context, returnType, argumentList, hasMockBehavior);
     }
 
     /// <summary>
@@ -171,6 +183,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        // Quick check
         if (!string.Equals(
                 genericNameSyntax.Identifier.ValueText,
                 WellKnownTypeNames.MockName,
@@ -179,10 +192,14 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        SymbolInfo symbolInfo =
-            context.SemanticModel.GetSymbolInfo(newExpression, context.CancellationToken);
+        // Full check
+        SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(newExpression, context.CancellationToken);
 
-        if (symbolInfo.Symbol is not IMethodSymbol mockConstructorMethod)
+        if (symbolInfo.Symbol is not IMethodSymbol mockConstructorMethod
+            || mockConstructorMethod.ContainingType == null
+            || mockConstructorMethod.ContainingType.ConstructedFrom == null
+            || mockConstructorMethod.MethodKind != MethodKind.Constructor
+            || mockConstructorMethod.ContainingType.ConstructedFrom.ContainingSymbol.Name != WellKnownTypeNames.Moq)
         {
             return;
         }
@@ -303,25 +320,64 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return (constructors.IsEmpty, location);
     }
 
-    private bool IsFirstArgumentMockBehavior(ArgumentListSyntax? argumentList)
+    private bool IsFirstArgumentMockBehavior(SyntaxNodeAnalysisContext context, ArgumentListSyntax? argumentList)
     {
-#pragma warning disable AV1535 // Missing block in case or default clause of switch statement
-        switch (argumentList?.Arguments[0].Expression)
-        {
-            // The first parameter is MockBehavior enum; this is used in the ctor of Mock<T>
-            // example: new Mock<T>(MockBehavior.Default)
-            case MemberAccessExpressionSyntax
-            {
-                Expression: IdentifierNameSyntax { Identifier.Text: WellKnownTypeNames.MockBehavior }
-            }:
-                return true;
+        ExpressionSyntax? expression = argumentList?.Arguments[0].Expression;
 
-            // There are other cases when we get into the factory and repository scenarios
-            default:
-                return false;
+        if (expression == null)
+        {
+            return false;
         }
-#pragma warning restore AV1535 // Missing block in case or default clause of switch statement
+
+        if (expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax)
+        {
+            if (memberAccessExpressionSyntax.Expression is IdentifierNameSyntax identifierNameSyntax)
+            {
+                if (identifierNameSyntax.Identifier.ValueText == WellKnownTypeNames.MockBehavior)
+                {
+                    return true;
+                }
+            }
+        }
+        else if (expression is IdentifierNameSyntax identifierNameSyntax)
+        {
+            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(identifierNameSyntax, context.CancellationToken);
+
+            if (symbolInfo.Symbol == null)
+            {
+                return false;
+            }
+
+            ITypeSymbol? typeSymbol = null;
+            if (symbolInfo.Symbol is IParameterSymbol parameterSymbol)
+            {
+                typeSymbol = parameterSymbol.Type;
+            }
+            else if (symbolInfo.Symbol is ILocalSymbol localSymbol)
+            {
+                typeSymbol = localSymbol.Type;
+            }
+            else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
+            {
+                typeSymbol = fieldSymbol.Type;
+            }
+
+            if (typeSymbol != null && typeSymbol.Name == WellKnownTypeNames.MockBehavior)
+            {
+                return true;
+            }
+        }
+
+        // Crude fallback to check if the expression is a Moq.MockBehavior enum
+        if (expression.ToString().StartsWith(WellKnownTypeNames.MoqBehavior))
+        {
+            return true;
+        }
+
+        return false;
     }
+
+
 
     private void VerifyMockAttempt(
                     SyntaxNodeAnalysisContext context,
@@ -335,9 +391,10 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         ImmutableArray<ArgumentSyntax> arguments =
-            argumentList?.Arguments.ToImmutableArray() ?? ImmutableArray<ArgumentSyntax>.Empty;
+                                        argumentList?.Arguments.ToImmutableArray()
+                                        ?? ImmutableArray<ArgumentSyntax>.Empty;
 
-        if (hasMockBehavior && arguments.Length > 0 && IsFirstArgumentMockBehavior(argumentList))
+        if (hasMockBehavior && arguments.Length > 0 && IsFirstArgumentMockBehavior(context, argumentList))
         {
             // They passed a mock behavior as the first argument; ignore as Moq swallows it
             arguments = arguments.RemoveAt(0);
@@ -364,30 +421,33 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
                 context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
                 return;
+            case TypeKind.Class:
+                // Now we're interested in the ctors for the mocked class
+                ImmutableArray<IMethodSymbol> constructors = mockedClass
+                    .GetMembers()
+                    .OfType<IMethodSymbol>()
+                    .Where(methodSymbol => methodSymbol.MethodKind == MethodKind.Constructor && !methodSymbol.IsStatic)
+                    .ToImmutableArray();
 
+                // Bail out early if there are no arguments on constructors or no constructors at all
+                (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
+                if (constructorIsEmpty.IsEmpty)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, constructorIsEmpty.Location, argumentList));
+                    return;
+                }
+
+                // We have constructors, now we need to check if the arguments match any of them
+                if (!AnyConstructorsFound(constructors, arguments, context))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
+                }
+
+                break;
             default:
                 break;
         }
 
-        // Now we're interested in the ctors for the mocked class
-        ImmutableArray<IMethodSymbol> constructors = mockedClass
-            .GetMembers()
-            .OfType<IMethodSymbol>()
-            .Where(methodSymbol => methodSymbol.MethodKind == MethodKind.Constructor && !methodSymbol.IsStatic)
-            .ToImmutableArray();
 
-        // Bail out early if there are no arguments on constructors or no constructors at all
-        (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
-        if (constructorIsEmpty.IsEmpty)
-        {
-            context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, constructorIsEmpty.Location, argumentList));
-            return;
-        }
-
-        // We have constructors, now we need to check if the arguments match any of them
-        if (!AnyConstructorsFound(constructors, arguments, context))
-        {
-            context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
-        }
     }
 }
