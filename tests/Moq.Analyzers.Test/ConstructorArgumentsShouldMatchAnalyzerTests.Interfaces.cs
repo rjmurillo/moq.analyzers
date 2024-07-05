@@ -1,6 +1,9 @@
 ﻿using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.ConstructorArgumentsShouldMatchAnalyzer>;
 
 namespace Moq.Analyzers.Test;
+
+#pragma warning disable SA1601 // Partial elements should be documented
+
 public partial class ConstructorArgumentsShouldMatchAnalyzerTests
 {
     public static IEnumerable<object[]> InterfaceTestData()
@@ -56,3 +59,4 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
             referenceAssemblyGroup);
     }
 }
+#pragma warning restore SA1601 // Partial elements should be documented

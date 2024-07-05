@@ -34,12 +34,97 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ClassMustHaveMatchingConstructor, InterfaceMustNotHaveConstructorParameters);
 
     /// <inheritdoc />
-    public sealed override void Initialize(AnalysisContext context)
+    public override sealed void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
         context.RegisterCompilationStartAction(AnalyzeCompilation);
+    }
+
+    /// <summary>
+    /// Gets the <see cref="GenericNameSyntax"/> from a <see cref="TypeSyntax"/>.
+    /// </summary>
+    /// <param name="typeSyntax">The type syntax.</param>
+    /// <returns>A <see cref="GetGenericNameSyntax"/> when the <paramref name="typeSyntax"/>
+    /// is either <see cref="GenericNameSyntax"/> or <see cref="QualifiedNameSyntax"/>; otherwise,
+    /// <see langword="null" />.</returns>
+    private static GenericNameSyntax? GetGenericNameSyntax(TypeSyntax typeSyntax)
+    {
+        // REVIEW: Switch and ifs are equal in this case, but switch causes AV1535 to trigger
+        // The switch expression adds more instructions to do the same, so stick with ifs
+        if (typeSyntax is GenericNameSyntax genericNameSyntax)
+        {
+            return genericNameSyntax;
+        }
+
+        if (typeSyntax is QualifiedNameSyntax qualifiedNameSyntax)
+        {
+            return qualifiedNameSyntax.Right as GenericNameSyntax;
+        }
+
+        return null;
+    }
+
+    private static bool IsExpressionMockBehavior(SyntaxNodeAnalysisContext context, ExpressionSyntax? expression)
+    {
+        if (expression == null)
+        {
+            return false;
+        }
+
+        if (expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax)
+        {
+            if (memberAccessExpressionSyntax.Expression is IdentifierNameSyntax identifierNameSyntax
+                && string.Equals(identifierNameSyntax.Identifier.ValueText, WellKnownTypeNames.MockBehavior, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+        else if (expression is IdentifierNameSyntax identifierNameSyntax)
+        {
+            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(identifierNameSyntax, context.CancellationToken);
+
+            if (symbolInfo.Symbol == null)
+            {
+                return false;
+            }
+
+            ITypeSymbol? typeSymbol = null;
+            if (symbolInfo.Symbol is IParameterSymbol parameterSymbol)
+            {
+                typeSymbol = parameterSymbol.Type;
+            }
+            else if (symbolInfo.Symbol is ILocalSymbol localSymbol)
+            {
+                typeSymbol = localSymbol.Type;
+            }
+            else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
+            {
+                typeSymbol = fieldSymbol.Type;
+            }
+
+            if (typeSymbol != null
+                && string.Equals(typeSymbol.Name, WellKnownTypeNames.MockBehavior, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        // Crude fallback to check if the expression is a Moq.MockBehavior enum
+        if (expression.ToString().StartsWith(WellKnownTypeNames.MoqBehavior, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsFirstArgumentMockBehavior(SyntaxNodeAnalysisContext context, ArgumentListSyntax? argumentList)
+    {
+        ExpressionSyntax? expression = argumentList?.Arguments[0].Expression;
+
+        return IsExpressionMockBehavior(context, expression);
     }
 
     private void AnalyzeCompilation(CompilationStartAnalysisContext context)
@@ -88,9 +173,11 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             case WellKnownTypeNames.Create:
                 AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockFactory, true, true);
                 break;
+
             case WellKnownTypeNames.Of:
                 AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockName, false, true);
                 break;
+
             default:
                 return;
         }
@@ -142,30 +229,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         VerifyMockAttempt(context, returnType, argumentList, hasMockBehavior);
-    }
-
-    /// <summary>
-    /// Gets the <see cref="GenericNameSyntax"/> from a <see cref="TypeSyntax"/>.
-    /// </summary>
-    /// <param name="typeSyntax">The type syntax.</param>
-    /// <returns>A <see cref="GetGenericNameSyntax"/> when the <paramref name="typeSyntax"/>
-    /// is either <see cref="GenericNameSyntax"/> or <see cref="QualifiedNameSyntax"/>; otherwise,
-    /// <see langword="null" />.</returns>
-    private static GenericNameSyntax? GetGenericNameSyntax(TypeSyntax typeSyntax)
-    {
-        // REVIEW: Switch and ifs are equal in this case, but switch causes AV1535 to trigger
-        // The switch expression adds more instructions to do the same, so stick with ifs
-        if (typeSyntax is GenericNameSyntax genericNameSyntax)
-        {
-            return genericNameSyntax;
-        }
-
-        if (typeSyntax is QualifiedNameSyntax qualifiedNameSyntax)
-        {
-            return qualifiedNameSyntax.Right as GenericNameSyntax;
-        }
-
-        return null;
     }
 
     /// <summary>
@@ -318,67 +381,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return (constructors.IsEmpty, location);
     }
 
-    private static bool IsFirstArgumentMockBehavior(SyntaxNodeAnalysisContext context, ArgumentListSyntax? argumentList)
-    {
-        ExpressionSyntax? expression = argumentList?.Arguments[0].Expression;
-
-        return IsExpressionMockBehavior(context, expression);
-    }
-
-    private static bool IsExpressionMockBehavior(SyntaxNodeAnalysisContext context, ExpressionSyntax? expression)
-    {
-        if (expression == null)
-        {
-            return false;
-        }
-
-        if (expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax)
-        {
-            if (memberAccessExpressionSyntax.Expression is IdentifierNameSyntax identifierNameSyntax
-                && string.Equals(identifierNameSyntax.Identifier.ValueText, WellKnownTypeNames.MockBehavior, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-        else if (expression is IdentifierNameSyntax identifierNameSyntax)
-        {
-            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(identifierNameSyntax, context.CancellationToken);
-
-            if (symbolInfo.Symbol == null)
-            {
-                return false;
-            }
-
-            ITypeSymbol? typeSymbol = null;
-            if (symbolInfo.Symbol is IParameterSymbol parameterSymbol)
-            {
-                typeSymbol = parameterSymbol.Type;
-            }
-            else if (symbolInfo.Symbol is ILocalSymbol localSymbol)
-            {
-                typeSymbol = localSymbol.Type;
-            }
-            else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
-            {
-                typeSymbol = fieldSymbol.Type;
-            }
-
-            if (typeSymbol != null
-                && string.Equals(typeSymbol.Name, WellKnownTypeNames.MockBehavior, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        // Crude fallback to check if the expression is a Moq.MockBehavior enum
-        if (expression.ToString().StartsWith(WellKnownTypeNames.MoqBehavior, StringComparison.Ordinal))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
     private void VerifyMockAttempt(
                     SyntaxNodeAnalysisContext context,
                     ITypeSymbol mockedClass,
@@ -421,6 +423,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
                 context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
                 return;
+
             case TypeKind.Class:
                 // Now we're interested in the ctors for the mocked class
                 ImmutableArray<IMethodSymbol> constructors = mockedClass
@@ -444,6 +447,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                 }
 
                 break;
+
             default:
                 break;
         }

@@ -2,6 +2,9 @@ using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.Const
 
 namespace Moq.Analyzers.Test;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable SA1204 // Static elements should appear before instance elements
+
 public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
 {
     public static IEnumerable<object[]> InterfaceMockingTestData()
@@ -158,7 +161,9 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
 
     // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
     [Fact]
+
     public async Task ShouldPassIfRealMoqIsUsedWithValidParameters()
+
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
@@ -200,3 +205,5 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
                 ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning restore SA1204 // Static elements should appear before instance elements
