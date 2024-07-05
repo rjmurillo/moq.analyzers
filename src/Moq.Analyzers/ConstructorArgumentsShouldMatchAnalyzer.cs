@@ -140,7 +140,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // We're interested in the few ways to create mocks:
         //  - new Mock<T>()
         //  - Mock.Of<T>()
-        //  - Using the MockRepository with MockRepository.Create<T>();
+        //  - MockRepository.Create<T>();
         //
         // Ensure Moq is referenced in the compilation
         ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
@@ -405,51 +405,76 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         switch (mockedClass.TypeKind)
         {
             case TypeKind.Interface:
-                // Interfaces and delegates don't have ctors, so bail out early
-                if (arguments.Length == 0)
-                {
-                    return;
-                }
-
-                context.ReportDiagnostic(Diagnostic.Create(InterfaceMustNotHaveConstructorParameters, argumentList?.GetLocation(), argumentList));
-                return;
+                VerifyInterfaceMockAttempt(context, argumentList, arguments);
+                break;
 
             case TypeKind.Delegate:
                 // Interfaces and delegates don't have ctors, so bail out early
-                if (arguments.Length == 0)
-                {
-                    return;
-                }
-
-                context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
-                return;
+                VerifyDelegateMockAttempt(context, argumentList, arguments);
+                break;
 
             case TypeKind.Class:
                 // Now we're interested in the ctors for the mocked class
-                ImmutableArray<IMethodSymbol> constructors = mockedClass
-                    .GetMembers()
-                    .OfType<IMethodSymbol>()
-                    .Where(methodSymbol => methodSymbol.MethodKind == MethodKind.Constructor && !methodSymbol.IsStatic)
-                    .ToImmutableArray();
-
-                // Bail out early if there are no arguments on constructors or no constructors at all
-                (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
-                if (constructorIsEmpty.IsEmpty)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, constructorIsEmpty.Location, argumentList));
-                    return;
-                }
-
-                // We have constructors, now we need to check if the arguments match any of them
-                if (!AnyConstructorsFound(constructors, arguments, context))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, constructorIsEmpty.Location, argumentList));
-                }
+                VerifyClassMockAttempt(context, mockedClass, argumentList, arguments);
 
                 break;
 
             default:
                 break;
         }
+    }
+
+    private void VerifyClassMockAttempt(
+        SyntaxNodeAnalysisContext context,
+        ITypeSymbol mockedClass,
+        ArgumentListSyntax? argumentList,
+        ImmutableArray<ArgumentSyntax> arguments)
+    {
+        ImmutableArray<IMethodSymbol> constructors = mockedClass
+            .GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(methodSymbol => methodSymbol.MethodKind == MethodKind.Constructor && !methodSymbol.IsStatic)
+            .ToImmutableArray();
+
+        // Bail out early if there are no arguments on constructors or no constructors at all
+        (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
+        if (constructorIsEmpty.IsEmpty)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, constructorIsEmpty.Location, argumentList));
+            return;
+        }
+
+        // We have constructors, now we need to check if the arguments match any of them
+        if (!AnyConstructorsFound(constructors, arguments, context))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, constructorIsEmpty.Location, argumentList));
+        }
+    }
+
+    private static void VerifyDelegateMockAttempt(
+        SyntaxNodeAnalysisContext context,
+        ArgumentListSyntax? argumentList,
+        ImmutableArray<ArgumentSyntax> arguments)
+    {
+        if (arguments.Length == 0)
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
+    }
+
+    private static void VerifyInterfaceMockAttempt(
+        SyntaxNodeAnalysisContext context,
+        ArgumentListSyntax? argumentList,
+        ImmutableArray<ArgumentSyntax> arguments)
+    {
+        // Interfaces and delegates don't have ctors, so bail out early
+        if (arguments.Length == 0)
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(InterfaceMustNotHaveConstructorParameters, argumentList?.GetLocation(), argumentList));
     }
 }
