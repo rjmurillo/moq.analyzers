@@ -44,6 +44,7 @@ internal static class ISymbolExtensions
 
     public static bool IsConstructor(this ISymbol symbol)
     {
-        return symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and IMethodSymbol { IsStatic: false };
+        return symbol.DeclaredAccessibility != Accessibility.Private
+                && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and { IsStatic: false };
     }
 }
