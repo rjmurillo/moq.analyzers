@@ -65,7 +65,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         // Checked mocked type
         if (symbol.IsSealed && symbol.TypeKind != TypeKind.Delegate)
         {
-            Diagnostic diagnostic = Diagnostic.Create(Rule, typeArguments[0].GetLocation());
+            Diagnostic diagnostic = typeArguments[0].CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
         }
     }

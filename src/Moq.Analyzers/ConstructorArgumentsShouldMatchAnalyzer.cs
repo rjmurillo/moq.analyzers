@@ -440,14 +440,16 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
         if (constructorIsEmpty.IsEmpty)
         {
-            context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, constructorIsEmpty.Location, argumentList));
+            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+            context.ReportDiagnostic(diagnostic);
             return;
         }
 
         // We have constructors, now we need to check if the arguments match any of them
         if (!AnyConstructorsFound(constructors, arguments, context))
         {
-            context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, constructorIsEmpty.Location, argumentList));
+            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+            context.ReportDiagnostic(diagnostic);
         }
     }
 
@@ -461,7 +463,11 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
+        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+        if (diagnostic != null)
+        {
+            context.ReportDiagnostic(diagnostic);
+        }
     }
 
     private static void VerifyInterfaceMockAttempt(
@@ -475,6 +481,10 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        context.ReportDiagnostic(Diagnostic.Create(InterfaceMustNotHaveConstructorParameters, argumentList?.GetLocation(), argumentList));
+        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, argumentList);
+        if (diagnostic != null)
+        {
+            context.ReportDiagnostic(diagnostic);
+        }
     }
 }

@@ -47,7 +47,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
             if (symbolInfo.Symbol is IPropertySymbol or IMethodSymbol
                 && !IsMethodOverridable(symbolInfo.Symbol))
             {
-                Diagnostic diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
+                Diagnostic diagnostic = mockedMemberExpression.CreateDiagnostic(Rule);
                 context.ReportDiagnostic(diagnostic);
             }
         }

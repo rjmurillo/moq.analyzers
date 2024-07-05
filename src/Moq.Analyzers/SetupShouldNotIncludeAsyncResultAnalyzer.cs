@@ -48,7 +48,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
                 && !IsMethodOverridable(symbolInfo.Symbol)
                 && IsMethodReturnTypeTask(symbolInfo.Symbol))
             {
-                Diagnostic diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
+                Diagnostic diagnostic = mockedMemberExpression.GetLocation().CreateDiagnostic(Rule);
                 context.ReportDiagnostic(diagnostic);
             }
         }
