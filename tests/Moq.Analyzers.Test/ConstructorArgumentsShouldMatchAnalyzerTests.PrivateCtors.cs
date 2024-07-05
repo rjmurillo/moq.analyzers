@@ -2,6 +2,7 @@
 
 namespace Moq.Analyzers.Test;
 
+#pragma warning disable SA1601 // Partial elements should be documented
 public partial class ConstructorArgumentsShouldMatchAnalyzerTests
 {
     // This is to avoid a Castle System.ArgumentException at runtime
@@ -57,3 +58,4 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
             referenceAssemblyGroup);
     }
 }
+#pragma warning restore SA1601 // Partial elements should be documented
