@@ -102,6 +102,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             // types that don't have a default ctor
             ["""Mock.Of<ClassDefaultCtor>();"""],
             ["""Mock.Of<ClassWithDefaultParamCtor>();"""],
+            // Squiggle moves out further because there are no arguments to scope
             ["""{|Moq1002:Mock.Of<Foo>()|};"""],
 
             // Repository versions
@@ -144,7 +145,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
 
     public static IEnumerable<object[]> ClassWithDefaultCtorTestData()
     {
-        var all = new object[][]
+        IEnumerable<object[]> all = new object[][]
         {
             ["""new Mock<ClassDefaultCtor>(MockBehavior.Default);"""],
             ["""new Mock<ClassDefaultCtor>();"""],
@@ -158,7 +159,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(); repository.Verify();"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
-        var @new = new object[][]
+        IEnumerable<object[]> @new = new object[][]
         {
             ["""Mock.Of<ClassDefaultCtor>(m => true, MockBehavior.Default);"""],
             ["""Mock.Of<ClassDefaultCtor>(MockBehavior.Default);"""],
@@ -169,7 +170,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
 
     public static IEnumerable<object[]> ClassWithDefaultParamCtorTestData()
     {
-        var all = new object[][]
+        IEnumerable<object[]> all = new object[][]
         {
             // Regular
             ["""new Mock<ClassWithDefaultParamCtor>(MockBehavior.Default);"""],
@@ -187,7 +188,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassWithDefaultParamCtor>(21); repository.Verify();"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
-        var @new = new object[][]
+        IEnumerable<object[]> @new = new object[][]
         {
             // LINQ
             ["""Mock.Of<ClassWithDefaultParamCtor>(MockBehavior.Default);"""],

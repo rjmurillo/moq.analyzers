@@ -369,7 +369,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         // Crude fallback to check if the expression is a Moq.MockBehavior enum
-        if (expression.ToString().StartsWith(WellKnownTypeNames.MoqBehavior))
+        if (expression.ToString().StartsWith(WellKnownTypeNames.MoqBehavior, StringComparison.Ordinal))
         {
             return true;
         }

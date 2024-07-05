@@ -101,12 +101,24 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
                 ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
+    public static IEnumerable<object[]> RealMoqIsUsedWithInvalidParameters()
+    {
+        return new object[][]
+        {
+            ["""var mock1 = new Moq.Mock<IMyService>{|Moq1001:(1, true)|};"""],
+            ["""var mock2 = new Moq.Mock<IMyService>{|Moq1001:("2")|};"""],
+            ["""var mock3 = new Moq.Mock<IMyService>{|Moq1001:(Moq.MockBehavior.Default, "3")|};"""],
+            ["""var mock4 = new Moq.Mock<IMyService>{|Moq1001:(MockBehavior.Loose, 4, true)|};"""],
+        };
+    }
+
     // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
-    [Fact]
-    public async Task ShouldFailIsRealMoqIsUsedWithInvalidParameters()
+    [Theory]
+    [MemberData(nameof(RealMoqIsUsedWithInvalidParameters))]
+    public async Task ShouldFailIsRealMoqIsUsedWithInvalidParameters(string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
-                """
+                $$"""
                 namespace NoConstructorArgumentsForInterfaceMock.TestRealMoqWithBadParameters;
 
                 public enum MockBehavior
@@ -137,12 +149,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
                 {
                     private void TestRealMoqWithBadParameters()
                     {
-                        var mock1 = new Moq.Mock<IMyService>{|Moq1001:(1, true)|};
-                        var mock2 = new Moq.Mock<IMyService>{|Moq1001:("2")|};
-                        var mock3 = new Moq.Mock<IMyService>{|Moq1001:(Moq.MockBehavior.Default, "3")|};
-                        var mock4 = new Moq.Mock<IMyService>{|Moq1001:(MockBehavior.Loose, 4, true)|};
-                        var mock5 = new Moq.Mock<IMyService>{|Moq1001:(MockBehavior.Default)|};
-                        var mock6 = new Moq.Mock<IMyService>{|Moq1001:(MockBehavior.Default)|};
+                        {{mock}}
                     }
                 }
                 """,
