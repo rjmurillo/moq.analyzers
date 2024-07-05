@@ -418,9 +418,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                 VerifyClassMockAttempt(context, mockedClass, argumentList, arguments);
 
                 break;
-
-            default:
-                break;
         }
     }
 
