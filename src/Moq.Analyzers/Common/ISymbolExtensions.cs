@@ -44,6 +44,6 @@ internal static class ISymbolExtensions
 
     public static bool IsConstructor(this ISymbol symbol)
     {
-        return symbol is IMethodSymbol { MethodKind: MethodKind.Constructor };
+        return symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and IMethodSymbol { IsStatic: false };
     }
 }

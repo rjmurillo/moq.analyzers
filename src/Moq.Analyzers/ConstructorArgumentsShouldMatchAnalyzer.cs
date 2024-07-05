@@ -433,7 +433,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         ImmutableArray<IMethodSymbol> constructors = mockedClass
             .GetMembers()
             .OfType<IMethodSymbol>()
-            .Where(methodSymbol => methodSymbol.MethodKind == MethodKind.Constructor && !methodSymbol.IsStatic)
+            .Where(methodSymbol => methodSymbol.IsConstructor())
             .ToImmutableArray();
 
         // Bail out early if there are no arguments on constructors or no constructors at all
