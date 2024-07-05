@@ -7,8 +7,9 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
     {
         return new object[][]
         {
-            ["""new Mock<DelegateWithParam>();"""],
+            ["""new Mock<DelegateWithParam>();"""], // This is allowed by Moq and doesn't blow up at runtime
             ["""new Mock<DelegateWithoutParam>();"""],
+            ["""new Mock<DelegateWithoutParam>{|Moq1002:(42)|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
