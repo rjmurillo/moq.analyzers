@@ -52,4 +52,52 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
               """,
             referenceAssemblyGroup);
     }
+
+    [Theory]
+    [MemberData(nameof(ClassWithNoCtorTestData))]
+    public async Task ShouldAnalyzeClassWithInternalCtors(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+
+              public class NoConstructorClass
+              {
+                internal NoConstructorClass() { }
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      {{mock}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(ClassWithNoCtorTestData))]
+    public async Task ShouldAnalyzeClassWithProtectedInternalCtors(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+
+              public abstract class NoConstructorClass
+              {
+                protected internal NoConstructorClass() { }
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      {{mock}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup);
+    }
 }
