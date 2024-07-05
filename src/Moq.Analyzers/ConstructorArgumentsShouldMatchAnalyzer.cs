@@ -196,10 +196,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(newExpression, context.CancellationToken);
 
         if (symbolInfo.Symbol is not IMethodSymbol mockConstructorMethod
-            || mockConstructorMethod.ContainingType == null
-            || mockConstructorMethod.ContainingType.ConstructedFrom == null
             || mockConstructorMethod.MethodKind != MethodKind.Constructor
-            || mockConstructorMethod.ContainingType.ConstructedFrom.ContainingSymbol.Name != WellKnownTypeNames.Moq)
+            || !string.Equals(mockConstructorMethod.ContainingType.ConstructedFrom.ContainingSymbol.Name, WellKnownTypeNames.Moq, StringComparison.Ordinal))
         {
             return;
         }
@@ -320,10 +318,15 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return (constructors.IsEmpty, location);
     }
 
-    private bool IsFirstArgumentMockBehavior(SyntaxNodeAnalysisContext context, ArgumentListSyntax? argumentList)
+    private static bool IsFirstArgumentMockBehavior(SyntaxNodeAnalysisContext context, ArgumentListSyntax? argumentList)
     {
         ExpressionSyntax? expression = argumentList?.Arguments[0].Expression;
 
+        return IsExpressionMockBehavior(context, expression);
+    }
+
+    private static bool IsExpressionMockBehavior(SyntaxNodeAnalysisContext context, ExpressionSyntax? expression)
+    {
         if (expression == null)
         {
             return false;
@@ -331,12 +334,10 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         if (expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax)
         {
-            if (memberAccessExpressionSyntax.Expression is IdentifierNameSyntax identifierNameSyntax)
+            if (memberAccessExpressionSyntax.Expression is IdentifierNameSyntax identifierNameSyntax
+                && string.Equals(identifierNameSyntax.Identifier.ValueText, WellKnownTypeNames.MockBehavior, StringComparison.Ordinal))
             {
-                if (identifierNameSyntax.Identifier.ValueText == WellKnownTypeNames.MockBehavior)
-                {
-                    return true;
-                }
+                return true;
             }
         }
         else if (expression is IdentifierNameSyntax identifierNameSyntax)
@@ -362,7 +363,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                 typeSymbol = fieldSymbol.Type;
             }
 
-            if (typeSymbol != null && typeSymbol.Name == WellKnownTypeNames.MockBehavior)
+            if (typeSymbol != null
+                && string.Equals(typeSymbol.Name, WellKnownTypeNames.MockBehavior, StringComparison.Ordinal))
             {
                 return true;
             }
@@ -376,8 +378,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         return false;
     }
-
-
 
     private void VerifyMockAttempt(
                     SyntaxNodeAnalysisContext context,
@@ -447,7 +447,5 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             default:
                 break;
         }
-
-
     }
 }

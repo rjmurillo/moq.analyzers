@@ -44,4 +44,3 @@ internal static class BenchmarkCSharpCompilationFactory
         return (baseline, test1, test2);
     }
 }
-

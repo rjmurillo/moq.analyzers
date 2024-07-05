@@ -102,6 +102,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             // types that don't have a default ctor
             ["""Mock.Of<ClassDefaultCtor>();"""],
             ["""Mock.Of<ClassWithDefaultParamCtor>();"""],
+
             // Squiggle moves out further because there are no arguments to scope
             ["""{|Moq1002:Mock.Of<Foo>()|};"""],
 
@@ -150,10 +151,8 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<ClassDefaultCtor>(MockBehavior.Default);"""],
             ["""new Mock<ClassDefaultCtor>();"""],
 
-
             ["""Mock.Of<ClassDefaultCtor>();"""],
             ["""Mock.Of<ClassDefaultCtor>(m => true);"""],
-
 
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(MockBehavior.Default); repository.Verify();"""],
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<ClassDefaultCtor>(); repository.Verify();"""],
