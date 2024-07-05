@@ -13,7 +13,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor ClassMustHaveMatchingConstructor = new(
         DiagnosticIds.NoMatchingConstructorRuleId,
         "Mock<T> construction must call an existing type constructor",
-        "Could not find a matching constructor for {0}",
+        "Could not find a matching constructor for arguments {0}",
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -27,7 +27,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Parameters provided into mock of interface cannot contain constructor parameters.",
+        description: "Mock of interface cannot contain constructor parameters.",
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.NoConstructorArgumentsForInterfaceMockRuleId}.md");
 
     /// <inheritdoc />
@@ -440,7 +440,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                 // We have constructors, now we need to check if the arguments match any of them
                 if (!AnyConstructorsFound(constructors, arguments, context))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, argumentList?.GetLocation(), argumentList));
+                    context.ReportDiagnostic(Diagnostic.Create(ClassMustHaveMatchingConstructor, constructorIsEmpty.Location, argumentList));
                 }
 
                 break;

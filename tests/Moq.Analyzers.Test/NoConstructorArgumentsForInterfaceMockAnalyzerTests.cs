@@ -44,7 +44,6 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
                 referenceAssemblyGroup);
     }
 
-    // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
     public static IEnumerable<object[]> CustomMockClassIsUsedData()
     {
         return new object[][]
@@ -55,9 +54,10 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
             ["""var mock4 = new Mock<IMyService>(Moq.MockBehavior.Default, "5");"""],
             ["""var mock5 = new Mock<IMyService>(MockBehavior.Strict);"""],
             ["""var mock6 = new Mock<IMyService>(MockBehavior.Loose);"""],
-    };
+        };
     }
 
+    // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
     [Theory]
     [MemberData(nameof(CustomMockClassIsUsedData))]
     public async Task ShouldPassIfCustomMockClassIsUsed(string mock)

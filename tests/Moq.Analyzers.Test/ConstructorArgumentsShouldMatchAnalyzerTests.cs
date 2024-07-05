@@ -102,7 +102,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerTests
             // types that don't have a default ctor
             ["""Mock.Of<ClassDefaultCtor>();"""],
             ["""Mock.Of<ClassWithDefaultParamCtor>();"""],
-            ["""Mock.Of<Foo>{|Moq1002:()|};"""],
+            ["""{|Moq1002:Mock.Of<Foo>()|};"""],
 
             // Repository versions
             ["""var repository = new MockRepository(MockBehavior.Default) { DefaultValue = DefaultValue.Empty }; var fooMock = repository.Create<Foo>{|Moq1002:(MockBehavior.Default)|}; repository.Verify();"""],
