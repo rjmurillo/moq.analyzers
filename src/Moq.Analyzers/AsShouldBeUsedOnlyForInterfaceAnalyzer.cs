@@ -6,7 +6,7 @@ namespace Moq.Analyzers;
 /// Mock.As() should take interfaces only.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class AsShouldBeUsedOnlyForInterfaceAnalyzer : SingleDiagnosticAnalyzer
+public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 {
     private const string Title = "Moq: Invalid As type parameter";
     private const string Message = "Mock.As() should take interfaces only";
@@ -20,16 +20,18 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : SingleDiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId}.md");
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AsShouldBeUsedOnlyForInterfaceAnalyzer"/> class.
-    /// </summary>
-    public AsShouldBeUsedOnlyForInterfaceAnalyzer()
-        : base(Rule)
-    {
-    }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
-    protected override void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
+    public override void Initialize(AnalysisContext context)
+    {
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
+
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
+    }
+
+    private void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
         // Ensure Moq is referenced in the compilation
         ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
