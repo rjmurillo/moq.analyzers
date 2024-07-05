@@ -4,49 +4,10 @@ namespace Moq.Analyzers.Test;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable SA1204 // Static elements should appear before instance elements
+#pragma warning disable SA1601 // Partial elements should be documented
 
-public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
+public partial class ConstructorArgumentsShouldMatchAnalyzerTests
 {
-    public static IEnumerable<object[]> InterfaceMockingTestData()
-    {
-        return new object[][]
-        {
-            ["""new Mock<IMyService>{|Moq1001:(25, true)|};"""],
-            ["""new Mock<IMyService>{|Moq1001:("123")|};"""],
-            ["""new Mock<IMyService>{|Moq1001:(MockBehavior.Default, "123")|};"""],
-            ["""new Mock<IMyService>{|Moq1001:(MockBehavior.Strict, 25, true)|};"""],
-            ["""new Mock<IMyService>{|Moq1001:(MockBehavior.Loose, 25, true)|};"""],
-            ["""new Mock<IMyService>();"""],
-            ["""new Mock<IMyService>(MockBehavior.Default);"""],
-            ["""new Mock<IMyService>(MockBehavior.Strict);"""],
-            ["""new Mock<IMyService>(MockBehavior.Loose);"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-    }
-
-    [Theory]
-    [MemberData(nameof(InterfaceMockingTestData))]
-    public async Task ShouldAnalyzeInterfaceConstructors(string referenceAssemblyGroup, string @namespace, string mock)
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                $$"""
-                {{@namespace}}
-
-                internal interface IMyService
-                {
-                    void Do(string s);
-                }
-
-                internal class UnitTest
-                {
-                    private void Test()
-                    {
-                        {{mock}}
-                    }
-                }
-                """,
-                referenceAssemblyGroup);
-    }
-
     public static IEnumerable<object[]> CustomMockClassIsUsedData()
     {
         return new object[][]
@@ -161,9 +122,7 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
 
     // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
     [Fact]
-
     public async Task ShouldPassIfRealMoqIsUsedWithValidParameters()
-
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
@@ -207,3 +166,4 @@ public class NoConstructorArgumentsForInterfaceMockAnalyzerTests
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning restore SA1204 // Static elements should appear before instance elements
+#pragma warning restore SA1601 // Partial elements should be documented
