@@ -1,4 +1,4 @@
-﻿namespace Moq.Analyzers;
+﻿namespace Moq.Analyzers.Common;
 
 internal static class MethodSymbolExtensions
 {

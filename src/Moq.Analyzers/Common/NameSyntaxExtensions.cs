@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Moq.Analyzers;
+namespace Moq.Analyzers.Common;
 
 /// <summary>
 /// Extensions methods for <see cref="NameSyntax"/>s.
