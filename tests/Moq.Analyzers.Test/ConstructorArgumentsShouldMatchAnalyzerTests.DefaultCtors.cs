@@ -9,6 +9,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
         {
             ["""new Mock<ClassDefaultCtor>(MockBehavior.Default);"""],
             ["""new Mock<ClassDefaultCtor>();"""],
+            ["""var behavior = MockBehavior.Default; var mock = new Mock<ClassDefaultCtor>(behavior);"""],
 
             ["""Mock.Of<ClassDefaultCtor>();"""],
             ["""Mock.Of<ClassDefaultCtor>(m => true);"""],
