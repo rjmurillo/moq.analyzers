@@ -388,25 +388,10 @@ dotnet_naming_style.s_camelcase.required_suffix =
 dotnet_naming_style.s_camelcase.word_separator =
 dotnet_naming_style.s_camelcase.capitalization = camel_case
 
-# AV1580: Method argument calls a nested method
-# Because debugger breakpoints cannot be set inside expressions, avoid overuse of nested method calls.
-# Example: string result = ConvertToXml(ApplyTransforms(ExecuteQuery(GetConfigurationSettings(source))));
-# requires extra steps to inspect intermediate method return values. On the other hard, were this expression broken into intermediate variables, setting a breakpoint on one of them would be sufficient.
-#
-# This is moved to silent because it's flagging foo.AsSpan()
-dotnet_diagnostic.AV1580.severity = silent
-
 # MA0040: Forward the CancellationToken parameter to methods that take one
 dotnet_diagnostic.MA0040.severity = error
 # Async analyzer
 dotnet_diagnostic.CA2016.severity = error
-
-# AV1555: Avoid using named arguments
-# Disabled because it's common to use a named argument when passing `null` or bool arguments to make the parameter's purpose clear
-dotnet_diagnostic.AV1555.severity = none
-
-# AV1500: Methods should not exceed 7 statements
-dotnet_diagnostic.AV1500.severity = silent
 
 #### Handling TODOs ####
 # This is a popular rule in analyzers. Everyone has an opinion and
@@ -415,7 +400,5 @@ dotnet_diagnostic.AV1500.severity = silent
 # don't lose track.
 # S1135: Track uses of "TODO" tags
 dotnet_diagnostic.S1135.severity = suggestion
-# AV2318: Work-tracking TODO comment should be removed
-dotnet_diagnostic.AV2318.severity = none
 # MA0026: Fix TODO comment
 dotnet_diagnostic.MA0026.severity = none
