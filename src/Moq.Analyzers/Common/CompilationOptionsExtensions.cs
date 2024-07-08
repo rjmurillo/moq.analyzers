@@ -14,8 +14,6 @@ internal static class CompilationOptionsExtensions
         {
             case ReportDiagnostic.Suppress:
                 return true;
-            case ReportDiagnostic.Default:
-                throw new InvalidOperationException("This should be unreachable.");
             default:
                 return false;
         }
