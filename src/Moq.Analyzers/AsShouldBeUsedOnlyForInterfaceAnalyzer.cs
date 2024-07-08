@@ -20,6 +20,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId}.md");
 
+    /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
