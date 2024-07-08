@@ -11,6 +11,7 @@ namespace Moq.Analyzers.Benchmarks;
 public class Moq1101InterfaceBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
+
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
     [IterationSetup]
