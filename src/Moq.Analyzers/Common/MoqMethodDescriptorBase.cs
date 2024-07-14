@@ -1,7 +1,7 @@
-﻿namespace Moq.Analyzers;
+﻿namespace Moq.Analyzers.Common;
 
 /// <summary>
-/// A base that that provides common functionality for identifying if a given <see cref="SyntaxNode"/>
+/// A base that provides common functionality for identifying if a given <see cref="SyntaxNode"/>
 /// is a specific Moq method.
 /// </summary>
 /// <remarks>
@@ -11,8 +11,8 @@
 /// </remarks>
 internal abstract class MoqMethodDescriptorBase
 {
-    private const string ContainingNamespace = "Moq";
-    private const string ContainingType = "Mock";
+    private const string ContainingNamespace = WellKnownTypeNames.Moq;
+    private const string ContainingType = WellKnownTypeNames.MockName;
 
     public abstract bool IsMatch(SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccessSyntax, CancellationToken cancellationToken);
 

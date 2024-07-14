@@ -1,6 +1,6 @@
-﻿namespace Moq.Analyzers;
+﻿namespace Moq.Analyzers.Common;
 
-internal static class SymbolExtensions
+internal static class ISymbolExtensions
 {
     /// <summary>
     /// Determines whether the symbol is an instance of the specified symbol.
@@ -40,5 +40,11 @@ internal static class SymbolExtensions
         symbolEqualityComparer ??= SymbolEqualityComparer.Default;
 
         return others.Any(other => symbol.IsInstanceOf(other, symbolEqualityComparer));
+    }
+
+    public static bool IsConstructor(this ISymbol symbol)
+    {
+        return symbol.DeclaredAccessibility != Accessibility.Private
+                && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and { IsStatic: false };
     }
 }

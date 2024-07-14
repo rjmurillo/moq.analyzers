@@ -12,7 +12,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
             ["""new Mock<BaseSampleClass>().{|Moq1300:As<SampleClass>|}();"""],
             ["""new Mock<SampleClass>().As<ISampleInterface>();"""],
             ["""new Mock<SampleClass>().As<ISampleInterface>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>())).Returns(10);"""],
-        }.WithNamespaces().WithReferenceAssemblyGroups();
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]

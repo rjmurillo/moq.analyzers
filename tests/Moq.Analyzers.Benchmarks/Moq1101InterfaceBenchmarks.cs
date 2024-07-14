@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
-public class Moq1300Benchmarks
+public class Moq1101InterfaceBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
@@ -26,18 +26,16 @@ public class Moq1300Benchmarks
 using System;
 using Moq;
 
-public class SampleClass{index}
+public interface ISample{index}
 {{
-
-    public int Calculate() => 0;
 }}
 
 internal class {name}
 {{
     private void Test()
     {{
-        new Mock<SampleClass{index}>().As<SampleClass{index}>();
-        _ = new SampleClass{index}().Calculate(); // Add an expression that looks similar but does not match
+        new Mock<ISample{index}>(42);
+        Mock.Of<ISample{index}>(42);
     }}
 }}
 "));
@@ -45,18 +43,18 @@ internal class {name}
 
         (BaselineCompilation, TestCompilation) =
             BenchmarkCSharpCompilationFactory
-            .CreateAsync<AsShouldBeUsedOnlyForInterfaceAnalyzer>(sources.ToArray())
-            .GetAwaiter()
-            .GetResult();
+                .CreateAsync<ConstructorArgumentsShouldMatchAnalyzer>(sources.ToArray())
+                .GetAwaiter()
+                .GetResult();
     }
 
     [Benchmark]
-    public async Task Moq1300WithDiagnostics()
+    public async Task<ImmutableArray<Diagnostic>> Moq1201TreatmentWithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
-            .GetAnalysisResultAsync(CancellationToken.None)
-            .ConfigureAwait(false))
+                .GetAnalysisResultAsync(CancellationToken.None)
+                .ConfigureAwait(false))
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 
@@ -64,15 +62,17 @@ internal class {name}
         {
             throw new InvalidOperationException($"Expected '{Constants.NumberOfCodeFiles:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
         }
+
+        return diagnostics;
     }
 
     [Benchmark(Baseline = true)]
-    public async Task Moq1300Baseline()
+    public async Task Moq1201Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!
-            .GetAnalysisResultAsync(CancellationToken.None)
-            .ConfigureAwait(false))
+                .GetAnalysisResultAsync(CancellationToken.None)
+                .ConfigureAwait(false))
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 

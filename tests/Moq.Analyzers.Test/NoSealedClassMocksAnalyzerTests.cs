@@ -10,7 +10,7 @@ public class NoSealedClassMocksAnalyzerTests
         {
             ["""new Mock<{|Moq1000:FooSealed|}>();"""],
             ["""new Mock<Foo>();"""],
-        }.WithNamespaces().WithReferenceAssemblyGroups();
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]

@@ -6,7 +6,7 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
 {
-    internal const string RuleId = "Moq1000";
+    internal const string RuleId = DiagnosticIds.SealedClassCannotBeMocked;
     private const string Title = "Moq: Sealed class mocked";
     private const string Message = "Sealed classes cannot be mocked";
 
@@ -17,13 +17,10 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{RuleId}.md");
 
     /// <inheritdoc />
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get { return ImmutableArray.Create(Rule); }
-    }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
@@ -68,7 +65,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         // Checked mocked type
         if (symbol.IsSealed && symbol.TypeKind != TypeKind.Delegate)
         {
-            Diagnostic diagnostic = Diagnostic.Create(Rule, typeArguments[0].GetLocation());
+            Diagnostic diagnostic = typeArguments[0].CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
         }
     }

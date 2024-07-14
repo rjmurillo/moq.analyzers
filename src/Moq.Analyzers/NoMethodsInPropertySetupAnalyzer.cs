@@ -6,7 +6,7 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
 {
-    internal const string RuleId = "Moq1101";
+    internal const string RuleId = DiagnosticIds.PropertySetupUsedForMethod;
     private const string Title = "Moq: Property setup used for a method";
     private const string Message = "SetupGet/SetupSet should be used for properties, not for methods";
 
@@ -17,13 +17,10 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{RuleId}.md");
 
     /// <inheritdoc />
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get { return ImmutableArray.Create(Rule); }
-    }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
     public override void Initialize(AnalysisContext context)

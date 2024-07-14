@@ -7,9 +7,9 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1101 | Moq | Warning | CallbackSignatureAnalyzer
-Moq1002 | Moq | Warning | ShouldNotAllowParametersForMockedInterfaceAnalyzer
-Moq1001 | Moq | Warning | ShouldNotMockSealedClassesAnalyzer
+Moq1101 | Moq | Warning | CallbackSignatureAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1101.md)
+Moq1002 | Moq | Warning | ShouldNotAllowParametersForMockedInterfaceAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1002.md)
+Moq1001 | Moq | Warning | ShouldNotMockSealedClassesAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1001.md)
 
 ## Release 0.0.3.40797
 
@@ -25,8 +25,8 @@ Moq1003 | Moq | Warning | MatchingConstructorParametersAnalyzer
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1100 | Moq | Warning | CallbackSignatureShouldMatchMockedMethodAnalyzer
-Moq1000 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer
+Moq1100 | Moq | Warning | CallbackSignatureShouldMatchMockedMethodAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1100.md)
+Moq1000 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1000.md)
 
 ## Release 0.0.6
 
@@ -34,7 +34,7 @@ Moq1000 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1003 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer
+Moq1003 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1003.md)
 
 ## Release 0.0.7
 
@@ -42,7 +42,7 @@ Moq1003 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1200 | Moq | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer
+Moq1200 | Moq | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1200.md)
 
 ## Release 0.0.8
 
@@ -50,7 +50,7 @@ Moq1200 | Moq | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1300 | Moq | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer
+Moq1300 | Moq | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1300.md)
 
 ## Release 0.0.9
 
@@ -58,4 +58,4 @@ Moq1300 | Moq | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1201 | Moq | Error | SetupShouldNotIncludeAsyncResultAnalyzer
+Moq1201 | Moq | Error | SetupShouldNotIncludeAsyncResultAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1201.md)

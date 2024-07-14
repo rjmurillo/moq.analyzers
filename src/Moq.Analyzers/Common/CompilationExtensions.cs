@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis.Operations;
-
-namespace Moq.Analyzers;
+﻿namespace Moq.Analyzers.Common;
 
 internal static class CompilationExtensions
 {
@@ -27,7 +25,7 @@ internal static class CompilationExtensions
     }
 
     /// <summary>
-    /// Get the Moq.Mock and Moq.Mock`1 type symbols (if part of the compilation).
+    /// Get the Moq.MockRepository, Moq.Mock and Moq.Mock`1 type symbols (if part of the compilation).
     /// </summary>
     /// <param name="compilation">The <see cref="Compilation"/> to inspect.</param>
     /// <returns>
@@ -36,6 +34,6 @@ internal static class CompilationExtensions
     /// </returns>
     public static ImmutableArray<INamedTypeSymbol> GetMoqMock(this Compilation compilation)
     {
-        return compilation.GetTypesByMetadataNames([WellKnownTypeNames.MoqMock, WellKnownTypeNames.MoqMock1]);
+        return compilation.GetTypesByMetadataNames([WellKnownTypeNames.MoqMock, WellKnownTypeNames.MoqMock1, WellKnownTypeNames.MoqRepository]);
     }
 }

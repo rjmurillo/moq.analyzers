@@ -6,7 +6,7 @@
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 {
-    internal const string RuleId = "Moq1201";
+    internal const string RuleId = DiagnosticIds.AsyncUsesReturnsAsyncInsteadOfResult;
     private const string Title = "Moq: Invalid setup parameter";
     private const string Message = "Setup of async methods should use ReturnsAsync instead of .Result";
 
@@ -17,10 +17,10 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{RuleId}.md");
 
     /// <inheritdoc />
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
@@ -48,7 +48,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
                 && !IsMethodOverridable(symbolInfo.Symbol)
                 && IsMethodReturnTypeTask(symbolInfo.Symbol))
             {
-                Diagnostic diagnostic = Diagnostic.Create(Rule, mockedMemberExpression.GetLocation());
+                Diagnostic diagnostic = mockedMemberExpression.GetLocation().CreateDiagnostic(Rule);
                 context.ReportDiagnostic(diagnostic);
             }
         }

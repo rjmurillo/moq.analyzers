@@ -15,7 +15,7 @@ public class NoMethodsInPropertySetupAnalyzerTests
             ["""new Mock<IFoo>().Setup(x => x.Method());"""],
             ["""new Mock<IFoo>().SetupGet(x => {|Moq1101:x.Method()|});"""],
             ["""new Mock<IFoo>().SetupSet(x => {|Moq1101:x.Method()|});"""],
-        }.WithNamespaces().WithReferenceAssemblyGroups();
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]

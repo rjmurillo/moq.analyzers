@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Moq.Analyzers;
+namespace Moq.Analyzers.Common;
 
 /// <summary>
 /// Extensions methods for <see cref="SemanticModel"/>.
@@ -13,8 +13,8 @@ internal static class SemanticModelExtensions
     {
         InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
         if (invocation?.Expression is not MemberAccessExpressionSyntax method) return null;
-        if (IsMoqSetupMethod(semanticModel, method, cancellationToken)) return invocation;
-        return FindSetupMethodFromCallbackInvocation(semanticModel, method.Expression, cancellationToken);
+        if (semanticModel.IsMoqSetupMethod(method, cancellationToken)) return invocation;
+        return semanticModel.FindSetupMethodFromCallbackInvocation(method.Expression, cancellationToken);
     }
 
     internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax? setupMethodInvocation)

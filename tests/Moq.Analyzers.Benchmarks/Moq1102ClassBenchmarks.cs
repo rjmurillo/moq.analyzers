@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
-public class Moq1300Benchmarks
+public class Moq1102ClassBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
@@ -28,7 +28,9 @@ using Moq;
 
 public class SampleClass{index}
 {{
-
+    public SampleClass{index}(int value)
+    {{
+    }}
     public int Calculate() => 0;
 }}
 
@@ -36,8 +38,8 @@ internal class {name}
 {{
     private void Test()
     {{
-        new Mock<SampleClass{index}>().As<SampleClass{index}>();
-        _ = new SampleClass{index}().Calculate(); // Add an expression that looks similar but does not match
+        new Mock<SampleClass{index}>();
+        _ = new SampleClass{index}(42).Calculate(); // Add an expression that looks similar but does not match
     }}
 }}
 "));
@@ -45,18 +47,18 @@ internal class {name}
 
         (BaselineCompilation, TestCompilation) =
             BenchmarkCSharpCompilationFactory
-            .CreateAsync<AsShouldBeUsedOnlyForInterfaceAnalyzer>(sources.ToArray())
-            .GetAwaiter()
-            .GetResult();
+                .CreateAsync<ConstructorArgumentsShouldMatchAnalyzer>(sources.ToArray())
+                .GetAwaiter()
+                .GetResult();
     }
 
     [Benchmark]
-    public async Task Moq1300WithDiagnostics()
+    public async Task Moq1201WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
-            .GetAnalysisResultAsync(CancellationToken.None)
-            .ConfigureAwait(false))
+                .GetAnalysisResultAsync(CancellationToken.None)
+                .ConfigureAwait(false))
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 
@@ -67,12 +69,12 @@ internal class {name}
     }
 
     [Benchmark(Baseline = true)]
-    public async Task Moq1300Baseline()
+    public async Task Moq1201Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!
-            .GetAnalysisResultAsync(CancellationToken.None)
-            .ConfigureAwait(false))
+                .GetAnalysisResultAsync(CancellationToken.None)
+                .ConfigureAwait(false))
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 

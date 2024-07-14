@@ -8,53 +8,57 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 {
-    internal const string RuleId = "Moq1300";
     private const string Title = "Moq: Invalid As type parameter";
     private const string Message = "Mock.As() should take interfaces only";
 
     private static readonly DiagnosticDescriptor Rule = new(
-        RuleId,
+        DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId,
         Title,
         Message,
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/{RuleId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId}.md");
 
     /// <inheritdoc />
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
     {
-        context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
 
-        context.RegisterCompilationStartAction(static context =>
-        {
-            // Ensure Moq is referenced in the compilation
-            ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
-            if (mockTypes.IsEmpty)
-            {
-                return;
-            }
-
-            // Look for the Mock.As() method and provide it to Analyze to avoid looking it up multiple times.
-            ImmutableArray<IMethodSymbol> asMethods = mockTypes
-                .SelectMany(mockType => mockType.GetMembers("As"))
-                .OfType<IMethodSymbol>()
-                .Where(method => method.IsGenericMethod)
-                .ToImmutableArray();
-            if (asMethods.IsEmpty)
-            {
-                return;
-            }
-
-            context.RegisterOperationAction(context => Analyze(context, asMethods), OperationKind.Invocation);
-        });
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private static void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownAsMethods)
+    private void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
+    {
+        // Ensure Moq is referenced in the compilation
+        ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
+        if (mockTypes.IsEmpty)
+        {
+            return;
+        }
+
+        // Look for the Mock.As() method and provide it to Analyze to avoid looking it up multiple times.
+        ImmutableArray<IMethodSymbol> asMethods = mockTypes
+            .SelectMany(mockType => mockType.GetMembers(WellKnownTypeNames.As))
+            .OfType<IMethodSymbol>()
+            .Where(method => method.IsGenericMethod)
+            .ToImmutableArray();
+
+        if (asMethods.IsEmpty)
+        {
+            return;
+        }
+
+        context.RegisterOperationAction(
+            operationAnalysisContext => Analyze(operationAnalysisContext, asMethods),
+            OperationKind.Invocation);
+    }
+
+    private void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownAsMethods)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
