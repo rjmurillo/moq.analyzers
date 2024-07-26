@@ -3,5 +3,22 @@
     <PedanticMode Condition=" '$(PedanticMode)' == '' ">$([MSBuild]::ValueOrDefault('$(ContinuousIntegrationBuild)', 'false'))</PedanticMode>
     <TreatWarningsAsErrors>$(PedanticMode)</TreatWarningsAsErrors>
     <MSBuildTreatWarningsAsErrors>$(PedanticMode)</MSBuildTreatWarningsAsErrors>
+    <SquiggleCop_Enabled>$(PedanticMode)</SquiggleCop_Enabled>
   </PropertyGroup>
+
+  <Target Name="SetErrorLog" BeforeTargets="CoreCompile">
+    <!--
+      ErrorLog is needed for SquiggleCop.
+
+      The value is set in a Target and not directly as a property because `$(IntermediateOutputPath)` and `$(OutputPath)`
+      are calculated properties and thus shouldn't be relied on during the initial property evaluation phase.
+      See https://github.com/dotnet/sdk/issues/41852.
+
+      We use `$(IntermediateOutputPath)` to ensure the file ends up in the `obj/` folder and not with sources to clearly
+      delineate inputs and outputs.
+    -->
+    <PropertyGroup Condition=" '$(ErrorLog)' == '' ">
+      <ErrorLog>$(IntermediateOutputPath)/$(MSBuildProjectName).sarif,version=2.1</ErrorLog>
+    </PropertyGroup>
+  </Target>
 </Project>
