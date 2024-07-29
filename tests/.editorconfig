@@ -13,6 +13,16 @@ dotnet_diagnostic.CS1591.severity = suggestion
 # CS1712: Type parameter 'type parameter' has no matching typeparam tag in the XML comment on 'type' (but other type parameters do)
 dotnet_diagnostic.CS1712.severity = suggestion
 
+# SA1601: Partial elements should be documented
+dotnet_diagnostic.SA1601.severity = suggestion
+
+#### Code quality ####
+
+# MA0051: Method is too long
+dotnet_diagnostic.MA0051.severity = suggestion
+
+#### Naming conventions ####
+
 # VSTHRD200: Use "Async" suffix for async methods
 # AV1755: Postfix asynchronous methods with Async or TaskAsync
 # Just about every test method is async, doesn't provide any real value and clustters up test window
