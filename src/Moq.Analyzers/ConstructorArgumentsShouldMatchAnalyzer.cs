@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Moq.Analyzers;
 
 /// <summary>
@@ -127,6 +129,41 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return IsExpressionMockBehavior(context, expression);
     }
 
+    private static void VerifyDelegateMockAttempt(
+    SyntaxNodeAnalysisContext context,
+    ArgumentListSyntax? argumentList,
+    ImmutableArray<ArgumentSyntax> arguments)
+    {
+        if (arguments.Length == 0)
+        {
+            return;
+        }
+
+        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+        if (diagnostic != null)
+        {
+            context.ReportDiagnostic(diagnostic);
+        }
+    }
+
+    private static void VerifyInterfaceMockAttempt(
+        SyntaxNodeAnalysisContext context,
+        ArgumentListSyntax? argumentList,
+        ImmutableArray<ArgumentSyntax> arguments)
+    {
+        // Interfaces and delegates don't have ctors, so bail out early
+        if (arguments.Length == 0)
+        {
+            return;
+        }
+
+        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, argumentList);
+        if (diagnostic != null)
+        {
+            context.ReportDiagnostic(diagnostic);
+        }
+    }
+
     private void AnalyzeCompilation(CompilationStartAnalysisContext context)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
@@ -140,7 +177,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // We're interested in the few ways to create mocks:
         //  - new Mock<T>()
         //  - Mock.Of<T>()
-        //  - MockRepository.Create<T>();
+        //  - MockRepository.Create<T>()
         //
         // Ensure Moq is referenced in the compilation
         ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
@@ -283,6 +320,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <param name="context">The context.</param>
     /// <returns><c>true</c> if a suitable constructor was found; otherwise <c>false</c>. </returns>
     /// <remarks>Handles <see langword="params" /> and optional parameters.</remarks>
+    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "This should be refactored; suppressing for now to enable TreatWarningsAsErrors in CI.")]
     private bool AnyConstructorsFound(
         ImmutableArray<IMethodSymbol> constructors,
         ImmutableArray<ArgumentSyntax> arguments,
@@ -446,41 +484,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         if (!AnyConstructorsFound(constructors, arguments, context))
         {
             Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
-            context.ReportDiagnostic(diagnostic);
-        }
-    }
-
-    private static void VerifyDelegateMockAttempt(
-        SyntaxNodeAnalysisContext context,
-        ArgumentListSyntax? argumentList,
-        ImmutableArray<ArgumentSyntax> arguments)
-    {
-        if (arguments.Length == 0)
-        {
-            return;
-        }
-
-        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
-        if (diagnostic != null)
-        {
-            context.ReportDiagnostic(diagnostic);
-        }
-    }
-
-    private static void VerifyInterfaceMockAttempt(
-        SyntaxNodeAnalysisContext context,
-        ArgumentListSyntax? argumentList,
-        ImmutableArray<ArgumentSyntax> arguments)
-    {
-        // Interfaces and delegates don't have ctors, so bail out early
-        if (arguments.Length == 0)
-        {
-            return;
-        }
-
-        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, argumentList);
-        if (diagnostic != null)
-        {
             context.ReportDiagnostic(diagnostic);
         }
     }
