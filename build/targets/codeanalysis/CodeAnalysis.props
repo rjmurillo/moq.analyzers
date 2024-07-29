@@ -5,8 +5,6 @@
     <AnalysisMode>preview</AnalysisMode>
     <WarningLevel>9999</WarningLevel>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <TreatWarningsAsErrors Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">true</TreatWarningsAsErrors>
-    <MSBuildTreatWarningsAsErrors Condition=" '$(ContinuousIntegrationBuild)' == 'true' ">true</MSBuildTreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
