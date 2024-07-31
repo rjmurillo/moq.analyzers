@@ -74,6 +74,13 @@ jobs:
         path: |
           **/*.received.*
 
+    - name: Upload SARIF files
+      uses: actions/upload-artifact@v4
+      if: success() || failure()
+      with:
+        name: SARIF files (${{ matrix.os }})
+        path: ./artifacts/obj/**/*.sarif
+
     - name: Upload Test Report
       uses: actions/upload-artifact@v4
       if: success() || failure()
