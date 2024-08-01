@@ -1,0 +1,15 @@
+# This workflow will approve pull requests from dependabot
+
+name: Auto approve PRs by dependabot
+on: [pull_request_target]
+
+jobs:
+  autoapprove:
+    name: Auto-Approve a PR by dependabot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto approve
+        uses: cognitedata/auto-approve-dependabot-action@v3.0.1
+        if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
+        with:
+          github-token: ${{ secrets.GH_ACTIONS_PR_WRITE }}
