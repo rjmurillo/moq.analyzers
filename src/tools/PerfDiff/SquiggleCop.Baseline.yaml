@@ -125,7 +125,7 @@
 - {Id: CA1845, Title: Use span-based 'string.Concat', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1846, Title: Prefer 'AsSpan' over 'Substring', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1847, Title: Use char literal for a single character lookup, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: CA1848, Title: Use the LoggerMessage delegates, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: CA1848, Title: Use the LoggerMessage delegates, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: CA1849, Title: Call async methods when in an async method, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA1850, Title: Prefer static 'HashData' method over 'ComputeHash', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1851, Title: Possible multiple enumerations of 'IEnumerable' collection, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -137,7 +137,7 @@
 - {Id: CA1857, Title: A constant is expected for the parameter, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA1858, Title: Use 'StartsWith' instead of 'IndexOf', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1859, Title: Use concrete types when possible for improved performance, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: CA1860, Title: Avoid using 'Enumerable.Any()' extension method, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: CA1860, Title: Avoid using 'Enumerable.Any()' extension method, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: true}
 - {Id: CA1861, Title: Avoid constant arrays as arguments, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1862, Title: Use the 'StringComparison' method overloads to perform case-insensitive string comparisons, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1863, Title: Use 'CompositeFormat', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
@@ -169,7 +169,7 @@
 - {Id: CA2119, Title: Seal methods that satisfy private interfaces, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA2153, Title: Do Not Catch Corrupted State Exceptions, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA2200, Title: Rethrow to preserve stack details, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: CA2201, Title: Do not raise reserved exception types, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
+- {Id: CA2201, Title: Do not raise reserved exception types, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: true}
 - {Id: CA2207, Title: Initialize value type static fields inline, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA2208, Title: Instantiate argument exceptions correctly, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA2211, Title: Non-constant fields should not be visible, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -199,7 +199,7 @@
 - {Id: CA2251, Title: Use 'string.Equals', Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: CA2252, Title: This API requires opting into preview features, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2253, Title: Named placeholders should not be numeric values, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: CA2254, Title: Template should be a static expression, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: CA2254, Title: Template should be a static expression, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: CA2255, Title: The 'ModuleInitializer' attribute should not be used in libraries, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2256, Title: All members declared in parent interfaces must have an implementation in a DynamicInterfaceCastableImplementation-attributed interface, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2257, Title: Members defined on an interface with the 'DynamicInterfaceCastableImplementationAttribute' should be 'static', Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -314,27 +314,26 @@
 - {Id: EM0105, Title: Duplicate Case Type, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EnableGenerateDocumentationFile, Title: Set MSBuild property 'GenerateDocumentationFile' to 'true', Category: Style, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: IDE0004, Title: Remove Unnecessary Cast, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
-- {Id: IDE0005, Title: Using directive is unnecessary., Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0005, Title: Using directive is unnecessary., Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE0005_gen, Title: Using directive is unnecessary., Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE0007, Title: Use implicit type, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0008, Title: Use explicit type, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0008, Title: Use explicit type, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: false}
 - {Id: IDE0009, Title: Member access should be qualified., Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0010, Title: Add missing cases, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE0011, Title: Add braces, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0016, Title: Use 'throw' expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0017, Title: Simplify object initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0017, Title: Simplify object initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: false}
 - {Id: IDE0018, Title: Inline variable declaration, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0019, Title: Use pattern matching, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0020, Title: Use pattern matching, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0021, Title: Use expression body for constructor, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0022, Title: Use expression body for method, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0022, Title: Use expression body for method, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: false}
 - {Id: IDE0023, Title: Use expression body for conversion operator, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0024, Title: Use expression body for operator, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0025, Title: Use expression body for property, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0026, Title: Use expression body for indexer, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0027, Title: Use expression body for accessor, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0028, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0028, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0028, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: true}
 - {Id: IDE0029, Title: Use coalesce expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0030, Title: Use coalesce expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0031, Title: Use null propagation, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -351,7 +350,7 @@
 - {Id: IDE0043, Title: Invalid format string, Category: Compiler, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0044, Title: Add readonly modifier, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0045, Title: Convert to conditional expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0046, Title: Convert to conditional expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0046, Title: Convert to conditional expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: false}
 - {Id: IDE0047, Title: Remove unnecessary parentheses, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0048, Title: Add parentheses for clarity, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0051, Title: Remove unused private members, Category: CodeQuality, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -389,7 +388,7 @@
 - {Id: IDE0130, Title: Namespace does not match folder structure, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0150, Title: Prefer 'null' check over type check, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0160, Title: Convert to block scoped namespace, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0161, Title: Convert to file-scoped namespace, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0161, Title: Convert to file-scoped namespace, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: false}
 - {Id: IDE0170, Title: Property pattern can be simplified, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0180, Title: Use tuple to swap values, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0200, Title: Remove unnecessary lambda expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -404,13 +403,13 @@
 - {Id: IDE0260, Title: Use pattern matching, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0270, Title: Use coalesce expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0280, Title: Use 'nameof', Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
-- {Id: IDE0290, Title: Use primary constructor, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0300, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0301, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0290, Title: Use primary constructor, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: false}
+- {Id: IDE0300, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: false}
+- {Id: IDE0301, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: false}
 - {Id: IDE0302, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0303, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0304, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0305, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0305, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: false}
 - {Id: IDE1005, Title: Delegate invocation can be simplified., Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE1006, Title: Naming Styles, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE2000, Title: Avoid multiple blank lines, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -421,7 +420,7 @@
 - {Id: IDE2005, Title: Blank line not allowed after conditional expression token, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE2006, Title: Blank line not allowed after arrow expression clause token, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0001, Title: StringComparison is missing, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: MA0002, Title: IEqualityComparer<string> or IComparer<string> is missing, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: MA0002, Title: IEqualityComparer<string> or IComparer<string> is missing, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: MA0003, Title: Add parameter name to improve readability, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0004, Title: Use Task.ConfigureAwait, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0005, Title: Use Array.Empty<T>(), Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -463,13 +462,13 @@
 - {Id: MA0042, Title: Do not use blocking calls in an async method, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0043, Title: Use nameof operator in ArgumentException, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0044, Title: Remove useless ToString call, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: MA0045, Title: Do not use blocking calls in a sync method (need to make calling method async), Category: Design, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
+- {Id: MA0045, Title: Do not use blocking calls in a sync method (need to make calling method async), Category: Design, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: MA0046, Title: Use EventHandler<T> to declare events, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0047, Title: Declare types in namespaces, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0048, Title: File name must match type name, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: MA0049, Title: Type name should not match containing namespace, Category: Design, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: MA0049, Title: Type name should not match containing namespace, Category: Design, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: MA0050, Title: Validate arguments correctly in iterator methods, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: MA0051, Title: Method is too long, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
+- {Id: MA0051, Title: Method is too long, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: MA0052, Title: Replace constant Enum.ToString with nameof, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0053, Title: Make class sealed, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0054, Title: Embed the caught exception as innerException, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -489,12 +488,12 @@
 - {Id: MA0068, Title: Invalid parameter name for nullable attribute, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0069, Title: Non-constant static fields should not be visible, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0070, Title: Obsolete attributes should include explanations, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: MA0071, Title: Avoid using redundant else, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: MA0071, Title: Avoid using redundant else, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: true}
 - {Id: MA0072, Title: Do not throw from a finally block, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0073, Title: Avoid comparison with bool constant, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0074, Title: Avoid implicit culture-sensitive methods, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0075, Title: Do not use implicit culture-sensitive ToString, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: MA0076, Title: Do not use implicit culture-sensitive ToString in interpolated strings, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: MA0076, Title: Do not use implicit culture-sensitive ToString in interpolated strings, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: true}
 - {Id: MA0077, Title: A class that provides Equals(T) should implement IEquatable<T>, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0078, Title: Use 'Cast' instead of 'Select' to cast, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0079, Title: Forward the CancellationToken using .WithCancellation(), Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -530,7 +529,7 @@
 - {Id: MA0109, Title: Consider adding an overload with a Span<T> or Memory<T>, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: MA0110, Title: Use the Regex source generator, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0111, Title: Use string.Create instead of FormattableString, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: MA0112, Title: Use 'Count > 0' instead of 'Any()', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
+- {Id: MA0112, Title: Use 'Count > 0' instead of 'Any()', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: MA0113, Title: Use DateTime.UnixEpoch, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0114, Title: Use DateTimeOffset.UnixEpoch, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0115, Title: Unknown component parameter, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -605,8 +604,8 @@
 - {Id: RCS1020, Title: 'Simplify Nullable<T> to T?', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1021, Title: Convert lambda expression body to expression body, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1021FadeOut, Title: Convert lambda expression body to expression body, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1031, Title: Remove unnecessary braces in switch section, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
-- {Id: RCS1031FadeOut, Title: Remove unnecessary braces in switch section, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
+- {Id: RCS1031, Title: Remove unnecessary braces in switch section, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: RCS1031FadeOut, Title: Remove unnecessary braces in switch section, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1032, Title: Remove redundant parentheses, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1032FadeOut, Title: Remove redundant parentheses, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1033, Title: Remove redundant boolean literal, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -690,8 +689,8 @@
 - {Id: RCS1114FadeOut, Title: Remove redundant delegate creation, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1118, Title: Mark local variable as const, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1123, Title: Add parentheses when necessary, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1124, Title: Inline local variable, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1124FadeOut, Title: Inline local variable, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: RCS1124, Title: Inline local variable, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
+- {Id: RCS1124FadeOut, Title: Inline local variable, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: RCS1126, Title: Add braces to if-else, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: RCS1128, Title: Use coalesce expression, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1129, Title: Remove redundant field initialization, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
@@ -719,7 +718,7 @@
 - {Id: RCS1160, Title: Abstract type should not have public constructors, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1161, Title: Enum should declare explicit values, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: RCS1162, Title: Avoid chain of assignments, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: RCS1163, Title: Unused parameter, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: RCS1163, Title: Unused parameter, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: true}
 - {Id: RCS1164, Title: Unused type parameter, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1165, Title: Unconstrained type parameter checked for null, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: RCS1166, Title: Value type object is never equal to null, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -744,7 +743,7 @@
 - {Id: RCS1189, Title: Add or remove region name, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: RCS1190, Title: Join string expressions, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1191, Title: Declare enum value as combination of names, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1192, Title: Unnecessary usage of verbatim string literal, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: RCS1192, Title: Unnecessary usage of verbatim string literal, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note, None], IsEverSuppressed: true}
 - {Id: RCS1193, Title: Overriding member should not change 'params' modifier, Category: Roslynator, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RCS1194, Title: Implement exception constructors, Category: Roslynator, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RCS1195, Title: Use ^ operator, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -753,7 +752,7 @@
 - {Id: RCS1198, Title: Avoid unnecessary boxing of value type, Category: Roslynator, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: RCS1199, Title: Unnecessary null check, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1200, Title: Call 'Enumerable.ThenBy' instead of 'Enumerable.OrderBy', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1201, Title: Use method chaining, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: RCS1201, Title: Use method chaining, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: RCS1202, Title: Avoid NullReferenceException, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1203, Title: Use AttributeUsageAttribute, Category: Roslynator, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RCS1204, Title: Use EventArgs.Empty, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -771,8 +770,8 @@
 - {Id: RCS1214FadeOut, Title: Unnecessary interpolated string, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1215, Title: Expression is always equal to true/false, Category: Roslynator, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RCS1216, Title: Unnecessary unsafe context, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1217, Title: Convert interpolated string to concatenation, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1217FadeOut, Title: Convert interpolated string to concatenation, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: RCS1217, Title: Convert interpolated string to concatenation, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
+- {Id: RCS1217FadeOut, Title: Convert interpolated string to concatenation, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: RCS1218, Title: Simplify code branching, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1220, Title: Use pattern matching instead of combination of 'is' operator and cast operator, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1221, Title: Use pattern matching instead of combination of 'as' operator and null check, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -785,7 +784,7 @@
 - {Id: RCS1228, Title: Unused element in a documentation comment, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1229, Title: Use async/await when necessary, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1230, Title: Unnecessary explicit use of enumerator, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1231, Title: Make parameter ref read-only, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: RCS1231, Title: Make parameter ref read-only, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
 - {Id: RCS1232, Title: Order elements in documentation comment, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1233, Title: Use short-circuiting operator, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1234, Title: Duplicate enum value, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -831,7 +830,7 @@
 - {Id: RS1004, Title: Recommend adding language support to diagnostic analyzer, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1005, Title: ReportDiagnostic invoked with an unsupported DiagnosticDescriptor, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1006, Title: Invalid type argument for DiagnosticAnalyzer's Register method, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: RS1007, Title: Provide localizable arguments to diagnostic descriptor constructor, Category: MicrosoftCodeAnalysisLocalization, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: RS1007, Title: Provide localizable arguments to diagnostic descriptor constructor, Category: MicrosoftCodeAnalysisLocalization, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
 - {Id: RS1008, Title: Avoid storing per-compilation data into the fields of a diagnostic analyzer, Category: MicrosoftCodeAnalysisPerformance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1009, Title: Only internal implementations of this interface are allowed, Category: MicrosoftCodeAnalysisCompatibility, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1010, Title: Create code actions should have a unique EquivalenceKey for FixAll occurrences support, Category: Correctness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -852,7 +851,7 @@
 - {Id: RS1025, Title: Configure generated code analysis, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1026, Title: Enable concurrent execution, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1027, Title: Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: RS1028, Title: Provide non-null 'customTags' value to diagnostic descriptor constructor, Category: MicrosoftCodeAnalysisDocumentation, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: RS1028, Title: Provide non-null 'customTags' value to diagnostic descriptor constructor, Category: MicrosoftCodeAnalysisDocumentation, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
 - {Id: RS1029, Title: Do not use reserved diagnostic IDs, Category: MicrosoftCodeAnalysisDesign, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1030, Title: Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1031, Title: Define diagnostic title correctly, Category: MicrosoftCodeAnalysisDesign, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -871,7 +870,7 @@
 - {Id: RS2006, Title: Remove duplicate entries for diagnostic ID between analyzer releases, Category: MicrosoftCodeAnalysisReleaseTracking, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS2007, Title: Invalid entry in analyzer release file, Category: MicrosoftCodeAnalysisReleaseTracking, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS2008, Title: Enable analyzer release tracking, Category: MicrosoftCodeAnalysisReleaseTracking, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S100, Title: Methods and properties should be named in PascalCase, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
+- {Id: S100, Title: Methods and properties should be named in PascalCase, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S1006, Title: Method overrides should not change parameter defaults, Category: Critical Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S101, Title: Types should be named in PascalCase, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S103, Title: Lines should not be too long, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -891,7 +890,7 @@
 - {Id: S1110, Title: Redundant pairs of parentheses should be removed, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S1116, Title: Empty statements should be removed, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S1117, Title: Local variables should not shadow class fields or properties, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S1118, Title: Utility classes should not have public constructors, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: S1118, Title: Utility classes should not have public constructors, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: S112, Title: General or reserved exceptions should never be thrown, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S1121, Title: Assignments should not be made from within sub-expressions, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S1123, Title: '"Obsolete" attributes should include explanations', Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -900,7 +899,7 @@
 - {Id: S113, Title: Files should end with a newline, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S1133, Title: Deprecated code should be removed, Category: Info Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S1134, Title: Track uses of "FIXME" tags, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S1135, Title: Track uses of "TODO" tags, Category: Info Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: false}
+- {Id: S1135, Title: Track uses of "TODO" tags, Category: Info Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note, None], IsEverSuppressed: true}
 - {Id: S1144, Title: Unused private types or members should be removed, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S1147, Title: Exit methods should not be called, Category: Blocker Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S1151, Title: '"switch case" clauses should not have too many lines of code', Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -920,7 +919,7 @@
 - {Id: S122, Title: Statements should be on separate lines, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S1226, Title: "Method parameters, caught exceptions and foreach variables' initial values should not be ignored", Category: Minor Bug, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S1227, Title: break statements should not be used except for switch cases, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: S1244, Title: Floating point numbers should not be tested for equality, Category: Major Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: S1244, Title: Floating point numbers should not be tested for equality, Category: Major Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: S125, Title: Sections of code should not be commented out, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S126, Title: '"if ... else if" constructs should end with "else" clauses', Category: Critical Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S1264, Title: A "while" loop should be used instead of a "for" loop, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1022,9 +1021,9 @@
 - {Id: S2486, Title: Generic exceptions should not be ignored, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2551, Title: Shared resources should not be used for locking, Category: Critical Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2583, Title: Conditionally executed code should be reachable, Category: Major Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S2589, Title: Boolean expressions should not be gratuitous, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
+- {Id: S2589, Title: Boolean expressions should not be gratuitous, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2612, Title: Setting loose file permissions is security-sensitive, Category: Major Security Hotspot, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S2629, Title: Logging templates should be constant, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: S2629, Title: Logging templates should be constant, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: S2674, Title: The length returned from a stream read should be checked, Category: Minor Bug, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S2681, Title: Multiline blocks should be enclosed in curly braces, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2688, Title: '"NaN" should not be used in comparisons', Category: Major Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1040,7 +1039,7 @@
 - {Id: S2761, Title: Doubled prefix operators "!!" and "~~" should not be used, Category: Major Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2857, Title: SQL keywords should be delimited by whitespace, Category: Blocker Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2925, Title: '"Thread.Sleep" should not be used in tests', Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S2930, Title: '"IDisposables" should be disposed', Category: Blocker Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: S2930, Title: '"IDisposables" should be disposed', Category: Blocker Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: S2931, Title: Classes with "IDisposable" members should implement "IDisposable", Category: Blocker Bug, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S2933, Title: Fields that are only assigned in the constructor should be "readonly", Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2934, Title: Property assignments should not be made for "readonly" fields not constrained to reference types, Category: Minor Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1290,7 +1289,7 @@
 - {Id: S6588, Title: Use the "UnixEpoch" field instead of creating "DateTime" instances that point to the beginning of the Unix epoch, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S6602, Title: '"Find" method should be used instead of the "FirstOrDefault" extension', Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S6603, Title: The collection-specific "TrueForAll" method should be used instead of the "All" extension, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S6605, Title: Collection-specific "Exists" method should be used instead of the "Any" extension, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: S6605, Title: Collection-specific "Exists" method should be used instead of the "Any" extension, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: S6607, Title: The collection should be filtered before sorting by using "Where" before "OrderBy", Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S6608, Title: Prefer indexing instead of "Enumerable" methods on types implementing "IList", Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S6609, Title: '"Min/Max" properties of "Set" types should be used instead of the "Enumerable" extension methods', Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1301,7 +1300,7 @@
 - {Id: S6618, Title: '"string.Create" should be used instead of "FormattableString"', Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S6640, Title: Using unsafe code blocks is security-sensitive, Category: Major Security Hotspot, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S6664, Title: The code block contains too many logging calls, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: S6667, Title: Logging in a catch clause should pass the caught exception as a parameter., Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: S6667, Title: Logging in a catch clause should pass the caught exception as a parameter., Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: S6668, Title: Logging arguments should be passed to the correct parameter, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S6669, Title: Logger field or property name should comply with a naming convention, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S6670, Title: '"Trace.Write" and "Trace.WriteLine" should not be used', Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1351,7 +1350,7 @@
 - {Id: SA1006, Title: Preprocessor keywords should not be preceded by space, Category: StyleCop.CSharp.SpacingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1007, Title: Operator keyword should be followed by space, Category: StyleCop.CSharp.SpacingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1008, Title: Opening parenthesis should be spaced correctly, Category: StyleCop.CSharp.SpacingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1009, Title: Closing parenthesis should be spaced correctly, Category: StyleCop.CSharp.SpacingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SA1009, Title: Closing parenthesis should be spaced correctly, Category: StyleCop.CSharp.SpacingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1010, Title: Opening square brackets should be spaced correctly, Category: StyleCop.CSharp.SpacingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1011, Title: Closing square brackets should be spaced correctly, Category: StyleCop.CSharp.SpacingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1012, Title: Opening braces should be spaced correctly, Category: StyleCop.CSharp.SpacingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1381,8 +1380,8 @@
 - {Id: SA1107, Title: Code should not contain multiple statements on one line, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1108, Title: Block statements should not contain embedded comments, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1109, Title: Block statements should not contain embedded regions, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: SA1110, Title: Opening parenthesis or bracket should be on declaration line, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1111, Title: Closing parenthesis should be on line of last parameter, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SA1110, Title: Opening parenthesis or bracket should be on declaration line, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
+- {Id: SA1111, Title: Closing parenthesis should be on line of last parameter, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1112, Title: Closing parenthesis should be on line of opening parenthesis, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1113, Title: Comma should be on the same line as previous parameter, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1114, Title: Parameter list should follow declaration, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1414,14 +1413,14 @@
 - {Id: SA1141, Title: Use tuple syntax, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1142, Title: Refer to tuple fields by name, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1200, Title: Using directives should be placed correctly, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1201, Title: Elements should appear in the correct order, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1202, Title: Elements should be ordered by access, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SA1201, Title: Elements should appear in the correct order, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
+- {Id: SA1202, Title: Elements should be ordered by access, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1203, Title: Constants should appear before fields, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1204, Title: Static elements should appear before instance elements, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SA1204, Title: Static elements should appear before instance elements, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1205, Title: Partial elements should declare access, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1206, Title: Declaration keywords should follow order, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1207, Title: Protected should come before internal, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1208, Title: System using directives should be placed before other using directives, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SA1208, Title: System using directives should be placed before other using directives, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1209, Title: Using alias directives should be placed after other using directives, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1210, Title: Using directives should be ordered alphabetically by namespace, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1211, Title: Using alias directives should be ordered alphabetically by alias name, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1438,14 +1437,14 @@
 - {Id: SA1305, Title: Field names should not use Hungarian notation, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: SA1306, Title: Field names should begin with lower-case letter, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1307, Title: Accessible fields should begin with upper-case letter, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1308, Title: Variable names should not be prefixed, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SA1308, Title: Variable names should not be prefixed, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1309, Title: Field names should not begin with underscore, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1310, Title: Field names should not contain underscore, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1311, Title: Static readonly fields should begin with upper-case letter, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1312, Title: Variable names should begin with lower-case letter, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1313, Title: Parameter names should begin with lower-case letter, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1314, Title: Type parameter names should begin with T, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1316, Title: Tuple element names should use correct casing, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SA1316, Title: Tuple element names should use correct casing, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1400, Title: Access modifier should be declared, Category: StyleCop.CSharp.MaintainabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1401, Title: Fields should be private, Category: StyleCop.CSharp.MaintainabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1402, Title: File may only contain a single type, Category: StyleCop.CSharp.MaintainabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1464,7 +1463,7 @@
 - {Id: SA1500, Title: Braces for multi-line statements should not share line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1501, Title: Statement should not be on a single line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1502, Title: Element should not be on a single line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1503, Title: Braces should not be omitted, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
+- {Id: SA1503, Title: Braces should not be omitted, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1504, Title: All accessors should be single-line or multi-line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1505, Title: Opening braces should not be followed by blank line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1506, Title: Element documentation headers should not be followed by blank line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1476,14 +1475,14 @@
 - {Id: SA1512, Title: Single-line comments should not be followed by blank line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1513, Title: Closing brace should be followed by blank line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1514, Title: Element documentation header should be preceded by blank line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1515, Title: Single-line comment should be preceded by blank line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SA1515, Title: Single-line comment should be preceded by blank line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1516, Title: Elements should be separated by blank line, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1517, Title: Code should not contain blank lines at start of file, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1518, Title: Use line endings correctly at end of file, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1519, Title: Braces should not be omitted from multi-line child statement, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1520, Title: Use braces consistently, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1600, Title: Elements should be documented, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: true}
-- {Id: SA1601, Title: Partial elements should be documented, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SA1600, Title: Elements should be documented, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note, None], IsEverSuppressed: true}
+- {Id: SA1601, Title: Partial elements should be documented, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: SA1602, Title: Enumeration items should be documented, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1603, Title: Documentation should contain valid XML, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: SA1604, Title: Element documentation should have summary, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1537,6 +1536,19 @@
 - {Id: SX1101, Title: Do not prefix local calls with 'this.', Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: SX1309, Title: Field names should begin with underscore, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: SX1309S, Title: Static field names should begin with underscore, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: SYSLIB1045, Title: Convert to 'GeneratedRegexAttribute'., Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: SYSLIB1054, Title: Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time, Category: Interoperability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: SYSLIB1055, Title: Invalid 'CustomMarshallerAttribute' usage, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SYSLIB1056, Title: Specified marshaller type is invalid, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SYSLIB1057, Title: Marshaller type does not have the required shape, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SYSLIB1058, Title: Invalid 'NativeMarshallingAttribute' usage, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SYSLIB1060, Title: Specified marshaller type is invalid, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SYSLIB1061, Title: Marshaller type has incompatible method signatures, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SYSLIB1090, Title: "'GeneratedComInterfaceType' does not support the 'ComInterfaceType' value supplied to 'InterfaceTypeAttribute' on the same type.", Category: ComInterfaceGenerator, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SYSLIB1096, Title: Convert to 'GeneratedComInterface', Category: Interoperability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: SYSLIB1097, Title: Add 'GeneratedComClassAttribute' to enable passing objects of this type to COM, Category: Interoperability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: SYSLIB1098, Title: .NET COM hosting with 'EnableComHosting' does not support interfaces with the 'GeneratedComInterfaceAttribute', Category: Interoperability, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: SYSLIB1099, Title: COM Interop APIs on 'System.Runtime.InteropServices.Marshal' do not support source-generated COM, Category: Interoperability, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD001, Title: Avoid legacy thread switching APIs, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD002, Title: Avoid problematic synchronous waits, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD003, Title: Avoid awaiting foreign Tasks, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
