@@ -6,18 +6,17 @@
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 {
-    internal const string RuleId = DiagnosticIds.AsyncUsesReturnsAsyncInsteadOfResult;
-    private const string Title = "Moq: Invalid setup parameter";
-    private const string Message = "Setup of async methods should use ReturnsAsync instead of .Result";
+    private static readonly LocalizableString Title = "Moq: Invalid setup parameter";
+    private static readonly LocalizableString Message = "Setup of async methods should use ReturnsAsync instead of .Result";
 
     private static readonly DiagnosticDescriptor Rule = new(
-        RuleId,
+        DiagnosticIds.AsyncUsesReturnsAsyncInsteadOfResult,
         Title,
         Message,
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{RuleId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.AsyncUsesReturnsAsyncInsteadOfResult}.md");
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);

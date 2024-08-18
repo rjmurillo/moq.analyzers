@@ -6,24 +6,20 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyzer
 {
-    internal const string RuleId = DiagnosticIds.BadCallbackParameters;
-    private const string Title = "Moq: Bad callback parameters";
-    private const string Message = "Callback signature must match the signature of the mocked method";
+    private static readonly LocalizableString Title = "Moq: Bad callback parameters";
+    private static readonly LocalizableString Message = "Callback signature must match the signature of the mocked method";
 
     private static readonly DiagnosticDescriptor Rule = new(
-        RuleId,
+        DiagnosticIds.BadCallbackParameters,
         Title,
         Message,
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{RuleId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.BadCallbackParameters}.md");
 
     /// <inheritdoc />
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get { return ImmutableArray.Create(Rule); }
-    }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
     public override void Initialize(AnalysisContext context)

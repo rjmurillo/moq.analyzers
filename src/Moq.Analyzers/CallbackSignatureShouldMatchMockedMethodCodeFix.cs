@@ -14,16 +14,10 @@ namespace Moq.Analyzers;
 public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
 {
     /// <inheritdoc />
-    public sealed override ImmutableArray<string> FixableDiagnosticIds
-    {
-        get { return ImmutableArray.Create(CallbackSignatureShouldMatchMockedMethodAnalyzer.RuleId); }
-    }
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.BadCallbackParameters);
 
     /// <inheritdoc />
-    public sealed override FixAllProvider GetFixAllProvider()
-    {
-        return WellKnownFixAllProviders.BatchFixer;
-    }
+    public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
     /// <inheritdoc />
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -55,7 +49,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
-    private async Task<Document> FixCallbackSignatureAsync(SyntaxNode root, Document document, ParameterListSyntax? oldParameters, CancellationToken cancellationToken)
+    private static async Task<Document> FixCallbackSignatureAsync(SyntaxNode root, Document document, ParameterListSyntax? oldParameters, CancellationToken cancellationToken)
     {
         SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
