@@ -7,3 +7,24 @@ is_global=true
 # AV2210 : Pass -warnaserror to the compiler or add <TreatWarningsAsErrors>True</TreatWarningsAsErrors> to your project file
 # This is set as part of the CI build. It is intentionally not set locally to allow for a fast inner dev loop.
 dotnet_diagnostic.AV2210.severity = none
+
+# Enable Effective C# Analyzers
+dotnet_diagnostic.ECS0100.severity = warning
+dotnet_diagnostic.ECS0200.severity = warning
+dotnet_diagnostic.ECS0300.severity = warning
+dotnet_diagnostic.ECS0400.severity = warning
+dotnet_diagnostic.ECS0500.severity = warning
+dotnet_diagnostic.ECS0600.severity = warning
+dotnet_diagnostic.ECS0700.severity = warning
+dotnet_diagnostic.ECS0800.severity = warning
+dotnet_diagnostic.ECS0900.severity = warning
+dotnet_diagnostic.ECS1000.severity = warning
+dotnet_diagnostic.ECS1100.severity = warning
+dotnet_diagnostic.ECS1200.severity = warning
+dotnet_diagnostic.ECS1300.severity = warning
+dotnet_diagnostic.ECS1400.severity = warning
+dotnet_diagnostic.ECS1500.severity = warning
+dotnet_diagnostic.ECS1600.severity = warning
+dotnet_diagnostic.ECS1700.severity = warning
+dotnet_diagnostic.ECS1800.severity = warning
+dotnet_diagnostic.ECS1900.severity = warning
