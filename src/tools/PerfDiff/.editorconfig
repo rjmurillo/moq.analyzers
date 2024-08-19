@@ -112,3 +112,24 @@ dotnet_diagnostic.MA0076.severity = none
 dotnet_diagnostic.RCS1192.severity = none
 # S1135: Track uses of "TODO" tags
 dotnet_diagnostic.S1135.severity = none
+
+# Enable Effective C# Analyzers
+dotnet_diagnostic.ECS0100.severity = none
+dotnet_diagnostic.ECS0200.severity = none
+dotnet_diagnostic.ECS0300.severity = none
+dotnet_diagnostic.ECS0400.severity = none
+dotnet_diagnostic.ECS0500.severity = none
+dotnet_diagnostic.ECS0600.severity = none
+dotnet_diagnostic.ECS0700.severity = none
+dotnet_diagnostic.ECS0800.severity = none
+dotnet_diagnostic.ECS0900.severity = none
+dotnet_diagnostic.ECS1000.severity = none
+dotnet_diagnostic.ECS1100.severity = none
+dotnet_diagnostic.ECS1200.severity = none
+dotnet_diagnostic.ECS1300.severity = none
+dotnet_diagnostic.ECS1400.severity = none
+dotnet_diagnostic.ECS1500.severity = none
+dotnet_diagnostic.ECS1600.severity = none
+dotnet_diagnostic.ECS1700.severity = none
+dotnet_diagnostic.ECS1800.severity = none
+dotnet_diagnostic.ECS1900.severity = none
