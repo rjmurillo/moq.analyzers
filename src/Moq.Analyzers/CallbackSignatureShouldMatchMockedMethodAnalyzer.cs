@@ -74,13 +74,32 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
                 TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[argumentIndex].Expression, context.CancellationToken);
 
-                string? mockedMethodTypeName = mockedMethodArgumentType.ConvertedType?.ToString();
-                string? lambdaParameterTypeName = lambdaParameterType.ConvertedType?.ToString();
 
-                if (!string.Equals(mockedMethodTypeName, lambdaParameterTypeName, StringComparison.Ordinal))
+
+                // Check if types are assignable rather than strictly equal
+                ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
+                ITypeSymbol? mockedMethodTypeSymbol = mockedMethodArgumentType.Type;
+
+                if (lambdaParameterTypeSymbol is not null && mockedMethodTypeSymbol is not null)
                 {
-                    Diagnostic diagnostic = callbackLambda.ParameterList.CreateDiagnostic(Rule);
-                    context.ReportDiagnostic(diagnostic);
+
+                    if (!context.SemanticModel.Compilation.ClassifyConversion(lambdaParameterTypeSymbol, mockedMethodTypeSymbol).IsImplicit)
+                    {
+
+                        Diagnostic diagnostic = lambdaParameters[argumentIndex].GetLocation().CreateDiagnostic(Rule);
+                        context.ReportDiagnostic(diagnostic);
+                    }
+                }
+                else
+                {
+                    string? mockedMethodTypeName = mockedMethodArgumentType.ConvertedType?.ToString();
+                    string? lambdaParameterTypeName = lambdaParameterType.ConvertedType?.ToString();
+
+                    if (!string.Equals(mockedMethodTypeName, lambdaParameterTypeName, StringComparison.Ordinal))
+                    {
+                        Diagnostic diagnostic = callbackLambda.ParameterList.CreateDiagnostic(Rule);
+                        context.ReportDiagnostic(diagnostic);
+                    }
                 }
             }
         }
