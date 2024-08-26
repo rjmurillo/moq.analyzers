@@ -17,7 +17,7 @@
       "rollForward": false
     },
     "squigglecop.tool": {
-      "version": "1.0.13",
+      "version": "1.0.26",
       "commands": [
         "dotnet-squigglecop"
       ],
