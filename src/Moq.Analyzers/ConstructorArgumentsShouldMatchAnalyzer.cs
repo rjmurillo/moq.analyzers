@@ -132,7 +132,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     private static void VerifyDelegateMockAttempt(
     SyntaxNodeAnalysisContext context,
     ArgumentListSyntax? argumentList,
-    ImmutableArray<ArgumentSyntax> arguments)
+    ArgumentSyntax[] arguments)
     {
         if (arguments.Length == 0)
         {
@@ -149,7 +149,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     private static void VerifyInterfaceMockAttempt(
         SyntaxNodeAnalysisContext context,
         ArgumentListSyntax? argumentList,
-        ImmutableArray<ArgumentSyntax> arguments)
+        ArgumentSyntax[] arguments)
     {
         // Interfaces and delegates don't have ctors, so bail out early
         if (arguments.Length == 0)
@@ -322,8 +322,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <remarks>Handles <see langword="params" /> and optional parameters.</remarks>
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "This should be refactored; suppressing for now to enable TreatWarningsAsErrors in CI.")]
     private static bool AnyConstructorsFound(
-        ImmutableArray<IMethodSymbol> constructors,
-        ImmutableArray<ArgumentSyntax> arguments,
+        IMethodSymbol[] constructors,
+        ArgumentSyntax[] arguments,
         SyntaxNodeAnalysisContext context)
     {
         for (int constructorIndex = 0; constructorIndex < constructors.Length; constructorIndex++)
@@ -331,7 +331,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             IMethodSymbol constructor = constructors[constructorIndex];
             bool hasParams = constructor.Parameters.Length > 0 && constructor.Parameters[^1].IsParams;
             int fixedParametersCount = hasParams ? constructor.Parameters.Length - 1 : constructor.Parameters.Length;
+#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
             int requiredParameters = constructor.Parameters.Count(parameterSymbol => !parameterSymbol.IsOptional);
+#pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
             bool allParametersMatch = true;
 
             // Check if the number of arguments is valid considering params
@@ -401,7 +403,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     }
 
     private static (bool IsEmpty, Location Location) ConstructorIsEmpty(
-        ImmutableArray<IMethodSymbol> constructors,
+        IMethodSymbol[] constructors,
         ArgumentListSyntax? argumentList,
         SyntaxNodeAnalysisContext context)
     {
@@ -416,7 +418,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             location = context.Node.GetLocation();
         }
 
-        return (constructors.IsEmpty, location);
+        return (constructors.Length == 0, location);
     }
 
     private static void VerifyMockAttempt(
@@ -430,9 +432,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        ImmutableArray<ArgumentSyntax> arguments =
-                                        argumentList?.Arguments.ToImmutableArray()
-                                        ?? ImmutableArray<ArgumentSyntax>.Empty;
+#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
+        ArgumentSyntax[] arguments = argumentList?.Arguments.ToArray() ?? [];
+#pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
 
         if (hasMockBehavior && arguments.Length > 0 && IsFirstArgumentMockBehavior(context, argumentList))
         {
@@ -463,13 +465,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         SyntaxNodeAnalysisContext context,
         ITypeSymbol mockedClass,
         ArgumentListSyntax? argumentList,
-        ImmutableArray<ArgumentSyntax> arguments)
+        ArgumentSyntax[] arguments)
     {
-        ImmutableArray<IMethodSymbol> constructors = mockedClass
+        IMethodSymbol[] constructors = mockedClass
             .GetMembers()
             .OfType<IMethodSymbol>()
             .Where(methodSymbol => methodSymbol.IsConstructor())
-            .ToImmutableArray();
+            .ToArray();
 
         // Bail out early if there are no arguments on constructors or no constructors at all
         (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);

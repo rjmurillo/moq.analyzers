@@ -17,7 +17,9 @@ public class CompositeAnalyzer : DiagnosticAnalyzer
     public CompositeAnalyzer()
     {
         _analyzers = [.. DiagnosticAnalyzers()];
+#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
         _supportedDiagnostics = [.. _analyzers.SelectMany(diagnosticAnalyzer => diagnosticAnalyzer.SupportedDiagnostics)];
+#pragma warning restore ECS0900
     }
 
     /// <inheritdoc />

@@ -14,16 +14,10 @@ namespace Moq.Analyzers;
 public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
 {
     /// <inheritdoc />
-    public sealed override ImmutableArray<string> FixableDiagnosticIds
-    {
-        get { return ImmutableArray.Create(CallbackSignatureShouldMatchMockedMethodAnalyzer.RuleId); }
-    }
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.BadCallbackParameters);
 
     /// <inheritdoc />
-    public sealed override FixAllProvider GetFixAllProvider()
-    {
-        return WellKnownFixAllProviders.BatchFixer;
-    }
+    public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
     /// <inheritdoc />
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)

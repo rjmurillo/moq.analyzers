@@ -11,28 +11,16 @@
 /// </remarks>
 internal abstract class MoqMethodDescriptorBase
 {
-    private const string ContainingNamespace = WellKnownTypeNames.Moq;
-    private const string ContainingType = WellKnownTypeNames.MockName;
+    private static readonly string ContainingNamespace = WellKnownTypeNames.Moq;
+    private static readonly string ContainingType = WellKnownTypeNames.MockName;
 
     public abstract bool IsMatch(SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccessSyntax, CancellationToken cancellationToken);
 
-    protected static bool IsFastMatch(MemberAccessExpressionSyntax memberAccessSyntax, ReadOnlySpan<char> methodName)
-    {
-        return memberAccessSyntax.Name.Identifier.Text.AsSpan().SequenceEqual(methodName);
-    }
+    protected static bool IsFastMatch(MemberAccessExpressionSyntax memberAccessSyntax, ReadOnlySpan<char> methodName) => memberAccessSyntax.Name.Identifier.Text.AsSpan().SequenceEqual(methodName);
 
-    protected static bool IsContainedInMockType(IMethodSymbol methodSymbol)
-    {
-        return IsInMoqNamespace(methodSymbol) && IsInMockType(methodSymbol);
-    }
+    protected static bool IsContainedInMockType(IMethodSymbol methodSymbol) => IsInMoqNamespace(methodSymbol) && IsInMockType(methodSymbol);
 
-    private static bool IsInMoqNamespace(ISymbol symbol)
-    {
-        return symbol.ContainingNamespace.Name.AsSpan().SequenceEqual(ContainingNamespace.AsSpan());
-    }
+    private static bool IsInMoqNamespace(ISymbol symbol) => symbol.ContainingNamespace.Name.AsSpan().SequenceEqual(ContainingNamespace.AsSpan());
 
-    private static bool IsInMockType(ISymbol symbol)
-    {
-        return symbol.ContainingType.Name.AsSpan().SequenceEqual(ContainingType.AsSpan());
-    }
+    private static bool IsInMockType(ISymbol symbol) => symbol.ContainingType.Name.AsSpan().SequenceEqual(ContainingType.AsSpan());
 }

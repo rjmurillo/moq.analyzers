@@ -8,5 +8,6 @@
     <PackageVersion Include="SquiggleCop.Tasks" Version="1.0.26" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20" />
     <PackageVersion Include="ExhaustiveMatching.Analyzer" Version="0.5.0" />
+    <PackageVersion Include="EffectiveCSharp.Analyzers" Version="0.1.0" />
   </ItemGroup>
 </Project>
