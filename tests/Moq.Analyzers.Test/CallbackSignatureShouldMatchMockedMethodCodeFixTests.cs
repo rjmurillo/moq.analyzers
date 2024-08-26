@@ -73,6 +73,10 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Returns(0).Callback((List<string> l) => { });""",
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Returns(0).Callback((List<string> l) => { });""",
             ],
+            [ // Repro for https://github.com/rjmurillo/moq.analyzers/issues/172
+                """new Mock<IFoo>().Setup(m => m.DoSomething(It.IsAny<object?>())).Returns((object? bar) => true);""",
+                """new Mock<IFoo>().Setup(m => m.DoSomething(It.IsAny<object?>())).Returns((object? bar) => true);""",
+            ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -91,6 +95,8 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 int Do(int i, string s, DateTime dt);
 
                 int Do(List<string> l);
+
+                bool DoSomething(object? bar);
             }
 
             internal class UnitTest
