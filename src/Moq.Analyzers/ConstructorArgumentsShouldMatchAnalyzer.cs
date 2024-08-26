@@ -164,7 +164,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private void AnalyzeCompilation(CompilationStartAnalysisContext context)
+    private static void AnalyzeCompilation(CompilationStartAnalysisContext context)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
 
@@ -191,7 +191,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeInstanceCall, SyntaxKind.InvocationExpression);
     }
 
-    private void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context)
     {
         InvocationExpressionSyntax invocationExpressionSyntax = (InvocationExpressionSyntax)context.Node;
 
@@ -220,7 +220,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private void AnalyzeInvocation(
+    private static void AnalyzeInvocation(
         SyntaxNodeAnalysisContext context,
         InvocationExpressionSyntax invocationExpressionSyntax,
         string expectedClassName,
@@ -273,7 +273,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// match an existing constructor of the mocked class.
     /// </summary>
     /// <param name="context">The context.</param>
-    private void AnalyzeNewObject(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeNewObject(SyntaxNodeAnalysisContext context)
     {
         ObjectCreationExpressionSyntax newExpression = (ObjectCreationExpressionSyntax)context.Node;
 
@@ -321,7 +321,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <returns><c>true</c> if a suitable constructor was found; otherwise <c>false</c>. </returns>
     /// <remarks>Handles <see langword="params" /> and optional parameters.</remarks>
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "This should be refactored; suppressing for now to enable TreatWarningsAsErrors in CI.")]
-    private bool AnyConstructorsFound(
+    private static bool AnyConstructorsFound(
         ImmutableArray<IMethodSymbol> constructors,
         ImmutableArray<ArgumentSyntax> arguments,
         SyntaxNodeAnalysisContext context)
@@ -400,7 +400,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private (bool IsEmpty, Location Location) ConstructorIsEmpty(
+    private static (bool IsEmpty, Location Location) ConstructorIsEmpty(
         ImmutableArray<IMethodSymbol> constructors,
         ArgumentListSyntax? argumentList,
         SyntaxNodeAnalysisContext context)
@@ -419,7 +419,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return (constructors.IsEmpty, location);
     }
 
-    private void VerifyMockAttempt(
+    private static void VerifyMockAttempt(
                     SyntaxNodeAnalysisContext context,
                     ITypeSymbol mockedClass,
                     ArgumentListSyntax? argumentList,
@@ -459,7 +459,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private void VerifyClassMockAttempt(
+    private static void VerifyClassMockAttempt(
         SyntaxNodeAnalysisContext context,
         ITypeSymbol mockedClass,
         ArgumentListSyntax? argumentList,
