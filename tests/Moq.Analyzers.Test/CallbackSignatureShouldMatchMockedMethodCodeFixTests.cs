@@ -1,9 +1,17 @@
+using Xunit.Abstractions;
 using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer, Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodCodeFix>;
 
 namespace Moq.Analyzers.Test;
 
 public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public CallbackSignatureShouldMatchMockedMethodCodeFixTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Contains test data")]
     public static IEnumerable<object[]> TestData()
     {
@@ -22,7 +30,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Returns((List<string> l) => { return 0; });""",
             ],
             [
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback({|Moq1100:(int i)|} => { });""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(({|Moq1100:int i|}) => { });""",
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback((string s) => { });""",
             ],
             [
@@ -34,7 +42,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback((int i, string s, DateTime dt) => { });""",
             ],
             [
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Callback({|Moq1100:(int i)|} => { });""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Callback(({|Moq1100:int i|}) => { });""",
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Callback((List<string> l) => { });""",
             ],
             [
@@ -74,8 +82,8 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Returns(0).Callback((List<string> l) => { });""",
             ],
             [ // Repro for https://github.com/rjmurillo/moq.analyzers/issues/172
-                """new Mock<IFoo>().Setup(m => m.DoSomething(It.IsAny<object?>())).Returns((object? bar) => true);""",
-                """new Mock<IFoo>().Setup(m => m.DoSomething(It.IsAny<object?>())).Returns((object? bar) => true);""",
+                """new Mock<IFoo>().Setup(m => m.Do(It.IsAny<object?>())).Returns((object? bar) => true);""",
+                """new Mock<IFoo>().Setup(m => m.Do(It.IsAny<object?>())).Returns((object? bar) => true);""",
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
@@ -96,7 +104,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
 
                 int Do(List<string> l);
 
-                bool DoSomething(object? bar);
+                bool Do(object? bar);
             }
 
             internal class UnitTest
@@ -108,6 +116,15 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             }
             """;
 
-        await Verifier.VerifyCodeFixAsync(Template(@namespace, original), Template(@namespace, quickFix), referenceAssemblyGroup);
+        string o = Template(@namespace, original);
+        string f = Template(@namespace, quickFix);
+
+        _output.WriteLine("Original:");
+        _output.WriteLine(o);
+        _output.WriteLine(string.Empty);
+        _output.WriteLine("Fixed:");
+        _output.WriteLine(f);
+
+        await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
     }
 }
