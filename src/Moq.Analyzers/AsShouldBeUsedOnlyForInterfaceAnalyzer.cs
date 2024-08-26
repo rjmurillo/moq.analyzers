@@ -32,7 +32,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
         // Ensure Moq is referenced in the compilation
         ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
@@ -58,7 +58,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
             OperationKind.Invocation);
     }
 
-    private void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownAsMethods)
+    private static void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownAsMethods)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
