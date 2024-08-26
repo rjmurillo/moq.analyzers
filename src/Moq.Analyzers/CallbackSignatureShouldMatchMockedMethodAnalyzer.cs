@@ -63,43 +63,48 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         }
         else
         {
-            for (int argumentIndex = 0; argumentIndex < mockedMethodArguments.Count; argumentIndex++)
+            ValidateParameters(context, mockedMethodArguments, lambdaParameters, callbackLambda);
+        }
+    }
+
+    private static void ValidateParameters(
+        SyntaxNodeAnalysisContext context,
+        SeparatedSyntaxList<ArgumentSyntax> mockedMethodArguments,
+        SeparatedSyntaxList<ParameterSyntax> lambdaParameters,
+        ParenthesizedLambdaExpressionSyntax callbackLambda)
+    {
+        for (int argumentIndex = 0; argumentIndex < mockedMethodArguments.Count; argumentIndex++)
+        {
+            TypeSyntax? lambdaParameterTypeSyntax = lambdaParameters[argumentIndex].Type;
+
+            // TODO: Don't know if continue or break is the right thing to do here
+            if (lambdaParameterTypeSyntax is null) continue;
+
+            TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
+
+            TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[argumentIndex].Expression, context.CancellationToken);
+
+            // Check if types are assignable rather than strictly equal
+            ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
+            ITypeSymbol? mockedMethodTypeSymbol = mockedMethodArgumentType.Type;
+
+            if (lambdaParameterTypeSymbol is not null && mockedMethodTypeSymbol is not null)
             {
-                TypeSyntax? lambdaParameterTypeSyntax = lambdaParameters[argumentIndex].Type;
-
-                // TODO: Don't know if continue or break is the right thing to do here
-                if (lambdaParameterTypeSyntax is null) continue;
-
-                TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
-
-                TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[argumentIndex].Expression, context.CancellationToken);
-
-
-
-                // Check if types are assignable rather than strictly equal
-                ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
-                ITypeSymbol? mockedMethodTypeSymbol = mockedMethodArgumentType.Type;
-
-                if (lambdaParameterTypeSymbol is not null && mockedMethodTypeSymbol is not null)
+                if (!context.SemanticModel.Compilation.ClassifyConversion(lambdaParameterTypeSymbol, mockedMethodTypeSymbol).IsImplicit)
                 {
-
-                    if (!context.SemanticModel.Compilation.ClassifyConversion(lambdaParameterTypeSymbol, mockedMethodTypeSymbol).IsImplicit)
-                    {
-
-                        Diagnostic diagnostic = lambdaParameters[argumentIndex].GetLocation().CreateDiagnostic(Rule);
-                        context.ReportDiagnostic(diagnostic);
-                    }
+                    Diagnostic diagnostic = lambdaParameters[argumentIndex].GetLocation().CreateDiagnostic(Rule);
+                    context.ReportDiagnostic(diagnostic);
                 }
-                else
-                {
-                    string? mockedMethodTypeName = mockedMethodArgumentType.ConvertedType?.ToString();
-                    string? lambdaParameterTypeName = lambdaParameterType.ConvertedType?.ToString();
+            }
+            else
+            {
+                string? mockedMethodTypeName = mockedMethodArgumentType.ConvertedType?.ToString();
+                string? lambdaParameterTypeName = lambdaParameterType.ConvertedType?.ToString();
 
-                    if (!string.Equals(mockedMethodTypeName, lambdaParameterTypeName, StringComparison.Ordinal))
-                    {
-                        Diagnostic diagnostic = callbackLambda.ParameterList.CreateDiagnostic(Rule);
-                        context.ReportDiagnostic(diagnostic);
-                    }
+                if (!string.Equals(mockedMethodTypeName, lambdaParameterTypeName, StringComparison.Ordinal))
+                {
+                    Diagnostic diagnostic = callbackLambda.ParameterList.CreateDiagnostic(Rule);
+                    context.ReportDiagnostic(diagnostic);
                 }
             }
         }
