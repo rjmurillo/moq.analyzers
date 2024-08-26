@@ -364,7 +364,7 @@
 - {Id: IDE0048, Title: Add parentheses for clarity, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0051, Title: Remove unused private members, Category: CodeQuality, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0052, Title: Remove unread private members, Category: CodeQuality, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0053, Title: Use expression body for lambdas, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0053, Title: Use expression body for lambda expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0054, Title: Use compound assignment, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0055, Title: Fix formatting, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE0056, Title: Use index operator, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -381,7 +381,7 @@
 - {Id: IDE0070, Title: Use 'System.HashCode', Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE0071, Title: Simplify interpolation, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0072, Title: Add missing cases, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
-- {Id: IDE0073, Title: Require file header, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0073, Title: The file header does not match the required text, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE0074, Title: Use compound assignment, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0075, Title: Simplify conditional expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0076, Title: Invalid global 'SuppressMessageAttribute', Category: CodeQuality, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -419,6 +419,7 @@
 - {Id: IDE0303, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0304, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0305, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0320, Title: Make anonymous function static, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE1005, Title: Delegate invocation can be simplified., Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE1006, Title: Naming Styles, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE2000, Title: Avoid multiple blank lines, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -1004,7 +1005,7 @@
 - {Id: S2292, Title: Trivial properties should be auto-implemented, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2302, Title: '"nameof" should be used', Category: Critical Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S2306, Title: '"async" and "await" should not be used as identifiers', Category: Blocker Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S2325, Title: Methods and properties that don't access instance data should be static, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: S2325, Title: Methods and properties that don't access instance data should be static, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2326, Title: Unused type parameters should be removed, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2327, Title: '"try" statements with identical "catch" and/or "finally" blocks should be merged', Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S2328, Title: '"GetHashCode" should not reference mutable fields', Category: Minor Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1033,7 +1034,7 @@
 - {Id: S2589, Title: Boolean expressions should not be gratuitous, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2612, Title: Setting loose file permissions is security-sensitive, Category: Major Security Hotspot, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2629, Title: Logging templates should be constant, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S2674, Title: The length returned from a stream read should be checked, Category: Minor Bug, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: S2674, Title: The length returned from a stream read should be checked, Category: Minor Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2681, Title: Multiline blocks should be enclosed in curly braces, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2688, Title: '"NaN" should not be used in comparisons', Category: Major Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S2692, Title: '"IndexOf" checks should not be for positive numbers', Category: Critical Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1113,7 +1114,7 @@
 - {Id: S3415, Title: Assertion arguments should be passed in the correct order, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S3416, Title: Loggers should be named for their enclosing types, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S3427, Title: Method overloads with default parameter values should not overlap, Category: Blocker Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S3431, Title: '"[ExpectedException]" should not be used', Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: S3431, Title: '"[ExpectedException]" should not be used', Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S3433, Title: Test method signatures should be correct, Category: Blocker Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S3440, Title: Variables should not be checked against the values they're about to be assigned, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S3441, Title: Redundant property names should be omitted in anonymous classes, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -1185,7 +1186,7 @@
 - {Id: S3984, Title: Exceptions should not be created without being thrown, Category: Major Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S3990, Title: Assemblies should be marked as CLS compliant, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S3992, Title: Assemblies should explicitly specify COM visibility, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: S3993, Title: Custom attributes should be marked with "System.AttributeUsageAttribute", Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: S3993, Title: Custom attributes should be marked with "System.AttributeUsageAttribute", Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S3994, Title: URI Parameters should not be strings, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S3995, Title: URI return values should not be strings, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S3996, Title: URI properties should not be strings, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -1212,8 +1213,8 @@
 - {Id: S4041, Title: Type names should not match namespaces, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S4047, Title: Generics should be used when appropriate, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S4049, Title: Properties should be preferred, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: S4050, Title: Operators should be overloaded consistently, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: S4052, Title: Types should not extend outdated base types, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: S4050, Title: Operators should be overloaded consistently, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: S4052, Title: Types should not extend outdated base types, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S4055, Title: Literals should not be passed as localized parameters, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S4056, Title: Overloads with a "CultureInfo" or an "IFormatProvider" parameter should be used, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: S4057, Title: Locales should be set for data types, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}

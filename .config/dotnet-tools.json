@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "nbgv": {
-      "version": "3.6.139",
+      "version": "3.6.141",
       "commands": [
         "nbgv"
       ],
@@ -17,7 +17,7 @@
       "rollForward": false
     },
     "squigglecop.tool": {
-      "version": "1.0.13",
+      "version": "1.0.26",
       "commands": [
         "dotnet-squigglecop"
       ],
