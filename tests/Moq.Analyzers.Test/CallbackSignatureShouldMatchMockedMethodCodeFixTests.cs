@@ -152,7 +152,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
     }
 
-    public static IEnumerable<object[]> TestData2()
+    public static IEnumerable<object[]> ConversionTestData()
     {
         return new object[][]
             {
@@ -160,16 +160,36 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                     """new Mock<IFoo>().Setup(x => x.Do(42)).Returns((CustomType i) => true);""",
                     """new Mock<IFoo>().Setup(x => x.Do(42)).Returns((CustomType i) => true);""",
                 ],
+                [ // This should be allowed because of identity
+                    """new Mock<IFoo>().Setup(x => x.Do(new CustomType(42))).Returns((CustomType i) => true);""",
+                    """new Mock<IFoo>().Setup(x => x.Do(new CustomType(42))).Returns((CustomType i) => true);""",
+                ],
                 [ // This should be allowed because of the explicit conversion from string to CustomType
                     """new Mock<IFoo>().Setup(x => x.Do((CustomType)"42")).Returns((CustomType i) => true);""",
                     """new Mock<IFoo>().Setup(x => x.Do((CustomType)"42")).Returns((CustomType i) => true);""",
+                ],
+                [ // This should be allowed because of numeric conversion (explicit)
+                    """new Mock<IFoo>().Setup(x => x.Do((int)42L)).Returns((CustomType i) => true);""",
+                    """new Mock<IFoo>().Setup(x => x.Do((int)42L)).Returns((CustomType i) => true);""",
+                ],
+                [ // This should be allowed because of numeric conversion (explicit)
+                    """new Mock<IFoo>().Setup(x => x.Do((int)42.0)).Returns((CustomType i) => true);""",
+                    """new Mock<IFoo>().Setup(x => x.Do((int)42.0)).Returns((CustomType i) => true);""",
+                ],
+                [
+                    """new Mock<IFoo>().Setup(m => m.Do(It.IsAny<int>())).Returns((CustomType i) => true);""",
+                    """new Mock<IFoo>().Setup(m => m.Do(It.IsAny<int>())).Returns((CustomType i) => true);""",
+                ],
+                [
+                    """new Mock<IFoo>().Setup(m => m.Do(It.IsAny<CustomType>())).Returns((CustomType i) => true);""",
+                    """new Mock<IFoo>().Setup(m => m.Do(It.IsAny<CustomType>())).Returns((CustomType i) => true);""",
                 ],
             }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]
-    [MemberData(nameof(TestData2))]
-    public async Task UserDefinedConversionOperator(string referenceAssemblyGroup, string @namespace, string original, string quickFix)
+    [MemberData(nameof(ConversionTestData))]
+    public async Task ConversionTests(string referenceAssemblyGroup, string @namespace, string original, string quickFix)
     {
         static string Template(string ns, string mock) =>
             $$"""
