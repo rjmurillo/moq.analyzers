@@ -83,12 +83,8 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
                 continue;
             }
 
-            TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(
-                lambdaParameterTypeSyntax,
-                context.CancellationToken);
-            TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(
-                mockedMethodArguments[argumentIndex].Expression,
-                context.CancellationToken);
+            TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
+            TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[argumentIndex].Expression, context.CancellationToken);
 
             ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
             ITypeSymbol? mockedMethodTypeSymbol = mockedMethodArgumentType.Type;
@@ -98,7 +94,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
                 continue;
             }
 
-            if (!HasUserDefinedConversion(context.SemanticModel, mockedMethodTypeSymbol, lambdaParameterTypeSymbol))
+            if (!HasConversion(context.SemanticModel, mockedMethodTypeSymbol, lambdaParameterTypeSymbol))
             {
                 Diagnostic diagnostic = lambdaParameters[argumentIndex].GetLocation().CreateDiagnostic(Rule);
                 context.ReportDiagnostic(diagnostic);
@@ -106,7 +102,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         }
     }
 
-    private static bool HasUserDefinedConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
+    private static bool HasConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
     {
         // This condition checks whether a valid type conversion exists between the parameter in the mocked method
         // and the corresponding parameter in the callback lambda expression.
@@ -121,38 +117,13 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         // If the conversion exists, and it is one of these types (implicit, identity, or explicit), the analyzer will
         // skip the diagnostic check, as the callback parameter type is considered compatible with the mocked method's
         // parameter type.
+        //
+        // There are circumstances where the syntax tree will present an item with an explicit conversion, but the
+        // ITypeSymbol instance passed in here is reduced to the same type. For example, we have a test that has
+        // an explicit conversion operator from a string to a custom type. That is presented here as two instances
+        // of CustomType, which is an implicit identity conversion, not an explicit
         Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
-        bool conversionExists = conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
 
-        switch (conversionExists)
-        {
-            case true:
-                return true;
-
-            // Fall back to seeking an implicit conversion operator
-            // The Conversion type will not show a user defined implicit conversion, so we have to seek it out explicitly
-            case false:
-                {
-                    foreach (ISymbol? member in destination.GetMembers())
-                    {
-                        // Check for implicit conversion operator
-                        if (member is not IMethodSymbol { MethodKind: MethodKind.Conversion } method
-                            || !method.ReturnType.Equals(destination, SymbolEqualityComparer.IncludeNullability))
-                        {
-                            continue;
-                        }
-
-                        // Implicit conversion
-                        if (method is { IsImplicitlyDeclared: true, Parameters.Length: 1 } && method.Parameters[0].Type.Equals(source, SymbolEqualityComparer.IncludeNullability))
-                        {
-                            return true;
-                        }
-                    }
-
-                    break;
-                }
-        }
-
-        return false;
+        return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
     }
 }
