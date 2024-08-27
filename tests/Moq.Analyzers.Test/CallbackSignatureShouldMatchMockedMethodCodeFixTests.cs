@@ -3,6 +3,8 @@ using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.Callba
 
 namespace Moq.Analyzers.Test;
 
+#pragma warning disable SA1204 // Static members should appear before non-static members
+
 public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
 {
     private readonly ITestOutputHelper _output;

@@ -128,6 +128,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         {
             case true:
                 return true;
+
             // Fall back to seeking an implicit conversion operator
             // The Conversion type will not show a user defined implicit conversion, so we have to seek it out explicitly
             case false:
