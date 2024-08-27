@@ -5,7 +5,11 @@ updates:
     schedule:
       interval: "daily"
       time: "08:00"
+      timezone: "America/Los_Angeles"
     open-pull-requests-limit: 10
+    reviewers:
+      - "rjmurillo"
+      - "mattkotsenas"
   - package-ecosystem: nuget
     directory: "/"
     schedule:
