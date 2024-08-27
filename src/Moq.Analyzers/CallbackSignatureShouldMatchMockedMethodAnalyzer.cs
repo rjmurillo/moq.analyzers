@@ -76,7 +76,8 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         {
             TypeSyntax? lambdaParameterTypeSyntax = lambdaParameters[argumentIndex].Type;
 
-            // TODO: Don't know if continue or break is the right thing to do here
+            // We're unable to get the type from the Syntax Tree, so abort the type checking because something else
+            // is happening (e.g., we're compiling on partial code) and we need the type to do the additional checks.
             if (lambdaParameterTypeSyntax is null)
             {
                 continue;
@@ -93,10 +94,22 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
                 continue;
             }
 
-            // Check if there's an implicit conversion or identity conversion
+            // Check if there's a conversion
             Conversion conversion = context.SemanticModel.Compilation.ClassifyConversion(lambdaParameterTypeSymbol, mockedMethodTypeSymbol);
 
-            // Where a conversion exists, even if it is explicit
+            // This condition checks whether a valid type conversion exists between the parameter in the mocked method
+            // and the corresponding parameter in the callback lambda expression.
+            //
+            // - `conversion.Exists` checks if there is any type conversion possible between the two types
+            //
+            // The second part ensures that the conversion is either:
+            // 1. an implicit conversion,
+            // 2. an identity conversion (meaning the types are exactly the same), or
+            // 3. an explicit conversion.
+            //
+            // If the conversion exists, and it is one of these types (implicit, identity, or explicit), the analyzer will
+            // skip the diagnostic check, as the callback parameter type is considered compatible with the mocked method's
+            // parameter type.
             if (conversion.Exists && conversion is not { IsImplicit: false, IsIdentity: false, IsExplicit: false })
             {
                 continue;
