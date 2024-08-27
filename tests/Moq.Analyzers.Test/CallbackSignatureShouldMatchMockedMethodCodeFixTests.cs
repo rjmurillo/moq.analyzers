@@ -81,9 +81,25 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Returns(0).Callback((List<string> l) => { });""",
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Returns(0).Callback((List<string> l) => { });""",
             ],
-            [ // Repro for https://github.com/rjmurillo/moq.analyzers/issues/172
+            [ // Repros for https://github.com/rjmurillo/moq.analyzers/issues/172
                 """new Mock<IFoo>().Setup(m => m.Do(It.IsAny<object?>())).Returns((object? bar) => true);""",
                 """new Mock<IFoo>().Setup(m => m.Do(It.IsAny<object?>())).Returns((object? bar) => true);""",
+            ],
+            [
+                """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((long bar) => true);""",
+                """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((long bar) => true);""",
+            ],
+            [
+                """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
+                """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
+            ],
+            [
+                """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
+                """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
+            ],
+            [ // This was also reported as part of 172, but is a different error
+                """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((int bar) => true);""",
+                """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((int bar) => true);""",
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
@@ -105,6 +121,8 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 int Do(List<string> l);
 
                 bool Do(object? bar);
+
+                // bool Do(long bar);
             }
 
             internal class UnitTest
