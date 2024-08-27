@@ -58,7 +58,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
         if (mockedMethodArguments.Count != lambdaParameters.Count)
         {
-            Diagnostic diagnostic = Diagnostic.Create(Rule, callbackLambda.ParameterList.GetLocation());
+            Diagnostic diagnostic = callbackLambda.ParameterList.GetLocation().CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
         }
         else
