@@ -26,7 +26,7 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta1.21216.1" />
     <PackageVersion Include="System.CommandLine.Rendering" Version="2.0.0-beta1.20074.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="Perfolizer" Version="0.2.1" />
+    <PackageVersion Include="Perfolizer" Version="0.4.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.15" />
   </ItemGroup>
