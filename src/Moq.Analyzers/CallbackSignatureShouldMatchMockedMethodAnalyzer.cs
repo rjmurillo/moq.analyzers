@@ -63,50 +63,47 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         }
         else
         {
-            ValidateParameters(context, mockedMethodArguments, lambdaParameters, callbackLambda);
+            ValidateParameters(context, mockedMethodArguments, lambdaParameters);
         }
     }
 
     private static void ValidateParameters(
         SyntaxNodeAnalysisContext context,
         SeparatedSyntaxList<ArgumentSyntax> mockedMethodArguments,
-        SeparatedSyntaxList<ParameterSyntax> lambdaParameters,
-        ParenthesizedLambdaExpressionSyntax callbackLambda)
+        SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
     {
         for (int argumentIndex = 0; argumentIndex < mockedMethodArguments.Count; argumentIndex++)
         {
             TypeSyntax? lambdaParameterTypeSyntax = lambdaParameters[argumentIndex].Type;
 
             // TODO: Don't know if continue or break is the right thing to do here
-            if (lambdaParameterTypeSyntax is null) continue;
+            if (lambdaParameterTypeSyntax is null)
+            {
+                continue;
+            }
 
             TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
-
             TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[argumentIndex].Expression, context.CancellationToken);
 
-            // Check if types are assignable rather than strictly equal
             ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
             ITypeSymbol? mockedMethodTypeSymbol = mockedMethodArgumentType.Type;
 
-            if (lambdaParameterTypeSymbol is not null && mockedMethodTypeSymbol is not null)
+            if (lambdaParameterTypeSymbol is null || mockedMethodTypeSymbol is null)
             {
-                if (!context.SemanticModel.Compilation.ClassifyConversion(lambdaParameterTypeSymbol, mockedMethodTypeSymbol).IsImplicit)
-                {
-                    Diagnostic diagnostic = lambdaParameters[argumentIndex].GetLocation().CreateDiagnostic(Rule);
-                    context.ReportDiagnostic(diagnostic);
-                }
+                continue;
             }
-            else
-            {
-                string? mockedMethodTypeName = mockedMethodArgumentType.ConvertedType?.ToString();
-                string? lambdaParameterTypeName = lambdaParameterType.ConvertedType?.ToString();
 
-                if (!string.Equals(mockedMethodTypeName, lambdaParameterTypeName, StringComparison.Ordinal))
-                {
-                    Diagnostic diagnostic = callbackLambda.ParameterList.CreateDiagnostic(Rule);
-                    context.ReportDiagnostic(diagnostic);
-                }
+            // Check if there's an implicit conversion or identity conversion
+            Conversion conversion = context.SemanticModel.Compilation.ClassifyConversion(lambdaParameterTypeSymbol, mockedMethodTypeSymbol);
+
+            // Where a conversion exists, even if it is explicit
+            if (conversion.Exists && conversion is not { IsImplicit: false, IsIdentity: false, IsExplicit: false })
+            {
+                continue;
             }
+
+            Diagnostic diagnostic = lambdaParameters[argumentIndex].GetLocation().CreateDiagnostic(Rule);
+            context.ReportDiagnostic(diagnostic);
         }
     }
 }
