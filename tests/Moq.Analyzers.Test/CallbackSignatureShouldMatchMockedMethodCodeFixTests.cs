@@ -97,6 +97,10 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
                 """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
             ],
+            [
+                """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((object? bar) => true);""",
+                """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((object? bar) => true);""",
+            ],
             [ // This was also reported as part of 172, but is a different error
                 """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((int bar) => true);""",
                 """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((int bar) => true);""",
@@ -122,7 +126,77 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
 
                 bool Do(object? bar);
 
-                // bool Do(long bar);
+                bool Do(long bar);
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    {{mock}}
+                }
+            }
+            """;
+
+        string o = Template(@namespace, original);
+        string f = Template(@namespace, quickFix);
+
+        _output.WriteLine("Original:");
+        _output.WriteLine(o);
+        _output.WriteLine(string.Empty);
+        _output.WriteLine("Fixed:");
+        _output.WriteLine(f);
+
+        await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
+    }
+
+    public static IEnumerable<object[]> TestData2()
+    {
+        return new object[][]
+            {
+                [ // This should be allowed because of the implicit conversion from int to CustomType
+                    """new Mock<IFoo>().Setup(x => x.Do(42)).Returns((CustomType i) => true);""",
+                    """new Mock<IFoo>().Setup(x => x.Do(42)).Returns((CustomType i) => true);""",
+                ],
+                [ // This should be allowed because of the explicit conversion from string to CustomType
+                    """new Mock<IFoo>().Setup(x => x.Do((CustomType)"42")).Returns((CustomType i) => true);""",
+                    """new Mock<IFoo>().Setup(x => x.Do((CustomType)"42")).Returns((CustomType i) => true);""",
+                ],
+            }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData2))]
+    public async Task UserDefinedConversionOperator(string referenceAssemblyGroup, string @namespace, string original, string quickFix)
+    {
+        static string Template(string ns, string mock) =>
+            $$"""
+            {{ns}}
+
+            internal interface IFoo
+            {
+                bool Do(CustomType custom);
+            }
+
+            public class CustomType
+            {
+                public int Value { get; }
+
+                public CustomType(int value)
+                {
+                    Value = value;
+                }
+
+                // User-defined conversions
+                public static implicit operator CustomType(int value)
+                {
+                    return new CustomType(value);
+                }
+
+                public static explicit operator CustomType(string str)
+                {
+                    return new CustomType(int.Parse(str));
+                }
             }
 
             internal class UnitTest
