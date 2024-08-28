@@ -58,31 +58,72 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
         if (mockedMethodArguments.Count != lambdaParameters.Count)
         {
-            Diagnostic diagnostic = Diagnostic.Create(Rule, callbackLambda.ParameterList.GetLocation());
+            Diagnostic diagnostic = callbackLambda.ParameterList.GetLocation().CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
         }
         else
         {
-            for (int argumentIndex = 0; argumentIndex < mockedMethodArguments.Count; argumentIndex++)
+            ValidateParameters(context, mockedMethodArguments, lambdaParameters);
+        }
+    }
+
+    private static void ValidateParameters(
+        SyntaxNodeAnalysisContext context,
+        SeparatedSyntaxList<ArgumentSyntax> mockedMethodArguments,
+        SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
+    {
+        for (int argumentIndex = 0; argumentIndex < mockedMethodArguments.Count; argumentIndex++)
+        {
+            TypeSyntax? lambdaParameterTypeSyntax = lambdaParameters[argumentIndex].Type;
+
+            // We're unable to get the type from the Syntax Tree, so abort the type checking because something else
+            // is happening (e.g., we're compiling on partial code) and we need the type to do the additional checks.
+            if (lambdaParameterTypeSyntax is null)
             {
-                TypeSyntax? lambdaParameterTypeSyntax = lambdaParameters[argumentIndex].Type;
+                continue;
+            }
 
-                // TODO: Don't know if continue or break is the right thing to do here
-                if (lambdaParameterTypeSyntax is null) continue;
+            TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
+            TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[argumentIndex].Expression, context.CancellationToken);
 
-                TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
+            ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
+            ITypeSymbol? mockedMethodTypeSymbol = mockedMethodArgumentType.Type;
 
-                TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[argumentIndex].Expression, context.CancellationToken);
+            if (lambdaParameterTypeSymbol is null || mockedMethodTypeSymbol is null)
+            {
+                continue;
+            }
 
-                string? mockedMethodTypeName = mockedMethodArgumentType.ConvertedType?.ToString();
-                string? lambdaParameterTypeName = lambdaParameterType.ConvertedType?.ToString();
-
-                if (!string.Equals(mockedMethodTypeName, lambdaParameterTypeName, StringComparison.Ordinal))
-                {
-                    Diagnostic diagnostic = callbackLambda.ParameterList.CreateDiagnostic(Rule);
-                    context.ReportDiagnostic(diagnostic);
-                }
+            if (!HasConversion(context.SemanticModel, mockedMethodTypeSymbol, lambdaParameterTypeSymbol))
+            {
+                Diagnostic diagnostic = lambdaParameters[argumentIndex].GetLocation().CreateDiagnostic(Rule);
+                context.ReportDiagnostic(diagnostic);
             }
         }
+    }
+
+    private static bool HasConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
+    {
+        // This condition checks whether a valid type conversion exists between the parameter in the mocked method
+        // and the corresponding parameter in the callback lambda expression.
+        //
+        // - `conversion.Exists` checks if there is any type conversion possible between the two types
+        //
+        // The second part ensures that the conversion is either:
+        // 1. an implicit conversion,
+        // 2. an identity conversion (meaning the types are exactly the same), or
+        // 3. an explicit conversion.
+        //
+        // If the conversion exists, and it is one of these types (implicit, identity, or explicit), the analyzer will
+        // skip the diagnostic check, as the callback parameter type is considered compatible with the mocked method's
+        // parameter type.
+        //
+        // There are circumstances where the syntax tree will present an item with an explicit conversion, but the
+        // ITypeSymbol instance passed in here is reduced to the same type. For example, we have a test that has
+        // an explicit conversion operator from a string to a custom type. That is presented here as two instances
+        // of CustomType, which is an implicit identity conversion, not an explicit
+        Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
+
+        return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
     }
 }
