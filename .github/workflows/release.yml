@@ -5,6 +5,9 @@ on:
   release:
     types:
       - published # Run the workflow when a new GitHub release is published
+      - edited
+      - prereleased
+      - released
 
 permissions:
   security-events: write  # required for CodeQL

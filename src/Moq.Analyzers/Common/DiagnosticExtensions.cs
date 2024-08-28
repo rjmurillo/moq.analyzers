@@ -13,12 +13,12 @@ internal static class DiagnosticExtensions
         DiagnosticDescriptor rule,
         ImmutableDictionary<string, string?>? properties,
         params object?[]? messageArgs)
-        => node.CreateDiagnostic(rule, additionalLocations: ImmutableArray<Location>.Empty, properties, messageArgs);
+        => node.CreateDiagnostic(rule, additionalLocations: Array.Empty<Location>(), properties, messageArgs);
 
     public static Diagnostic CreateDiagnostic(
         this SyntaxNode node,
         DiagnosticDescriptor rule,
-        ImmutableArray<Location> additionalLocations,
+        IEnumerable<Location>? additionalLocations,
         ImmutableDictionary<string, string?>? properties,
         params object?[]? messageArgs)
         => node
@@ -44,12 +44,12 @@ internal static class DiagnosticExtensions
         DiagnosticDescriptor rule,
         ImmutableDictionary<string, string?>? properties,
         params object?[]? messageArgs)
-        => location.CreateDiagnostic(rule, ImmutableArray<Location>.Empty, properties, messageArgs);
+        => location.CreateDiagnostic(rule, Array.Empty<Location>(), properties, messageArgs);
 
     public static Diagnostic CreateDiagnostic(
         this Location location,
         DiagnosticDescriptor rule,
-        ImmutableArray<Location> additionalLocations,
+        IEnumerable<Location>? additionalLocations,
         ImmutableDictionary<string, string?>? properties,
         params object?[]? messageArgs)
     {

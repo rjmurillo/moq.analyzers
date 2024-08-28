@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Moq.Analyzers;
 
 /// <summary>
@@ -127,7 +129,42 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return IsExpressionMockBehavior(context, expression);
     }
 
-    private void AnalyzeCompilation(CompilationStartAnalysisContext context)
+    private static void VerifyDelegateMockAttempt(
+    SyntaxNodeAnalysisContext context,
+    ArgumentListSyntax? argumentList,
+    ArgumentSyntax[] arguments)
+    {
+        if (arguments.Length == 0)
+        {
+            return;
+        }
+
+        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+        if (diagnostic != null)
+        {
+            context.ReportDiagnostic(diagnostic);
+        }
+    }
+
+    private static void VerifyInterfaceMockAttempt(
+        SyntaxNodeAnalysisContext context,
+        ArgumentListSyntax? argumentList,
+        ArgumentSyntax[] arguments)
+    {
+        // Interfaces and delegates don't have ctors, so bail out early
+        if (arguments.Length == 0)
+        {
+            return;
+        }
+
+        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, argumentList);
+        if (diagnostic != null)
+        {
+            context.ReportDiagnostic(diagnostic);
+        }
+    }
+
+    private static void AnalyzeCompilation(CompilationStartAnalysisContext context)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
 
@@ -140,7 +177,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // We're interested in the few ways to create mocks:
         //  - new Mock<T>()
         //  - Mock.Of<T>()
-        //  - MockRepository.Create<T>();
+        //  - MockRepository.Create<T>()
         //
         // Ensure Moq is referenced in the compilation
         ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
@@ -154,7 +191,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeInstanceCall, SyntaxKind.InvocationExpression);
     }
 
-    private void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context)
     {
         InvocationExpressionSyntax invocationExpressionSyntax = (InvocationExpressionSyntax)context.Node;
 
@@ -183,7 +220,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private void AnalyzeInvocation(
+    private static void AnalyzeInvocation(
         SyntaxNodeAnalysisContext context,
         InvocationExpressionSyntax invocationExpressionSyntax,
         string expectedClassName,
@@ -236,7 +273,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// match an existing constructor of the mocked class.
     /// </summary>
     /// <param name="context">The context.</param>
-    private void AnalyzeNewObject(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeNewObject(SyntaxNodeAnalysisContext context)
     {
         ObjectCreationExpressionSyntax newExpression = (ObjectCreationExpressionSyntax)context.Node;
 
@@ -283,9 +320,10 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <param name="context">The context.</param>
     /// <returns><c>true</c> if a suitable constructor was found; otherwise <c>false</c>. </returns>
     /// <remarks>Handles <see langword="params" /> and optional parameters.</remarks>
-    private bool AnyConstructorsFound(
-        ImmutableArray<IMethodSymbol> constructors,
-        ImmutableArray<ArgumentSyntax> arguments,
+    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "This should be refactored; suppressing for now to enable TreatWarningsAsErrors in CI.")]
+    private static bool AnyConstructorsFound(
+        IMethodSymbol[] constructors,
+        ArgumentSyntax[] arguments,
         SyntaxNodeAnalysisContext context)
     {
         for (int constructorIndex = 0; constructorIndex < constructors.Length; constructorIndex++)
@@ -293,7 +331,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             IMethodSymbol constructor = constructors[constructorIndex];
             bool hasParams = constructor.Parameters.Length > 0 && constructor.Parameters[^1].IsParams;
             int fixedParametersCount = hasParams ? constructor.Parameters.Length - 1 : constructor.Parameters.Length;
+#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
             int requiredParameters = constructor.Parameters.Count(parameterSymbol => !parameterSymbol.IsOptional);
+#pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
             bool allParametersMatch = true;
 
             // Check if the number of arguments is valid considering params
@@ -362,8 +402,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private (bool IsEmpty, Location Location) ConstructorIsEmpty(
-        ImmutableArray<IMethodSymbol> constructors,
+    private static (bool IsEmpty, Location Location) ConstructorIsEmpty(
+        IMethodSymbol[] constructors,
         ArgumentListSyntax? argumentList,
         SyntaxNodeAnalysisContext context)
     {
@@ -378,10 +418,10 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             location = context.Node.GetLocation();
         }
 
-        return (constructors.IsEmpty, location);
+        return (constructors.Length == 0, location);
     }
 
-    private void VerifyMockAttempt(
+    private static void VerifyMockAttempt(
                     SyntaxNodeAnalysisContext context,
                     ITypeSymbol mockedClass,
                     ArgumentListSyntax? argumentList,
@@ -392,9 +432,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        ImmutableArray<ArgumentSyntax> arguments =
-                                        argumentList?.Arguments.ToImmutableArray()
-                                        ?? ImmutableArray<ArgumentSyntax>.Empty;
+#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
+        ArgumentSyntax[] arguments = argumentList?.Arguments.ToArray() ?? [];
+#pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
 
         if (hasMockBehavior && arguments.Length > 0 && IsFirstArgumentMockBehavior(context, argumentList))
         {
@@ -421,17 +461,17 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private void VerifyClassMockAttempt(
+    private static void VerifyClassMockAttempt(
         SyntaxNodeAnalysisContext context,
         ITypeSymbol mockedClass,
         ArgumentListSyntax? argumentList,
-        ImmutableArray<ArgumentSyntax> arguments)
+        ArgumentSyntax[] arguments)
     {
-        ImmutableArray<IMethodSymbol> constructors = mockedClass
+        IMethodSymbol[] constructors = mockedClass
             .GetMembers()
             .OfType<IMethodSymbol>()
             .Where(methodSymbol => methodSymbol.IsConstructor())
-            .ToImmutableArray();
+            .ToArray();
 
         // Bail out early if there are no arguments on constructors or no constructors at all
         (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
@@ -446,41 +486,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         if (!AnyConstructorsFound(constructors, arguments, context))
         {
             Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
-            context.ReportDiagnostic(diagnostic);
-        }
-    }
-
-    private static void VerifyDelegateMockAttempt(
-        SyntaxNodeAnalysisContext context,
-        ArgumentListSyntax? argumentList,
-        ImmutableArray<ArgumentSyntax> arguments)
-    {
-        if (arguments.Length == 0)
-        {
-            return;
-        }
-
-        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
-        if (diagnostic != null)
-        {
-            context.ReportDiagnostic(diagnostic);
-        }
-    }
-
-    private static void VerifyInterfaceMockAttempt(
-        SyntaxNodeAnalysisContext context,
-        ArgumentListSyntax? argumentList,
-        ImmutableArray<ArgumentSyntax> arguments)
-    {
-        // Interfaces and delegates don't have ctors, so bail out early
-        if (arguments.Length == 0)
-        {
-            return;
-        }
-
-        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, argumentList);
-        if (diagnostic != null)
-        {
             context.ReportDiagnostic(diagnostic);
         }
     }

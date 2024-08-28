@@ -100,7 +100,9 @@ internal static class CompilationCreator
             async () =>
             {
                 AttributedPartDiscovery discovery = new(Resolver.DefaultInstance, isNonPublicSupported: true);
+#pragma warning disable ECS0900 // Minimize boxing and unboxing
                 DiscoveredParts parts = await discovery.CreatePartsAsync(MefHostServices.DefaultAssemblies).ConfigureAwait(false);
+#pragma warning restore ECS0900 // Minimize boxing and unboxing
                 ComposableCatalog catalog = ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
 
                 CompositionConfiguration configuration = CompositionConfiguration.Create(catalog);
@@ -119,7 +121,9 @@ internal static class CompilationCreator
             .WithProjectParseOptions(projectId, parseOptions);
 
         ImmutableArray<MetadataReference> metadataReferences = await referenceAssemblies.ResolveAsync(projectState.Language, CancellationToken.None).ConfigureAwait(false);
+#pragma warning disable ECS0900 // Minimize boxing and unboxing
         solution = solution.AddMetadataReferences(projectId, metadataReferences);
+#pragma warning restore ECS0900 // Minimize boxing and unboxing
 
         return solution;
     }

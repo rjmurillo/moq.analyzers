@@ -1,5 +1,7 @@
 ﻿namespace Moq.Analyzers.Common;
 
+#pragma warning disable ECS0200 // Consider using readonly instead of const for flexibility
+
 internal static class DiagnosticIds
 {
     internal const string SealedClassCannotBeMocked = "Moq1000";

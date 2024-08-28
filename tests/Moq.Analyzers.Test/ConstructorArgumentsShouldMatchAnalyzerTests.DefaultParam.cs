@@ -1,6 +1,7 @@
 ﻿using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.ConstructorArgumentsShouldMatchAnalyzer>;
 
 namespace Moq.Analyzers.Test;
+
 public partial class ConstructorArgumentsShouldMatchAnalyzerTests
 {
     public static IEnumerable<object[]> ClassWithDefaultParamCtorTestData()

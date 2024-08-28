@@ -8,8 +8,8 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 {
-    private const string Title = "Moq: Invalid As type parameter";
-    private const string Message = "Mock.As() should take interfaces only";
+    private static readonly LocalizableString Title = "Moq: Invalid As type parameter";
+    private static readonly LocalizableString Message = "Mock.As() should take interfaces only";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId,
@@ -32,7 +32,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
         // Ensure Moq is referenced in the compilation
         ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
@@ -42,11 +42,13 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         }
 
         // Look for the Mock.As() method and provide it to Analyze to avoid looking it up multiple times.
+#pragma warning disable ECS0900 // Minimize boxing and unboxing
         ImmutableArray<IMethodSymbol> asMethods = mockTypes
             .SelectMany(mockType => mockType.GetMembers(WellKnownTypeNames.As))
             .OfType<IMethodSymbol>()
             .Where(method => method.IsGenericMethod)
             .ToImmutableArray();
+#pragma warning restore ECS0900 // Minimize boxing and unboxing
 
         if (asMethods.IsEmpty)
         {
@@ -58,7 +60,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
             OperationKind.Invocation);
     }
 
-    private void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownAsMethods)
+    private static void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownAsMethods)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
@@ -66,10 +68,12 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         }
 
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
+#pragma warning disable ECS0900 // Minimize boxing and unboxing
         if (!targetMethod.IsInstanceOf(wellKnownAsMethods))
         {
             return;
         }
+#pragma warning restore ECS0900 // Minimize boxing and unboxing
 
         ImmutableArray<ITypeSymbol> typeArguments = targetMethod.TypeArguments;
         if (typeArguments.Length != 1)

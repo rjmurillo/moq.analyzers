@@ -27,7 +27,9 @@ internal static class ExportProviderExtensions
         [SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Minimizing divergence from upstream")]
         public override bool TryGetExport(CompositionContract contract, [NotNullWhen(true)] out object? export)
         {
+#pragma warning disable ECS0900 // Minimize boxing and unboxing
             bool importMany = contract.MetadataConstraints.Contains(new KeyValuePair<string, object>("IsImportMany", true));
+#pragma warning restore ECS0900 // Minimize boxing and unboxing
             (Type contractType, Type? metadataType) = GetContractType(contract.ContractType, importMany);
 
             if (metadataType != null)

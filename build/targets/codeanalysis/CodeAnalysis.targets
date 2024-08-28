@@ -1,2 +1,8 @@
 <Project>
+  <PropertyGroup Label="Computed properties">
+    <PedanticMode Condition=" '$(PedanticMode)' == '' ">$([MSBuild]::ValueOrDefault('$(ContinuousIntegrationBuild)', 'false'))</PedanticMode>
+    <TreatWarningsAsErrors>$(PedanticMode)</TreatWarningsAsErrors>
+    <MSBuildTreatWarningsAsErrors>$(PedanticMode)</MSBuildTreatWarningsAsErrors>
+    <SquiggleCop_Enabled>$(PedanticMode)</SquiggleCop_Enabled>
+  </PropertyGroup>
 </Project>

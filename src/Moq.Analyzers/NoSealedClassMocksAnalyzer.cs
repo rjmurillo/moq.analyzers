@@ -6,18 +6,17 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
 {
-    internal const string RuleId = DiagnosticIds.SealedClassCannotBeMocked;
-    private const string Title = "Moq: Sealed class mocked";
-    private const string Message = "Sealed classes cannot be mocked";
+    private static readonly LocalizableString Title = "Moq: Sealed class mocked";
+    private static readonly LocalizableString Message = "Sealed classes cannot be mocked";
 
     private static readonly DiagnosticDescriptor Rule = new(
-        RuleId,
+        DiagnosticIds.SealedClassCannotBeMocked,
         Title,
         Message,
         DiagnosticCategory.Moq,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{RuleId}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.SealedClassCannotBeMocked}.md");
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
