@@ -4,6 +4,6 @@
     "rollForward": "disable"
   },
   "msbuild-sdks": {
-    "DotNet.ReproducibleBuilds.Isolated": "1.2.4"
+    "DotNet.ReproducibleBuilds.Isolated": "1.2.25"
   }
 }
