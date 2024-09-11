@@ -1,19 +1,2 @@
 <Project>
-  <Target Name="SetRepositoryBranch" BeforeTargets="GenerateNuspec">
-    <!--
-      DotNet.ReproducibleBuilds tries to set the `$(RepositoryBranch)` for SourceLink, but only in CI scenarios.
-      This results in a difference in nuspec between local and CI tests (which breaks the Verify.Nupkg tests).
-
-      To prevent the difference in behavior, set a default value directly from git.
-
-      Filed https://github.com/dotnet/sourcelink/issues/1243 to see if this could be moved into the base SourceLink
-      package.
-    -->
-    <Exec
-      Condition="'$(RepositoryBranch)' == ''"
-      ConsoleToMSBuild="true"
-      Command="git rev-parse --abbrev-ref HEAD">
-        <Output TaskParameter="ConsoleOutput" PropertyName="RepositoryBranch" />
-    </Exec>
-  </Target>
 </Project>
