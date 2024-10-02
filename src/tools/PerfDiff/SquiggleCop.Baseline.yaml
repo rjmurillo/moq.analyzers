@@ -597,6 +597,9 @@
 - {Id: MA0158, Title: Use System.Threading.Lock, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0159, Title: Use 'Order' instead of 'OrderBy', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0160, Title: Use ContainsKey instead of TryGetValue, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: MA0161, Title: UseShellExecute must be explicitly set, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
+- {Id: MA0162, Title: Use Process.Start overload with ProcessStartInfo, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
+- {Id: MA0163, Title: UseShellExecute must be false when redirecting standard input or output, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: POLYSP0003, Title: Unsupported C# language version, Category: Microsoft.CodeAnalysis.CSharp.CSharpParseOptions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RCS1001, Title: Add braces (when expression spans over multiple lines), Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1002, Title: Remove braces, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
