@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Moq.CodeFixes;
 
 /// <summary>
-/// Fixes <see cref="CallbackSignatureShouldMatchMockedMethodAnalyzer"/>.
+/// Fixes for CallbackSignatureShouldMatchMockedMethodAnalyzer (Moq1100).
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CallbackSignatureShouldMatchMockedMethodCodeFix))]
 [Shared]
