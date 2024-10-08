@@ -1,15 +1,10 @@
-﻿using System.Collections.Immutable;
-using System.Composition;
+﻿using System.Composition;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Moq.Analyzers.Common;
 
-namespace Moq.Analyzers;
+namespace Moq.CodeFixes;
 
 /// <summary>
 /// Fixes <see cref="CallbackSignatureShouldMatchMockedMethodAnalyzer"/>.
