@@ -73,6 +73,8 @@
 - {Id: CA1511, Title: Use ArgumentException throw helper, Category: Maintainability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1512, Title: Use ArgumentOutOfRangeException throw helper, Category: Maintainability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1513, Title: Use ObjectDisposedException throw helper, Category: Maintainability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: CA1514, Title: Avoid redundant length argument, Category: Maintainability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: CA1515, Title: Consider making public types internal, Category: Maintainability, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA1700, Title: Do not name enum values 'Reserved', Category: Naming, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA1707, Title: Identifiers should not contain underscores, Category: Naming, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: CA1708, Title: Identifiers should differ by more than case, Category: Naming, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
@@ -148,6 +150,8 @@
 - {Id: CA1868, Title: Unnecessary call to 'Contains(item)', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1869, Title: Cache and reuse 'JsonSerializerOptions' instances, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1870, Title: Use a cached 'SearchValues' instance, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: CA1871, Title: Do not pass a nullable struct to 'ArgumentNullException.ThrowIfNull', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: CA1872, Title: Prefer 'Convert.ToHexString' and 'Convert.ToHexStringLower' over call chains based on 'BitConverter.ToString', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA2000, Title: Dispose objects before losing scope, Category: Reliability, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA2002, Title: Do not lock on objects with weak identity, Category: Reliability, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA2007, Title: Consider calling ConfigureAwait on the awaited task, Category: Reliability, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -164,6 +168,7 @@
 - {Id: CA2019, Title: Improper 'ThreadStatic' field initialization, Category: Reliability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA2020, Title: Prevent behavioral change, Category: Reliability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA2021, Title: Do not call Enumerable.Cast<T> or Enumerable.OfType<T> with incompatible types, Category: Reliability, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: CA2022, Title: Avoid inexact read with 'Stream.Read', Category: Reliability, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2100, Title: Review SQL queries for security vulnerabilities, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA2101, Title: Specify marshaling for P/Invoke string arguments, Category: Globalization, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA2119, Title: Seal methods that satisfy private interfaces, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -207,6 +212,10 @@
 - {Id: CA2259, Title: "'ThreadStatic' only affects static fields", Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2260, Title: Use correct type parameter, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2261, Title: Do not use ConfigureAwaitOptions.SuppressThrowing with Task<TResult>, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: CA2262, Title: Set 'MaxResponseHeadersLength' properly, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: CA2263, Title: Prefer generic overload when type is known, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: CA2264, Title: Do not pass a non-nullable value to 'ArgumentNullException.ThrowIfNull', Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: CA2265, Title: Do not compare Span<T> to 'null' or 'default', Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2300, Title: Do not use insecure deserializer BinaryFormatter, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA2301, Title: Do not call BinaryFormatter.Deserialize without first setting BinaryFormatter.Binder, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA2302, Title: Ensure BinaryFormatter.Binder is set before calling BinaryFormatter.Deserialize, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -294,7 +303,7 @@
 - {Id: CA5399, Title: HttpClients should enable certificate revocation list checks, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA5400, Title: Ensure HttpClient certificate revocation list check is not disabled, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA5401, Title: Do not use CreateEncryptor with non-default IV, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: CA5402, Title: 'Use CreateEncryptor with the default IV ', Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: CA5402, Title: Use CreateEncryptor with the default IV, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA5403, Title: Do not hard-code certificate, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA5404, Title: Do not disable token validation checks, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA5405, Title: Do not always skip token validation in delegates, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -420,6 +429,7 @@
 - {Id: IDE0304, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0305, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0320, Title: Make anonymous function static, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: IDE0330, Title: Use 'System.Threading.Lock', Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE1005, Title: Delegate invocation can be simplified., Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE1006, Title: Naming Styles, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE2000, Title: Avoid multiple blank lines, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -588,6 +598,9 @@
 - {Id: MA0158, Title: Use System.Threading.Lock, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0159, Title: Use 'Order' instead of 'OrderBy', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0160, Title: Use ContainsKey instead of TryGetValue, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: MA0161, Title: UseShellExecute must be explicitly set, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
+- {Id: MA0162, Title: Use Process.Start overload with ProcessStartInfo, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
+- {Id: MA0163, Title: UseShellExecute must be false when redirecting standard input or output, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: POLYSP0003, Title: Unsupported C# language version, Category: Microsoft.CodeAnalysis.CSharp.CSharpParseOptions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RCS1001, Title: Add braces (when expression spans over multiple lines), Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1002, Title: Remove braces, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
@@ -1633,6 +1646,7 @@
 - {Id: xUnit1048, Title: Avoid using 'async void' for test methods as it is deprecated in xUnit.net v3, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: xUnit1049, Title: Do not use 'async void' for test methods as it is no longer supported, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: xUnit1050, Title: The class referenced by the ClassData attribute returns untyped data rows, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: xUnit1051, Title: Calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: xUnit2000, Title: Constants and literals should be the expected argument, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: xUnit2001, Title: Do not use invalid equality check, Category: Assertions, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: xUnit2002, Title: Do not use null check on value type, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1661,6 +1675,9 @@
 - {Id: xUnit2026, Title: Comparison of sets must be done with IEqualityComparer, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: xUnit2027, Title: Comparison of sets to linear containers have undefined results, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: xUnit2028, Title: Do not use Assert.Empty or Assert.NotEmpty with problematic types, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2029, Title: Do not use Empty() to check if a value does not exist in a collection, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: xUnit2029, Title: Do not use Assert.Empty to check if a value does not exist in a collection, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: xUnit2030, Title: Do not use Assert.NotEmpty to check if a value exists in a collection, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: xUnit2031, Title: Do not use Where clause with Assert.Single, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: xUnit3000, Title: Classes which cross AppDomain boundaries must derive directly or indirectly from LongLivedMarshalByRefObject, Category: Extensibility, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit3001, Title: Classes that implement Xunit.Abstractions.IXunitSerializable must have a public parameterless constructor, Category: Extensibility, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: xUnit3001, Title: Classes that are marked as serializable must have a public parameterless constructor, Category: Extensibility, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: xUnit3002, Title: Classes which are JSON serializable should not be tested for their concrete type, Category: Extensibility, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
