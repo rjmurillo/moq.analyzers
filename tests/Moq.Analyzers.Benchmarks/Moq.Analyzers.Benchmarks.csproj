@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)/src/Moq.Analyzers/Moq.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Moq.CodeFixes\Moq.CodeFixes.csproj" />
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />

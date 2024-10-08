@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+      <RootNamespace>Moq.CodeFixes</RootNamespace>
+      <AssemblyName>Moq.CodeFixes</AssemblyName>
+      <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Moq.Analyzers\Common\DiagnosticIds.cs" Link="Common\DiagnosticIds.cs" />
+    <Compile Include="..\Moq.Analyzers\Common\MoqMethodDescriptorBase.cs" Link="Common\MoqMethodDescriptorBase.cs" />
+    <Compile Include="..\Moq.Analyzers\Common\SemanticModelExtensions.cs" Link="Common\SemanticModelExtensions.cs" />
+    <Compile Include="..\Moq.Analyzers\Common\WellKnownTypeNames.cs" Link="Common\WellKnownTypeNames.cs" />
+    <Compile Include="..\Moq.Analyzers\GlobalUsings.cs" Link="GlobalUsings.cs" />
+    <Compile Include="..\Moq.Analyzers\MoqSetupMethodDescriptor.cs" Link="MoqSetupMethodDescriptor.cs" />
+  </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Common\" />
+    </ItemGroup>
+
+</Project>
