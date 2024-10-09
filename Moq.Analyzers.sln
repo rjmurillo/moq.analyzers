@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Moq.Analyzers.Test", "tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Moq.Analyzers.Benchmarks", "tests\Moq.Analyzers.Benchmarks\Moq.Analyzers.Benchmarks.csproj", "{11B3412F-456C-452E-94D2-B42D5C52F61C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Moq.CodeFixes", "src\Moq.CodeFixes\Moq.CodeFixes.csproj", "{8E99C15C-E80A-49E5-988C-1B5071CE775F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{11B3412F-456C-452E-94D2-B42D5C52F61C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11B3412F-456C-452E-94D2-B42D5C52F61C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11B3412F-456C-452E-94D2-B42D5C52F61C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E99C15C-E80A-49E5-988C-1B5071CE775F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E99C15C-E80A-49E5-988C-1B5071CE775F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E99C15C-E80A-49E5-988C-1B5071CE775F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E99C15C-E80A-49E5-988C-1B5071CE775F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

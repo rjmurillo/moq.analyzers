@@ -5,6 +5,7 @@
 |   |-- dotnet
 |   |   |-- cs
 |   |   |   |-- Moq.Analyzers.dll
+|   |   |   |-- Moq.CodeFixes.dll
 |-- tools
 |   |-- install.ps1
 |   |-- uninstall.ps1

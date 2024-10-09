@@ -12,8 +12,16 @@ internal static class SemanticModelExtensions
     internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(this SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
     {
         InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
-        if (invocation?.Expression is not MemberAccessExpressionSyntax method) return null;
-        if (semanticModel.IsMoqSetupMethod(method, cancellationToken)) return invocation;
+        if (invocation?.Expression is not MemberAccessExpressionSyntax method)
+        {
+            return null;
+        }
+
+        if (semanticModel.IsMoqSetupMethod(method, cancellationToken))
+        {
+            return invocation;
+        }
+
         return semanticModel.FindSetupMethodFromCallbackInvocation(method.Expression, cancellationToken);
     }
 
@@ -103,7 +111,11 @@ internal static class SemanticModelExtensions
     private static bool IsCallbackOrReturnSymbol(ISymbol? symbol)
     {
         // TODO: Check what is the best way to do such checks
-        if (symbol is not IMethodSymbol methodSymbol) return false;
+        if (symbol is not IMethodSymbol methodSymbol)
+        {
+            return false;
+        }
+
         string? methodName = methodSymbol.ToString();
         return methodName.StartsWith("Moq.Language.ICallback", StringComparison.Ordinal)
                || methodName.StartsWith("Moq.Language.IReturns", StringComparison.Ordinal);
