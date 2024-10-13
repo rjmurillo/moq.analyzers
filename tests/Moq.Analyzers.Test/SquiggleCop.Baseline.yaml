@@ -315,7 +315,7 @@
 - {Id: ECS0600, Title: Avoid stringly-typed APIs, Category: Refactoring, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0700, Title: Express callbacks with delegates, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0800, Title: Use the Null Conditional Operator for Event Invocations, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: ECS0900, Title: Minimize boxing and unboxing, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
+- {Id: ECS0900, Title: Minimize boxing and unboxing, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0001, Title: Switch on Enum Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0002, Title: Switch on Nullable Enum Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0003, Title: Switch on Closed Type Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -871,8 +871,8 @@
 - {Id: RS1022, Title: Do not use types from Workspaces assembly in an analyzer, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1023, Title: Upgrade MSBuildWorkspace, Category: Library, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1024, Title: Symbols should be compared for equality, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: RS1025, Title: Configure generated code analysis, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
-- {Id: RS1026, Title: Enable concurrent execution, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
+- {Id: RS1025, Title: Configure generated code analysis, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: RS1026, Title: Enable concurrent execution, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1027, Title: Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1028, Title: Provide non-null 'customTags' value to diagnostic descriptor constructor, Category: MicrosoftCodeAnalysisDocumentation, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
 - {Id: RS1029, Title: Do not use reserved diagnostic IDs, Category: MicrosoftCodeAnalysisDesign, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -884,6 +884,11 @@
 - {Id: RS1035, Title: Do not use APIs banned for analyzers, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1036, Title: Specify analyzer banned API enforcement setting, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1037, Title: Add "CompilationEnd" custom tag to compilation end diagnostic descriptor, Category: MicrosoftCodeAnalysisDesign, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: RS1038, Title: Compiler extensions should be implemented in assemblies with compiler-provided references, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: RS1039, Title: This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null', Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: RS1040, Title: This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null', Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: RS1041, Title: Compiler extensions should be implemented in assemblies targeting netstandard2.0, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: RS1042, Title: Implementations of this interface are not allowed, Category: MicrosoftCodeAnalysisCompatibility, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS2000, Title: Add analyzer diagnostic IDs to analyzer release, Category: MicrosoftCodeAnalysisReleaseTracking, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS2001, Title: Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release, Category: MicrosoftCodeAnalysisReleaseTracking, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS2002, Title: Do not add removed analyzer diagnostic IDs to unshipped analyzer release, Category: MicrosoftCodeAnalysisReleaseTracking, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
