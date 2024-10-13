@@ -16,6 +16,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
             ["""new Mock<ISampleInterface>().Setup(x => x.TestProperty);"""],
             ["""new Mock<SampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
             ["""new Mock<SampleClass>().Setup(x => x.DoSth());"""],
+            ["""new Mock<IParameterlessAsyncMethod>().Setup(x => x.DoSomethingAsync().Result).Returns(true);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -31,6 +32,11 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests
                 {
                     int Calculate(int a, int b);
                     int TestProperty { get; set; }
+                }
+                
+                public interface IParameterlessAsyncMethod
+                {
+                    Task<bool> DoSomethingAsync();
                 }
 
                 public abstract class BaseSampleClass
