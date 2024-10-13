@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Moq.Analyzers.Test;
+namespace Moq.Analyzers.Test.Analyzers;
 
 /// <summary>
 /// A "meta" analyzer that aggregates all the individual analyzers into a single one.
@@ -16,9 +16,9 @@ public class CompositeAnalyzer : DiagnosticAnalyzer
     /// <summary>Initializes a new instance of the <see cref="CompositeAnalyzer" /> class.</summary>
     public CompositeAnalyzer()
     {
-        _analyzers = [.. DiagnosticAnalyzers()];
+        _analyzers = DiagnosticAnalyzers().ToImmutableArray();
 #pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
-        _supportedDiagnostics = [.. _analyzers.SelectMany(diagnosticAnalyzer => diagnosticAnalyzer.SupportedDiagnostics)];
+        _supportedDiagnostics = _analyzers.SelectMany(diagnosticAnalyzer => diagnosticAnalyzer.SupportedDiagnostics).ToImmutableArray();
 #pragma warning restore ECS0900
     }
 
