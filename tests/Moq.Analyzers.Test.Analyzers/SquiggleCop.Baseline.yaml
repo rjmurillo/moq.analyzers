@@ -205,7 +205,7 @@
 - {Id: CA2252, Title: This API requires opting into preview features, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2253, Title: Named placeholders should not be numeric values, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA2254, Title: Template should be a static expression, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: CA2255, Title: The 'ModuleInitializer' attribute should not be used in libraries, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: CA2255, Title: The 'ModuleInitializer' attribute should not be used in libraries, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2256, Title: All members declared in parent interfaces must have an implementation in a DynamicInterfaceCastableImplementation-attributed interface, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2257, Title: Members defined on an interface with the 'DynamicInterfaceCastableImplementationAttribute' should be 'static', Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2258, Title: Providing a 'DynamicInterfaceCastableImplementation' interface in Visual Basic is unsupported, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -307,7 +307,6 @@
 - {Id: CA5403, Title: Do not hard-code certificate, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA5404, Title: Do not disable token validation checks, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA5405, Title: Do not always skip token validation in delegates, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: CS1591, Title: Missing XML comment for publicly visible type or member, Category: Compiler, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Warning], IsEverSuppressed: true}
 - {Id: ECS0100, Title: Prefer implicitly typed local variables, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0200, Title: Prefer readonly over const, Category: Maintainability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0400, Title: Replace string.Format with interpolated string, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -315,7 +314,7 @@
 - {Id: ECS0600, Title: Avoid stringly-typed APIs, Category: Refactoring, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0700, Title: Express callbacks with delegates, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0800, Title: Use the Null Conditional Operator for Event Invocations, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: ECS0900, Title: Minimize boxing and unboxing, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: ECS0900, Title: Minimize boxing and unboxing, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
 - {Id: EM0001, Title: Switch on Enum Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0002, Title: Switch on Nullable Enum Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0003, Title: Switch on Closed Type Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -470,7 +469,7 @@
 - {Id: MA0029, Title: Combine LINQ methods, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0030, Title: Remove useless OrderBy call, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0031, Title: Optimize Enumerable.Count() usage, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: MA0032, Title: Use an overload with a CancellationToken argument, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: MA0032, Title: Use an overload with a CancellationToken argument, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
 - {Id: MA0033, Title: Do not tag instance fields with ThreadStaticAttribute, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0035, Title: Do not use dangerous threading methods, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0036, Title: Make class static, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -488,7 +487,7 @@
 - {Id: MA0048, Title: File name must match type name, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0049, Title: Type name should not match containing namespace, Category: Design, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0050, Title: Validate arguments correctly in iterator methods, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: MA0051, Title: Method is too long, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: true}
+- {Id: MA0051, Title: Method is too long, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: false}
 - {Id: MA0052, Title: Replace constant Enum.ToString with nameof, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0053, Title: Make class sealed, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0054, Title: Embed the caught exception as innerException, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -643,7 +642,7 @@
 - {Id: RCS1042, Title: Remove enum default underlying type, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: RCS1043, Title: Remove 'partial' modifier from type with a single part, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: RCS1044, Title: Remove original exception from throw statement, Category: Roslynator, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: RCS1046, Title: Asynchronous method name should end with 'Async', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: RCS1046, Title: Asynchronous method name should end with 'Async', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
 - {Id: RCS1047, Title: Non-asynchronous method name should not end with 'Async', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1047FadeOut, Title: Non-asynchronous method name should not end with 'Async', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1048, Title: Use lambda expression instead of anonymous method, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -871,8 +870,8 @@
 - {Id: RS1022, Title: Do not use types from Workspaces assembly in an analyzer, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1023, Title: Upgrade MSBuildWorkspace, Category: Library, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1024, Title: Symbols should be compared for equality, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: RS1025, Title: Configure generated code analysis, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: RS1026, Title: Enable concurrent execution, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: RS1025, Title: Configure generated code analysis, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
+- {Id: RS1026, Title: Enable concurrent execution, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
 - {Id: RS1027, Title: Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1028, Title: Provide non-null 'customTags' value to diagnostic descriptor constructor, Category: MicrosoftCodeAnalysisDocumentation, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
 - {Id: RS1029, Title: Do not use reserved diagnostic IDs, Category: MicrosoftCodeAnalysisDesign, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1444,7 +1443,7 @@
 - {Id: SA1201, Title: Elements should appear in the correct order, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1202, Title: Elements should be ordered by access, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1203, Title: Constants should appear before fields, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1204, Title: Static elements should appear before instance elements, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
+- {Id: SA1204, Title: Static elements should appear before instance elements, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1205, Title: Partial elements should declare access, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1206, Title: Declaration keywords should follow order, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1207, Title: Protected should come before internal, Category: StyleCop.CSharp.OrderingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1509,8 +1508,8 @@
 - {Id: SA1518, Title: Use line endings correctly at end of file, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1519, Title: Braces should not be omitted from multi-line child statement, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1520, Title: Use braces consistently, Category: StyleCop.CSharp.LayoutRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1600, Title: Elements should be documented, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: true}
-- {Id: SA1601, Title: Partial elements should be documented, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: true}
+- {Id: SA1600, Title: Elements should be documented, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: false}
+- {Id: SA1601, Title: Partial elements should be documented, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: false}
 - {Id: SA1602, Title: Enumeration items should be documented, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1603, Title: Documentation should contain valid XML, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: SA1604, Title: Element documentation should have summary, Category: StyleCop.CSharp.DocumentationRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1564,19 +1563,6 @@
 - {Id: SX1101, Title: Do not prefix local calls with 'this.', Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: SX1309, Title: Field names should begin with underscore, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: SX1309S, Title: Static field names should begin with underscore, Category: StyleCop.CSharp.NamingRules, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: SYSLIB1045, Title: Convert to 'GeneratedRegexAttribute'., Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: SYSLIB1054, Title: Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time, Category: Interoperability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: SYSLIB1055, Title: Invalid 'CustomMarshallerAttribute' usage, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SYSLIB1056, Title: Specified marshaller type is invalid, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SYSLIB1057, Title: Marshaller type does not have the required shape, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SYSLIB1058, Title: Invalid 'NativeMarshallingAttribute' usage, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SYSLIB1060, Title: Specified marshaller type is invalid, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SYSLIB1061, Title: Marshaller type has incompatible method signatures, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SYSLIB1090, Title: "'GeneratedComInterfaceType' does not support the 'ComInterfaceType' value supplied to 'InterfaceTypeAttribute' on the same type.", Category: ComInterfaceGenerator, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SYSLIB1096, Title: Convert to 'GeneratedComInterface', Category: Interoperability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: SYSLIB1097, Title: Add 'GeneratedComClassAttribute' to enable passing objects of this type to COM, Category: Interoperability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: SYSLIB1098, Title: .NET COM hosting with 'EnableComHosting' does not support interfaces with the 'GeneratedComInterfaceAttribute', Category: Interoperability, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SYSLIB1099, Title: COM Interop APIs on 'System.Runtime.InteropServices.Marshal' do not support source-generated COM, Category: Interoperability, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD001, Title: Avoid legacy thread switching APIs, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD002, Title: Avoid problematic synchronous waits, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD003, Title: Avoid awaiting foreign Tasks, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1600,89 +1586,3 @@
 - {Id: VSTHRD113, Title: Check for System.IAsyncDisposable, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: VSTHRD114, Title: Avoid returning a null Task, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD200, Title: Use "Async" suffix for async methods, Category: Style, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
-- {Id: xUnit1000, Title: Test classes must be public, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1001, Title: Fact methods cannot have parameters, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1002, Title: Test methods cannot have multiple Fact or Theory attributes, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1003, Title: Theory methods must have test data, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1004, Title: Test methods should not be skipped, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit1005, Title: Fact methods should not have test data, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1006, Title: Theory methods should have parameters, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1007, Title: ClassData must point at a valid class, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1008, Title: Test data attribute should only be used on a Theory, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1009, Title: InlineData values must match the number of method parameters, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1010, Title: The value is not convertible to the method parameter type, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1011, Title: There is no matching method parameter, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1012, Title: Null should only be used for nullable parameters, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1013, Title: Public method should be marked as test, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1014, Title: MemberData should use nameof operator for member name, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1015, Title: MemberData must reference an existing member, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1016, Title: MemberData must reference a public member, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1017, Title: MemberData must reference a static member, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1018, Title: MemberData must reference a valid member kind, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1019, Title: MemberData must reference a member providing a valid data type, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1020, Title: MemberData must reference a property with a public getter, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1021, Title: MemberData should not have parameters if the referenced member is not a method, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1022, Title: Theory methods cannot have a parameter array, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1023, Title: Theory methods cannot have default parameter values, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1024, Title: Test methods cannot have overloads, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1025, Title: InlineData should be unique within the Theory it belongs to, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1026, Title: Theory methods should use all of their parameters, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1027, Title: Collection definition classes must be public, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1028, Title: Test method must have valid return type, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1029, Title: Local functions cannot be test functions, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1030, Title: Do not call ConfigureAwait(false) in test method, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1031, Title: Do not use blocking task operations in test method, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1032, Title: Test classes cannot be nested within a generic class, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1033, Title: Test classes decorated with 'Xunit.IClassFixture<TFixture>' or 'Xunit.ICollectionFixture<TFixture>' should add a constructor argument of type TFixture, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit1034, Title: Null should only be used for nullable parameters, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1035, Title: The value is not convertible to the method parameter type, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1036, Title: There is no matching method parameter, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1037, Title: There are fewer theory data type arguments than required by the parameters of the test method, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1038, Title: There are more theory data type arguments than allowed by the parameters of the test method, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1039, Title: The type argument to theory data is not compatible with the type of the corresponding test method parameter, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1040, Title: 'The type argument to theory data is nullable, while the type of the corresponding test method parameter is not', Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1041, Title: Fixture arguments to test classes must have fixture sources, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1042, Title: The member referenced by the MemberData attribute returns untyped data rows, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit1043, Title: Constructors on classes derived from FactAttribute must be public when used on test methods, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1044, Title: Avoid using TheoryData type arguments that are not serializable, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit1045, Title: Avoid using TheoryData type arguments that might not be serializable, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit1046, Title: Avoid using TheoryDataRow arguments that are not serializable, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit1047, Title: Avoid using TheoryDataRow arguments that might not be serializable, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit1048, Title: Avoid using 'async void' for test methods as it is deprecated in xUnit.net v3, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1049, Title: Do not use 'async void' for test methods as it is no longer supported, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit1050, Title: The class referenced by the ClassData attribute returns untyped data rows, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit1051, Title: Calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2000, Title: Constants and literals should be the expected argument, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2001, Title: Do not use invalid equality check, Category: Assertions, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
-- {Id: xUnit2002, Title: Do not use null check on value type, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2003, Title: Do not use equality check to test for null value, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2004, Title: Do not use equality check to test for boolean conditions, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2005, Title: Do not use identity check on value type, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2006, Title: Do not use invalid string equality check, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2007, Title: Do not use typeof expression to check the type, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2008, Title: Do not use boolean check to match on regular expressions, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2009, Title: Do not use boolean check to check for substrings, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2010, Title: Do not use boolean check to check for string equality, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2011, Title: Do not use empty collection check, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2012, Title: Do not use boolean check to check if a value exists in a collection, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2013, Title: Do not use equality check to check for collection size., Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2014, Title: Do not use throws check to check for asynchronously thrown exception, Category: Assertions, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2015, Title: Do not use typeof expression to check the exception type, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2016, Title: Keep precision in the allowed range when asserting equality of doubles or decimals., Category: Assertions, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2017, Title: Do not use Contains() to check if a value exists in a collection, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2018, Title: Do not compare an object's exact type to an abstract class or interface, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2020, Title: Do not use always-failing boolean assertions, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2021, Title: Async assertions should be awaited, Category: Assertions, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2022, Title: Boolean assertions should not be negated, Category: Assertions, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit2023, Title: Do not use collection methods for single-item collections, Category: Assertions, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit2024, Title: Do not use boolean asserts for simple equality tests, Category: Assertions, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit2025, Title: The boolean assertion statement can be simplified, Category: Assertions, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: xUnit2026, Title: Comparison of sets must be done with IEqualityComparer, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2027, Title: Comparison of sets to linear containers have undefined results, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2028, Title: Do not use Assert.Empty or Assert.NotEmpty with problematic types, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2029, Title: Do not use Assert.Empty to check if a value does not exist in a collection, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2030, Title: Do not use Assert.NotEmpty to check if a value exists in a collection, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit2031, Title: Do not use Where clause with Assert.Single, Category: Assertions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit3000, Title: Classes which cross AppDomain boundaries must derive directly or indirectly from LongLivedMarshalByRefObject, Category: Extensibility, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit3001, Title: Classes that are marked as serializable must have a public parameterless constructor, Category: Extensibility, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: xUnit3002, Title: Classes which are JSON serializable should not be tested for their concrete type, Category: Extensibility, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
