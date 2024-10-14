@@ -34,22 +34,27 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
     {
         InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
 
-        if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && context.SemanticModel.IsMoqSetupMethod(memberAccessExpression, context.CancellationToken))
+        if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression ||
+            !context.SemanticModel.IsMoqSetupMethod(memberAccessExpression, context.CancellationToken))
         {
-            ExpressionSyntax? mockedMemberExpression = setupInvocation.FindMockedMemberExpressionFromSetupMethod();
-            if (mockedMemberExpression == null)
-            {
-                return;
-            }
-
-            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
-            if ((symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
-                && !symbolInfo.Symbol.IsOverridable()
-                && symbolInfo.Symbol.IsMethodReturnTypeTask())
-            {
-                Diagnostic diagnostic = mockedMemberExpression.GetLocation().CreateDiagnostic(Rule);
-                context.ReportDiagnostic(diagnostic);
-            }
+            return;
         }
+
+        ExpressionSyntax? mockedMemberExpression = setupInvocation.FindMockedMemberExpressionFromSetupMethod();
+        if (mockedMemberExpression == null)
+        {
+            return;
+        }
+
+        SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
+        if (symbolInfo.Symbol is not (IPropertySymbol or IMethodSymbol)
+            || symbolInfo.Symbol.IsOverridable()
+            || !symbolInfo.Symbol.IsMethodReturnTypeTask())
+        {
+            return;
+        }
+
+        Diagnostic diagnostic = mockedMemberExpression.GetLocation().CreateDiagnostic(Rule);
+        context.ReportDiagnostic(diagnostic);
     }
 }
