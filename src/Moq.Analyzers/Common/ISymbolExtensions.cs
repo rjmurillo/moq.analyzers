@@ -1,4 +1,6 @@
-﻿namespace Moq.Analyzers.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Moq.Analyzers.Common;
 
 internal static class ISymbolExtensions
 {
@@ -46,5 +48,21 @@ internal static class ISymbolExtensions
     {
         return symbol.DeclaredAccessibility != Accessibility.Private
                 && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and { IsStatic: false };
+    }
+
+    public static bool IsMethodReturnTypeTask(this ISymbol methodSymbol)
+    {
+        string type = methodSymbol.ToDisplayString();
+        return string.Equals(type, "System.Threading.Tasks.Task", StringComparison.Ordinal)
+               || string.Equals(type, "System.Threading.ValueTask", StringComparison.Ordinal)
+               || type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal)
+               || (type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal)
+                   && type.EndsWith(".Result", StringComparison.Ordinal));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsOverridable(this ISymbol symbol)
+    {
+        return !symbol.IsSealed && (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride);
     }
 }

@@ -44,28 +44,12 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 
             SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
             if ((symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
-                && !IsMethodOverridable(symbolInfo.Symbol)
-                && IsMethodReturnTypeTask(symbolInfo.Symbol))
+                && !symbolInfo.Symbol.IsOverridable()
+                && symbolInfo.Symbol.IsMethodReturnTypeTask())
             {
                 Diagnostic diagnostic = mockedMemberExpression.GetLocation().CreateDiagnostic(Rule);
                 context.ReportDiagnostic(diagnostic);
             }
         }
-    }
-
-    private static bool IsMethodOverridable(ISymbol methodSymbol)
-    {
-        return !methodSymbol.IsSealed
-               && (methodSymbol.IsVirtual || methodSymbol.IsAbstract || methodSymbol.IsOverride);
-    }
-
-    private static bool IsMethodReturnTypeTask(ISymbol methodSymbol)
-    {
-        string type = methodSymbol.ToDisplayString();
-        return string.Equals(type, "System.Threading.Tasks.Task", StringComparison.Ordinal)
-               || string.Equals(type, "System.Threading.ValueTask", StringComparison.Ordinal)
-               || type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal)
-               || (type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal)
-                   && type.EndsWith(".Result", StringComparison.Ordinal));
     }
 }
