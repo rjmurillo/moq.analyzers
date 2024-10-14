@@ -15,7 +15,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
 
             // Starting with Moq 4.16, you can simply .Setup the returned tasks's .Result property
             ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+        }.WithNamespaces().WithOldMoqReferenceAssemblyGroups();
     }
 
     [Theory]
