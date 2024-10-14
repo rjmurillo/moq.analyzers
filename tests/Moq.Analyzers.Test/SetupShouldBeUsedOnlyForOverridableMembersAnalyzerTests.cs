@@ -1,4 +1,3 @@
-using Xunit.Abstractions;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>;
 
 namespace Moq.Analyzers.Test;
