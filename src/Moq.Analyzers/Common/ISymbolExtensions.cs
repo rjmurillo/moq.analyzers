@@ -1,4 +1,6 @@
-﻿namespace Moq.Analyzers.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Moq.Analyzers.Common;
 
 internal static class ISymbolExtensions
 {
@@ -56,5 +58,11 @@ internal static class ISymbolExtensions
                || type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal)
                || (type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal)
                    && type.EndsWith(".Result", StringComparison.Ordinal));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsOverridable(this ISymbol symbol)
+    {
+        return !symbol.IsSealed && (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride);
     }
 }

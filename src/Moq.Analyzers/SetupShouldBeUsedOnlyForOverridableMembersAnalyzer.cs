@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using ISymbolExtensions = Microsoft.CodeAnalysis.ISymbolExtensions;
 
 namespace Moq.Analyzers;
 
@@ -71,7 +72,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
                     return;
                 }
 
-                if (IsMethodOverridable(propertySymbol))
+                if (propertySymbol.IsOverridable())
                 {
                     return;
                 }
@@ -83,7 +84,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
 
                 break;
             case IMethodSymbol methodSymbol:
-                if (IsMethodOverridable(methodSymbol) || methodSymbol.IsMethodReturnTypeTask())
+                if (methodSymbol.IsOverridable() || methodSymbol.IsMethodReturnTypeTask())
                 {
                     return;
                 }
@@ -93,12 +94,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
 
         Diagnostic diagnostic = mockedMemberExpression.CreateDiagnostic(Rule);
         context.ReportDiagnostic(diagnostic);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsMethodOverridable(ISymbol methodSymbol)
-    {
-        return !methodSymbol.IsSealed && (methodSymbol.IsVirtual || methodSymbol.IsAbstract || methodSymbol.IsOverride);
     }
 
     private static bool IsTaskResultProperty(IPropertySymbol propertySymbol, SyntaxNodeAnalysisContext context)

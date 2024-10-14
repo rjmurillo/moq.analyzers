@@ -1,6 +1,4 @@
-﻿using ISymbolExtensions = Moq.Analyzers.Common.ISymbolExtensions;
-
-namespace Moq.Analyzers;
+﻿namespace Moq.Analyzers;
 
 /// <summary>
 /// Setup of async method should use ReturnsAsync instead of .Result.
@@ -46,18 +44,12 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 
             SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
             if ((symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
-                && !IsMethodOverridable(symbolInfo.Symbol)
+                && !symbolInfo.Symbol.IsOverridable()
                 && symbolInfo.Symbol.IsMethodReturnTypeTask())
             {
                 Diagnostic diagnostic = mockedMemberExpression.GetLocation().CreateDiagnostic(Rule);
                 context.ReportDiagnostic(diagnostic);
             }
         }
-    }
-
-    private static bool IsMethodOverridable(ISymbol methodSymbol)
-    {
-        return !methodSymbol.IsSealed
-               && (methodSymbol.IsVirtual || methodSymbol.IsAbstract || methodSymbol.IsOverride);
     }
 }
