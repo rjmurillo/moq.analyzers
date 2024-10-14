@@ -1,4 +1,6 @@
-﻿namespace Moq.Analyzers;
+﻿using ISymbolExtensions = Moq.Analyzers.Common.ISymbolExtensions;
+
+namespace Moq.Analyzers;
 
 /// <summary>
 /// Setup of async method should use ReturnsAsync instead of .Result.
@@ -45,7 +47,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
             SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
             if ((symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
                 && !IsMethodOverridable(symbolInfo.Symbol)
-                && IsMethodReturnTypeTask(symbolInfo.Symbol))
+                && symbolInfo.Symbol.IsMethodReturnTypeTask())
             {
                 Diagnostic diagnostic = mockedMemberExpression.GetLocation().CreateDiagnostic(Rule);
                 context.ReportDiagnostic(diagnostic);
@@ -57,15 +59,5 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
     {
         return !methodSymbol.IsSealed
                && (methodSymbol.IsVirtual || methodSymbol.IsAbstract || methodSymbol.IsOverride);
-    }
-
-    private static bool IsMethodReturnTypeTask(ISymbol methodSymbol)
-    {
-        string type = methodSymbol.ToDisplayString();
-        return string.Equals(type, "System.Threading.Tasks.Task", StringComparison.Ordinal)
-               || string.Equals(type, "System.Threading.ValueTask", StringComparison.Ordinal)
-               || type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal)
-               || (type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal)
-                   && type.EndsWith(".Result", StringComparison.Ordinal));
     }
 }
