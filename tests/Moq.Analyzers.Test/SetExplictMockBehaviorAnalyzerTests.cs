@@ -22,7 +22,14 @@ public class SetExplictMockBehaviorAnalyzerTests
             ["""Mock.Of<ISample>(MockBehavior.Strict);"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
-        return mockConstructors.Union(fluentBuilders);
+        IEnumerable<object[]> mockRepositories = new object[][]
+        {
+            ["""{|Moq1400:new MockRepository(MockBehavior.Default)|};"""],
+            ["""new MockRepository(MockBehavior.Loose);"""],
+            ["""new MockRepository(MockBehavior.Strict);"""],
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+
+        return mockConstructors.Union(fluentBuilders).Union(mockRepositories);
     }
 
     [Theory]

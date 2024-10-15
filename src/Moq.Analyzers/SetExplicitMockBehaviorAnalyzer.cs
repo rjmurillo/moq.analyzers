@@ -58,7 +58,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
 #pragma warning restore ECS0900 // Minimize boxing and unboxing
 
         context.RegisterOperationAction(
-            context => AnalyzeNewObject(context, mockBehaviorSymbol),
+            context => AnalyzeNewObject(context, mockTypes, mockBehaviorSymbol),
             OperationKind.ObjectCreation);
 
         if (!ofMethods.IsEmpty)
@@ -69,7 +69,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static void AnalyzeNewObject(OperationAnalysisContext context, INamedTypeSymbol mockBehaviorSymbol)
+    private static void AnalyzeNewObject(OperationAnalysisContext context, ImmutableArray<INamedTypeSymbol> mockTypes, INamedTypeSymbol mockBehaviorSymbol)
     {
         if (context.Operation is not IObjectCreationOperation creationOperation)
         {
@@ -81,8 +81,10 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (!string.Equals(namedType.ConstructUnboundGenericType().Name, WellKnownTypeNames.MockName, StringComparison.Ordinal))
+#pragma warning disable ECS0900 // Minimize boxing and unboxing
+        if (!namedType.IsInstanceOf(mockTypes))
         {
+#pragma warning restore ECS0900 // Minimize boxing and unboxing
             return;
         }
 

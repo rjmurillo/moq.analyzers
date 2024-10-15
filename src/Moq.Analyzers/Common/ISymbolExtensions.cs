@@ -15,19 +15,33 @@ internal static class ISymbolExtensions
     /// <see langword="true"/> if <paramref name="symbol"/> is an instance of <paramref name="other"/>, either as a direct match,
     /// or as a specialaization; otherwise, <see langword="false"/>.
     /// </returns>
-    /// <remarks>
-    /// As an example, <c>Type.Method&lt;int&gt;()</c> is an instance of <c>Type.Method&lt;T&gt;()</c>.
-    /// </remarks>
+    /// <example>
+    /// <c>MyType.MyMethod&lt;int&gt;()</c> is an instance of <c>MyType.MyMethod&lt;T&gt;()</c>.
+    /// </example>
+    /// <example>
+    /// <c>MyType&lt;int&gt;()</c> is an instance of <c>MyType&lt;T&gt;()</c>.
+    /// </example>
     public static bool IsInstanceOf<TSymbol>(this ISymbol symbol, TSymbol other, SymbolEqualityComparer? symbolEqualityComparer = null)
         where TSymbol : class, ISymbol
     {
         symbolEqualityComparer ??= SymbolEqualityComparer.Default;
 
-        return symbol switch
+        if (symbol is IMethodSymbol methodSymbol)
         {
-            IMethodSymbol methodSymbol => symbolEqualityComparer.Equals(methodSymbol.OriginalDefinition, other),
-            _ => symbolEqualityComparer.Equals(symbol, other),
-        };
+            return symbolEqualityComparer.Equals(methodSymbol.OriginalDefinition, other);
+        }
+
+        if (symbol is INamedTypeSymbol namedTypeSymbol)
+        {
+            if (namedTypeSymbol.IsGenericType)
+            {
+                namedTypeSymbol = namedTypeSymbol.ConstructedFrom;
+            }
+
+            return symbolEqualityComparer.Equals(namedTypeSymbol, other);
+        }
+
+        return symbolEqualityComparer.Equals(symbol, other);
     }
 
     /// <inheritdoc cref="IsInstanceOf{TSymbol}(ISymbol, TSymbol, SymbolEqualityComparer?)"/>
