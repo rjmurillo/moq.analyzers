@@ -50,7 +50,7 @@ internal static class ISymbolExtensions
     /// The symbols to compare to. Returns <see langword="true"/> if <paramref name="symbol"/> matches any of others.
     /// </param>
     /// <param name="symbolEqualityComparer">The <see cref="SymbolEqualityComparer"/> to use for equality.</param>
-    public static bool IsInstanceOf<TSymbol>(this ISymbol symbol, IEnumerable<TSymbol> others, SymbolEqualityComparer? symbolEqualityComparer = null)
+    public static bool IsInstanceOf<TSymbol>(this ISymbol symbol, ImmutableArray<TSymbol> others, SymbolEqualityComparer? symbolEqualityComparer = null)
         where TSymbol : class, ISymbol
     {
         symbolEqualityComparer ??= SymbolEqualityComparer.Default;

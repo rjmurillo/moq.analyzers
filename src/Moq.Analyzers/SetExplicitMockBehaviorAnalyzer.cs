@@ -81,10 +81,8 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-#pragma warning disable ECS0900 // Minimize boxing and unboxing
         if (!namedType.IsInstanceOf(mockTypes))
         {
-#pragma warning restore ECS0900 // Minimize boxing and unboxing
             return;
         }
 
@@ -111,12 +109,10 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
         }
 
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
-#pragma warning disable ECS0900 // Minimize boxing and unboxing
         if (!targetMethod.IsInstanceOf(wellKnownOfMethods))
         {
             return;
         }
-#pragma warning restore ECS0900 // Minimize boxing and unboxing
 
         foreach (IArgumentOperation argument in invocationOperation.Arguments)
         {
