@@ -6,18 +6,23 @@ public class SetExplictMockBehaviorAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
-        return new object[][]
+        IEnumerable<object[]> mockConstructors = new object[][]
         {
             ["""{|Moq1400:new Mock<ISample>()|};"""],
             ["""{|Moq1400:new Mock<ISample>(MockBehavior.Default)|};"""],
             ["""new Mock<ISample>(MockBehavior.Loose);"""],
             ["""new Mock<ISample>(MockBehavior.Strict);"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
+        IEnumerable<object[]> fluentBuilders = new object[][]
+        {
             ["""{|Moq1400:Mock.Of<ISample>()|};"""],
             ["""{|Moq1400:Mock.Of<ISample>(MockBehavior.Default)|};"""],
             ["""Mock.Of<ISample>(MockBehavior.Loose);"""],
             ["""Mock.Of<ISample>(MockBehavior.Strict);"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+
+        return mockConstructors.Union(fluentBuilders);
     }
 
     [Theory]

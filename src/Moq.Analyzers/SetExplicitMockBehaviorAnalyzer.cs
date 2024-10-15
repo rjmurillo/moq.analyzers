@@ -81,7 +81,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (namedType.ConstructUnboundGenericType().Name != WellKnownTypeNames.MockName)
+        if (!string.Equals(namedType.ConstructUnboundGenericType().Name, WellKnownTypeNames.MockName, StringComparison.Ordinal))
         {
             return;
         }
@@ -91,28 +91,14 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
             {
                 ISymbol field = fieldReferenceOperation.Member;
-                if (field.ContainingType == mockBehaviorSymbol)
+                if (field.ContainingType.IsInstanceOf(mockBehaviorSymbol) && IsNotDefaultBehavior(field.Name))
                 {
-                    if (field.Name == "Loose" || field.Name == "Strict")
-                    {
-                        return;
-                    }
+                    return;
                 }
             }
         }
 
         context.ReportDiagnostic(creationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
-
-//        if (!creationOperation.Arguments.Any(p => p.Value is not IFieldReferenceOperation { Name: WellKnownTypeNames.MockBehavior }))
-//        {
-//#pragma warning disable ECS0900 // Minimize boxing and unboxing
-//            IEnumerable<IArgumentOperation> arguments = context.Operation.ChildOperations.OfType<IArgumentOperation>();
-//#pragma warning restore ECS0900 // Minimize boxing and unboxing
-//            if (!arguments.Any(arg => new string[] { "MockBehavior.Loose", "MockBehavior.Strict" }.Contains(arg.Value.Syntax.ToString())))
-//            {
-//                context.ReportDiagnostic(creationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
-//            }
-//        }
     }
 
     private static void AnalyzeInvocation(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownOfMethods, INamedTypeSymbol mockBehaviorSymbol)
@@ -135,64 +121,18 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
             {
                 ISymbol field = fieldReferenceOperation.Member;
-                if (field.ContainingType == mockBehaviorSymbol)
+                if (field.ContainingType.IsInstanceOf(mockBehaviorSymbol) && IsNotDefaultBehavior(field.Name))
                 {
-                    if (field.Name == "Loose" || field.Name == "Strict")
-                    {
-                        return;
-                    }
+                    return;
                 }
             }
         }
 
         context.ReportDiagnostic(invocationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
-
-//        // if (targetMethod.Parameters.Length == 0)
-//        // {
-//        //     context.ReportDiagnostic(invocationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
-//        // }
-
-//        if (!targetMethod.Parameters.Any(p => p.Type is not INamedTypeSymbol { Name: WellKnownTypeNames.MockBehavior }))
-//        {
-//#pragma warning disable ECS0900 // Minimize boxing and unboxing
-//            IEnumerable<IArgumentOperation> arguments = context.Operation.ChildOperations.OfType<IArgumentOperation>();
-//#pragma warning restore ECS0900 // Minimize boxing and unboxing
-//            if (!arguments.Any(arg => new string[] { "MockBehavior.Loose", "MockBehavior.Strict" }.Contains(arg.Value.Syntax.ToString())))
-//            {
-//                context.ReportDiagnostic(invocationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
-//            }
-//        }
     }
 
-    private static void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownAsMethods)
+    private static bool IsNotDefaultBehavior(string symbolName)
     {
-        if (context.Operation is not IInvocationOperation invocationOperation)
-        {
-            return;
-        }
-
-        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
-#pragma warning disable ECS0900 // Minimize boxing and unboxing
-        if (!targetMethod.IsInstanceOf(wellKnownAsMethods))
-        {
-            return;
-        }
-#pragma warning restore ECS0900 // Minimize boxing and unboxing
-
-        ImmutableArray<ITypeSymbol> typeArguments = targetMethod.TypeArguments;
-        if (typeArguments.Length != 1)
-        {
-            return;
-        }
-
-        if (typeArguments[0] is ITypeSymbol { TypeKind: not TypeKind.Interface })
-        {
-            // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.
-            // If that fails for any reason, report the diagnostic on the operation itself.
-            NameSyntax? memberName = context.Operation.Syntax.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Select(mae => mae.Name).DefaultIfNotSingle();
-            Location location = memberName?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
-
-            // context.ReportDiagnostic(location.CreateDiagnostic(Rule))
-        }
+        return string.Equals(symbolName, "Loose", StringComparison.Ordinal) || string.Equals(symbolName, "Strict", StringComparison.Ordinal);
     }
 }

@@ -24,6 +24,7 @@ internal static class ReferenceAssemblyCatalog
         // implementation of `.As<T>()` (see https://github.com/devlooped/moq/commit/b552aeddd82090ee0f4743a1ab70a16f3e6d2d11).
         { nameof(Net80WithOldMoq), ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.8.2")]) },
 
+        // This must be 4.12.0 or later in order to have the new `Mock.Of<T>(MockBehavior)` method (see https://github.com/devlooped/moq/commit/1561c006c87a0894c5257a1e541da44e40e33dd3).
         // 4.18.4 is currently the most downloaded version of Moq.
         { nameof(Net80WithNewMoq), ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]) },
     };
