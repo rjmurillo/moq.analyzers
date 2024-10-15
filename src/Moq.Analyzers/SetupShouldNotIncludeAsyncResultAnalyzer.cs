@@ -32,24 +32,38 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
+        // Check Moq version and skip analysis if the version is 4.16.0 or later
+        AssemblyIdentity? moqAssembly = context.Compilation.ReferencedAssemblyNames.FirstOrDefault(a => a.Name.Equals("Moq", StringComparison.OrdinalIgnoreCase));
+
+        if (moqAssembly != null && moqAssembly.Version >= new Version(4, 16, 0))
+        {
+            // Skip analysis for Moq 4.16.0 or later
+            return;
+        }
+
         InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
 
-        if (setupInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression && context.SemanticModel.IsMoqSetupMethod(memberAccessExpression, context.CancellationToken))
+        if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression ||
+            !context.SemanticModel.IsMoqSetupMethod(memberAccessExpression, context.CancellationToken))
         {
-            ExpressionSyntax? mockedMemberExpression = setupInvocation.FindMockedMemberExpressionFromSetupMethod();
-            if (mockedMemberExpression == null)
-            {
-                return;
-            }
-
-            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
-            if ((symbolInfo.Symbol is IPropertySymbol || symbolInfo.Symbol is IMethodSymbol)
-                && !symbolInfo.Symbol.IsOverridable()
-                && symbolInfo.Symbol.IsMethodReturnTypeTask())
-            {
-                Diagnostic diagnostic = mockedMemberExpression.GetLocation().CreateDiagnostic(Rule);
-                context.ReportDiagnostic(diagnostic);
-            }
+            return;
         }
+
+        ExpressionSyntax? mockedMemberExpression = setupInvocation.FindMockedMemberExpressionFromSetupMethod();
+        if (mockedMemberExpression == null)
+        {
+            return;
+        }
+
+        SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
+        if (symbolInfo.Symbol is not (IPropertySymbol or IMethodSymbol)
+            || symbolInfo.Symbol.IsOverridable()
+            || !symbolInfo.Symbol.IsMethodReturnTypeTask())
+        {
+            return;
+        }
+
+        Diagnostic diagnostic = mockedMemberExpression.GetLocation().CreateDiagnostic(Rule);
+        context.ReportDiagnostic(diagnostic);
     }
 }

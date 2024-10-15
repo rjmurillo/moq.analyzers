@@ -1,4 +1,3 @@
-using Xunit.Abstractions;
 using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer, Moq.CodeFixes.CallbackSignatureShouldMatchMockedMethodCodeFix>;
 
 namespace Moq.Analyzers.Test;
