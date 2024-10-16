@@ -2,7 +2,7 @@
 
 namespace Moq.Analyzers.Test;
 
-public class SetExplictMockBehaviorAnalyzerTests
+public class SetExplicitMockBehaviorAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
