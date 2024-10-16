@@ -91,7 +91,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
             {
                 ISymbol field = fieldReferenceOperation.Member;
-                if (field.ContainingType.IsInstanceOf(mockBehaviorSymbol) && IsNotDefaultBehavior(field.Name))
+                if (field.ContainingType.IsInstanceOf(mockBehaviorSymbol) && IsExplicitBehavior(field.Name))
                 {
                     return;
                 }
@@ -119,7 +119,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
             {
                 ISymbol field = fieldReferenceOperation.Member;
-                if (field.ContainingType.IsInstanceOf(mockBehaviorSymbol) && IsNotDefaultBehavior(field.Name))
+                if (field.ContainingType.IsInstanceOf(mockBehaviorSymbol) && IsExplicitBehavior(field.Name))
                 {
                     return;
                 }
@@ -129,7 +129,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
         context.ReportDiagnostic(invocationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
     }
 
-    private static bool IsNotDefaultBehavior(string symbolName)
+    private static bool IsExplicitBehavior(string symbolName)
     {
         return string.Equals(symbolName, "Loose", StringComparison.Ordinal) || string.Equals(symbolName, "Strict", StringComparison.Ordinal);
     }
