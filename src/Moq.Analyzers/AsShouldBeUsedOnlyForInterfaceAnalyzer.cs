@@ -68,12 +68,10 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         }
 
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
-#pragma warning disable ECS0900 // Minimize boxing and unboxing
         if (!targetMethod.IsInstanceOf(wellKnownAsMethods))
         {
             return;
         }
-#pragma warning restore ECS0900 // Minimize boxing and unboxing
 
         ImmutableArray<ITypeSymbol> typeArguments = targetMethod.TypeArguments;
         if (typeArguments.Length != 1)
