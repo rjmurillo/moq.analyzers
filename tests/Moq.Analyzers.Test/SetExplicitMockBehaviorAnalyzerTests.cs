@@ -14,6 +14,14 @@ public class SetExplicitMockBehaviorAnalyzerTests
             ["""new Mock<ISample>(MockBehavior.Strict);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
+        IEnumerable<object[]> mockConstructorsWithExpressions = new object[][]
+        {
+            ["""_ = {|Moq1400:new Mock<Calculator>(() => new Calculator())|};"""],
+            ["""_ = {|Moq1400:new Mock<Calculator>(() => new Calculator(), MockBehavior.Default)|};"""],
+            ["""_ = new Mock<Calculator>(() => new Calculator(), MockBehavior.Loose);"""],
+            ["""_ = new Mock<Calculator>(() => new Calculator(), MockBehavior.Strict);"""],
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+
         IEnumerable<object[]> fluentBuilders = new object[][]
         {
             ["""{|Moq1400:Mock.Of<ISample>()|};"""],
@@ -29,12 +37,12 @@ public class SetExplicitMockBehaviorAnalyzerTests
             ["""new MockRepository(MockBehavior.Strict);"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
-        return mockConstructors.Union(fluentBuilders).Union(mockRepositories);
+        return mockConstructors.Union(mockConstructorsWithExpressions).Union(fluentBuilders).Union(mockRepositories);
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShouldAnalyzeMocksWithoutExplictMockBehavior(string referenceAssemblyGroup, string @namespace, string mock)
+    public async Task ShouldAnalyzeMocksWithoutExplicitMockBehavior(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
@@ -43,6 +51,14 @@ public class SetExplicitMockBehaviorAnalyzerTests
                 public interface ISample
                 {
                     int Calculate(int a, int b);
+                }
+
+                public class Calculator
+                {
+                    public int Calculate(int a, int b)
+                    {
+                        return a + b;
+                    }
                 }
 
                 internal class UnitTest
