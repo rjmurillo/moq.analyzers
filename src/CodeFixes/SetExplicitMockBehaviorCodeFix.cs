@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
+using Moq.Analyzers.Common;
 
 namespace Moq.CodeFixes;
 
@@ -97,8 +98,7 @@ public class SetExplicitMockBehaviorCodeFix : CodeFixProvider
 
         // Try adding to beginning
         SyntaxAnnotation beginAnnotation = new();
-        InvocationExpressionSyntax begin = invocationExpression.WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([mockBehaviorSyntax, ..invocationExpression.ArgumentList.Arguments])))
-            .WithAdditionalAnnotations(beginAnnotation);
+        InvocationExpressionSyntax begin = invocationExpression.PrependArgumentListArguments(mockBehaviorSyntax).WithAdditionalAnnotations(beginAnnotation);
 
         ExpressionStatementSyntax beginStatement = SyntaxFactory.ExpressionStatement(begin);
         if (operation.SemanticModel.TryGetSpeculativeSemanticModel(operation.Syntax.SpanStart, beginStatement, out SemanticModel? specModel1))
@@ -156,8 +156,7 @@ public class SetExplicitMockBehaviorCodeFix : CodeFixProvider
 
         // Try adding to beginning
         SyntaxAnnotation beginAnnotation = new();
-        ObjectCreationExpressionSyntax begin = creationExpression.WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([mockBehaviorSyntax, .. creationExpression.ArgumentList?.Arguments ?? []])))
-            .WithAdditionalAnnotations(beginAnnotation);
+        ObjectCreationExpressionSyntax begin = creationExpression.PrependArgumentListArguments(mockBehaviorSyntax).WithAdditionalAnnotations(beginAnnotation);
 
         ExpressionStatementSyntax beginStatement = SyntaxFactory.ExpressionStatement(begin);
         if (operation.SemanticModel.TryGetSpeculativeSemanticModel(operation.Syntax.SpanStart, beginStatement, out SemanticModel? specModel1))
