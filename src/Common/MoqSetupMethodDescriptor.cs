@@ -1,4 +1,4 @@
-﻿namespace Moq.Analyzers;
+﻿namespace Moq.Analyzers.Common;
 
 /// <summary>
 /// A class that, given a <see cref="SemanticModel"/> and a <see cref="MemberAccessExpressionSyntax"/>, determines if

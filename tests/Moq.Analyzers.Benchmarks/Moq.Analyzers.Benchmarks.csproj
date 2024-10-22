@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)/src/Moq.Analyzers/Moq.Analyzers.csproj" />
+    <ProjectReference Include="$(RepoRoot)/src/Analyzers/Moq.Analyzers.csproj" />
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />

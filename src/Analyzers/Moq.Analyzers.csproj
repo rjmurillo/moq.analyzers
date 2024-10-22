@@ -27,8 +27,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
   </ItemGroup>
 
+  <Import Project="$(RepoRoot)/src/Common/Common.projitems" Label="Shared" />
+
   <ItemGroup>
-    <Compile Update="Resources.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="Resources.resx" />
     <EmbeddedResource Update="Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
   </ItemGroup>
 
@@ -40,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\Moq.CodeFixes\Moq.CodeFixes.csproj" />
+    <ProjectReference Include="$(RepoRoot)/src/CodeFixes/Moq.CodeFixes.csproj" />
   </ItemGroup>
 
 </Project>

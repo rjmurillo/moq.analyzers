@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    NOTE: This project is not intended to be referenced directly. The common components should instead be compiled
+    directly into the consuming project to reduce the dependencies and assembly load costs. Instead, Import
+    `Common.projitems` in your project file.
+
+    This project _could_ be a NoTargets project, but then Navigate-To-Definition and other editor features don't work
+    when viewing files in the context of the Common project (presumably because it sees them as loose files with no
+    associated compilation).
+
+    This is effectively a .shproj, however they tend to break refactoring tools (namely "Move to file") which don't
+    understand which "context" they're operating in.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Moq.Analyzers.Common</RootNamespace>
+    <AssemblyName>$(RootNamespace)</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsPublishable>false</IsPublishable>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Shared project settings">
+    <!-- Disable default behavior so we rely on the included props -->
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <ShowCommonFiles>true</ShowCommonFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Import Project="$(RepoRoot)/src/Common/Common.projitems" Label="Shared" />
+</Project>
