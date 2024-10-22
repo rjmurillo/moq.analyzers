@@ -37,7 +37,7 @@ public class SetExplicitMockBehaviorCodeFixTests
         {
             [
                 """{|Moq1400:new Mock<Calculator>(() => new Calculator())|};""",
-                """new Mock<Calculator>(() => new Calculator(MockBehavior.Loose));""",
+                """new Mock<Calculator>(() => new Calculator(), MockBehavior.Loose);""",
             ],
             [
                 """{|Moq1400:new Mock<Calculator>(() => new Calculator(), MockBehavior.Default)|};""",

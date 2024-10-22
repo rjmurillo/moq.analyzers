@@ -53,12 +53,12 @@ public class SetExplicitMockBehaviorCodeFix : CodeFixProvider
 
         if (operation is IInvocationOperation invocation)
         {
-            newNode = await FixInvocation(invocation, mockBehaviorSyntax, mockBehaviorType, cancellationToken).ConfigureAwait(false);
+            newNode = FixInvocation(invocation, mockBehaviorSyntax, mockBehaviorType, cancellationToken);
         }
 
         if (operation is IObjectCreationOperation creation)
         {
-            newNode = await FixObjectCreation(creation, mockBehaviorSyntax, mockBehaviorType, cancellationToken).ConfigureAwait(false);
+            newNode = FixObjectCreation(creation, mockBehaviorSyntax, mockBehaviorType, cancellationToken);
         }
 
         if (newNode is not null)
@@ -70,11 +70,29 @@ public class SetExplicitMockBehaviorCodeFix : CodeFixProvider
         return document;
     }
 
-    private static async Task<SyntaxNode> FixInvocation(IInvocationOperation operation, ArgumentSyntax mockBehaviorSyntax, INamedTypeSymbol mockBehaviorType, CancellationToken cancellationToken)
+    private static SyntaxNode FixInvocation(IInvocationOperation operation, ArgumentSyntax mockBehaviorSyntax, INamedTypeSymbol mockBehaviorType, CancellationToken cancellationToken)
     {
         if (operation.Syntax is not InvocationExpressionSyntax invocationExpression)
         {
             return operation.Syntax;
+        }
+
+        // Try replacing MockBehavior.Default
+        IArgumentOperation[] arguments = operation.Descendants().OfType<IArgumentOperation>().ToArray();
+
+        foreach (IArgumentOperation argument in arguments)
+        {
+            // TODO: Can this be refactored? IMemberReferenceOperation
+            if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
+            {
+                ISymbol field = fieldReferenceOperation.Member;
+                if (field.ContainingType.IsInstanceOf(mockBehaviorType) && field.Name.Equals(WellKnownTypeNames.Default, StringComparison.Ordinal))
+                {
+                    ArgumentSyntax newArgument = mockBehaviorSyntax;
+                    SyntaxNode newExpression = operation.Syntax.ReplaceNode(argument.Syntax, newArgument);
+                    return newExpression;
+                }
+            }
         }
 
         // Try adding to beginning
@@ -108,36 +126,64 @@ public class SetExplicitMockBehaviorCodeFix : CodeFixProvider
             }
         }
 
+        return operation.Syntax;
+    }
+
+    private static SyntaxNode FixObjectCreation(IObjectCreationOperation operation, ArgumentSyntax mockBehaviorSyntax, INamedTypeSymbol mockBehaviorType, CancellationToken cancellationToken)
+    {
+        if (operation.Syntax is not ObjectCreationExpressionSyntax creationExpression)
+        {
+            return operation.Syntax;
+        }
+
         // Try replacing MockBehavior.Default
-        IArgumentOperation[] arguments = operation.Descendants().OfType<IArgumentOperation>().ToArray();//.Where(ao => ao.Type?.Equals(mockBehaviorType, SymbolEqualityComparer.Default) ?? false).ToArray();
+        IArgumentOperation[] arguments = operation.Descendants().OfType<IArgumentOperation>().ToArray();
 
         foreach (IArgumentOperation argument in arguments)
         {
-            // TODO: Can this be refactored?
+            // TODO: Can this be refactored? IMemberReferenceOperation
             if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
             {
                 ISymbol field = fieldReferenceOperation.Member;
-                if (field.ContainingType.IsInstanceOf(mockBehaviorType) && field.Name.Equals(WellKnownTypeNames.Default))
+                if (field.ContainingType.IsInstanceOf(mockBehaviorType) && field.Name.Equals(WellKnownTypeNames.Default, StringComparison.Ordinal))
                 {
                     ArgumentSyntax newArgument = mockBehaviorSyntax;
-                    SyntaxNode newExpression = operation.Syntax.ReplaceNode(arguments[0].Syntax, newArgument);
+                    SyntaxNode newExpression = operation.Syntax.ReplaceNode(argument.Syntax, newArgument);
                     return newExpression;
                 }
             }
         }
 
-        //operation.Arguments[0];
+        // Try adding to beginning
+        SyntaxAnnotation beginAnnotation = new();
+        ObjectCreationExpressionSyntax begin = creationExpression.WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([mockBehaviorSyntax, .. creationExpression.ArgumentList?.Arguments ?? []])))
+            .WithAdditionalAnnotations(beginAnnotation);
 
-        //operation.Syntax
-        //ImmutableArray<ISymbol> symbols = operation.SemanticModel?.GetMemberGroup(operation.Syntax, cancellationToken) ?? ImmutableArray<ISymbol>.Empty;
+        ExpressionStatementSyntax beginStatement = SyntaxFactory.ExpressionStatement(begin);
+        if (operation.SemanticModel.TryGetSpeculativeSemanticModel(operation.Syntax.SpanStart, beginStatement, out SemanticModel? specModel1))
+        {
+            SyntaxNode annotatedNode = beginStatement.GetAnnotatedNodes(beginAnnotation).Single();
+            SymbolInfo x = specModel1.GetSymbolInfo(annotatedNode, cancellationToken);
+            if (x.Symbol is not null)
+            {
+                return begin; // works
+            }
+        }
 
-        return operation.Syntax;
+        // Try adding to end
+        SyntaxAnnotation endAnnotation = new();
+        ObjectCreationExpressionSyntax end = creationExpression.AddArgumentListArguments(mockBehaviorSyntax).WithAdditionalAnnotations(endAnnotation);
 
-        //IsPatternExpressionSyntax newExpression = SyntaxFactory.IsPatternExpression((ExpressionSyntax)operation.Arguments[0].Value.Syntax, SyntaxFactory.ConstantPattern((ExpressionSyntax)operation.Arguments[1].Value.Syntax));
-    }
-
-    private static async Task<SyntaxNode> FixObjectCreation(IObjectCreationOperation operation, ArgumentSyntax mockBehaviorSyntax, INamedTypeSymbol mockBehaviorType, CancellationToken cancellationToken)
-    {
+        ExpressionStatementSyntax endStatement = SyntaxFactory.ExpressionStatement(end);
+        if (operation.SemanticModel.TryGetSpeculativeSemanticModel(operation.Syntax.SpanStart, endStatement, out SemanticModel? specModel2))
+        {
+            SyntaxNode annotatedNode = endStatement.GetAnnotatedNodes(endAnnotation).Single();
+            SymbolInfo x = specModel2.GetSymbolInfo(annotatedNode, cancellationToken);
+            if (x.Symbol is not null)
+            {
+                return end; // works
+            }
+        }
 
         return operation.Syntax;
     }
