@@ -98,7 +98,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        context.ReportDiagnostic(creationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
+        context.ReportDiagnostic(creationOperation.CreateDiagnostic(Rule));
     }
 
     private static void AnalyzeInvocation(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownOfMethods, INamedTypeSymbol mockBehaviorSymbol)
@@ -126,7 +126,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        context.ReportDiagnostic(invocationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
+        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(Rule));
     }
 
     private static bool IsExplicitBehavior(string symbolName)

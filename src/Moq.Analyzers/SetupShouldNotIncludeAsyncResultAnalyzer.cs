@@ -63,7 +63,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        Diagnostic diagnostic = mockedMemberExpression.GetLocation().CreateDiagnostic(Rule);
+        Diagnostic diagnostic = mockedMemberExpression.CreateDiagnostic(Rule);
         context.ReportDiagnostic(diagnostic);
     }
 }

@@ -5,23 +5,20 @@ internal static class DiagnosticExtensions
     public static Diagnostic CreateDiagnostic(
         this SyntaxNode node,
         DiagnosticDescriptor rule,
-        params object?[]? messageArgs)
-        => node.CreateDiagnostic(rule, properties: null, messageArgs);
+        params object?[]? messageArgs) => node.CreateDiagnostic(rule, properties: null, messageArgs);
 
     public static Diagnostic CreateDiagnostic(
         this SyntaxNode node,
         DiagnosticDescriptor rule,
         ImmutableDictionary<string, string?>? properties,
-        params object?[]? messageArgs)
-        => node.CreateDiagnostic(rule, additionalLocations: Array.Empty<Location>(), properties, messageArgs);
+        params object?[]? messageArgs) => node.CreateDiagnostic(rule, additionalLocations: null, properties, messageArgs);
 
     public static Diagnostic CreateDiagnostic(
         this SyntaxNode node,
         DiagnosticDescriptor rule,
         IEnumerable<Location>? additionalLocations,
         ImmutableDictionary<string, string?>? properties,
-        params object?[]? messageArgs)
-        => node
+        params object?[]? messageArgs) => node
             .GetLocation()
             .CreateDiagnostic(
                 rule: rule,
@@ -32,19 +29,13 @@ internal static class DiagnosticExtensions
     public static Diagnostic CreateDiagnostic(
         this Location location,
         DiagnosticDescriptor rule,
-        params object?[]? messageArgs)
-        => location
-            .CreateDiagnostic(
-                rule: rule,
-                properties: ImmutableDictionary<string, string?>.Empty,
-                messageArgs: messageArgs);
+        params object?[]? messageArgs) => location.CreateDiagnostic(rule, properties: null, messageArgs);
 
     public static Diagnostic CreateDiagnostic(
         this Location location,
         DiagnosticDescriptor rule,
         ImmutableDictionary<string, string?>? properties,
-        params object?[]? messageArgs)
-        => location.CreateDiagnostic(rule, Array.Empty<Location>(), properties, messageArgs);
+        params object?[]? messageArgs) => location.CreateDiagnostic(rule, additionalLocations: null, properties, messageArgs);
 
     public static Diagnostic CreateDiagnostic(
         this Location location,
@@ -58,11 +49,24 @@ internal static class DiagnosticExtensions
             location = Location.None;
         }
 
-        return Diagnostic.Create(
-            descriptor: rule,
-            location: location,
-            additionalLocations: additionalLocations,
-            properties: properties,
-            messageArgs: messageArgs);
+        return Diagnostic.Create(rule, location, additionalLocations, properties, messageArgs);
     }
+
+    public static Diagnostic CreateDiagnostic(
+        this IOperation operation,
+        DiagnosticDescriptor rule,
+        params object?[]? messageArgs) => operation.CreateDiagnostic(rule, properties: null, messageArgs);
+
+    public static Diagnostic CreateDiagnostic(
+    this IOperation operation,
+    DiagnosticDescriptor rule,
+    ImmutableDictionary<string, string?>? properties,
+    params object?[]? messageArgs) => operation.CreateDiagnostic(rule, additionalLocations: null, properties, messageArgs);
+
+    public static Diagnostic CreateDiagnostic(
+        this IOperation operation,
+        DiagnosticDescriptor rule,
+        IEnumerable<Location>? additionalLocations,
+        ImmutableDictionary<string, string?>? properties,
+        params object?[]? messageArgs) => operation.Syntax.CreateDiagnostic(rule, additionalLocations, properties, messageArgs);
 }

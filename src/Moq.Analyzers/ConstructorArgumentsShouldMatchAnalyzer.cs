@@ -139,7 +139,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+        Diagnostic? diagnostic = argumentList?.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
         if (diagnostic != null)
         {
             context.ReportDiagnostic(diagnostic);
@@ -157,7 +157,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        Diagnostic? diagnostic = argumentList?.GetLocation().CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, argumentList);
+        Diagnostic? diagnostic = argumentList?.CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, argumentList);
         if (diagnostic != null)
         {
             context.ReportDiagnostic(diagnostic);
