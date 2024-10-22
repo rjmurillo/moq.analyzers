@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)/**/*.cs" Visible=" '$(ShowCommonFiles)' == 'true' " />
+  </ItemGroup>
+</Project>

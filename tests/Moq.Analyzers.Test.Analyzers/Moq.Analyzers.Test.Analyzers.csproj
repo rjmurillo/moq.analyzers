@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Moq.Analyzers\Moq.Analyzers.csproj" />
+    <ProjectReference Include="$(RepoRoot)/src/Analyzers/Moq.Analyzers.csproj" />
   </ItemGroup>
 
 </Project>
