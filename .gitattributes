@@ -111,5 +111,8 @@
 *.verified.xml  text eol=lf working-tree-encoding=UTF-8
 *.verified.json text eol=lf working-tree-encoding=UTF-8
 
+# See https://github.com/MattKotsenas/SquiggleCop?tab=readme-ov-file#encodings--line-endings
+SquiggleCop.Baseline.yaml text eol=lf
+
 # Fix syntax highlighting on GitHub to allow comments
 .vscode/*.json linguist-language=JSON-with-Comments
