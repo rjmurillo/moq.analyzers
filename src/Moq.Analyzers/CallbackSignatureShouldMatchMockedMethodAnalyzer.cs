@@ -58,7 +58,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
         if (mockedMethodArguments.Count != lambdaParameters.Count)
         {
-            Diagnostic diagnostic = callbackLambda.ParameterList.GetLocation().CreateDiagnostic(Rule);
+            Diagnostic diagnostic = callbackLambda.ParameterList.CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
         }
         else
@@ -96,7 +96,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
             if (!HasConversion(context.SemanticModel, mockedMethodTypeSymbol, lambdaParameterTypeSymbol))
             {
-                Diagnostic diagnostic = lambdaParameters[argumentIndex].GetLocation().CreateDiagnostic(Rule);
+                Diagnostic diagnostic = lambdaParameters[argumentIndex].CreateDiagnostic(Rule);
                 context.ReportDiagnostic(diagnostic);
             }
         }
