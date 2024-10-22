@@ -19,6 +19,7 @@
     <AssemblyName>$(RootNamespace)</AssemblyName>
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>
+    <SquiggleCop_Enabled>false</SquiggleCop_Enabled>
   </PropertyGroup>
 
   <PropertyGroup Label="Shared project settings">

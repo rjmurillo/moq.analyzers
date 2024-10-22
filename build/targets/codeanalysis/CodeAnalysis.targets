@@ -3,6 +3,6 @@
     <PedanticMode Condition=" '$(PedanticMode)' == '' ">$([MSBuild]::ValueOrDefault('$(ContinuousIntegrationBuild)', 'false'))</PedanticMode>
     <TreatWarningsAsErrors>$(PedanticMode)</TreatWarningsAsErrors>
     <MSBuildTreatWarningsAsErrors>$(PedanticMode)</MSBuildTreatWarningsAsErrors>
-    <SquiggleCop_Enabled>$(PedanticMode)</SquiggleCop_Enabled>
+    <SquiggleCop_Enabled Condition=" '$(SquiggleCop_Enabled)' == '' ">$(PedanticMode)</SquiggleCop_Enabled>
   </PropertyGroup>
 </Project>
