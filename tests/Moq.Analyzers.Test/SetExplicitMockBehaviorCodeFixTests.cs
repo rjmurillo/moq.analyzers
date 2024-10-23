@@ -1,4 +1,4 @@
-﻿using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.SetExplicitMockBehaviorAnalyzer, Moq.CodeFixes.SetExplicitMockBehaviorCodeFix>;
+﻿using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.SetExplicitMockBehaviorAnalyzer, Moq.CodeFixes.SetExplicitMockBehaviorFixer>;
 
 namespace Moq.Analyzers.Test;
 
