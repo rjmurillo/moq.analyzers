@@ -218,10 +218,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         {
             AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.Mock, false, true);
         }
-        else
-        {
-            return;
-        }
     }
 
     private static void AnalyzeInvocation(
