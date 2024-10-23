@@ -1,18 +1,16 @@
 ﻿namespace Moq.Analyzers.Common;
 
-#pragma warning disable ECS0200 // Consider using readonly instead of const for flexibility
-
 internal static class WellKnownTypeNames
 {
-    internal const string Moq = nameof(Moq);
-    internal const string MockName = "Mock";
-    internal const string MockBehavior = nameof(MockBehavior);
-    internal const string MockFactory = nameof(MockFactory);
-    internal const string MoqMock = $"{Moq}.{MockName}";
-    internal const string MoqMock1 = $"{MoqMock}`1";
-    internal const string MoqBehavior = $"{Moq}.{MockBehavior}";
-    internal const string MoqRepository = $"{Moq}.MockRepository";
-    internal const string As = nameof(As);
-    internal const string Create = nameof(Create);
-    internal const string Of = nameof(Of);
+    internal static readonly string Moq = nameof(Moq);
+    internal static readonly string Mock = nameof(Mock);
+    internal static readonly string MockBehavior = nameof(MockBehavior);
+    internal static readonly string MockFactory = nameof(MockFactory);
+    internal static readonly string MoqMock = $"{Moq}.{Mock}";
+    internal static readonly string MoqMock1 = $"{MoqMock}`1";
+    internal static readonly string MoqBehavior = $"{Moq}.{MockBehavior}";
+    internal static readonly string MoqRepository = $"{Moq}.MockRepository";
+    internal static readonly string As = nameof(As);
+    internal static readonly string Create = nameof(Create);
+    internal static readonly string Of = nameof(Of);
 }

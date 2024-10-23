@@ -205,18 +205,22 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        switch (genericNameSyntax.Identifier.Value)
+        if (genericNameSyntax.Identifier.Value is not string genericNameSyntaxIdentifierValue)
         {
-            case WellKnownTypeNames.Create:
-                AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockFactory, true, true);
-                break;
+            return;
+        }
 
-            case WellKnownTypeNames.Of:
-                AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockName, false, true);
-                break;
-
-            default:
-                return;
+        if (string.Equals(genericNameSyntaxIdentifierValue, WellKnownTypeNames.Create, StringComparison.Ordinal))
+        {
+            AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockFactory, true, true);
+        }
+        else if (string.Equals(genericNameSyntaxIdentifierValue, WellKnownTypeNames.Of, StringComparison.Ordinal))
+        {
+            AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.Mock, false, true);
+        }
+        else
+        {
+            return;
         }
     }
 
@@ -286,7 +290,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // Quick check
         if (!string.Equals(
                 genericNameSyntax.Identifier.ValueText,
-                WellKnownTypeNames.MockName,
+                WellKnownTypeNames.Mock,
                 StringComparison.Ordinal))
         {
             return;
