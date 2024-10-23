@@ -78,7 +78,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         if (expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax)
         {
             if (memberAccessExpressionSyntax.Expression is IdentifierNameSyntax identifierNameSyntax
-                && string.Equals(identifierNameSyntax.Identifier.ValueText, WellKnownTypeNames.MockBehavior, StringComparison.Ordinal))
+                && string.Equals(identifierNameSyntax.Identifier.ValueText, WellKnownMoqNames.MockBehaviorTypeName, StringComparison.Ordinal))
             {
                 return true;
             }
@@ -107,14 +107,14 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             }
 
             if (typeSymbol != null
-                && string.Equals(typeSymbol.Name, WellKnownTypeNames.MockBehavior, StringComparison.Ordinal))
+                && string.Equals(typeSymbol.Name, WellKnownMoqNames.MockBehaviorTypeName, StringComparison.Ordinal))
             {
                 return true;
             }
         }
 
         // Crude fallback to check if the expression is a Moq.MockBehavior enum
-        if (expression.ToString().StartsWith(WellKnownTypeNames.MoqBehavior, StringComparison.Ordinal))
+        if (expression.ToString().StartsWith(WellKnownMoqNames.FullyQualifiedMoqBehaviorTypeName, StringComparison.Ordinal))
         {
             return true;
         }
@@ -210,13 +210,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (string.Equals(genericNameSyntaxIdentifierValue, WellKnownTypeNames.Create, StringComparison.Ordinal))
+        if (string.Equals(genericNameSyntaxIdentifierValue, WellKnownMoqNames.CreateMethodName, StringComparison.Ordinal))
         {
-            AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.MockFactory, true, true);
+            AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownMoqNames.MockFactoryTypeName, true, true);
         }
-        else if (string.Equals(genericNameSyntaxIdentifierValue, WellKnownTypeNames.Of, StringComparison.Ordinal))
+        else if (string.Equals(genericNameSyntaxIdentifierValue, WellKnownMoqNames.OfMethodName, StringComparison.Ordinal))
         {
-            AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownTypeNames.Mock, false, true);
+            AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownMoqNames.MockTypeName, false, true);
         }
     }
 
@@ -252,7 +252,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         // We are calling MockRepository.Create<T> or Mock.Of<T>, determine which
         ArgumentListSyntax? argumentList = null;
-        if (WellKnownTypeNames.Of.Equals(method.Name, StringComparison.Ordinal))
+        if (WellKnownMoqNames.OfMethodName.Equals(method.Name, StringComparison.Ordinal))
         {
             // Mock.Of<T> can specify condition for construction and MockBehavior, but
             // cannot specify constructor parameters
@@ -286,7 +286,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // Quick check
         if (!string.Equals(
                 genericNameSyntax.Identifier.ValueText,
-                WellKnownTypeNames.Mock,
+                WellKnownMoqNames.MockTypeName,
                 StringComparison.Ordinal))
         {
             return;
@@ -297,7 +297,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         if (symbolInfo.Symbol is not IMethodSymbol mockConstructorMethod
             || mockConstructorMethod.MethodKind != MethodKind.Constructor
-            || !string.Equals(mockConstructorMethod.ContainingType.ConstructedFrom.ContainingSymbol.Name, WellKnownTypeNames.MoqSymbolName, StringComparison.Ordinal))
+            || !string.Equals(mockConstructorMethod.ContainingType.ConstructedFrom.ContainingSymbol.Name, WellKnownMoqNames.MoqSymbolName, StringComparison.Ordinal))
         {
             return;
         }

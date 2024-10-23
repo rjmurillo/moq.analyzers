@@ -11,8 +11,8 @@
 /// </remarks>
 internal abstract class MoqMethodDescriptorBase
 {
-    private static readonly string ContainingNamespace = WellKnownTypeNames.MoqNamespace;
-    private static readonly string ContainingType = WellKnownTypeNames.Mock;
+    private static readonly string ContainingNamespace = WellKnownMoqNames.MoqNamespace;
+    private static readonly string ContainingType = WellKnownMoqNames.MockTypeName;
 
     public abstract bool IsMatch(SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccessSyntax, CancellationToken cancellationToken);
 
