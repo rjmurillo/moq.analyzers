@@ -34,6 +34,6 @@ internal static class CompilationExtensions
     /// </returns>
     public static ImmutableArray<INamedTypeSymbol> GetMoqMock(this Compilation compilation)
     {
-        return compilation.GetTypesByMetadataNames([WellKnownTypeNames.MoqMock, WellKnownTypeNames.MoqMock1, WellKnownTypeNames.MoqRepository]);
+        return compilation.GetTypesByMetadataNames([WellKnownMoqNames.FullyQualifiedMoqMockTypeName, WellKnownMoqNames.FullyQualifiedMoqMock1TypeName, WellKnownMoqNames.FullyQualifiedMoqRepositoryTypeName]);
     }
 }
