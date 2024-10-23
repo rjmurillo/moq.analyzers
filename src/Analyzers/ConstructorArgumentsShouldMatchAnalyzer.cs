@@ -297,7 +297,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         if (symbolInfo.Symbol is not IMethodSymbol mockConstructorMethod
             || mockConstructorMethod.MethodKind != MethodKind.Constructor
-            || !string.Equals(mockConstructorMethod.ContainingType.ConstructedFrom.ContainingSymbol.Name, WellKnownTypeNames.Moq, StringComparison.Ordinal))
+            || !string.Equals(mockConstructorMethod.ContainingType.ConstructedFrom.ContainingSymbol.Name, WellKnownTypeNames.MoqSymbolName, StringComparison.Ordinal))
         {
             return;
         }
