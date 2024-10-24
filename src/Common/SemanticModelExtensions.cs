@@ -34,7 +34,6 @@ internal static class SemanticModelExtensions
             : semanticModel.GetAllMatchingSymbols<IMethodSymbol>(mockedMethodInvocation);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     internal static bool IsCallbackOrReturnInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)
     {
         MemberAccessExpressionSyntax? callbackOrReturnsMethod = callbackOrReturnsInvocation.Expression as MemberAccessExpressionSyntax;
@@ -67,7 +66,6 @@ internal static class SemanticModelExtensions
         return MoqSetupMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Tracked in https://github.com/rjmurillo/moq.analyzers/issues/90")]
     private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
         where T : class
     {
