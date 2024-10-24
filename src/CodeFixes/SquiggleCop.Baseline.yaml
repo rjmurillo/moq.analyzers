@@ -848,6 +848,9 @@
 - {Id: RemoveUnnecessaryImportsFixable, Title: '', Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: ROS0002, Title: Analyzer option is obsolete, Category: '', DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: ROS0003, Title: Analyzer requires config option to be specified, Category: '', DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: RS0030, Title: Do not use banned APIs, Category: ApiDesign, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
+- {Id: RS0031, Title: The list of banned symbols contains a duplicate, Category: ApiDesign, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: RS0035, Title: External access to internal symbols outside the restricted namespace(s) is prohibited, Category: ApiDesign, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1001, Title: Missing diagnostic analyzer attribute, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1002, Title: Missing kind argument when registering an analyzer action, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RS1003, Title: Unsupported SymbolKind argument when registering a symbol analyzer action, Category: MicrosoftCodeAnalysisCorrectness, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}

@@ -1,4 +1,6 @@
-﻿namespace Moq.Analyzers.Common;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Moq.Analyzers.Common;
 
 internal static class DiagnosticExtensions
 {
@@ -37,6 +39,7 @@ internal static class DiagnosticExtensions
         ImmutableDictionary<string, string?>? properties,
         params object?[]? messageArgs) => location.CreateDiagnostic(rule, additionalLocations: null, properties, messageArgs);
 
+    [SuppressMessage("ApiDesign", "RS0030:Do not use banned APIs", Justification = "This is the API that wraps the banned API, so it must be allowed to call banned APIs.")]
     public static Diagnostic CreateDiagnostic(
         this Location location,
         DiagnosticDescriptor rule,
