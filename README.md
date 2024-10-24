@@ -34,6 +34,12 @@ dotnet add package Moq.Analyzers
 > NOTE: You must use a [supported version](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) of
 > the .NET SDK (i.e. 6.0 or later).
 
+### Configuring rules
+
+Moq.Analyzers follows existing conventions for enabling, disabling, or suppressing rules. See
+[Suppress code analysis warnings - .NET | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/suppress-warnings)
+for documentation on how to configure rules for your project.
+
 ## Contributions welcome
 
 Moq.Analyzers continues to evolve and add new features. Any help will be appreciated. You can report issues,
