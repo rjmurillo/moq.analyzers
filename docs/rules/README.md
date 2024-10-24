@@ -10,3 +10,4 @@
 | [Moq1200](./Moq1200.md) | Setup should be used only for overridable members |
 | [Moq1201](./Moq1201.md) | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result` |
 | [Moq1300](./Moq1300.md) | `Mock.As()` should take interfaces only |
+| [Moq1400](./Moq1400.md) | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
