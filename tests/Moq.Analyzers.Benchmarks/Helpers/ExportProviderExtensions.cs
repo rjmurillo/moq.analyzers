@@ -24,7 +24,6 @@ internal static class ExportProviderExtensions
             _exportProvider = exportProvider;
         }
 
-        [SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Minimizing divergence from upstream")]
         public override bool TryGetExport(CompositionContract contract, [NotNullWhen(true)] out object? export)
         {
 #pragma warning disable ECS0900 // Minimize boxing and unboxing
@@ -58,7 +57,6 @@ internal static class ExportProviderExtensions
 #pragma warning restore CS8762 // Parameter must have a non-null value when exiting in some condition.
         }
 
-        [SuppressMessage("Maintainability", "AV1500:Member or local function contains too many statements", Justification = "Minimizing divergence from upstream")]
         private static (Type ExportType, Type? MetadataType) GetContractType(Type contractType, bool importMany)
         {
             if (importMany && contractType.IsConstructedGenericType &&

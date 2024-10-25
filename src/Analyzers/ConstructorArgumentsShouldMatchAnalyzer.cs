@@ -53,7 +53,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <see langword="null" />.</returns>
     private static GenericNameSyntax? GetGenericNameSyntax(TypeSyntax typeSyntax)
     {
-        // REVIEW: Switch and ifs are equal in this case, but switch causes AV1535 to trigger
+        // REVIEW: Switch and ifs are equal in this case?
         // The switch expression adds more instructions to do the same, so stick with ifs
         if (typeSyntax is GenericNameSyntax genericNameSyntax)
         {

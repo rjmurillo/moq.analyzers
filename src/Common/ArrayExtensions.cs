@@ -37,13 +37,6 @@ internal static class ArrayExtensions
             throw new ArgumentOutOfRangeException(nameof(length));
         }
 
-#pragma warning disable S2583 // Change condition so it doesn't always evaluate to false
-        if (array.Length == 0)
-#pragma warning restore S2583
-        {
-            return array;
-        }
-
         T[] tmp = new T[array.Length - length];
         Array.Copy(array, tmp, index);
         Array.Copy(array, index + length, tmp, index, array.Length - index - length);
