@@ -82,8 +82,6 @@ dotnet_style_readonly_field = true:warning
 
 # Parameter preferences
 dotnet_code_quality_unused_parameters = all:suggestion
-# AV1561: Signature contains too many parameters
-dotnet_diagnostic.AV1561.severity = suggestion
 
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
@@ -91,8 +89,6 @@ dotnet_remove_unnecessary_suppression_exclusions = none
 # XMLDocs preferences
 # SA1600: Elements should be documented. We disable this it requires xmldocs for _all_ members. CS1591 already covers documenting public members.
 dotnet_diagnostic.SA1600.severity = silent
-# AV2305: Missing XML comment for internally visible type, member or parameter
-dotnet_diagnostic.AV2305.severity = silent
 
 #### C# Coding Conventions ####
 [*.cs]

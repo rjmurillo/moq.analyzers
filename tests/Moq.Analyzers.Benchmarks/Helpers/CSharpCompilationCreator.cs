@@ -21,7 +21,6 @@ internal static class CSharpCompilationCreator
         return (await project.GetCompilationAsync().ConfigureAwait(false), options);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "AV1553:Do not use optional parameters with default value null for strings, collections or tasks", Justification = "Minimizing divergence from upstream code")]
     private static Task<(Project Project, AnalyzerOptions Options)> CreateProjectAsync((string, string)[] sourceFiles, (string, string)[]? globalOptions = null)
         => CompilationCreator.CreateProjectAsync(
             sourceFiles,
