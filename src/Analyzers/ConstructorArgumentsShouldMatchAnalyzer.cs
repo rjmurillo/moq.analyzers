@@ -188,7 +188,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         // These are for classes
-        context.RegisterSyntaxNodeAction(AnalyzeNewObject, SyntaxKind.ObjectCreationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeNewObject(context, knownSymbols), SyntaxKind.ObjectCreationExpression);
         context.RegisterSyntaxNodeAction(AnalyzeInstanceCall, SyntaxKind.InvocationExpression);
     }
 
@@ -274,7 +274,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// match an existing constructor of the mocked class.
     /// </summary>
     /// <param name="context">The context.</param>
-    private static void AnalyzeNewObject(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeNewObject(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         ObjectCreationExpressionSyntax newExpression = (ObjectCreationExpressionSyntax)context.Node;
 
@@ -296,14 +296,15 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // Full check
         SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(newExpression, context.CancellationToken);
 
-        if (symbolInfo.Symbol is not IMethodSymbol mockConstructorMethod
-            || mockConstructorMethod.MethodKind != MethodKind.Constructor
-            || !string.Equals(mockConstructorMethod.ContainingType.ConstructedFrom.ContainingSymbol.Name, WellKnownMoqNames.MoqSymbolName, StringComparison.Ordinal))
+        if (!symbolInfo
+            .Symbol?
+            .IsInstanceOf(knownSymbols.Mock1?.Constructors ?? ImmutableArray<IMethodSymbol>.Empty)
+            ?? false)
         {
             return;
         }
 
-        if (mockConstructorMethod.ReceiverType is not INamedTypeSymbol { IsGenericType: true } typeSymbol)
+        if (symbolInfo.Symbol?.ContainingType is not INamedTypeSymbol { IsGenericType: true } typeSymbol)
         {
             return;
         }

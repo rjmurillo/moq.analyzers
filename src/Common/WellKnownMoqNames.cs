@@ -11,11 +11,6 @@ internal static class WellKnownMoqNames
     internal static readonly string MoqNamespace = "Moq";
 
     /// <summary>
-    /// Symbol name for Moq.
-    /// </summary>
-    internal static readonly string MoqSymbolName = "Moq";
-
-    /// <summary>
     /// The name of the 'Moq.Mock' type.
     /// </summary>
     internal static readonly string MockTypeName = "Mock";

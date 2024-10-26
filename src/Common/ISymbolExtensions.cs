@@ -21,7 +21,7 @@ internal static class ISymbolExtensions
     /// <example>
     /// <c>MyType&lt;int&gt;()</c> is an instance of <c>MyType&lt;T&gt;()</c>.
     /// </example>
-    public static bool IsInstanceOf<TSymbol>(this ISymbol symbol, TSymbol other, SymbolEqualityComparer? symbolEqualityComparer = null)
+    public static bool IsInstanceOf<TSymbol>(this ISymbol? symbol, TSymbol? other, SymbolEqualityComparer? symbolEqualityComparer = null)
         where TSymbol : class, ISymbol
     {
         symbolEqualityComparer ??= SymbolEqualityComparer.Default;
