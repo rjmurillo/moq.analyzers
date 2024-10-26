@@ -43,15 +43,9 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         }
 
         // Look for the Mock.As() method and provide it to Analyze to avoid looking it up multiple times.
-#pragma warning disable ECS0900 // Minimize boxing and unboxing
-        ImmutableArray<IMethodSymbol> asMethods =
-            new INamedTypeSymbol?[] { knownSymbols.Mock, knownSymbols.Mock1 }
-            .WhereNotNull()
-            .SelectMany(t => t.GetMembers(WellKnownMoqNames.AsMethodName))
-            .OfType<IMethodSymbol>()
-            .Where(method => method.IsGenericMethod)
-            .ToImmutableArray();
-#pragma warning restore ECS0900 // Minimize boxing and unboxing
+        ImmutableArray<IMethodSymbol> asMethods = ImmutableArray.CreateRange([
+            ..knownSymbols.MockAs,
+            ..knownSymbols.Mock1As]);
 
         if (asMethods.IsEmpty)
         {

@@ -36,10 +36,4 @@ internal static class WellKnownMoqNames
     /// Fully qualified name for the 'Moq.MockBehavior' type.
     /// </summary>
     internal static readonly string FullyQualifiedMoqBehaviorTypeName = $"{MoqNamespace}.{MockBehaviorTypeName}";
-
-    /// <summary>
-    /// Represents the method name for the `As` method in Moq.
-    /// This method is used to cast mocks to interfaces.
-    /// </summary>
-    internal static readonly string AsMethodName = "As";
 }
