@@ -50,14 +50,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
         }
 
         // Look for the Mock.Of() method and provide it to Analyze to avoid looking it up multiple times.
-#pragma warning disable ECS0900 // Minimize boxing and unboxing
-        ImmutableArray<IMethodSymbol> ofMethods = new INamedTypeSymbol?[] { knownSymbols.Mock, knownSymbols.MockRepository }
-            .WhereNotNull()
-            .SelectMany(mockType => mockType.GetMembers(WellKnownMoqNames.OfMethodName))
-            .OfType<IMethodSymbol>()
-            .Where(method => method.IsGenericMethod)
-            .ToImmutableArray();
-#pragma warning restore ECS0900 // Minimize boxing and unboxing
+        ImmutableArray<IMethodSymbol> ofMethods = knownSymbols.MockOf;
 
         ImmutableArray<INamedTypeSymbol> mockTypes =
             new INamedTypeSymbol?[] { knownSymbols.Mock1, knownSymbols.MockRepository }
