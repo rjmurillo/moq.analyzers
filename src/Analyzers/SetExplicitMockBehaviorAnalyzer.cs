@@ -34,15 +34,16 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
 
     private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
         // Ensure Moq is referenced in the compilation
-        ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
-        if (mockTypes.IsEmpty)
+        if (!knownSymbols.IsMockReferenced())
         {
             return;
         }
 
         // Look for the MockBehavior type and provide it to Analyze to avoid looking it up multiple times.
-        INamedTypeSymbol? mockBehaviorSymbol = context.Compilation.GetTypeByMetadataName(WellKnownMoqNames.FullyQualifiedMoqBehaviorTypeName);
+        INamedTypeSymbol? mockBehaviorSymbol = knownSymbols.MockBehavior;
         if (mockBehaviorSymbol is null)
         {
             return;
@@ -50,12 +51,18 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
 
         // Look for the Mock.Of() method and provide it to Analyze to avoid looking it up multiple times.
 #pragma warning disable ECS0900 // Minimize boxing and unboxing
-        ImmutableArray<IMethodSymbol> ofMethods = mockTypes
+        ImmutableArray<IMethodSymbol> ofMethods = new INamedTypeSymbol?[] { knownSymbols.Mock, knownSymbols.MockRepository }
+            .WhereNotNull()
             .SelectMany(mockType => mockType.GetMembers(WellKnownMoqNames.OfMethodName))
             .OfType<IMethodSymbol>()
             .Where(method => method.IsGenericMethod)
             .ToImmutableArray();
 #pragma warning restore ECS0900 // Minimize boxing and unboxing
+
+        ImmutableArray<INamedTypeSymbol> mockTypes =
+            new INamedTypeSymbol?[] { knownSymbols.Mock1, knownSymbols.MockRepository }
+            .WhereNotNull()
+            .ToImmutableArray();
 
         context.RegisterOperationAction(
             context => AnalyzeNewObject(context, mockTypes, mockBehaviorSymbol),

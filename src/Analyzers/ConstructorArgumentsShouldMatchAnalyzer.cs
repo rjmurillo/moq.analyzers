@@ -174,14 +174,15 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
         // We're interested in the few ways to create mocks:
         //  - new Mock<T>()
         //  - Mock.Of<T>()
         //  - MockRepository.Create<T>()
         //
         // Ensure Moq is referenced in the compilation
-        ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
-        if (mockTypes.IsEmpty)
+        if (!knownSymbols.IsMockReferenced())
         {
             return;
         }
