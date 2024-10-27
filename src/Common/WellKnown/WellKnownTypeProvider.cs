@@ -12,7 +12,7 @@ namespace Moq.Analyzers.Common.WellKnown;
 /// <summary>
 /// Provides and caches well known types in a compilation.
 /// </summary>
-public class WellKnownTypeProvider
+internal class WellKnownTypeProvider
 {
     private static readonly BoundedCacheWithFactory<Compilation, WellKnownTypeProvider> ProviderCache = new();
 

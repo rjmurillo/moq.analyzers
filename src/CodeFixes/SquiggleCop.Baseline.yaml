@@ -307,6 +307,15 @@
 - {Id: CA5403, Title: Do not hard-code certificate, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA5404, Title: Do not disable token validation checks, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA5405, Title: Do not always skip token validation in delegates, Category: Security, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: CS0419, Title: Ambiguous reference in cref attribute, Category: Compiler, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Warning], IsEverSuppressed: true}
+- {Id: CS0649, Title: 'Field is never assigned to, and will always have its default value', Category: Compiler, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Warning], IsEverSuppressed: true}
+- {Id: CS1570, Title: XML comment has badly formed XML, Category: Compiler, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Warning], IsEverSuppressed: true}
+- {Id: CS1572, Title: 'XML comment has a param tag, but there is no parameter by that name', Category: Compiler, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Warning], IsEverSuppressed: true}
+- {Id: CS1573, Title: Parameter has no matching param tag in the XML comment (but other parameters do), Category: Compiler, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Warning], IsEverSuppressed: true}
+- {Id: CS1574, Title: XML comment has cref attribute that could not be resolved, Category: Compiler, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Warning], IsEverSuppressed: true}
+- {Id: CS1734, Title: 'XML comment has a paramref tag, but there is no parameter by that name', Category: Compiler, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Warning], IsEverSuppressed: true}
+- {Id: CS8669, Title: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source., Category: Compiler, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Warning], IsEverSuppressed: true}
+- {Id: CS9216, Title: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement., Category: Compiler, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Warning], IsEverSuppressed: true}
 - {Id: ECS0100, Title: Prefer implicitly typed local variables, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0200, Title: Prefer readonly over const, Category: Maintainability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
 - {Id: ECS0400, Title: Replace string.Format with interpolated string, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -314,7 +323,7 @@
 - {Id: ECS0600, Title: Avoid stringly-typed APIs, Category: Refactoring, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0700, Title: Express callbacks with delegates, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0800, Title: Use the Null Conditional Operator for Event Invocations, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: ECS0900, Title: Minimize boxing and unboxing, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: ECS0900, Title: Minimize boxing and unboxing, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
 - {Id: EM0001, Title: Switch on Enum Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0002, Title: Switch on Nullable Enum Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0003, Title: Switch on Closed Type Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -330,6 +339,22 @@
 - {Id: EM0104, Title: Duplicate Closed Attribute, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0105, Title: Duplicate Case Type, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EnableGenerateDocumentationFile, Title: Set MSBuild property 'GenerateDocumentationFile' to 'true', Category: Style, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0101, Title: Array allocation for params parameter, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0102, Title: Non-overridden virtual method call on value type, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0201, Title: Implicit string concatenation allocation, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0202, Title: Value type to reference type conversion allocation for string concatenation, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0301, Title: Closure Allocation Source, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0302, Title: Display class allocation to capture closure, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0303, Title: Lambda or anonymous method in a generic method allocates a delegate instance, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0401, Title: Possible allocation of reference type enumerator, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0501, Title: Explicit new array type allocation, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: HAA0502, Title: Explicit new reference type allocation, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: HAA0503, Title: Explicit new anonymous object allocation, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: HAA0506, Title: Let clause induced allocation, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: HAA0601, Title: Value type to reference type conversion causing boxing allocation, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0602, Title: Delegate on struct instance caused a boxing allocation, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0603, Title: Delegate allocation from a method group, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: HAA0604, Title: Delegate allocation from a method group, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0004, Title: Remove Unnecessary Cast, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE0005, Title: Using directive is unnecessary., Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: IDE0005_gen, Title: Using directive is unnecessary., Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
@@ -488,7 +513,7 @@
 - {Id: MA0048, Title: File name must match type name, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0049, Title: Type name should not match containing namespace, Category: Design, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0050, Title: Validate arguments correctly in iterator methods, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: MA0051, Title: Method is too long, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: MA0051, Title: Method is too long, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
 - {Id: MA0052, Title: Replace constant Enum.ToString with nameof, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0053, Title: Make class sealed, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0054, Title: Embed the caught exception as innerException, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -603,7 +628,6 @@
 - {Id: MA0163, Title: UseShellExecute must be false when redirecting standard input or output, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0164, Title: Use parentheses to make not pattern clearer, Category: Style, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0165, Title: Make interpolated string, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
-- {Id: POLYSP0003, Title: Unsupported C# language version, Category: Microsoft.CodeAnalysis.CSharp.CSharpParseOptions, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: RCS1001, Title: Add braces (when expression spans over multiple lines), Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1002, Title: Remove braces, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
 - {Id: RCS1002FadeOut, Title: Remove braces, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -1404,7 +1428,7 @@
 - {Id: SA1027, Title: Use tabs correctly, Category: StyleCop.CSharp.SpacingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1028, Title: Code should not contain trailing whitespace, Category: StyleCop.CSharp.SpacingRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1100, Title: Do not prefix calls with base unless local implementation exists, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: SA1101, Title: Prefix local calls with this, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: false}
+- {Id: SA1101, Title: Prefix local calls with this, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: true}
 - {Id: SA1102, Title: Query clause should follow previous clause, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1103, Title: Query clauses should be on separate lines or all on one line, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: SA1104, Title: Query clause should begin on new line when previous clause spans multiple lines, Category: StyleCop.CSharp.ReadabilityRules, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
@@ -1581,7 +1605,7 @@
 - {Id: VSTHRD102, Title: Implement internal logic asynchronously, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: VSTHRD103, Title: Call async methods when in an async method, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD104, Title: Offer async methods, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: VSTHRD105, Title: Avoid method overloads that assume TaskScheduler.Current, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: VSTHRD105, Title: Avoid method overloads that assume TaskScheduler.Current, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
 - {Id: VSTHRD106, Title: Use InvokeAsync to raise async events, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD107, Title: Await Task within using expression, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD108, Title: Assert thread affinity unconditionally, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
