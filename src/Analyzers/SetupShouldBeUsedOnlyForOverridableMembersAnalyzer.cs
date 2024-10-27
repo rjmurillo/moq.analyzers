@@ -1,5 +1,4 @@
-using System.Runtime.CompilerServices;
-using ISymbolExtensions = Microsoft.CodeAnalysis.ISymbolExtensions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Moq.Analyzers;
 
@@ -32,14 +31,20 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
     }
 
+    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
 
         MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
 
-        if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression
-            || !context.SemanticModel.IsMoqSetupMethod(memberAccessExpression, context.CancellationToken))
+        if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
+        {
+            return;
+        }
+
+        SymbolInfo memberAccessSymbolInfo = context.SemanticModel.GetSymbolInfo(memberAccessExpression, context.CancellationToken);
+        if (memberAccessSymbolInfo.Symbol is null || !context.SemanticModel.IsMoqSetupMethod(knownSymbols, memberAccessSymbolInfo.Symbol, context.CancellationToken))
         {
             return;
         }
@@ -73,12 +78,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
                     return;
                 }
 
-                if (propertySymbol.IsOverridable())
-                {
-                    return;
-                }
-
-                if (propertySymbol.IsMethodReturnTypeTask())
+                if (propertySymbol.IsOverridable() || propertySymbol.IsMethodReturnTypeTask())
                 {
                     return;
                 }

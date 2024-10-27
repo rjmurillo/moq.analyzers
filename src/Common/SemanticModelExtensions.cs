@@ -7,9 +7,7 @@ namespace Moq.Analyzers.Common;
 /// </summary>
 internal static class SemanticModelExtensions
 {
-    private static readonly MoqMethodDescriptorBase MoqSetupMethodDescriptor = new MoqSetupMethodDescriptor();
-
-    internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(this SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+    internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(this SemanticModel semanticModel, MoqKnownSymbols knownSymbols, ExpressionSyntax expression, CancellationToken cancellationToken)
     {
         InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
         if (invocation?.Expression is not MemberAccessExpressionSyntax method)
@@ -17,12 +15,18 @@ internal static class SemanticModelExtensions
             return null;
         }
 
-        if (semanticModel.IsMoqSetupMethod(method, cancellationToken))
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(method, cancellationToken);
+        if (symbolInfo.Symbol is null)
+        {
+            return null;
+        }
+
+        if (semanticModel.IsMoqSetupMethod(knownSymbols, symbolInfo.Symbol, cancellationToken))
         {
             return invocation;
         }
 
-        return semanticModel.FindSetupMethodFromCallbackInvocation(method.Expression, cancellationToken);
+        return semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, method.Expression, cancellationToken);
     }
 
     internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax? setupMethodInvocation)
@@ -61,9 +65,9 @@ internal static class SemanticModelExtensions
         };
     }
 
-    internal static bool IsMoqSetupMethod(this SemanticModel semanticModel, MemberAccessExpressionSyntax method, CancellationToken cancellationToken)
+    internal static bool IsMoqSetupMethod(this SemanticModel semanticModel, MoqKnownSymbols knownSymbols, ISymbol symbol, CancellationToken cancellationToken)
     {
-        return MoqSetupMethodDescriptor.IsMatch(semanticModel, method, cancellationToken);
+        return symbol.IsInstanceOf(knownSymbols.Mock1Setup) && symbol is IMethodSymbol { IsGenericMethod: true };
     }
 
     private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)

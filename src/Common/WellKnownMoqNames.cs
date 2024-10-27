@@ -6,23 +6,7 @@
 internal static class WellKnownMoqNames
 {
     /// <summary>
-    /// Represents the namespace for the Moq library.
-    /// </summary>
-    internal static readonly string MoqNamespace = "Moq";
-
-    /// <summary>
     /// The name of the 'Moq.Mock' type.
     /// </summary>
     internal static readonly string MockTypeName = "Mock";
-
-    /// <summary>
-    /// Fully qualified name for the 'Moq.Mock' type.
-    /// </summary>
-    internal static readonly string FullyQualifiedMoqMockTypeName = $"{MoqNamespace}.{MockTypeName}";
-
-    /// <summary>
-    /// Fully qualified name for the generic version of 'Moq.Mock{T}'.
-    /// Represents mocks for specific types.
-    /// </summary>
-    internal static readonly string FullyQualifiedMoqMock1TypeName = $"{FullyQualifiedMoqMockTypeName}`1";
 }

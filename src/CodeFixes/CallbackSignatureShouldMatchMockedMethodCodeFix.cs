@@ -52,17 +52,19 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
     {
         SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        if (semanticModel == null)
+        if (semanticModel is null)
         {
             return document;
         }
+
+        MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
 
         if (oldParameters?.Parent?.Parent?.Parent?.Parent is not InvocationExpressionSyntax callbackInvocation)
         {
             return document;
         }
 
-        InvocationExpressionSyntax? setupMethodInvocation = semanticModel.FindSetupMethodFromCallbackInvocation(callbackInvocation, cancellationToken);
+        InvocationExpressionSyntax? setupMethodInvocation = semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, callbackInvocation, cancellationToken);
         Debug.Assert(setupMethodInvocation != null, nameof(setupMethodInvocation) + " != null");
         IMethodSymbol[] matchingMockedMethods = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupMethodInvocation).ToArray();
 
