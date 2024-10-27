@@ -16,12 +16,6 @@ internal static class WellKnownMoqNames
     internal static readonly string MockTypeName = "Mock";
 
     /// <summary>
-    /// The name of the 'Moq.MockBehavior' type.
-    /// This type specifies the behavior of the mock (Strict, Loose, etc.).
-    /// </summary>
-    internal static readonly string MockBehaviorTypeName = "MockBehavior";
-
-    /// <summary>
     /// Fully qualified name for the 'Moq.Mock' type.
     /// </summary>
     internal static readonly string FullyQualifiedMoqMockTypeName = $"{MoqNamespace}.{MockTypeName}";
@@ -31,9 +25,4 @@ internal static class WellKnownMoqNames
     /// Represents mocks for specific types.
     /// </summary>
     internal static readonly string FullyQualifiedMoqMock1TypeName = $"{FullyQualifiedMoqMockTypeName}`1";
-
-    /// <summary>
-    /// Fully qualified name for the 'Moq.MockBehavior' type.
-    /// </summary>
-    internal static readonly string FullyQualifiedMoqBehaviorTypeName = $"{MoqNamespace}.{MockBehaviorTypeName}";
 }
