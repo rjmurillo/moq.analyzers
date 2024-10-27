@@ -241,16 +241,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Quick check
-        if (!string.Equals(
-                genericNameSyntax.Identifier.ValueText,
-                WellKnownMoqNames.MockTypeName,
-                StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        // Full check
         SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(newExpression, context.CancellationToken);
 
         if (!symbolInfo
