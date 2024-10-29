@@ -40,4 +40,16 @@ internal static class EnumerableExtensions
 
         return item;
     }
+
+    public static IEnumerable<TSource> WhereNotNull<TSource>(this IEnumerable<TSource?> source)
+        where TSource : class
+    {
+        return source.Where(item => item is not null)!;
+    }
+
+    public static IEnumerable<TSource> WhereNotNull<TSource>(this IEnumerable<TSource?> source)
+        where TSource : struct
+    {
+        return source.Where(item => item.HasValue).Select(item => item!.Value);
+    }
 }

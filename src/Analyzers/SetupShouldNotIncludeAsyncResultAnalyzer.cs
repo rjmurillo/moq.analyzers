@@ -40,10 +40,17 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
+
         InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
 
-        if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression ||
-            !context.SemanticModel.IsMoqSetupMethod(memberAccessExpression, context.CancellationToken))
+        if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
+        {
+            return;
+        }
+
+        SymbolInfo memberAccessSymbolInfo = context.SemanticModel.GetSymbolInfo(memberAccessExpression, context.CancellationToken);
+        if (memberAccessSymbolInfo.Symbol is null || !context.SemanticModel.IsMoqSetupMethod(knownSymbols, memberAccessSymbolInfo.Symbol, context.CancellationToken))
         {
             return;
         }

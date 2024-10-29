@@ -1,5 +1,4 @@
-using System.Runtime.CompilerServices;
-using ISymbolExtensions = Microsoft.CodeAnalysis.ISymbolExtensions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Moq.Analyzers;
 
@@ -32,12 +31,20 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
     }
 
+    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
 
-        if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression
-            || !context.SemanticModel.IsMoqSetupMethod(memberAccessExpression, context.CancellationToken))
+        MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
+
+        if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
+        {
+            return;
+        }
+
+        SymbolInfo memberAccessSymbolInfo = context.SemanticModel.GetSymbolInfo(memberAccessExpression, context.CancellationToken);
+        if (memberAccessSymbolInfo.Symbol is null || !context.SemanticModel.IsMoqSetupMethod(knownSymbols, memberAccessSymbolInfo.Symbol, context.CancellationToken))
         {
             return;
         }
@@ -66,17 +73,12 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         {
             case IPropertySymbol propertySymbol:
                 // Check if the property is Task<T>.Result and skip diagnostic if it is
-                if (IsTaskResultProperty(propertySymbol, context))
+                if (IsTaskResultProperty(propertySymbol, knownSymbols))
                 {
                     return;
                 }
 
-                if (propertySymbol.IsOverridable())
-                {
-                    return;
-                }
-
-                if (propertySymbol.IsMethodReturnTypeTask())
+                if (propertySymbol.IsOverridable() || propertySymbol.IsMethodReturnTypeTask())
                 {
                     return;
                 }
@@ -95,7 +97,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static bool IsTaskResultProperty(IPropertySymbol propertySymbol, SyntaxNodeAnalysisContext context)
+    private static bool IsTaskResultProperty(IPropertySymbol propertySymbol, MoqKnownSymbols knownSymbols)
     {
         // Check if the property is named "Result"
         if (!string.Equals(propertySymbol.Name, "Result", StringComparison.Ordinal))
@@ -104,7 +106,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         }
 
         // Check if the containing type is Task<T>
-        INamedTypeSymbol? taskOfTType = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
+        INamedTypeSymbol? taskOfTType = knownSymbols.Task1;
 
         if (taskOfTType == null)
         {

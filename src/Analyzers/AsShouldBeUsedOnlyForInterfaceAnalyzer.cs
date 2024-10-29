@@ -34,21 +34,18 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 
     private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
         // Ensure Moq is referenced in the compilation
-        ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
-        if (mockTypes.IsEmpty)
+        if (!knownSymbols.IsMockReferenced())
         {
             return;
         }
 
         // Look for the Mock.As() method and provide it to Analyze to avoid looking it up multiple times.
-#pragma warning disable ECS0900 // Minimize boxing and unboxing
-        ImmutableArray<IMethodSymbol> asMethods = mockTypes
-            .SelectMany(mockType => mockType.GetMembers(WellKnownMoqNames.AsMethodName))
-            .OfType<IMethodSymbol>()
-            .Where(method => method.IsGenericMethod)
-            .ToImmutableArray();
-#pragma warning restore ECS0900 // Minimize boxing and unboxing
+        ImmutableArray<IMethodSymbol> asMethods = ImmutableArray.CreateRange([
+            ..knownSymbols.MockAs,
+            ..knownSymbols.Mock1As]);
 
         if (asMethods.IsEmpty)
         {

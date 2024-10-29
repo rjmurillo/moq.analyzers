@@ -68,65 +68,42 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return null;
     }
 
-    private static bool IsExpressionMockBehavior(SyntaxNodeAnalysisContext context, ExpressionSyntax? expression)
+    private static bool IsExpressionMockBehavior(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ExpressionSyntax? expression)
     {
-        if (expression == null)
+        if (expression is null)
         {
             return false;
         }
 
-        if (expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax)
+        SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(expression, context.CancellationToken);
+
+        if (symbolInfo.Symbol is null)
         {
-            if (memberAccessExpressionSyntax.Expression is IdentifierNameSyntax identifierNameSyntax
-                && string.Equals(identifierNameSyntax.Identifier.ValueText, WellKnownMoqNames.MockBehaviorTypeName, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-        else if (expression is IdentifierNameSyntax identifierNameSyntax)
-        {
-            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(identifierNameSyntax, context.CancellationToken);
-
-            if (symbolInfo.Symbol == null)
-            {
-                return false;
-            }
-
-            ITypeSymbol? typeSymbol = null;
-            if (symbolInfo.Symbol is IParameterSymbol parameterSymbol)
-            {
-                typeSymbol = parameterSymbol.Type;
-            }
-            else if (symbolInfo.Symbol is ILocalSymbol localSymbol)
-            {
-                typeSymbol = localSymbol.Type;
-            }
-            else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
-            {
-                typeSymbol = fieldSymbol.Type;
-            }
-
-            if (typeSymbol != null
-                && string.Equals(typeSymbol.Name, WellKnownMoqNames.MockBehaviorTypeName, StringComparison.Ordinal))
-            {
-                return true;
-            }
+            return false;
         }
 
-        // Crude fallback to check if the expression is a Moq.MockBehavior enum
-        if (expression.ToString().StartsWith(WellKnownMoqNames.FullyQualifiedMoqBehaviorTypeName, StringComparison.Ordinal))
+        ISymbol targetSymbol = symbolInfo.Symbol;
+        if (symbolInfo.Symbol is IParameterSymbol parameterSymbol)
         {
-            return true;
+            targetSymbol = parameterSymbol.Type;
+        }
+        else if (symbolInfo.Symbol is ILocalSymbol localSymbol)
+        {
+            targetSymbol = localSymbol.Type;
+        }
+        else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
+        {
+            targetSymbol = fieldSymbol.Type;
         }
 
-        return false;
+        return targetSymbol.IsInstanceOf(knownSymbols.MockBehavior);
     }
 
-    private static bool IsFirstArgumentMockBehavior(SyntaxNodeAnalysisContext context, ArgumentListSyntax? argumentList)
+    private static bool IsFirstArgumentMockBehavior(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ArgumentListSyntax? argumentList)
     {
         ExpressionSyntax? expression = argumentList?.Arguments[0].Expression;
 
-        return IsExpressionMockBehavior(context, expression);
+        return IsExpressionMockBehavior(context, knownSymbols, expression);
     }
 
     private static void VerifyDelegateMockAttempt(
@@ -174,59 +151,38 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
         // We're interested in the few ways to create mocks:
         //  - new Mock<T>()
         //  - Mock.Of<T>()
         //  - MockRepository.Create<T>()
         //
         // Ensure Moq is referenced in the compilation
-        ImmutableArray<INamedTypeSymbol> mockTypes = context.Compilation.GetMoqMock();
-        if (mockTypes.IsEmpty)
+        if (!knownSymbols.IsMockReferenced())
         {
             return;
         }
 
         // These are for classes
-        context.RegisterSyntaxNodeAction(AnalyzeNewObject, SyntaxKind.ObjectCreationExpression);
-        context.RegisterSyntaxNodeAction(AnalyzeInstanceCall, SyntaxKind.InvocationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeNewObject(context, knownSymbols), SyntaxKind.ObjectCreationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeInstanceCall(context, knownSymbols), SyntaxKind.InvocationExpression);
     }
 
-    private static void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         InvocationExpressionSyntax invocationExpressionSyntax = (InvocationExpressionSyntax)context.Node;
 
-        if (invocationExpressionSyntax.Expression is not MemberAccessExpressionSyntax memberAccessExpressionSyntax)
-        {
-            return;
-        }
-
-        if (memberAccessExpressionSyntax.Name is not GenericNameSyntax genericNameSyntax)
-        {
-            return;
-        }
-
-        if (genericNameSyntax.Identifier.Value is not string genericNameSyntaxIdentifierValue)
-        {
-            return;
-        }
-
-        if (string.Equals(genericNameSyntaxIdentifierValue, WellKnownMoqNames.CreateMethodName, StringComparison.Ordinal))
-        {
-            AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownMoqNames.MockFactoryTypeName, true, true);
-        }
-        else if (string.Equals(genericNameSyntaxIdentifierValue, WellKnownMoqNames.OfMethodName, StringComparison.Ordinal))
-        {
-            AnalyzeInvocation(context, invocationExpressionSyntax, WellKnownMoqNames.MockTypeName, false, true);
-        }
+        AnalyzeInvocation(context, knownSymbols, invocationExpressionSyntax);
     }
 
     private static void AnalyzeInvocation(
         SyntaxNodeAnalysisContext context,
-        InvocationExpressionSyntax invocationExpressionSyntax,
-        string expectedClassName,
-        bool hasReturnedMock,
-        bool hasMockBehavior)
+        MoqKnownSymbols knownSymbols,
+        InvocationExpressionSyntax invocationExpressionSyntax)
     {
+        bool hasReturnedMock = true;
+        bool hasMockBehavior = true;
         SymbolInfo symbol = context.SemanticModel.GetSymbolInfo(invocationExpressionSyntax, context.CancellationToken);
 
         if (symbol.Symbol is not IMethodSymbol method)
@@ -234,9 +190,25 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (!string.Equals(method.ContainingType.Name, expectedClassName, StringComparison.Ordinal))
+        if (!method.IsInstanceOf(knownSymbols.MockOf) && !method.IsInstanceOf(knownSymbols.MockRepositoryCreate))
         {
             return;
+        }
+
+        // We are calling MockRepository.Create<T> or Mock.Of<T>, determine which
+        ArgumentListSyntax? argumentList = null;
+        if (method.IsInstanceOf(knownSymbols.MockOf))
+        {
+            // Mock.Of<T> can specify condition for construction and MockBehavior, but
+            // cannot specify constructor parameters
+            //
+            // The only parameters that can be passed are not relevant for verification
+            // to just strip them
+            hasReturnedMock = false;
+        }
+        else
+        {
+            argumentList = invocationExpressionSyntax.ArgumentList;
         }
 
         ITypeSymbol returnType = method.ReturnType;
@@ -250,22 +222,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             returnType = typeSymbol.TypeArguments[0];
         }
 
-        // We are calling MockRepository.Create<T> or Mock.Of<T>, determine which
-        ArgumentListSyntax? argumentList = null;
-        if (WellKnownMoqNames.OfMethodName.Equals(method.Name, StringComparison.Ordinal))
-        {
-            // Mock.Of<T> can specify condition for construction and MockBehavior, but
-            // cannot specify constructor parameters
-            //
-            // The only parameters that can be passed are not relevant for verification
-            // to just strip them
-        }
-        else
-        {
-            argumentList = invocationExpressionSyntax.ArgumentList;
-        }
-
-        VerifyMockAttempt(context, returnType, argumentList, hasMockBehavior);
+        VerifyMockAttempt(context, knownSymbols, returnType, argumentList, hasMockBehavior);
     }
 
     /// <summary>
@@ -273,7 +230,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// match an existing constructor of the mocked class.
     /// </summary>
     /// <param name="context">The context.</param>
-    private static void AnalyzeNewObject(SyntaxNodeAnalysisContext context)
+    /// <param name="knownSymbols">The <see cref="MoqKnownSymbols"/> used to lookup symbols against Moq types.</param>
+    private static void AnalyzeNewObject(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         ObjectCreationExpressionSyntax newExpression = (ObjectCreationExpressionSyntax)context.Node;
 
@@ -283,33 +241,24 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Quick check
-        if (!string.Equals(
-                genericNameSyntax.Identifier.ValueText,
-                WellKnownMoqNames.MockTypeName,
-                StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        // Full check
         SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(newExpression, context.CancellationToken);
 
-        if (symbolInfo.Symbol is not IMethodSymbol mockConstructorMethod
-            || mockConstructorMethod.MethodKind != MethodKind.Constructor
-            || !string.Equals(mockConstructorMethod.ContainingType.ConstructedFrom.ContainingSymbol.Name, WellKnownMoqNames.MoqSymbolName, StringComparison.Ordinal))
+        if (!symbolInfo
+            .Symbol?
+            .IsInstanceOf(knownSymbols.Mock1?.Constructors ?? ImmutableArray<IMethodSymbol>.Empty)
+            ?? false)
         {
             return;
         }
 
-        if (mockConstructorMethod.ReceiverType is not INamedTypeSymbol { IsGenericType: true } typeSymbol)
+        if (symbolInfo.Symbol?.ContainingType is not INamedTypeSymbol { IsGenericType: true } typeSymbol)
         {
             return;
         }
 
         ITypeSymbol mockedClass = typeSymbol.TypeArguments[0];
 
-        VerifyMockAttempt(context, mockedClass, newExpression.ArgumentList, true);
+        VerifyMockAttempt(context, knownSymbols, mockedClass, newExpression.ArgumentList, true);
     }
 
     /// <summary>
@@ -423,6 +372,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
     private static void VerifyMockAttempt(
                     SyntaxNodeAnalysisContext context,
+                    MoqKnownSymbols knownSymbols,
                     ITypeSymbol mockedClass,
                     ArgumentListSyntax? argumentList,
                     bool hasMockBehavior)
@@ -436,7 +386,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         ArgumentSyntax[] arguments = argumentList?.Arguments.ToArray() ?? [];
 #pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
 
-        if (hasMockBehavior && arguments.Length > 0 && IsFirstArgumentMockBehavior(context, argumentList))
+        if (hasMockBehavior && arguments.Length > 0 && IsFirstArgumentMockBehavior(context, knownSymbols, argumentList))
         {
             // They passed a mock behavior as the first argument; ignore as Moq swallows it
             arguments = arguments.RemoveAt(0);
