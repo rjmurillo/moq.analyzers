@@ -43,33 +43,17 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
         }
 
         // Look for the MockBehavior type and provide it to Analyze to avoid looking it up multiple times.
-        INamedTypeSymbol? mockBehaviorSymbol = knownSymbols.MockBehavior;
-        if (mockBehaviorSymbol is null)
+        if (knownSymbols.MockBehavior is null)
         {
             return;
         }
 
-        // Look for the Mock.Of() method and provide it to Analyze to avoid looking it up multiple times.
-        ImmutableArray<IMethodSymbol> ofMethods = knownSymbols.MockOf;
+        context.RegisterOperationAction(context => AnalyzeNewObject(context, knownSymbols), OperationKind.ObjectCreation);
 
-        ImmutableArray<INamedTypeSymbol> mockTypes =
-            new INamedTypeSymbol?[] { knownSymbols.Mock1, knownSymbols.MockRepository }
-            .WhereNotNull()
-            .ToImmutableArray();
-
-        context.RegisterOperationAction(
-            context => AnalyzeNewObject(context, mockTypes, mockBehaviorSymbol),
-            OperationKind.ObjectCreation);
-
-        if (!ofMethods.IsEmpty)
-        {
-            context.RegisterOperationAction(
-                context => AnalyzeInvocation(context, ofMethods, mockBehaviorSymbol),
-                OperationKind.Invocation);
-        }
+        context.RegisterOperationAction(context => AnalyzeInvocation(context, knownSymbols), OperationKind.Invocation);
     }
 
-    private static void AnalyzeNewObject(OperationAnalysisContext context, ImmutableArray<INamedTypeSymbol> mockTypes, INamedTypeSymbol mockBehaviorSymbol)
+    private static void AnalyzeNewObject(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         if (context.Operation is not IObjectCreationOperation creationOperation)
         {
@@ -81,32 +65,31 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        ImmutableArray<INamedTypeSymbol> mockTypes = new[] { knownSymbols.Mock1, knownSymbols.MockRepository }.WhereNotNull().ToImmutableArray();
+        ImmutableArray<IFieldSymbol> explicitBehaviors = new[] { knownSymbols.MockBehaviorLoose, knownSymbols.MockBehaviorStrict }.WhereNotNull().ToImmutableArray();
+
         if (!namedType.IsInstanceOf(mockTypes))
         {
             return;
         }
 
-        foreach (IArgumentOperation argument in creationOperation.Arguments)
+        if (creationOperation.Arguments.Any(argument => argument.DescendantsAndSelf().OfType<IMemberReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(explicitBehaviors))))
         {
-            if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
-            {
-                ISymbol field = fieldReferenceOperation.Member;
-                if (field.ContainingType.IsInstanceOf(mockBehaviorSymbol) && IsExplicitBehavior(field.Name))
-                {
-                    return;
-                }
-            }
+            return;
         }
 
         context.ReportDiagnostic(creationOperation.CreateDiagnostic(Rule));
     }
 
-    private static void AnalyzeInvocation(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownOfMethods, INamedTypeSymbol mockBehaviorSymbol)
+    private static void AnalyzeInvocation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
             return;
         }
+
+        ImmutableArray<IMethodSymbol> wellKnownOfMethods = knownSymbols.MockOf;
+        ImmutableArray<IFieldSymbol> explicitBehaviors = new[] { knownSymbols.MockBehaviorLoose, knownSymbols.MockBehaviorStrict }.WhereNotNull().ToImmutableArray();
 
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
         if (!targetMethod.IsInstanceOf(wellKnownOfMethods))
@@ -114,23 +97,11 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        foreach (IArgumentOperation argument in invocationOperation.Arguments)
+        if (invocationOperation.Arguments.Any(argument => argument.DescendantsAndSelf().OfType<IMemberReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(explicitBehaviors))))
         {
-            if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
-            {
-                ISymbol field = fieldReferenceOperation.Member;
-                if (field.ContainingType.IsInstanceOf(mockBehaviorSymbol) && IsExplicitBehavior(field.Name))
-                {
-                    return;
-                }
-            }
+            return;
         }
 
         context.ReportDiagnostic(invocationOperation.CreateDiagnostic(Rule));
-    }
-
-    private static bool IsExplicitBehavior(string symbolName)
-    {
-        return string.Equals(symbolName, "Loose", StringComparison.Ordinal) || string.Equals(symbolName, "Strict", StringComparison.Ordinal);
     }
 }
