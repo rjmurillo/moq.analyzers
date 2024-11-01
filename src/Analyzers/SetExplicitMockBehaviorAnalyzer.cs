@@ -53,6 +53,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(context => AnalyzeInvocation(context, knownSymbols), OperationKind.Invocation);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "<Pending>")]
     private static void AnalyzeNewObject(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         if (context.Operation is not IObjectCreationOperation creationOperation)
@@ -60,27 +61,31 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (creationOperation.Type is not INamedTypeSymbol namedType)
+        if (creationOperation.Type is null || !(creationOperation.Type.IsInstanceOf(knownSymbols.Mock1) || creationOperation.Type.IsInstanceOf(knownSymbols.MockRepository)))
         {
+            // We could expand this check to include any method that accepts a MockBehavior parameter.
+            // Leaving it narrowly scoped for now to avoid false positives and potential performance problems.
             return;
         }
 
-        ImmutableArray<INamedTypeSymbol> mockTypes = new[] { knownSymbols.Mock1, knownSymbols.MockRepository }.WhereNotNull().ToImmutableArray();
-        ImmutableArray<IFieldSymbol> explicitBehaviors = new[] { knownSymbols.MockBehaviorLoose, knownSymbols.MockBehaviorStrict }.WhereNotNull().ToImmutableArray();
+        IParameterSymbol? mockParameter = creationOperation.Constructor?.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
 
-        if (!namedType.IsInstanceOf(mockTypes))
+        if (mockParameter is null && creationOperation.Constructor!.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out _, cancellationToken: context.CancellationToken))
         {
+            // Using a constructor that doesn't accept a MockBehavior parameter
+            context.ReportDiagnostic(creationOperation.CreateDiagnostic(Rule));
             return;
         }
 
-        if (creationOperation.Arguments.Any(argument => argument.DescendantsAndSelf().OfType<IMemberReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(explicitBehaviors))))
-        {
-            return;
-        }
+        IArgumentOperation? mockArgument = creationOperation.Arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
 
-        context.ReportDiagnostic(creationOperation.CreateDiagnostic(Rule));
+        if (mockArgument?.DescendantsAndSelf().OfType<IMemberReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorDefault)) == true)
+        {
+            context.ReportDiagnostic(creationOperation.CreateDiagnostic(Rule));
+        }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "<Pending>")]
     private static void AnalyzeInvocation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
@@ -88,20 +93,27 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        ImmutableArray<IMethodSymbol> wellKnownOfMethods = knownSymbols.MockOf;
-        ImmutableArray<IFieldSymbol> explicitBehaviors = new[] { knownSymbols.MockBehaviorLoose, knownSymbols.MockBehaviorStrict }.WhereNotNull().ToImmutableArray();
-
-        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
-        if (!targetMethod.IsInstanceOf(wellKnownOfMethods))
+        if (!invocationOperation.TargetMethod.IsInstanceOf(knownSymbols.MockOf, out IMethodSymbol? match))
         {
+            // We could expand this check to include any method that accepts a MockBehavior parameter.
+            // Leaving it narrowly scoped for now to avoid false positives and potential performance problems.
             return;
         }
 
-        if (invocationOperation.Arguments.Any(argument => argument.DescendantsAndSelf().OfType<IMemberReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(explicitBehaviors))))
+        IParameterSymbol? mockParameter = match.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
+
+        if (mockParameter is null && match.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out _, cancellationToken: context.CancellationToken))
         {
+            // Using a method that doesn't accept a MockBehavior parameter
+            context.ReportDiagnostic(invocationOperation.CreateDiagnostic(Rule));
             return;
         }
 
-        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(Rule));
+        IArgumentOperation? mockArgument = invocationOperation.Arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
+
+        if (mockArgument?.DescendantsAndSelf().OfType<IMemberReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorDefault)) == true)
+        {
+            context.ReportDiagnostic(invocationOperation.CreateDiagnostic(Rule));
+        }
     }
 }
