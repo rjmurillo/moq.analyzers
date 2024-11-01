@@ -95,18 +95,58 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
         IParameterSymbol? mockParameter = target.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
 
         // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
-        if (mockParameter is null && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out _, cancellationToken: context.CancellationToken))
+        if (mockParameter is null && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out IMethodSymbol? methodMatch, out _, cancellationToken: context.CancellationToken))
         {
-            // Using a constructor that doesn't accept a MockBehavior parameter
-            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule));
+            if (!methodMatch.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
+            {
+                return;
+            }
+
+            ImmutableDictionary<string, string?> properties = new Dictionary<string, string?>(StringComparer.Ordinal)
+            {
+                { "EditType", "Insert" },
+                { "EditPosition", parameterMatch.Ordinal.ToString() },
+            }.ToImmutableDictionary();
+
+            // Using a method that doesn't accept a MockBehavior parameter, however there's an overload that does
+            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
             return;
         }
 
         // The operation specifies a MockBehavior; is it MockBehavior.Default?
         IArgumentOperation? mockArgument = arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
-        if (mockArgument?.DescendantsAndSelf().OfType<IMemberReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorDefault)) == true)
+        if (mockArgument?.DescendantsAndSelf().Any(o => o.ConstantValue.HasValue && o.ConstantValue.Value == knownSymbols.MockBehaviorDefault!.ConstantValue) == true)
         {
-            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule));
+            if (!target.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
+            {
+                return;
+            }
+
+            ImmutableDictionary<string, string?> properties = new Dictionary<string, string?>(StringComparer.Ordinal)
+            {
+                { "EditType", "Replace" },
+                { "EditPosition", parameterMatch.Ordinal.ToString() },
+            }.ToImmutableDictionary();
+
+            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
         }
+    }
+}
+
+internal static class IOperationExtensions
+{
+    /// <summary>
+    /// Walks down consecutive conversion operations until an operand is reached that isn't a conversion operation.
+    /// </summary>
+    /// <param name="operation">The starting operation.</param>
+    /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+    public static IOperation WalkDownConversion(this IOperation operation)
+    {
+        while (operation is IConversionOperation conversionOperation)
+        {
+            operation = conversionOperation.Operand;
+        }
+
+        return operation;
     }
 }

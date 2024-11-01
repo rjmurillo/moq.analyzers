@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Moq.CodeFixes;
 
@@ -13,8 +13,17 @@ namespace Moq.CodeFixes;
 [Shared]
 public class SetExplicitMockBehaviorFixer : CodeFixProvider
 {
-    private static readonly ArgumentSyntax LooseSyntax = SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(WellKnownTypeNames.MockBehavior), SyntaxFactory.IdentifierName(WellKnownTypeNames.Loose)));
-    private static readonly ArgumentSyntax StrictSyntax = SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(WellKnownTypeNames.MockBehavior), SyntaxFactory.IdentifierName(WellKnownTypeNames.Strict)));
+    private enum BehaviorType
+    {
+        Loose,
+        Strict,
+    }
+
+    private enum EditType
+    {
+        Insert,
+        Replace,
+    }
 
     /// <inheritdoc />
     public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.SetExplicitMockBehavior);
@@ -28,182 +37,153 @@ public class SetExplicitMockBehaviorFixer : CodeFixProvider
         SyntaxNode? root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         SyntaxNode? nodeToFix = root?.FindNode(context.Span, getInnermostNodeForTie: true);
 
+        EditType editType = (EditType)Enum.Parse(typeof(EditType), context.Diagnostics[0].Properties["EditType"]); // TODO: Clean up
+        int position = int.Parse(context.Diagnostics[0].Properties["EditPosition"]); // TODO: Clean up
+
         if (nodeToFix is null)
         {
             return;
         }
 
-        context.RegisterCodeFix(new SetExplicitMockBehaviorCodeAction("Set MockBehavior (Loose)", context.Document, nodeToFix, LooseSyntax), context.Diagnostics);
-        context.RegisterCodeFix(new SetExplicitMockBehaviorCodeAction("Set MockBehavior (Strict)", context.Document, nodeToFix, StrictSyntax), context.Diagnostics);
+        context.RegisterCodeFix(new SetExplicitMockBehaviorCodeAction("Set MockBehavior (Loose)", context.Document, nodeToFix, BehaviorType.Loose, editType, position), context.Diagnostics);
+        context.RegisterCodeFix(new SetExplicitMockBehaviorCodeAction("Set MockBehavior (Strict)", context.Document, nodeToFix, BehaviorType.Strict, editType, position), context.Diagnostics);
     }
 
     private sealed class SetExplicitMockBehaviorCodeAction : CodeAction
     {
         private readonly Document _document;
         private readonly SyntaxNode _nodeToFix;
-        private readonly ArgumentSyntax _mockBehaviorSyntax;
+        private readonly BehaviorType _behaviorType;
+        private readonly EditType _editType;
+        private readonly int _position;
 
-        public SetExplicitMockBehaviorCodeAction(string title, Document document, SyntaxNode nodeToFix, ArgumentSyntax mockBehaviorSyntax)
+        public SetExplicitMockBehaviorCodeAction(string title, Document document, SyntaxNode nodeToFix, BehaviorType behaviorType, EditType editType, int position)
         {
             Title = title;
             _document = document;
             _nodeToFix = nodeToFix;
-            _mockBehaviorSyntax = mockBehaviorSyntax;
+            _behaviorType = behaviorType;
+            _editType = editType;
+            _position = position;
         }
 
         public override string Title { get; }
 
         public override string? EquivalenceKey => Title;
 
-        protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken) => AddMockBehaviorAsync(_document, _nodeToFix, _mockBehaviorSyntax, cancellationToken);
-
-        private static async Task<Document> AddMockBehaviorAsync(Document document, SyntaxNode nodeToFix, ArgumentSyntax mockBehaviorSyntax, CancellationToken cancellationToken)
+        protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
-            DocumentEditor editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            IOperation? operation = editor.SemanticModel.GetOperation(nodeToFix, cancellationToken);
+            DocumentEditor editor = await DocumentEditor.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
+            MoqKnownSymbols knownSymbols = new(editor.SemanticModel.Compilation);
 
-            INamedTypeSymbol? mockBehaviorType = editor.SemanticModel.Compilation.GetTypeByMetadataName(WellKnownTypeNames.MoqBehavior);
-
-            if (mockBehaviorType is null)
+            if (knownSymbols.MockBehavior is null
+                || knownSymbols.MockBehaviorDefault is null
+                || knownSymbols.MockBehaviorLoose is null
+                || knownSymbols.MockBehaviorStrict is null)
             {
-                return document;
+                return _document;
             }
 
-            SyntaxNode? newNode = null;
-
-            if (operation is IInvocationOperation invocation)
+            SyntaxNode behavior = _behaviorType switch
             {
-                newNode = FixInvocation(invocation, mockBehaviorSyntax, mockBehaviorType, cancellationToken);
+                BehaviorType.Loose => editor.Generator.MemberAccessExpression(knownSymbols.MockBehaviorLoose),
+                BehaviorType.Strict => editor.Generator.MemberAccessExpression(knownSymbols.MockBehaviorStrict),
+                _ => throw new InvalidOperationException(),
+            };
+
+            SyntaxNode argument = editor.Generator.Argument(behavior);
+
+            SyntaxNode newNode = _editType switch
+            {
+                EditType.Insert => editor.Generator.InsertArguments(_nodeToFix, _position, argument),
+                EditType.Replace => editor.Generator.ReplaceArgument(_nodeToFix, _position, argument),
+                _ => throw new InvalidOperationException(),
+            };
+
+            editor.ReplaceNode(_nodeToFix, newNode.WithAdditionalAnnotations(Simplifier.Annotation));
+            return editor.GetChangedDocument();
+        }
+    }
+}
+
+internal static class SyntaxGeneratorExtensions
+{
+    public static SyntaxNode MemberAccessExpression(this SyntaxGenerator generator, IFieldSymbol fieldSymbol)
+    {
+        return generator.MemberAccessExpression(generator.TypeExpression(fieldSymbol.Type), generator.IdentifierName(fieldSymbol.Name));
+    }
+
+    public static SyntaxNode InsertArguments(this SyntaxGenerator generator, SyntaxNode syntax, int index, params SyntaxNode[] items)
+    {
+        if (syntax is InvocationExpressionSyntax invocation)
+        {
+            if (items.Any(item => item is not ArgumentSyntax))
+            {
+                throw new ArgumentException("Must all be of type ArgumentSyntax", nameof(items));
             }
 
-            if (operation is IObjectCreationOperation creation)
-            {
-                newNode = FixObjectCreation(creation, mockBehaviorSyntax, mockBehaviorType, cancellationToken);
-            }
+            SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
 
-            if (newNode is not null)
-            {
-                editor.ReplaceNode(nodeToFix, newNode);
-                return editor.GetChangedDocument();
-            }
+            arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
 
-            return document;
+            syntax = syntax.ReplaceNode(invocation.ArgumentList, invocation.ArgumentList.WithArguments(arguments));
+
+            return syntax;
         }
 
-        private static SyntaxNode FixInvocation(IInvocationOperation operation, ArgumentSyntax mockBehaviorSyntax, INamedTypeSymbol mockBehaviorType, CancellationToken cancellationToken)
+        if (syntax is ObjectCreationExpressionSyntax creation)
         {
-            if (operation.Syntax is not InvocationExpressionSyntax invocationExpression)
+            if (items.Any(item => item is not ArgumentSyntax))
             {
-                return operation.Syntax;
+                throw new ArgumentException("Must all be of type ArgumentSyntax", nameof(items));
             }
 
-            // Try replacing MockBehavior.Default
-            IArgumentOperation[] arguments = operation.Descendants().OfType<IArgumentOperation>().ToArray();
+            SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList.Arguments;
 
-            foreach (IArgumentOperation argument in arguments)
-            {
-                // TODO: Can this be refactored? IMemberReferenceOperation
-                if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
-                {
-                    ISymbol field = fieldReferenceOperation.Member;
-                    if (field.ContainingType.IsInstanceOf(mockBehaviorType) && field.Name.Equals(WellKnownTypeNames.Default, StringComparison.Ordinal))
-                    {
-                        ArgumentSyntax newArgument = mockBehaviorSyntax;
-                        SyntaxNode newExpression = operation.Syntax.ReplaceNode(argument.Syntax, newArgument);
-                        return newExpression;
-                    }
-                }
-            }
+            arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
 
-            // Try adding to beginning
-            SyntaxAnnotation beginAnnotation = new();
-            InvocationExpressionSyntax begin = invocationExpression.PrependArgumentListArguments(mockBehaviorSyntax).WithAdditionalAnnotations(beginAnnotation);
+            syntax = syntax.ReplaceNode(creation.ArgumentList, creation.ArgumentList.WithArguments(arguments));
 
-            ExpressionStatementSyntax beginStatement = SyntaxFactory.ExpressionStatement(begin);
-            if (operation.SemanticModel.TryGetSpeculativeSemanticModel(operation.Syntax.SpanStart, beginStatement, out SemanticModel? specModel1))
-            {
-                SyntaxNode annotatedNode = beginStatement.GetAnnotatedNodes(beginAnnotation).Single();
-                SymbolInfo x = specModel1.GetSymbolInfo(annotatedNode, cancellationToken);
-                if (x.Symbol is not null)
-                {
-                    return begin; // works
-                }
-            }
-
-            // Try adding to end
-            SyntaxAnnotation endAnnotation = new();
-            InvocationExpressionSyntax end = invocationExpression.AddArgumentListArguments(mockBehaviorSyntax).WithAdditionalAnnotations(endAnnotation);
-
-            ExpressionStatementSyntax endStatement = SyntaxFactory.ExpressionStatement(end);
-            if (operation.SemanticModel.TryGetSpeculativeSemanticModel(operation.Syntax.SpanStart, endStatement, out SemanticModel? specModel2))
-            {
-                SyntaxNode annotatedNode = endStatement.GetAnnotatedNodes(endAnnotation).Single();
-                SymbolInfo x = specModel2.GetSymbolInfo(annotatedNode, cancellationToken);
-                if (x.Symbol is not null)
-                {
-                    return end; // works
-                }
-            }
-
-            return operation.Syntax;
+            return syntax;
         }
 
-        private static SyntaxNode FixObjectCreation(IObjectCreationOperation operation, ArgumentSyntax mockBehaviorSyntax, INamedTypeSymbol mockBehaviorType, CancellationToken cancellationToken)
+        throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
+    }
+
+    public static SyntaxNode ReplaceArgument(this SyntaxGenerator generator, SyntaxNode syntax, int index, SyntaxNode item) // TODO: Make this range-based
+    {
+        if (syntax is InvocationExpressionSyntax invocation)
         {
-            if (operation.Syntax is not ObjectCreationExpressionSyntax creationExpression)
+            if (item is not ArgumentSyntax argument)
             {
-                return operation.Syntax;
+                throw new ArgumentException("Must be of type ArgumentSyntax", nameof(item));
             }
 
-            // Try replacing MockBehavior.Default
-            IArgumentOperation[] arguments = operation.Descendants().OfType<IArgumentOperation>().ToArray();
+            SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
 
-            foreach (IArgumentOperation argument in arguments)
-            {
-                // TODO: Can this be refactored? IMemberReferenceOperation
-                if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
-                {
-                    ISymbol field = fieldReferenceOperation.Member;
-                    if (field.ContainingType.IsInstanceOf(mockBehaviorType) && field.Name.Equals(WellKnownTypeNames.Default, StringComparison.Ordinal))
-                    {
-                        ArgumentSyntax newArgument = mockBehaviorSyntax;
-                        SyntaxNode newExpression = operation.Syntax.ReplaceNode(argument.Syntax, newArgument);
-                        return newExpression;
-                    }
-                }
-            }
+            arguments = arguments.RemoveAt(index).Insert(index, argument);
 
-            // Try adding to beginning
-            SyntaxAnnotation beginAnnotation = new();
-            ObjectCreationExpressionSyntax begin = creationExpression.PrependArgumentListArguments(mockBehaviorSyntax).WithAdditionalAnnotations(beginAnnotation);
+            syntax = syntax.ReplaceNode(invocation.ArgumentList, invocation.ArgumentList.WithArguments(arguments));
 
-            ExpressionStatementSyntax beginStatement = SyntaxFactory.ExpressionStatement(begin);
-            if (operation.SemanticModel.TryGetSpeculativeSemanticModel(operation.Syntax.SpanStart, beginStatement, out SemanticModel? specModel1))
-            {
-                SyntaxNode annotatedNode = beginStatement.GetAnnotatedNodes(beginAnnotation).Single();
-                SymbolInfo x = specModel1.GetSymbolInfo(annotatedNode, cancellationToken);
-                if (x.Symbol is not null)
-                {
-                    return begin; // works
-                }
-            }
-
-            // Try adding to end
-            SyntaxAnnotation endAnnotation = new();
-            ObjectCreationExpressionSyntax end = creationExpression.AddArgumentListArguments(mockBehaviorSyntax).WithAdditionalAnnotations(endAnnotation);
-
-            ExpressionStatementSyntax endStatement = SyntaxFactory.ExpressionStatement(end);
-            if (operation.SemanticModel.TryGetSpeculativeSemanticModel(operation.Syntax.SpanStart, endStatement, out SemanticModel? specModel2))
-            {
-                SyntaxNode annotatedNode = endStatement.GetAnnotatedNodes(endAnnotation).Single();
-                SymbolInfo x = specModel2.GetSymbolInfo(annotatedNode, cancellationToken);
-                if (x.Symbol is not null)
-                {
-                    return end; // works
-                }
-            }
-
-            return operation.Syntax;
+            return syntax;
         }
+
+        if (syntax is ObjectCreationExpressionSyntax creation)
+        {
+            if (item is not ArgumentSyntax argument)
+            {
+                throw new ArgumentException("Must be of type ArgumentSyntax", nameof(item));
+            }
+
+            SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList.Arguments;
+
+            arguments = arguments.RemoveAt(index).Insert(index, argument);
+
+            syntax = syntax.ReplaceNode(creation.ArgumentList, creation.ArgumentList.WithArguments(arguments));
+
+            return syntax;
+        }
+
+        throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
     }
 }

@@ -32,17 +32,20 @@ internal static class IMethodSymbolExtensions
         }
     }
 
+    // TODO: Maybe revert the double out params?
+
     /// <summary>
     /// Check if, given a set of overloads, any overload has a parameter of the given type.
     /// </summary>
     /// <param name="method">The method to inspect for overloads.</param>
     /// <param name="overloads">The set of candidate methods to check.</param>
     /// <param name="type">The type to check for in the parameters.</param>
-    /// <param name="match">The matching overload. <see langword="false"/> if no matches.</param>
+    /// <param name="methodMatch">The matching method overload. <see langword="null"/> if no matches.</param>
+    /// <param name="parameterMatch">The matching parameter. <see langword="null"/> if no matches.</param>
     /// <param name="comparer">The <see cref="SymbolEqualityComparer"/> to use for equality.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to use to cancel long running operations.</param>
     /// <returns><see langword="true"/> if a method in <paramref name="overloads"/> has a parameter of type <paramref name="type"/>. Otherwise <see langword="false"/>.</returns>
-    public static bool TryGetOverloadWithParameterOfType(this IMethodSymbol method, IEnumerable<IMethodSymbol> overloads, INamedTypeSymbol type, [NotNullWhen(true)] out IMethodSymbol? match, SymbolEqualityComparer? comparer = null, CancellationToken cancellationToken = default)
+    public static bool TryGetOverloadWithParameterOfType(this IMethodSymbol method, IEnumerable<IMethodSymbol> overloads, INamedTypeSymbol type, [NotNullWhen(true)] out IMethodSymbol? methodMatch, [NotNullWhen(true)] out IParameterSymbol? parameterMatch, SymbolEqualityComparer? comparer = null, CancellationToken cancellationToken = default)
     {
         comparer ??= SymbolEqualityComparer.Default;
 
@@ -55,20 +58,44 @@ internal static class IMethodSymbolExtensions
                 continue;
             }
 
-            if (overload.Parameters.Any(parameter => comparer.Equals(parameter.Type, type)))
+            foreach (IParameterSymbol parameter in overload.Parameters)
             {
-                match = overload;
+                if (comparer.Equals(parameter.Type, type))
+                {
+                    methodMatch = overload;
+                    parameterMatch = parameter;
+                    return true;
+                }
+            }
+        }
+
+        methodMatch = null;
+        parameterMatch = null;
+        return false;
+    }
+
+    /// <inheritdoc cref="TryGetOverloadWithParameterOfType(IMethodSymbol, IEnumerable{IMethodSymbol}, INamedTypeSymbol, out IMethodSymbol, out IParameterSymbol, SymbolEqualityComparer?, CancellationToken)"/>
+    public static bool TryGetOverloadWithParameterOfType(this IMethodSymbol method, INamedTypeSymbol type, [NotNullWhen(true)] out IMethodSymbol? methodMatch, [NotNullWhen(true)] out IParameterSymbol? parameterMatch, SymbolEqualityComparer? comparer = null, CancellationToken cancellationToken = default)
+    {
+        return method.TryGetOverloadWithParameterOfType(method.Overloads(), type, out methodMatch, out parameterMatch, comparer, cancellationToken);
+    }
+
+    public static bool TryGetParameterOfType(this IMethodSymbol method, INamedTypeSymbol type, [NotNullWhen(true)] out IParameterSymbol? match, SymbolEqualityComparer? comparer = null, CancellationToken cancellationToken = default)
+    {
+        comparer ??= SymbolEqualityComparer.Default;
+
+        foreach (IParameterSymbol parameter in method.Parameters)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (comparer.Equals(parameter.Type, type))
+            {
+                match = parameter;
                 return true;
             }
         }
 
         match = null;
         return false;
-    }
-
-    /// <inheritdoc cref="TryGetOverloadWithParameterOfType(IMethodSymbol, IEnumerable{IMethodSymbol}, INamedTypeSymbol, out IMethodSymbol, SymbolEqualityComparer?, CancellationToken)"/>
-    public static bool TryGetOverloadWithParameterOfType(this IMethodSymbol method, INamedTypeSymbol type, [NotNullWhen(true)] out IMethodSymbol? match, SymbolEqualityComparer? comparer = null, CancellationToken cancellationToken = default)
-    {
-        return method.TryGetOverloadWithParameterOfType(method.Overloads(), type, out match, comparer, cancellationToken);
     }
 }
