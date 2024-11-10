@@ -13,7 +13,14 @@ namespace Moq.Analyzers.Benchmarks.Helpers;
 // See https://github.com/dotnet/roslyn-sdk/issues/1165 for discussion on providing these or similar helpers in the testing packages.
 internal static class CompilationCreator
 {
-    private static readonly ReferenceAssemblies ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]);
+    private static readonly ReferenceAssemblies ReferenceAssemblies;
+
+#pragma warning disable S3963
+    static CompilationCreator()
+#pragma warning restore S3963
+    {
+        ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]);
+    }
 
     public static async Task<(Project Project, AnalyzerOptions Options)> CreateProjectAsync(
         (string, string)[] sourceFiles,
@@ -25,13 +32,13 @@ internal static class CompilationCreator
         CompilationOptions compilationOptions,
         ParseOptions parseOptions)
     {
-        ProjectState projectState = new ProjectState(name, language, defaultPrefix, defaultExtension);
+        ProjectState projectState = new(name, language, defaultPrefix, defaultExtension);
         foreach ((string filename, string content) in sourceFiles)
         {
             projectState.Sources.Add((defaultPrefix + filename + "." + defaultExtension, content));
         }
 
-        EvaluatedProjectState evaluatedProj = new EvaluatedProjectState(projectState, ReferenceAssemblies);
+        EvaluatedProjectState evaluatedProj = new(projectState, ReferenceAssemblies);
 
         Project project = await CreateProjectAsync(evaluatedProj, compilationOptions, parseOptions).ConfigureAwait(false);
 
@@ -81,7 +88,7 @@ internal static class CompilationCreator
         CompilationOptions compilationOptions,
         ParseOptions parseOptions)
     {
-        ReferenceAssemblies referenceAssemblies = projectState.ReferenceAssemblies ?? ReferenceAssemblies.Default;
+        ReferenceAssemblies referenceAssemblies = projectState.ReferenceAssemblies ?? Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Default;
 
         compilationOptions = compilationOptions
             .WithOutputKind(projectState.OutputKind)

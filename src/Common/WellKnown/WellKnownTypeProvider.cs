@@ -43,22 +43,24 @@ internal class WellKnownTypeProvider
     /// <summary>
     /// Mapping of full name to <see cref="INamedTypeSymbol"/>.
     /// </summary>
-    private readonly ConcurrentDictionary<string, INamedTypeSymbol?> _fullNameToTypeMap;
+    private readonly ConcurrentDictionary<string, INamedTypeSymbol?> _fullNameToTypeMap = new(StringComparer.Ordinal);
 
-    [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Skipping for now. Should revisit.")]
     private WellKnownTypeProvider(Compilation compilation)
     {
         Compilation = compilation;
-        _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol?>(StringComparer.Ordinal);
+#pragma warning disable ECS1200
         _referencedAssemblies = new Lazy<ImmutableArray<IAssemblySymbol>>(
             () =>
             {
                 return Compilation.Assembly.Modules
+#pragma warning disable ECS0900
                     .SelectMany(m => m.ReferencedAssemblySymbols)
+#pragma warning restore ECS0900
                     .Distinct<IAssemblySymbol>(SymbolEqualityComparer.Default)
                     .ToImmutableArray();
             },
             LazyThreadSafetyMode.ExecutionAndPublication);
+#pragma warning restore ECS1200
     }
 
     /// <summary>
