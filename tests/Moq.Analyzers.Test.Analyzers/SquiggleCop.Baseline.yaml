@@ -37,7 +37,7 @@
 - {Id: CA1060, Title: Move pinvokes to native methods class, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA1061, Title: Do not hide base class methods, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA1062, Title: Validate arguments of public methods, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: CA1063, Title: Implement IDisposable Correctly, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: CA1063, Title: Implement IDisposable Correctly, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA1064, Title: Exceptions should be public, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA1065, Title: Do not raise exceptions in unexpected locations, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA1066, Title: Implement IEquatable when overriding Object.Equals, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: false}
@@ -90,7 +90,7 @@
 - {Id: CA1725, Title: Parameter names should match base declaration, Category: Naming, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: CA1727, Title: Use PascalCase for named placeholders, Category: Naming, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1802, Title: Use literals where appropriate, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: CA1805, Title: Do not initialize unnecessarily, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
+- {Id: CA1805, Title: Do not initialize unnecessarily, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA1806, Title: Do not ignore method results, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA1810, Title: Initialize reference type static fields inline, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA1812, Title: Avoid uninstantiated internal classes, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -179,7 +179,7 @@
 - {Id: CA2208, Title: Instantiate argument exceptions correctly, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA2211, Title: Non-constant fields should not be visible, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: CA2213, Title: Disposable fields should be disposed, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: CA2214, Title: Do not call overridable methods in constructors, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: CA2214, Title: Do not call overridable methods in constructors, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: CA2215, Title: Dispose methods should call base class dispose, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: CA2216, Title: Disposable types should declare finalizer, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: CA2217, Title: Do not mark enums with FlagsAttribute, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
@@ -324,6 +324,9 @@
 - {Id: ECS0700, Title: Express callbacks with delegates, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0800, Title: Use the Null Conditional Operator for Event Invocations, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0900, Title: Minimize boxing and unboxing, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
+- {Id: ECS1200, Title: Prefer member initializers to assignment statements, Category: Maintainability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: ECS1300, Title: Use proper initialization for static class members, Category: Initialization, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: ECS1400, Title: Minimize duplicate initialization logic, Category: Initialization, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0001, Title: Switch on Enum Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0002, Title: Switch on Nullable Enum Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0003, Title: Switch on Closed Type Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
