@@ -1,0 +1,1 @@
+dotnet_diagnostic.ECS1300.safe_items = Microsoft.CodeAnalysis.DiagnosticDescriptor
