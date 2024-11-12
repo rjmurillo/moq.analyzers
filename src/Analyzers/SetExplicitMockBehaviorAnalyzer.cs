@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.Operations;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
 
@@ -113,9 +114,30 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // The operation specifies a MockBehavior; is it MockBehavior.Default?
         IArgumentOperation? mockArgument = arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
-        if (mockArgument?.DescendantsAndSelf().Any(o => o.ConstantValue.HasValue && o.ConstantValue.Value == knownSymbols.MockBehaviorDefault!.ConstantValue) == true)
+
+        // Is the behavior set via a default value?
+        if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue && mockArgument.Value.WalkDownConversion().ConstantValue.Value == knownSymbols.MockBehaviorDefault?.ConstantValue)
+        {
+            if (!target.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
+            {
+                return;
+            }
+
+            ImmutableDictionary<string, string?> properties = new Dictionary<string, string?>(StringComparer.Ordinal)
+            {
+                { "EditType", "Insert" },
+                { "EditPosition", parameterMatch.Ordinal.ToString() },
+            }.ToImmutableDictionary();
+
+            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
+        }
+
+        // NOTE: This logic can't handle indirection (e.g. var x = MockBehavior.Default; new Mock(x);). We can't use the constant value either,
+        // as Loose and Default share the same enum value: `1`. Being more accurate I believe requires data flow analysis.
+        //
+        // The operation specifies a MockBehavior; is it MockBehavior.Default?
+        if (mockArgument?.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorDefault)) == true)
         {
             if (!target.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
             {
