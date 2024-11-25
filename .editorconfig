@@ -135,6 +135,7 @@ csharp_style_prefer_range_operator = true:suggestion
 csharp_style_throw_expression = true:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+dotnet_diagnostic.S3267.severity = suggestion # S3267: Loops should be simplified with "LINQ" expressions
 
 # 'using' directive preferences
 csharp_using_directive_placement = outside_namespace:warning

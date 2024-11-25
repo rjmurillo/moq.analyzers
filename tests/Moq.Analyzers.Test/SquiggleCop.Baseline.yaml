@@ -1146,7 +1146,7 @@
 - {Id: S3263, Title: 'Static fields should appear in the order they must be initialized ', Category: Major Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S3264, Title: Events should be invoked, Category: Major Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S3265, Title: Non-flags enums should not be used in bitwise operations, Category: Critical Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
-- {Id: S3267, Title: Loops should be simplified with "LINQ" expressions, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: S3267, Title: Loops should be simplified with "LINQ" expressions, Category: Minor Code Smell, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, Note], IsEverSuppressed: false}
 - {Id: S3329, Title: Cipher Block Chaining IVs should be unpredictable, Category: Critical Vulnerability, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S3330, Title: Creating cookies without the "HttpOnly" flag is security-sensitive, Category: Minor Security Hotspot, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: S3343, Title: Caller information parameters should come at the end of the parameter list, Category: Major Bug, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
