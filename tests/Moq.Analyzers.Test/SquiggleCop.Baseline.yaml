@@ -1629,6 +1629,7 @@
 - {Id: VSTHRD112, Title: Implement System.IAsyncDisposable, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: VSTHRD113, Title: Check for System.IAsyncDisposable, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: VSTHRD114, Title: Avoid returning a null Task, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: VSTHRD115, Title: Avoid creating JoinableTaskContext with null SynchronizationContext, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD200, Title: Use "Async" suffix for async methods, Category: Style, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
 - {Id: xUnit1000, Title: Test classes must be public, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: xUnit1001, Title: Fact methods cannot have parameters, Category: Usage, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
