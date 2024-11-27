@@ -1617,4 +1617,5 @@
 - {Id: VSTHRD112, Title: Implement System.IAsyncDisposable, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: VSTHRD113, Title: Check for System.IAsyncDisposable, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: VSTHRD114, Title: Avoid returning a null Task, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
+- {Id: VSTHRD115, Title: Avoid creating JoinableTaskContext with null SynchronizationContext, Category: Usage, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: VSTHRD200, Title: Use "Async" suffix for async methods, Category: Style, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error, None], IsEverSuppressed: true}
