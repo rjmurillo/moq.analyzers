@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false # Run all OSes, even if one fails, to help narrow down issues that only impact some platforms
       matrix:
-        os: [windows-2022, ubuntu-22.04]
+        os: [windows-latest, ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
 
