@@ -142,6 +142,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     }
 
     private static void AnalyzeCompilation(CompilationStartAnalysisContext context)
+        context.RegisterSyntaxNodeAction(context => AnalyzeObjectCreation(context, knownSymbols), SyntaxKind.ObjectCreationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, knownSymbols), SyntaxKind.InvocationExpression);
     {
         context.CancellationToken.ThrowIfCancellationRequested();
 
@@ -165,8 +167,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         // These are for classes
-        context.RegisterSyntaxNodeAction(context => AnalyzeNewObject(context, knownSymbols), SyntaxKind.ObjectCreationExpression);
-        context.RegisterSyntaxNodeAction(context => AnalyzeInstanceCall(context, knownSymbols), SyntaxKind.InvocationExpression);
     }
 
     private static void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
@@ -416,6 +416,52 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         ITypeSymbol mockedClass,
         ArgumentListSyntax? argumentList,
         ArgumentSyntax[] arguments)
+    private static void VerifyClassMockAttempt(
+        SyntaxNodeAnalysisContext context,
+        ITypeSymbol mockedClass,
+        ArgumentListSyntax? argumentList,
+        ArgumentSyntax[] arguments)
+    {
+        IMethodSymbol[] constructors = mockedClass
+            .GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(methodSymbol => methodSymbol.IsConstructor())
+            .ToArray();
+
+        // Check if the first argument is a Func<T>
+        if (arguments.Length > 0 && IsFactoryMethodArgument(context, arguments[0]))
+        {
+            // If it's a Func<T>, we don't need to check constructor arguments
+            return;
+        }
+
+        // Bail out early if there are no arguments on constructors or no constructors at all
+        (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
+        if (constructorIsEmpty.IsEmpty)
+        {
+            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+            context.ReportDiagnostic(diagnostic);
+            return;
+        }
+
+        // We have constructors, now we need to check if the arguments match any of them
+        if (!AnyConstructorsFound(constructors, arguments, context))
+        {
+            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+            context.ReportDiagnostic(diagnostic);
+        }
+    }
+
+    private static bool IsFactoryMethodArgument(SyntaxNodeAnalysisContext context, ArgumentSyntax argument)
+    {
+        var symbolInfo = context.SemanticModel.GetSymbolInfo(argument.Expression);
+        if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
+        {
+            var containingType = methodSymbol.ContainingType;
+            return containingType != null && containingType.Name == "Func" && containingType.TypeArguments.Length == 1;
+        }
+        return false;
+    }
     {
         IMethodSymbol[] constructors = mockedClass
             .GetMembers()
@@ -438,5 +484,3 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
             context.ReportDiagnostic(diagnostic);
         }
-    }
-}
