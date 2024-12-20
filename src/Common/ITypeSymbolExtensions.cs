@@ -12,7 +12,7 @@ internal static class ITypeSymbolExtensions
     /// <returns>The type and any inherited types.</returns>
     public static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(this ITypeSymbol type)
     {
-        var current = type;
+        ITypeSymbol? current = type;
         while (current is not null)
         {
             yield return current;
