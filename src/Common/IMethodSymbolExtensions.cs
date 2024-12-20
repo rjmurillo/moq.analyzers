@@ -32,8 +32,6 @@ internal static class IMethodSymbolExtensions
         }
     }
 
-    // TODO: Maybe revert the double out params?
-
     /// <summary>
     /// Check if, given a set of overloads, any overload has a parameter of the given type.
     /// </summary>

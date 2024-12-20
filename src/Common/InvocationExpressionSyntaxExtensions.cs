@@ -18,10 +18,4 @@ internal static class InvocationExpressionSyntaxExtensions
         LambdaExpressionSyntax? setupLambdaArgument = setupInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
         return setupLambdaArgument?.Body as ExpressionSyntax;
     }
-
-    [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "SyntaxFactory API requires an array.")]
-    internal static InvocationExpressionSyntax PrependArgumentListArguments(this InvocationExpressionSyntax syntax, params ArgumentSyntax[] items)
-    {
-        return syntax.WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([..items, ..syntax.ArgumentList.Arguments.ToArray()])));
-    }
 }
