@@ -21,7 +21,13 @@ internal record class DiagnosticEditProperties
         Replace,
     }
 
+    /// <summary>
+    /// Gets the type of edit operation to perform.
+    /// </summary>
     public EditType TypeOfEdit { get; init; }
 
+    /// <summary>
+    /// Gets the zero-based position where the edit should be applied.
+    /// </summary>
     public int EditPosition { get; init; }
 }
