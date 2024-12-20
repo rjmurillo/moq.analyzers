@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" PrivateAssets="all" />
   </ItemGroup>
 
   <Import Project="$(RepoRoot)/src/Common/Common.projitems" Label="Shared" />

@@ -1,4 +1,6 @@
-﻿namespace Moq.Analyzers.Common.WellKnown;
+﻿using Analyzer.Utilities;
+
+namespace Moq.Analyzers.Common.WellKnown;
 
 /// <summary>
 /// Main entrypoint to access well-known symbols for the analyzer.
