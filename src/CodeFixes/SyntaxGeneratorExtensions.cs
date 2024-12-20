@@ -11,7 +11,7 @@ internal static class SyntaxGeneratorExtensions
 
     public static SyntaxNode InsertArguments(this SyntaxGenerator generator, SyntaxNode syntax, int index, params SyntaxNode[] items)
     {
-        if (items.Any(item => item is not ArgumentSyntax))
+        if (Array.Exists(items, item => item is not ArgumentSyntax))
         {
             throw new ArgumentException("Must all be of type ArgumentSyntax", nameof(items));
         }
@@ -29,27 +29,28 @@ internal static class SyntaxGeneratorExtensions
 
         if (syntax is ObjectCreationExpressionSyntax creation)
         {
-            SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList.Arguments;
+            SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList?.Arguments ?? [];
 
             arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
+            ArgumentListSyntax argumentList = SyntaxFactory.ArgumentList(arguments);
 
-            syntax = syntax.ReplaceNode(creation.ArgumentList, creation.ArgumentList.WithArguments(arguments));
+            syntax = syntax.ReplaceNode(creation, creation.WithArgumentList(argumentList));
 
             return syntax;
         }
 
-        throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
+        throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} or {nameof(ObjectCreationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
     }
 
-    public static SyntaxNode ReplaceArgument(this SyntaxGenerator generator, SyntaxNode syntax, int index, SyntaxNode item) // TODO: Make this range-based
+    public static SyntaxNode ReplaceArgument(this SyntaxGenerator generator, SyntaxNode syntax, int index, SyntaxNode item)
     {
+        if (item is not ArgumentSyntax argument)
+        {
+            throw new ArgumentException("Must be of type ArgumentSyntax", nameof(item));
+        }
+
         if (syntax is InvocationExpressionSyntax invocation)
         {
-            if (item is not ArgumentSyntax argument)
-            {
-                throw new ArgumentException("Must be of type ArgumentSyntax", nameof(item));
-            }
-
             SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
 
             arguments = arguments.RemoveAt(index).Insert(index, argument);
@@ -61,20 +62,16 @@ internal static class SyntaxGeneratorExtensions
 
         if (syntax is ObjectCreationExpressionSyntax creation)
         {
-            if (item is not ArgumentSyntax argument)
-            {
-                throw new ArgumentException("Must be of type ArgumentSyntax", nameof(item));
-            }
-
-            SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList.Arguments;
+            SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList?.Arguments ?? [];
 
             arguments = arguments.RemoveAt(index).Insert(index, argument);
+            ArgumentListSyntax argumentList = SyntaxFactory.ArgumentList(arguments);
 
-            syntax = syntax.ReplaceNode(creation.ArgumentList, creation.ArgumentList.WithArguments(arguments));
+            syntax = syntax.ReplaceNode(creation, creation.WithArgumentList(argumentList));
 
             return syntax;
         }
 
-        throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
+        throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} or {nameof(ObjectCreationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
     }
 }
