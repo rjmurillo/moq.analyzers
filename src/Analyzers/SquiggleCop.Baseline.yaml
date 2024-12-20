@@ -324,7 +324,7 @@
 - {Id: ECS0700, Title: Express callbacks with delegates, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0800, Title: Use the Null Conditional Operator for Event Invocations, Category: Usage, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS0900, Title: Minimize boxing and unboxing, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
-- {Id: ECS1200, Title: Prefer member initializers to assignment statements, Category: Maintainability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: true}
+- {Id: ECS1200, Title: Prefer member initializers to assignment statements, Category: Maintainability, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS1300, Title: Use proper initialization for static class members, Category: Initialization, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: ECS1400, Title: Minimize duplicate initialization logic, Category: Initialization, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: EM0001, Title: Switch on Enum Not Exhaustive, Category: Logic, DefaultSeverity: Error, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
