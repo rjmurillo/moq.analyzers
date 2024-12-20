@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Analyzer.Utilities;
 
 namespace Moq.Analyzers.Common.WellKnown;
 
