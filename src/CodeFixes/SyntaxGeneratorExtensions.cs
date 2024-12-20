@@ -9,6 +9,12 @@ internal static class SyntaxGeneratorExtensions
         return generator.MemberAccessExpression(generator.TypeExpression(fieldSymbol.Type), generator.IdentifierName(fieldSymbol.Name));
     }
 
+    public static SyntaxNode InsertArguments(this SyntaxGenerator generator, IOperation operation, int index, params SyntaxNode[] items)
+    {
+        // Ideally we could modify argument lists only using the IOperation APIs, but I haven't figured out a way to do that yet.
+        return generator.InsertArguments(operation.Syntax, index, items);
+    }
+
     public static SyntaxNode InsertArguments(this SyntaxGenerator generator, SyntaxNode syntax, int index, params SyntaxNode[] items)
     {
         if (Array.Exists(items, item => item is not ArgumentSyntax))
@@ -19,27 +25,24 @@ internal static class SyntaxGeneratorExtensions
         if (syntax is InvocationExpressionSyntax invocation)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
-
             arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
-
-            syntax = syntax.ReplaceNode(invocation.ArgumentList, invocation.ArgumentList.WithArguments(arguments));
-
-            return syntax;
+            return invocation.WithArgumentList(SyntaxFactory.ArgumentList(arguments));
         }
 
         if (syntax is ObjectCreationExpressionSyntax creation)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList?.Arguments ?? [];
-
             arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
-            ArgumentListSyntax argumentList = SyntaxFactory.ArgumentList(arguments);
-
-            syntax = syntax.ReplaceNode(creation, creation.WithArgumentList(argumentList));
-
-            return syntax;
+            return creation.WithArgumentList(SyntaxFactory.ArgumentList(arguments));
         }
 
         throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} or {nameof(ObjectCreationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
+    }
+
+    public static SyntaxNode ReplaceArgument(this SyntaxGenerator generator, IOperation operation, int index, SyntaxNode item)
+    {
+        // Ideally we could modify argument lists only using the IOperation APIs, but I haven't figured out a way to do that yet.
+        return generator.ReplaceArgument(operation.Syntax, index, item);
     }
 
     public static SyntaxNode ReplaceArgument(this SyntaxGenerator generator, SyntaxNode syntax, int index, SyntaxNode item)
@@ -52,24 +55,15 @@ internal static class SyntaxGeneratorExtensions
         if (syntax is InvocationExpressionSyntax invocation)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
-
             arguments = arguments.RemoveAt(index).Insert(index, argument);
-
-            syntax = syntax.ReplaceNode(invocation.ArgumentList, invocation.ArgumentList.WithArguments(arguments));
-
-            return syntax;
+            return invocation.WithArgumentList(SyntaxFactory.ArgumentList(arguments));
         }
 
         if (syntax is ObjectCreationExpressionSyntax creation)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList?.Arguments ?? [];
-
             arguments = arguments.RemoveAt(index).Insert(index, argument);
-            ArgumentListSyntax argumentList = SyntaxFactory.ArgumentList(arguments);
-
-            syntax = syntax.ReplaceNode(creation, creation.WithArgumentList(argumentList));
-
-            return syntax;
+            return creation.WithArgumentList(SyntaxFactory.ArgumentList(arguments));
         }
 
         throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} or {nameof(ObjectCreationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));

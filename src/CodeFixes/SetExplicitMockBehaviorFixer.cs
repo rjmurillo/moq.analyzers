@@ -1,5 +1,4 @@
 ﻿using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
@@ -8,7 +7,7 @@ using Microsoft.CodeAnalysis.Simplification;
 namespace Moq.CodeFixes;
 
 /// <summary>
-/// Fixes for SetExplicitMockBehaviorAnalyzer (Moq1400).
+/// Fixes for <see cref="DiagnosticIds.SetExplicitMockBehavior"/>.
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(SetExplicitMockBehaviorFixer))]
 [Shared]
@@ -71,12 +70,16 @@ public class SetExplicitMockBehaviorFixer : CodeFixProvider
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
             DocumentEditor editor = await DocumentEditor.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
+            SemanticModel? model = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            IOperation? operation = model?.GetOperation(_nodeToFix, cancellationToken);
+
             MoqKnownSymbols knownSymbols = new(editor.SemanticModel.Compilation);
 
             if (knownSymbols.MockBehavior is null
                 || knownSymbols.MockBehaviorDefault is null
                 || knownSymbols.MockBehaviorLoose is null
-                || knownSymbols.MockBehaviorStrict is null)
+                || knownSymbols.MockBehaviorStrict is null
+                || operation is null)
             {
                 return _document;
             }
@@ -92,8 +95,8 @@ public class SetExplicitMockBehaviorFixer : CodeFixProvider
 
             SyntaxNode newNode = _editType switch
             {
-                DiagnosticEditProperties.EditType.Insert => editor.Generator.InsertArguments(_nodeToFix, _position, argument),
-                DiagnosticEditProperties.EditType.Replace => editor.Generator.ReplaceArgument(_nodeToFix, _position, argument),
+                DiagnosticEditProperties.EditType.Insert => editor.Generator.InsertArguments(operation, _position, argument),
+                DiagnosticEditProperties.EditType.Replace => editor.Generator.ReplaceArgument(operation, _position, argument),
                 _ => throw new InvalidOperationException(),
             };
 

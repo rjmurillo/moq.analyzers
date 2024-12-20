@@ -1,9 +1,5 @@
-﻿using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Moq.CodeFixes;
 
