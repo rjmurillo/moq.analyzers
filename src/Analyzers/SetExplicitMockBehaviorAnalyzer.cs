@@ -102,10 +102,10 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            ImmutableDictionary<string, string?> properties = new Dictionary<string, string?>(StringComparer.Ordinal)
+            ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
             {
-                { DiagnosticEditProperties.EditTypeKey, DiagnosticEditProperties.EditType.Insert.ToString() },
-                { DiagnosticEditProperties.EditPositionKey, parameterMatch.Ordinal.ToString() },
+                TypeOfEdit = DiagnosticEditProperties.EditType.Insert,
+                EditPosition = parameterMatch.Ordinal,
             }.ToImmutableDictionary();
 
             // Using a method that doesn't accept a MockBehavior parameter, however there's an overload that does
@@ -123,10 +123,10 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            ImmutableDictionary<string, string?> properties = new Dictionary<string, string?>(StringComparer.Ordinal)
+            ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
             {
-                { DiagnosticEditProperties.EditTypeKey, DiagnosticEditProperties.EditType.Insert.ToString() },
-                { DiagnosticEditProperties.EditPositionKey, parameterMatch.Ordinal.ToString() },
+                TypeOfEdit = DiagnosticEditProperties.EditType.Insert,
+                EditPosition = parameterMatch.Ordinal,
             }.ToImmutableDictionary();
 
             context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
@@ -143,10 +143,10 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            ImmutableDictionary<string, string?> properties = new Dictionary<string, string?>(StringComparer.Ordinal)
+            ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
             {
-                { DiagnosticEditProperties.EditTypeKey, DiagnosticEditProperties.EditType.Replace.ToString() },
-                { DiagnosticEditProperties.EditPositionKey, parameterMatch.Ordinal.ToString() },
+                TypeOfEdit = DiagnosticEditProperties.EditType.Replace,
+                EditPosition = parameterMatch.Ordinal,
             }.ToImmutableDictionary();
 
             context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
