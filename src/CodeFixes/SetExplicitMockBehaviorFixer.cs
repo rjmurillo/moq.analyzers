@@ -1,4 +1,5 @@
 ﻿using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
@@ -19,12 +20,6 @@ public class SetExplicitMockBehaviorFixer : CodeFixProvider
         Strict,
     }
 
-    private enum EditType
-    {
-        Insert,
-        Replace,
-    }
-
     /// <inheritdoc />
     public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.SetExplicitMockBehavior);
 
@@ -37,16 +32,18 @@ public class SetExplicitMockBehaviorFixer : CodeFixProvider
         SyntaxNode? root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         SyntaxNode? nodeToFix = root?.FindNode(context.Span, getInnermostNodeForTie: true);
 
-        EditType editType = (EditType)Enum.Parse(typeof(EditType), context.Diagnostics[0].Properties["EditType"]); // TODO: Clean up
-        int position = int.Parse(context.Diagnostics[0].Properties["EditPosition"]); // TODO: Clean up
+        if (!context.TryGetEditProperties(out DiagnosticEditProperties? editProperties))
+        {
+            return;
+        }
 
         if (nodeToFix is null)
         {
             return;
         }
 
-        context.RegisterCodeFix(new SetExplicitMockBehaviorCodeAction("Set MockBehavior (Loose)", context.Document, nodeToFix, BehaviorType.Loose, editType, position), context.Diagnostics);
-        context.RegisterCodeFix(new SetExplicitMockBehaviorCodeAction("Set MockBehavior (Strict)", context.Document, nodeToFix, BehaviorType.Strict, editType, position), context.Diagnostics);
+        context.RegisterCodeFix(new SetExplicitMockBehaviorCodeAction("Set MockBehavior (Loose)", context.Document, nodeToFix, BehaviorType.Loose, editProperties.TypeOfEdit, editProperties.EditPosition), context.Diagnostics);
+        context.RegisterCodeFix(new SetExplicitMockBehaviorCodeAction("Set MockBehavior (Strict)", context.Document, nodeToFix, BehaviorType.Strict, editProperties.TypeOfEdit, editProperties.EditPosition), context.Diagnostics);
     }
 
     private sealed class SetExplicitMockBehaviorCodeAction : CodeAction
@@ -54,10 +51,10 @@ public class SetExplicitMockBehaviorFixer : CodeFixProvider
         private readonly Document _document;
         private readonly SyntaxNode _nodeToFix;
         private readonly BehaviorType _behaviorType;
-        private readonly EditType _editType;
+        private readonly DiagnosticEditProperties.EditType _editType;
         private readonly int _position;
 
-        public SetExplicitMockBehaviorCodeAction(string title, Document document, SyntaxNode nodeToFix, BehaviorType behaviorType, EditType editType, int position)
+        public SetExplicitMockBehaviorCodeAction(string title, Document document, SyntaxNode nodeToFix, BehaviorType behaviorType, DiagnosticEditProperties.EditType editType, int position)
         {
             Title = title;
             _document = document;
@@ -95,95 +92,13 @@ public class SetExplicitMockBehaviorFixer : CodeFixProvider
 
             SyntaxNode newNode = _editType switch
             {
-                EditType.Insert => editor.Generator.InsertArguments(_nodeToFix, _position, argument),
-                EditType.Replace => editor.Generator.ReplaceArgument(_nodeToFix, _position, argument),
+                DiagnosticEditProperties.EditType.Insert => editor.Generator.InsertArguments(_nodeToFix, _position, argument),
+                DiagnosticEditProperties.EditType.Replace => editor.Generator.ReplaceArgument(_nodeToFix, _position, argument),
                 _ => throw new InvalidOperationException(),
             };
 
             editor.ReplaceNode(_nodeToFix, newNode.WithAdditionalAnnotations(Simplifier.Annotation));
             return editor.GetChangedDocument();
         }
-    }
-}
-
-internal static class SyntaxGeneratorExtensions
-{
-    public static SyntaxNode MemberAccessExpression(this SyntaxGenerator generator, IFieldSymbol fieldSymbol)
-    {
-        return generator.MemberAccessExpression(generator.TypeExpression(fieldSymbol.Type), generator.IdentifierName(fieldSymbol.Name));
-    }
-
-    public static SyntaxNode InsertArguments(this SyntaxGenerator generator, SyntaxNode syntax, int index, params SyntaxNode[] items)
-    {
-        if (syntax is InvocationExpressionSyntax invocation)
-        {
-            if (items.Any(item => item is not ArgumentSyntax))
-            {
-                throw new ArgumentException("Must all be of type ArgumentSyntax", nameof(items));
-            }
-
-            SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
-
-            arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
-
-            syntax = syntax.ReplaceNode(invocation.ArgumentList, invocation.ArgumentList.WithArguments(arguments));
-
-            return syntax;
-        }
-
-        if (syntax is ObjectCreationExpressionSyntax creation)
-        {
-            if (items.Any(item => item is not ArgumentSyntax))
-            {
-                throw new ArgumentException("Must all be of type ArgumentSyntax", nameof(items));
-            }
-
-            SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList.Arguments;
-
-            arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
-
-            syntax = syntax.ReplaceNode(creation.ArgumentList, creation.ArgumentList.WithArguments(arguments));
-
-            return syntax;
-        }
-
-        throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
-    }
-
-    public static SyntaxNode ReplaceArgument(this SyntaxGenerator generator, SyntaxNode syntax, int index, SyntaxNode item) // TODO: Make this range-based
-    {
-        if (syntax is InvocationExpressionSyntax invocation)
-        {
-            if (item is not ArgumentSyntax argument)
-            {
-                throw new ArgumentException("Must be of type ArgumentSyntax", nameof(item));
-            }
-
-            SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
-
-            arguments = arguments.RemoveAt(index).Insert(index, argument);
-
-            syntax = syntax.ReplaceNode(invocation.ArgumentList, invocation.ArgumentList.WithArguments(arguments));
-
-            return syntax;
-        }
-
-        if (syntax is ObjectCreationExpressionSyntax creation)
-        {
-            if (item is not ArgumentSyntax argument)
-            {
-                throw new ArgumentException("Must be of type ArgumentSyntax", nameof(item));
-            }
-
-            SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList.Arguments;
-
-            arguments = arguments.RemoveAt(index).Insert(index, argument);
-
-            syntax = syntax.ReplaceNode(creation.ArgumentList, creation.ArgumentList.WithArguments(arguments));
-
-            return syntax;
-        }
-
-        throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
     }
 }

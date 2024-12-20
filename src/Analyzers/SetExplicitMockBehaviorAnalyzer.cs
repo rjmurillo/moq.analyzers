@@ -104,8 +104,8 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
 
             ImmutableDictionary<string, string?> properties = new Dictionary<string, string?>(StringComparer.Ordinal)
             {
-                { "EditType", "Insert" },
-                { "EditPosition", parameterMatch.Ordinal.ToString() },
+                { DiagnosticEditProperties.EditTypeKey, DiagnosticEditProperties.EditType.Insert.ToString() },
+                { DiagnosticEditProperties.EditPositionKey, parameterMatch.Ordinal.ToString() },
             }.ToImmutableDictionary();
 
             // Using a method that doesn't accept a MockBehavior parameter, however there's an overload that does
@@ -125,8 +125,8 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
 
             ImmutableDictionary<string, string?> properties = new Dictionary<string, string?>(StringComparer.Ordinal)
             {
-                { "EditType", "Insert" },
-                { "EditPosition", parameterMatch.Ordinal.ToString() },
+                { DiagnosticEditProperties.EditTypeKey, DiagnosticEditProperties.EditType.Insert.ToString() },
+                { DiagnosticEditProperties.EditPositionKey, parameterMatch.Ordinal.ToString() },
             }.ToImmutableDictionary();
 
             context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
@@ -145,12 +145,11 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
 
             ImmutableDictionary<string, string?> properties = new Dictionary<string, string?>(StringComparer.Ordinal)
             {
-                { "EditType", "Replace" },
-                { "EditPosition", parameterMatch.Ordinal.ToString() },
+                { DiagnosticEditProperties.EditTypeKey, DiagnosticEditProperties.EditType.Replace.ToString() },
+                { DiagnosticEditProperties.EditPositionKey, parameterMatch.Ordinal.ToString() },
             }.ToImmutableDictionary();
 
             context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
         }
     }
 }
-
