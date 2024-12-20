@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.Operations;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
 
@@ -89,6 +90,7 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
         AnalyzeCore(context, match, invocation.Arguments, knownSymbols);
     }
 
+    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
     private static void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols)
     {
         // Check if the target method has a parameter of type MockBehavior
