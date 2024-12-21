@@ -12,12 +12,14 @@
       These items impact our compatibility with SDK versions, so follow
       to strike a balance between compatibility and modernity.
 
-      These are the two main documents to reference how the Public API impacts users:
-      - https://github.com/dotnet/roslyn/blob/main/docs/wiki/NuGet-packages.md
+      These are the three main documents to reference how the Public API impacts users:
+      - https://github.com/dotnet/roslyn/blob/main/docs/wiki/NuGet-packages.md?plain=1
+      - https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs#lifecycle
       - https://learn.microsoft.com/en-us/visualstudio/productinfo/vs-servicing
     -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.1" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" />
+    <!-- We are using 4.8, which introduces .NET 8 and supports VS 2022 17.8 -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.11.0-beta1.24527.2" />
