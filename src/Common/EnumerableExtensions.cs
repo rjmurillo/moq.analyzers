@@ -1,11 +1,28 @@
-﻿namespace Moq.Analyzers.Common;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Moq.Analyzers.Common;
 
 internal static class EnumerableExtensions
 {
     /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
     public static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source)
     {
-        return source.DefaultIfNotSingle(_ => true);
+        return source.DefaultIfNotSingle(static _ => true);
+    }
+
+    /// <inheritdoc cref="DefaultIfNotSingle{TSource}(ImmutableArray{TSource}, Func{TSource, bool})"/>
+    public static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source)
+    {
+        return source.DefaultIfNotSingle(static _ => true);
+    }
+
+    /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+    /// <param name="source">The collection to enumerate.</param>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Should revisit. Suppressing for now to unblock refactor.")]
+    public static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source, Func<TSource, bool> predicate)
+    {
+        return source.AsEnumerable().DefaultIfNotSingle(predicate);
     }
 
     /// <summary>

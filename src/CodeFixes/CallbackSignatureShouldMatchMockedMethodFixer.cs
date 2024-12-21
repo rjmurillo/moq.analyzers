@@ -9,9 +9,9 @@ namespace Moq.CodeFixes;
 /// <summary>
 /// Fixes for CallbackSignatureShouldMatchMockedMethodAnalyzer (Moq1100).
 /// </summary>
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CallbackSignatureShouldMatchMockedMethodCodeFix))]
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CallbackSignatureShouldMatchMockedMethodFixer))]
 [Shared]
-public class CallbackSignatureShouldMatchMockedMethodCodeFix : CodeFixProvider
+public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 {
     /// <inheritdoc />
     public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.BadCallbackParameters);

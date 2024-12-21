@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.Operations;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
 
@@ -43,94 +44,114 @@ public class SetExplicitMockBehaviorAnalyzer : DiagnosticAnalyzer
         }
 
         // Look for the MockBehavior type and provide it to Analyze to avoid looking it up multiple times.
-        INamedTypeSymbol? mockBehaviorSymbol = knownSymbols.MockBehavior;
-        if (mockBehaviorSymbol is null)
+        if (knownSymbols.MockBehavior is null)
         {
             return;
         }
 
-        // Look for the Mock.Of() method and provide it to Analyze to avoid looking it up multiple times.
-        ImmutableArray<IMethodSymbol> ofMethods = knownSymbols.MockOf;
+        context.RegisterOperationAction(context => AnalyzeObjectCreation(context, knownSymbols), OperationKind.ObjectCreation);
 
-        ImmutableArray<INamedTypeSymbol> mockTypes =
-            new INamedTypeSymbol?[] { knownSymbols.Mock1, knownSymbols.MockRepository }
-            .WhereNotNull()
-            .ToImmutableArray();
-
-        context.RegisterOperationAction(
-            context => AnalyzeNewObject(context, mockTypes, mockBehaviorSymbol),
-            OperationKind.ObjectCreation);
-
-        if (!ofMethods.IsEmpty)
-        {
-            context.RegisterOperationAction(
-                context => AnalyzeInvocation(context, ofMethods, mockBehaviorSymbol),
-                OperationKind.Invocation);
-        }
+        context.RegisterOperationAction(context => AnalyzeInvocation(context, knownSymbols), OperationKind.Invocation);
     }
 
-    private static void AnalyzeNewObject(OperationAnalysisContext context, ImmutableArray<INamedTypeSymbol> mockTypes, INamedTypeSymbol mockBehaviorSymbol)
+    private static void AnalyzeObjectCreation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        if (context.Operation is not IObjectCreationOperation creationOperation)
+        if (context.Operation is not IObjectCreationOperation creation)
         {
             return;
         }
 
-        if (creationOperation.Type is not INamedTypeSymbol namedType)
+        if (creation.Type is null ||
+            creation.Constructor is null ||
+            !(creation.Type.IsInstanceOf(knownSymbols.Mock1) || creation.Type.IsInstanceOf(knownSymbols.MockRepository)))
+        {
+            // We could expand this check to include any method that accepts a MockBehavior parameter.
+            // Leaving it narrowly scoped for now to avoid false positives and potential performance problems.
+            return;
+        }
+
+        AnalyzeCore(context, creation.Constructor, creation.Arguments, knownSymbols);
+    }
+
+    private static void AnalyzeInvocation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
+    {
+        if (context.Operation is not IInvocationOperation invocation)
         {
             return;
         }
 
-        if (!namedType.IsInstanceOf(mockTypes))
+        if (!invocation.TargetMethod.IsInstanceOf(knownSymbols.MockOf, out IMethodSymbol? match))
         {
+            // We could expand this check to include any method that accepts a MockBehavior parameter.
+            // Leaving it narrowly scoped for now to avoid false positives and potential performance problems.
             return;
         }
 
-        foreach (IArgumentOperation argument in creationOperation.Arguments)
+        AnalyzeCore(context, match, invocation.Arguments, knownSymbols);
+    }
+
+    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
+    private static void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols)
+    {
+        // Check if the target method has a parameter of type MockBehavior
+        IParameterSymbol? mockParameter = target.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
+
+        // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
+        if (mockParameter is null && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out IMethodSymbol? methodMatch, out _, cancellationToken: context.CancellationToken))
         {
-            if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
+            if (!methodMatch.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
             {
-                ISymbol field = fieldReferenceOperation.Member;
-                if (field.ContainingType.IsInstanceOf(mockBehaviorSymbol) && IsExplicitBehavior(field.Name))
-                {
-                    return;
-                }
+                return;
             }
-        }
 
-        context.ReportDiagnostic(creationOperation.CreateDiagnostic(Rule));
-    }
-
-    private static void AnalyzeInvocation(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownOfMethods, INamedTypeSymbol mockBehaviorSymbol)
-    {
-        if (context.Operation is not IInvocationOperation invocationOperation)
-        {
-            return;
-        }
-
-        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
-        if (!targetMethod.IsInstanceOf(wellKnownOfMethods))
-        {
-            return;
-        }
-
-        foreach (IArgumentOperation argument in invocationOperation.Arguments)
-        {
-            if (argument.Value is IFieldReferenceOperation fieldReferenceOperation)
+            ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
             {
-                ISymbol field = fieldReferenceOperation.Member;
-                if (field.ContainingType.IsInstanceOf(mockBehaviorSymbol) && IsExplicitBehavior(field.Name))
-                {
-                    return;
-                }
-            }
+                TypeOfEdit = DiagnosticEditProperties.EditType.Insert,
+                EditPosition = parameterMatch.Ordinal,
+            }.ToImmutableDictionary();
+
+            // Using a method that doesn't accept a MockBehavior parameter, however there's an overload that does
+            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
+            return;
         }
 
-        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(Rule));
-    }
+        IArgumentOperation? mockArgument = arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
 
-    private static bool IsExplicitBehavior(string symbolName)
-    {
-        return string.Equals(symbolName, "Loose", StringComparison.Ordinal) || string.Equals(symbolName, "Strict", StringComparison.Ordinal);
+        // Is the behavior set via a default value?
+        if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue && mockArgument.Value.WalkDownConversion().ConstantValue.Value == knownSymbols.MockBehaviorDefault?.ConstantValue)
+        {
+            if (!target.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
+            {
+                return;
+            }
+
+            ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
+            {
+                TypeOfEdit = DiagnosticEditProperties.EditType.Insert,
+                EditPosition = parameterMatch.Ordinal,
+            }.ToImmutableDictionary();
+
+            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
+        }
+
+        // NOTE: This logic can't handle indirection (e.g. var x = MockBehavior.Default; new Mock(x);). We can't use the constant value either,
+        // as Loose and Default share the same enum value: `1`. Being more accurate I believe requires data flow analysis.
+        //
+        // The operation specifies a MockBehavior; is it MockBehavior.Default?
+        if (mockArgument?.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorDefault)) == true)
+        {
+            if (!target.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
+            {
+                return;
+            }
+
+            ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
+            {
+                TypeOfEdit = DiagnosticEditProperties.EditType.Replace,
+                EditPosition = parameterMatch.Ordinal,
+            }.ToImmutableDictionary();
+
+            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
+        }
     }
 }

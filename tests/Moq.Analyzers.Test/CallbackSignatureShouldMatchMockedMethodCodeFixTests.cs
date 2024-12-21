@@ -1,4 +1,4 @@
-using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer, Moq.CodeFixes.CallbackSignatureShouldMatchMockedMethodCodeFix>;
+using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer, Moq.CodeFixes.CallbackSignatureShouldMatchMockedMethodFixer>;
 
 namespace Moq.Analyzers.Test;
 
