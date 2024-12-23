@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Moq.Analyzers.Common;
 
@@ -26,22 +27,55 @@ internal static class ISymbolExtensions
     {
         symbolEqualityComparer ??= SymbolEqualityComparer.Default;
 
-        if (symbol is IMethodSymbol methodSymbol)
+        if (symbol is IMethodSymbol method)
         {
-            return symbolEqualityComparer.Equals(methodSymbol.OriginalDefinition, other);
+            return symbolEqualityComparer.Equals(method.OriginalDefinition, other);
         }
 
-        if (symbol is INamedTypeSymbol namedTypeSymbol)
+        if (symbol is IParameterSymbol parameter && other is IParameterSymbol otherParameter)
         {
-            if (namedTypeSymbol.IsGenericType)
+            return parameter.Ordinal == otherParameter.Ordinal
+                   && symbolEqualityComparer.Equals(parameter.OriginalDefinition, otherParameter.OriginalDefinition);
+        }
+
+        if (symbol is INamedTypeSymbol namedType)
+        {
+            if (namedType.IsGenericType)
             {
-                namedTypeSymbol = namedTypeSymbol.ConstructedFrom;
+                namedType = namedType.ConstructedFrom;
             }
 
-            return symbolEqualityComparer.Equals(namedTypeSymbol, other);
+            return symbolEqualityComparer.Equals(namedType, other);
         }
 
         return symbolEqualityComparer.Equals(symbol, other);
+    }
+
+    /// <inheritdoc cref="IsInstanceOf{TSymbol}(ISymbol, TSymbol, SymbolEqualityComparer?)"/>
+    /// <param name="symbol">The symbol to compare.</param>
+    /// <param name="others">
+    /// The symbols to compare to. Returns <see langword="true"/> if <paramref name="symbol"/> matches any of others.
+    /// </param>
+    /// <param name="matchingSymbol">
+    /// The matching symbol if <paramref name="symbol"/> is an instance of any of <paramref name="others"/>. <see langword="null"/> otherwise.
+    /// </param>
+    /// <param name="symbolEqualityComparer">The <see cref="SymbolEqualityComparer"/> to use for equality.</param>
+    public static bool IsInstanceOf<TSymbol>(this ISymbol symbol, ImmutableArray<TSymbol> others, [NotNullWhen(true)] out TSymbol? matchingSymbol, SymbolEqualityComparer? symbolEqualityComparer = null)
+        where TSymbol : class, ISymbol
+    {
+        symbolEqualityComparer ??= SymbolEqualityComparer.Default;
+
+        foreach (TSymbol other in others)
+        {
+            if (symbol.IsInstanceOf(other, symbolEqualityComparer))
+            {
+                matchingSymbol = other;
+                return true;
+            }
+        }
+
+        matchingSymbol = null;
+        return false;
     }
 
     /// <inheritdoc cref="IsInstanceOf{TSymbol}(ISymbol, TSymbol, SymbolEqualityComparer?)"/>
@@ -53,9 +87,7 @@ internal static class ISymbolExtensions
     public static bool IsInstanceOf<TSymbol>(this ISymbol symbol, ImmutableArray<TSymbol> others, SymbolEqualityComparer? symbolEqualityComparer = null)
         where TSymbol : class, ISymbol
     {
-        symbolEqualityComparer ??= SymbolEqualityComparer.Default;
-
-        return others.Any(other => symbol.IsInstanceOf(other, symbolEqualityComparer));
+        return symbol.IsInstanceOf(others, out _, symbolEqualityComparer);
     }
 
     public static bool IsConstructor(this ISymbol symbol)

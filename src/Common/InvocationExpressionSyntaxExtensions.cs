@@ -1,4 +1,6 @@
-﻿namespace Moq.Analyzers.Common;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Moq.Analyzers.Common;
 
 /// <summary>
 /// Extension methods for <see cref="InvocationExpressionSyntax"/>s.
