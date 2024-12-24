@@ -99,9 +99,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return targetSymbol.IsInstanceOf(knownSymbols.MockBehavior);
     }
 
-    private static bool IsArgumentMockBehavior(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ArgumentListSyntax? argumentList, int argumentOrdinal)
+    private static bool IsArgumentMockBehavior(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ArgumentListSyntax? argumentList, uint argumentOrdinal)
     {
-        ExpressionSyntax? expression = argumentList?.Arguments.Count > argumentOrdinal ? argumentList.Arguments[argumentOrdinal].Expression : null;
+        ExpressionSyntax? expression = argumentList?.Arguments.Count > argumentOrdinal ? argumentList.Arguments[(int)argumentOrdinal].Expression : null;
 
         return IsExpressionMockBehavior(context, knownSymbols, expression);
     }
