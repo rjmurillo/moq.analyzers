@@ -1,4 +1,4 @@
-﻿using System.Composition;
+using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Moq.CodeFixes;
