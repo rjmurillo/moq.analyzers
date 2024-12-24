@@ -99,16 +99,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return targetSymbol.IsInstanceOf(knownSymbols.MockBehavior);
     }
 
-    private static bool IsFirstArgumentMockBehavior(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ArgumentListSyntax? argumentList)
+    private static bool IsArgumentMockBehavior(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ArgumentListSyntax? argumentList, int argumentOrdinal)
     {
-        ExpressionSyntax? expression = argumentList?.Arguments[0].Expression;
-
-        return IsExpressionMockBehavior(context, knownSymbols, expression);
-    }
-
-    private static bool IsSecondArgumentMockBehavior(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ArgumentListSyntax? argumentList)
-    {
-        ExpressionSyntax? expression = argumentList?.Arguments[1].Expression;
+        ExpressionSyntax? expression = argumentList?.Arguments.Count > argumentOrdinal ? argumentList.Arguments[argumentOrdinal].Expression : null;
 
         return IsExpressionMockBehavior(context, knownSymbols, expression);
     }
@@ -416,12 +409,12 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         if (hasMockBehavior && arguments.Length > 0)
         {
-            if (arguments.Length >= 1 && IsFirstArgumentMockBehavior(context, knownSymbols, argumentList))
+            if (arguments.Length >= 1 && IsArgumentMockBehavior(context, knownSymbols, argumentList, 0))
             {
                 // They passed a mock behavior as the first argument; ignore as Moq swallows it
                 arguments = arguments.RemoveAt(0);
             }
-            else if (arguments.Length >= 2 && IsSecondArgumentMockBehavior(context, knownSymbols, argumentList))
+            else if (arguments.Length >= 2 && IsArgumentMockBehavior(context, knownSymbols, argumentList, 1))
             {
                 // They passed a mock behavior as the second argument; ignore as Moq swallows it
                 arguments = arguments.RemoveAt(1);
