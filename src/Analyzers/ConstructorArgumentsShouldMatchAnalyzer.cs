@@ -106,6 +106,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return IsExpressionMockBehavior(context, knownSymbols, expression);
     }
 
+    private static bool IsSecondArgumentMockBehavior(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ArgumentListSyntax? argumentList)
+    {
+        ExpressionSyntax? expression = argumentList?.Arguments[1].Expression;
+
+        return IsExpressionMockBehavior(context, knownSymbols, expression);
+    }
+
     private static void VerifyDelegateMockAttempt(
     SyntaxNodeAnalysisContext context,
     ArgumentListSyntax? argumentList,
@@ -267,10 +274,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <param name="constructors">The constructors.</param>
     /// <param name="arguments">The arguments.</param>
     /// <param name="context">The context.</param>
-    /// <returns><c>true</c> if a suitable constructor was found; otherwise <c>false</c>. </returns>
+    /// <returns>
+    /// <see langword="true" /> if a suitable constructor was found; otherwise <see langword="false" />.
+    /// If the construction method is a parenthesized lambda expression, <see langword="null" /> is returned.
+    /// </returns>
     /// <remarks>Handles <see langword="params" /> and optional parameters.</remarks>
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "This should be refactored; suppressing for now to enable TreatWarningsAsErrors in CI.")]
-    private static bool AnyConstructorsFound(
+    private static bool? AnyConstructorsFound(
         IMethodSymbol[] constructors,
         ArgumentSyntax[] arguments,
         SyntaxNodeAnalysisContext context)
@@ -348,6 +358,24 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             }
         }
 
+        // Special case for Lambda expression syntax
+        // In Moq you can specify a Lambda expression that creates an instance
+        // of the specified type
+        // See https://github.com/devlooped/moq/blob/18dc7410ad4f993ce0edd809c5dfcaa3199f13ff/src/Moq/Mock%601.cs#L200
+        //
+        // The parenthesized lambda takes arguments as the first child node
+        // which may be empty or have args defined as part of a closure.
+        // Either way, we don't care about that, we only care that the
+        // constructor is valid.
+        //
+        // Since this does not use reflection through Castle, an invalid
+        // lambda here would cause the compiler to break, so no need to
+        // do additional checks.
+        if (arguments.Length == 1 && arguments[0].Expression.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+        {
+            return null;
+        }
+
         return false;
     }
 
@@ -386,10 +414,18 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         ArgumentSyntax[] arguments = argumentList?.Arguments.ToArray() ?? [];
 #pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
 
-        if (hasMockBehavior && arguments.Length > 0 && IsFirstArgumentMockBehavior(context, knownSymbols, argumentList))
+        if (hasMockBehavior && arguments.Length > 0)
         {
-            // They passed a mock behavior as the first argument; ignore as Moq swallows it
-            arguments = arguments.RemoveAt(0);
+            if (arguments.Length >= 1 && IsFirstArgumentMockBehavior(context, knownSymbols, argumentList))
+            {
+                // They passed a mock behavior as the first argument; ignore as Moq swallows it
+                arguments = arguments.RemoveAt(0);
+            }
+            else if (arguments.Length >= 2 && IsSecondArgumentMockBehavior(context, knownSymbols, argumentList))
+            {
+                // They passed a mock behavior as the second argument; ignore as Moq swallows it
+                arguments = arguments.RemoveAt(1);
+            }
         }
 
         switch (mockedClass.TypeKind)
@@ -433,7 +469,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         // We have constructors, now we need to check if the arguments match any of them
-        if (!AnyConstructorsFound(constructors, arguments, context))
+        // If the value is null it means we want to ignore and not create a diagnostic
+        bool? matchingCtorFound = AnyConstructorsFound(constructors, arguments, context);
+        if (matchingCtorFound.HasValue && !matchingCtorFound.Value)
         {
             Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
             context.ReportDiagnostic(diagnostic);
