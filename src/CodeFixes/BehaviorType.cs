@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace Moq.CodeFixes;
+﻿namespace Moq.CodeFixes;
 
 /// <summary>
 /// Options to customize the behavior of Moq.
