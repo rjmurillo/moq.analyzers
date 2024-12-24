@@ -14,7 +14,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
 
     [Theory]
     [MemberData(nameof(ExpressionTestData))]
-    public async Task ExpressionConstructor(string referenceAssemblyGroup, string @namespace, string mock)
+    public async Task ShouldPassIfExpressionWithDefaultCtorIsUsedWithMockBehavior(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
             $@"
