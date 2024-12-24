@@ -8,7 +8,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
     {
         return new object[][]
         {
-            ["""_ = new Mock<Calculator>(() => new Calculator(), MockBehavior.Loose);"""]
+            ["""_ = new Mock<Calculator>(() => new Calculator(), MockBehavior.Loose);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
