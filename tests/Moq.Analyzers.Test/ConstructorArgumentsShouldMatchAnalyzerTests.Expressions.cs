@@ -9,6 +9,9 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
         return new object[][]
         {
             ["""_ = new Mock<Calculator>(() => new Calculator(), MockBehavior.Loose);"""],
+            ["""_ = new Mock<Calculator>(() => new Calculator(), MockBehavior.Strict);"""],
+            ["""_ = new Mock<Calculator>(() => new Calculator(), MockBehavior.Default);"""],
+            ["""_ = new Mock<Calculator>(() => new Calculator());"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
