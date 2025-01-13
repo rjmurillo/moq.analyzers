@@ -4,22 +4,22 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Moq.Analyzers;
 
 /// <summary>
-/// Mock should explicitly specify a behavior and not rely on the default.
+/// Mock should explicitly specify Strict behavior.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
+public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
 {
-    private static readonly LocalizableString Title = "Moq: Explicitly choose a mock behavior";
-    private static readonly LocalizableString Message = "Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior";
+    private static readonly LocalizableString Title = "Moq: Set MockBehavior to Strict";
+    private static readonly LocalizableString Message = "Explicitly set the Strict mocking behavior";
 
     private static readonly DiagnosticDescriptor Rule = new(
-        DiagnosticIds.SetExplicitMockBehavior,
+        DiagnosticIds.SetStrictMockBehavior,
         Title,
         Message,
         DiagnosticCategory.Moq,
-        DiagnosticSeverity.Warning,
+        DiagnosticSeverity.Info,
         isEnabledByDefault: true,
-        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.SetExplicitMockBehavior}.md");
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.SetStrictMockBehavior}.md");
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
@@ -67,13 +67,14 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
             }.ToImmutableDictionary();
 
             context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
+            return;
         }
 
-        // NOTE: This logic can't handle indirection (e.g. var x = MockBehavior.Default; new Mock(x);). We can't use the constant value either,
-        // as Loose and Default share the same enum value: `1`. Being more accurate I believe requires data flow analysis.
+        // NOTE: This logic can't handle indirection (e.g. var x = MockBehavior.Default; new Mock(x);)
         //
-        // The operation specifies a MockBehavior; is it MockBehavior.Default?
-        if (mockArgument?.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorDefault)) == true)
+        // The operation specifies a MockBehavior; is it MockBehavior.Strict?
+        if (mockArgument?.Value.WalkDownConversion().ConstantValue.Value != knownSymbols.MockBehaviorStrict?.ConstantValue
+            && mockArgument?.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorStrict)) != true)
         {
             if (!target.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
             {
