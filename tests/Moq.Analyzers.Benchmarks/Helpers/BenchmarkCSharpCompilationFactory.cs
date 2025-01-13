@@ -18,8 +18,8 @@ internal static class BenchmarkCSharpCompilationFactory
             throw new InvalidOperationException("Failed to create compilation");
         }
 
-        CompilationWithAnalyzers baseline = compilation.WithAnalyzers([new EmptyDiagnosticAnalyzer()], options, CancellationToken.None);
-        CompilationWithAnalyzers test = compilation.WithAnalyzers([new TAnalyzer()], options, CancellationToken.None);
+        CompilationWithAnalyzers baseline = compilation.WithAnalyzers([new EmptyDiagnosticAnalyzer()], options);
+        CompilationWithAnalyzers test = compilation.WithAnalyzers([new TAnalyzer()], options);
 
         return (baseline, test);
     }
@@ -37,9 +37,9 @@ internal static class BenchmarkCSharpCompilationFactory
             throw new InvalidOperationException("Failed to create compilation");
         }
 
-        CompilationWithAnalyzers baseline = compilation.WithAnalyzers([new EmptyDiagnosticAnalyzer()], options, CancellationToken.None);
-        CompilationWithAnalyzers test1 = compilation.WithAnalyzers([new TAnalyzer1()], options, CancellationToken.None);
-        CompilationWithAnalyzers test2 = compilation.WithAnalyzers([new TAnalyzer2()], options, CancellationToken.None);
+        CompilationWithAnalyzers baseline = compilation.WithAnalyzers([new EmptyDiagnosticAnalyzer()], options);
+        CompilationWithAnalyzers test1 = compilation.WithAnalyzers([new TAnalyzer1()], options);
+        CompilationWithAnalyzers test2 = compilation.WithAnalyzers([new TAnalyzer2()], options);
 
         return (baseline, test1, test2);
     }
