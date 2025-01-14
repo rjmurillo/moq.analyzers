@@ -621,7 +621,7 @@
 - {Id: MA0154, Title: Use langword in XML comment, Category: Design, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0155, Title: Do not use async void methods, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: MA0156, Title: Use 'Async' suffix when a method returns IAsyncEnumerable<T>, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
-- {Id: MA0157, Title: Do not use 'Async' suffix when a method does not return IAsyncEnumerable<T>, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
+- {Id: MA0157, Title: Do not use 'Async' suffix when a method returns IAsyncEnumerable<T>, Category: Design, DefaultSeverity: Warning, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: MA0158, Title: Use System.Threading.Lock, Category: Performance, DefaultSeverity: Warning, IsEnabledByDefault: true, EffectiveSeverities: [Error], IsEverSuppressed: false}
 - {Id: MA0159, Title: Use 'Order' instead of 'OrderBy', Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: MA0160, Title: Use ContainsKey instead of TryGetValue, Category: Performance, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
