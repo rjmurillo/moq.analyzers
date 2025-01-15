@@ -22,7 +22,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.11.0-beta1.24527.2" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.11.0-beta1.24605.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.13.12" />
     <PackageVersion Include="GetPackFromProject" Version="1.0.10" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
