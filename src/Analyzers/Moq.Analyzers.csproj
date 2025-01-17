@@ -7,6 +7,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput><!-- Don't place the output assembly in the package's lib/ folder -->
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking><!-- Don't add the TargetFramework as a package dependency -->
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules><!-- Resolves RS1036 -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies><!-- Because we're a compiler plugin, we need to bundle any dependencies into our package -->
   </PropertyGroup>
 
   <PropertyGroup Label="Package metadata">
@@ -39,6 +40,7 @@
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
     <None Include="$(OutputPath)\Moq.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)\Moq.CodeFixes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\Microsoft.CodeAnalysis.AnalyzerUtilities.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
