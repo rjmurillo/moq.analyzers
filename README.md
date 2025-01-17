@@ -20,6 +20,8 @@ something is wrong with your Moq configuration.
 * Moq1200: Setup should be used only for overridable members
 * Moq1201: Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`
 * Moq1300: Mock.As() should take interfaces
+* Moq1400: Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior
+* Moq1410: Explicitly set the Strict mocking behavior
 
 See [docs/rules](./docs/rules/README.md) for full documentation.
 
