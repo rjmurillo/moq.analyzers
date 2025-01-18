@@ -7,7 +7,7 @@ permissions:
   pull-requests: write
 jobs:
   add_milestone:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     if: ${{ github.repository == 'rjmurillo/moq.analyzers' && github.event.pull_request.merged_at != null && github.event.pull_request.milestone == null && github.event.pull_request.base.ref == 'main' }}
     steps:
     - name: Get milestone data

@@ -21,7 +21,7 @@ jobs:
 
   publish:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Download packages
         uses: actions/download-artifact@v4
