@@ -4,6 +4,7 @@
 |-- analyzers
 |   |-- dotnet
 |   |   |-- cs
+|   |   |   |-- Microsoft.CodeAnalysis.AnalyzerUtilities.dll
 |   |   |   |-- Moq.Analyzers.dll
 |   |   |   |-- Moq.CodeFixes.dll
 |-- tools
