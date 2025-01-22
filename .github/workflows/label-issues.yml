@@ -11,7 +11,7 @@ jobs:
   label_issues:
     name: "Issue: add labels"
     if: ${{ github.event.action == 'opened' || github.event.action == 'reopened' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     permissions:
       issues: write
     steps:
