@@ -1,18 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Microsoft.Extensions.Logging;
-
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.Rendering;
+using Microsoft.Extensions.Logging;
 
 namespace PerfDiff.Logging
 {
     internal sealed class SimpleConsoleLogger : ILogger
     {
-        private readonly object _gate = new();
+        private readonly Lock _gate = new();
 
         private readonly IConsole _console;
         private readonly ITerminal _terminal;
