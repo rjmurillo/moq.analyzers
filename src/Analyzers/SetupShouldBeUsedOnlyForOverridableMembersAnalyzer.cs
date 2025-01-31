@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
 
@@ -28,51 +29,52 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
+
+        // Instead of registering a syntax node action on InvocationExpression,
+        // we now register an operation action on IInvocationOperation.
+        context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
     }
 
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
-    private static void Analyze(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeInvocation(OperationAnalysisContext context)
     {
-        InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
+        IInvocationOperation invocationOperation = (IInvocationOperation)context.Operation;
+        SemanticModel? semanticModel = invocationOperation.SemanticModel;
 
-        MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
-
-        if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
+        if (semanticModel == null)
         {
             return;
         }
 
-        SymbolInfo memberAccessSymbolInfo = context.SemanticModel.GetSymbolInfo(memberAccessExpression, context.CancellationToken);
-        if (memberAccessSymbolInfo.Symbol is null || !context.SemanticModel.IsMoqSetupMethod(knownSymbols, memberAccessSymbolInfo.Symbol, context.CancellationToken))
+        MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
+        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
+
+        // 1. Check if the invoked method is a Moq Setup method
+        if (!semanticModel.IsMoqSetupMethod(knownSymbols, targetMethod, context.CancellationToken))
         {
             return;
         }
 
-        ExpressionSyntax? mockedMemberExpression = setupInvocation.FindMockedMemberExpressionFromSetupMethod();
-        if (mockedMemberExpression == null)
+        // 2. Attempt to locate the member reference from the Setup expression argument.
+        //    Typically, Moq setup calls have a single lambda argument like x => x.SomeMember.
+        //    We'll extract that member reference or invocation to see whether it is overridable.
+        ISymbol? mockedMemberSymbol = TryGetMockedMemberSymbol(invocationOperation);
+        if (mockedMemberSymbol == null)
         {
             return;
         }
 
-        SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
-        ISymbol? symbol = symbolInfo.Symbol;
-
-        if (symbol is null)
+        // 3. Skip if the symbol is part of an interface, those are always "overridable".
+        if (mockedMemberSymbol.ContainingType?.TypeKind == TypeKind.Interface)
         {
             return;
         }
 
-        // Skip if it's part of an interface
-        if (symbol.ContainingType.TypeKind == TypeKind.Interface)
-        {
-            return;
-        }
-
-        switch (symbol)
+        // 4. Check if symbol is a property or method, and if it is overridable or is returning a Task (which Moq allows).
+        switch (mockedMemberSymbol)
         {
             case IPropertySymbol propertySymbol:
-                // Check if the property is Task<T>.Result and skip diagnostic if it is
+                // If the property is Task<T>.Result, skip diagnostic
                 if (IsTaskResultProperty(propertySymbol, knownSymbols))
                 {
                     return;
@@ -84,6 +86,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
                 }
 
                 break;
+
             case IMethodSymbol methodSymbol:
                 if (methodSymbol.IsOverridable() || methodSymbol.IsMethodReturnTypeTask())
                 {
@@ -91,12 +94,54 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
                 }
 
                 break;
+
+            default:
+                // If it's not a property or method, we do not issue a diagnostic
+                return;
         }
 
-        Diagnostic diagnostic = mockedMemberExpression.CreateDiagnostic(Rule);
+        // 5. If we reach here, the member is neither overridable nor allowed by Moq
+        //    So we report the diagnostic.
+        //
+        // NOTE: The location is on the invocationOperation, which is fairly broad
+        Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule);
         context.ReportDiagnostic(diagnostic);
     }
 
+    /// <summary>
+    /// Attempts to resolve the symbol representing the member (property or method)
+    /// being referenced in the Setup(...) call. Returns null if it cannot be determined.
+    /// </summary>
+    private static ISymbol? TryGetMockedMemberSymbol(IInvocationOperation moqSetupInvocation)
+    {
+        // Usually the first argument to a Moq Setup(...) is a lambda expression like x => x.Property
+        // or x => x.Method(...). We can look at moqSetupInvocation.Arguments[0].Value to see this.
+        //
+        // In almost all Moq setups, the first argument is the expression (lambda) to be analyzed.
+        if (moqSetupInvocation.Arguments.Length == 0)
+        {
+            return null;
+        }
+
+        IOperation argumentOperation = moqSetupInvocation.Arguments[0].Value;
+
+        // 1) Unwrap conversions (Roslyn often wraps lambdas in IConversionOperation).
+        argumentOperation = argumentOperation.UnwrapConversion();
+
+        if (argumentOperation is IAnonymousFunctionOperation lambdaOperation)
+        {
+            // If it's a simple lambda of the form x => x.SomeMember,
+            // the body often ends up as an IPropertyReferenceOperation or IInvocationOperation.
+            return lambdaOperation.Body.TryGetReferencedMemberSymbolFromLambda();
+        }
+
+        // Sometimes it might be a delegate creation or something else. Handle other patterns if needed.
+        return null;
+    }
+
+    /// <summary>
+    /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/>.
+    /// </summary>
     private static bool IsTaskResultProperty(IPropertySymbol propertySymbol, MoqKnownSymbols knownSymbols)
     {
         // Check if the property is named "Result"

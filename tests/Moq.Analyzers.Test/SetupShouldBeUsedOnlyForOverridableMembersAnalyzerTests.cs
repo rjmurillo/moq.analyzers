@@ -8,9 +8,9 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITestOutput
     {
         return new object[][]
         {
-            ["""new Mock<BaseSampleClass>().Setup(x => {|Moq1200:x.Calculate()|});"""],
-            ["""new Mock<SampleClass>().Setup(x => {|Moq1200:x.Property|});"""],
-            ["""new Mock<SampleClass>().Setup(x => {|Moq1200:x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())|});"""],
+            ["""{|Moq1200:new Mock<BaseSampleClass>().Setup(x => x.Calculate())|};"""],
+            ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.Property)|};"""],
+            ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))|};"""],
             ["""new Mock<BaseSampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
             ["""new Mock<ISampleInterface>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
             ["""new Mock<ISampleInterface>().Setup(x => x.TestProperty);"""],
