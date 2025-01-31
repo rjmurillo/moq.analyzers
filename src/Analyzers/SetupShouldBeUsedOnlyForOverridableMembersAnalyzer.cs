@@ -71,33 +71,9 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         }
 
         // 4. Check if symbol is a property or method, and if it is overridable or is returning a Task (which Moq allows).
-        switch (mockedMemberSymbol)
+        if (IsPropertyOrMethod(mockedMemberSymbol, knownSymbols))
         {
-            case IPropertySymbol propertySymbol:
-                // If the property is Task<T>.Result, skip diagnostic
-                if (IsTaskResultProperty(propertySymbol, knownSymbols))
-                {
-                    return;
-                }
-
-                if (propertySymbol.IsOverridable() || propertySymbol.IsMethodReturnTypeTask())
-                {
-                    return;
-                }
-
-                break;
-
-            case IMethodSymbol methodSymbol:
-                if (methodSymbol.IsOverridable() || methodSymbol.IsMethodReturnTypeTask())
-                {
-                    return;
-                }
-
-                break;
-
-            default:
-                // If it's not a property or method, we do not issue a diagnostic
-                return;
+            return;
         }
 
         // 5. If we reach here, the member is neither overridable nor allowed by Moq
@@ -106,6 +82,40 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         // NOTE: The location is on the invocationOperation, which is fairly broad
         Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule);
         context.ReportDiagnostic(diagnostic);
+    }
+
+    private static bool IsPropertyOrMethod(ISymbol mockedMemberSymbol, MoqKnownSymbols knownSymbols)
+    {
+        switch (mockedMemberSymbol)
+        {
+            case IPropertySymbol propertySymbol:
+                // If the property is Task<T>.Result, skip diagnostic
+                if (IsTaskResultProperty(propertySymbol, knownSymbols))
+                {
+                    return true;
+                }
+
+                if (propertySymbol.IsOverridable() || propertySymbol.IsMethodReturnTypeTask())
+                {
+                    return true;
+                }
+
+                break;
+
+            case IMethodSymbol methodSymbol:
+                if (methodSymbol.IsOverridable() || methodSymbol.IsMethodReturnTypeTask())
+                {
+                    return true;
+                }
+
+                break;
+
+            default:
+                // If it's not a property or method, we do not issue a diagnostic
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>
