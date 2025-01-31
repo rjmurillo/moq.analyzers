@@ -109,6 +109,12 @@ internal static class ISymbolExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsOverridable(this ISymbol symbol)
     {
-        return !symbol.IsSealed && (symbol.IsVirtual || symbol.IsAbstract || symbol is { IsOverride: true, IsSealed: false });
+        return symbol switch
+        {
+            IMethodSymbol { IsStatic: true } or IPropertySymbol { IsStatic: true } => false,
+            _ when symbol.ContainingType?.TypeKind == TypeKind.Interface => true,
+            _ => !symbol.IsSealed &&
+                 (symbol.IsVirtual || symbol.IsAbstract || symbol is { IsOverride: true, IsSealed: false })
+        };
     }
 }
