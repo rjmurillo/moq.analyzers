@@ -38,7 +38,11 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
     private static void AnalyzeInvocation(OperationAnalysisContext context)
     {
-        IInvocationOperation invocationOperation = (IInvocationOperation)context.Operation;
+        if (context.Operation is not IInvocationOperation invocationOperation)
+        {
+            return;
+        }
+
         SemanticModel? semanticModel = invocationOperation.SemanticModel;
 
         if (semanticModel == null)
