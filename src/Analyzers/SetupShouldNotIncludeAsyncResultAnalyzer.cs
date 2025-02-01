@@ -50,7 +50,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
         }
 
         SymbolInfo memberAccessSymbolInfo = context.SemanticModel.GetSymbolInfo(memberAccessExpression, context.CancellationToken);
-        if (memberAccessSymbolInfo.Symbol is null || !context.SemanticModel.IsMoqSetupMethod(knownSymbols, memberAccessSymbolInfo.Symbol, context.CancellationToken))
+        if (memberAccessSymbolInfo.Symbol is null || !memberAccessSymbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
         {
             return;
         }

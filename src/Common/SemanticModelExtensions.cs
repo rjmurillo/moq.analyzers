@@ -21,7 +21,7 @@ internal static class SemanticModelExtensions
             return null;
         }
 
-        if (semanticModel.IsMoqSetupMethod(knownSymbols, symbolInfo.Symbol, cancellationToken))
+        if (symbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
         {
             return invocation;
         }
@@ -63,11 +63,6 @@ internal static class SemanticModelExtensions
             CandidateReason.None => IsCallbackOrReturnSymbol(symbolInfo.Symbol),
             _ => false,
         };
-    }
-
-    internal static bool IsMoqSetupMethod(this SemanticModel semanticModel, MoqKnownSymbols knownSymbols, ISymbol symbol, CancellationToken cancellationToken)
-    {
-        return symbol.IsInstanceOf(knownSymbols.Mock1Setup) && symbol is IMethodSymbol { IsGenericMethod: true };
     }
 
     private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)

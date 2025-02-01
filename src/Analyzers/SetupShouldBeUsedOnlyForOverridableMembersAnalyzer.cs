@@ -51,7 +51,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
 
         // 1. Check if the invoked method is a Moq Setup method
-        if (!semanticModel.IsMoqSetupMethod(knownSymbols, targetMethod, context.CancellationToken))
+        if (!targetMethod.IsMoqSetupMethod(knownSymbols))
         {
             return;
         }
