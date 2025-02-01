@@ -143,7 +143,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         {
             // If it's a simple lambda of the form x => x.SomeMember,
             // the body often ends up as an IPropertyReferenceOperation or IInvocationOperation.
-            return lambdaOperation.Body.TryGetReferencedMemberSymbolFromLambda();
+            return lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
         }
 
         // Sometimes it might be a delegate creation or something else. Handle other patterns if needed.

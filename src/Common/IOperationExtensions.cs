@@ -36,7 +36,7 @@ internal static class IOperationExtensions
         return operation;
     }
 
-    public static ISymbol? TryGetSymbolFromOperation(this IOperation? operation)
+    public static ISymbol? GetSymbolFromOperation(this IOperation? operation)
     {
         if (operation is IReturnOperation returnOp)
         {
@@ -51,15 +51,15 @@ internal static class IOperationExtensions
         };
     }
 
-    public static ISymbol? TryGetReferencedMemberSymbolFromLambda(this IOperation? bodyOperation)
+    public static ISymbol? GetReferencedMemberSymbolFromLambda(this IOperation? bodyOperation)
     {
         if (bodyOperation is IBlockOperation { Operations.Length: 1 } blockOperation)
         {
             // If it's a block lambda (example: => { return x.Property; })
-            return blockOperation.Operations[0].TryGetSymbolFromOperation();
+            return blockOperation.Operations[0].GetSymbolFromOperation();
         }
 
         // If it's an expression lambda (example: => x.Property or => x.Method(...))
-        return bodyOperation.TryGetSymbolFromOperation();
+        return bodyOperation.GetSymbolFromOperation();
     }
 }
