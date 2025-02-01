@@ -29,9 +29,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
-        // Instead of registering a syntax node action on InvocationExpression,
-        // we now register an operation action on IInvocationOperation.
         context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
     }
 
@@ -140,7 +137,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         IOperation argumentOperation = moqSetupInvocation.Arguments[0].Value;
 
         // 1) Unwrap conversions (Roslyn often wraps lambdas in IConversionOperation).
-        argumentOperation = argumentOperation.UnwrapConversion();
+        argumentOperation = argumentOperation.WalkDownImplicitConversion();
 
         if (argumentOperation is IAnonymousFunctionOperation lambdaOperation)
         {
