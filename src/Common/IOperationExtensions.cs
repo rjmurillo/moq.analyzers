@@ -22,7 +22,7 @@ internal static class IOperationExtensions
     /// <summary>
     /// Walks down consecutive implicit conversion operations until an operand is reached that isn't an implicit conversion operation.
     /// Unlike WalkDownConversion, this method only traverses through implicit conversions, which is particularly useful for
-    /// handling Moq expression lambdas that are typically converted to Expression<Func<...>> or Func<...>.
+    /// handling Moq expression lambdas that are typically converted to Expression&lt;Func&lt;...&gt;&gt; or Func&lt;...&gt;.
     /// </summary>
     /// <param name="operation">The starting operation.</param>
     /// <returns>The inner non-conversion operation or the starting operation if it wasn't an implicit conversion operation.</returns>
