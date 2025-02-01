@@ -64,15 +64,21 @@ internal static class IOperationExtensions
     /// <returns>The extracted symbol, or <see langword="null" /> if not found or if the <paramref name="operation"/> operation is <see langword="null" />.</returns>
     private static ISymbol? GetSymbolFromOperation(this IOperation? operation)
     {
-        if (operation is IReturnOperation returnOp)
+        switch (operation)
         {
-            operation = returnOp.ReturnedValue;
+            case null:
+                return null;
+            case IReturnOperation returnOp:
+                operation = returnOp.ReturnedValue;
+                break;
         }
 
         return operation switch
         {
             IPropertyReferenceOperation propertyRef => propertyRef.Property,
             IInvocationOperation methodOp => methodOp.TargetMethod,
+            IEventReferenceOperation eventRef => eventRef.Event,
+            IFieldReferenceOperation fieldRef => fieldRef.Field,
             _ => null,
         };
     }
