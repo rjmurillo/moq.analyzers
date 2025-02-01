@@ -36,7 +36,19 @@ internal static class IOperationExtensions
         return operation;
     }
 
-    public static ISymbol? GetSymbolFromOperation(this IOperation? operation)
+    internal static ISymbol? GetReferencedMemberSymbolFromLambda(this IOperation? bodyOperation)
+    {
+        if (bodyOperation is IBlockOperation { Operations.Length: 1 } blockOperation)
+        {
+            // If it's a block lambda (example: => { return x.Property; })
+            return blockOperation.Operations[0].GetSymbolFromOperation();
+        }
+
+        // If it's an expression lambda (example: => x.Property or => x.Method(...))
+        return bodyOperation.GetSymbolFromOperation();
+    }
+
+    private static ISymbol? GetSymbolFromOperation(this IOperation? operation)
     {
         if (operation is IReturnOperation returnOp)
         {
@@ -49,17 +61,5 @@ internal static class IOperationExtensions
             IInvocationOperation methodOp => methodOp.TargetMethod,
             _ => null,
         };
-    }
-
-    public static ISymbol? GetReferencedMemberSymbolFromLambda(this IOperation? bodyOperation)
-    {
-        if (bodyOperation is IBlockOperation { Operations.Length: 1 } blockOperation)
-        {
-            // If it's a block lambda (example: => { return x.Property; })
-            return blockOperation.Operations[0].GetSymbolFromOperation();
-        }
-
-        // If it's an expression lambda (example: => x.Property or => x.Method(...))
-        return bodyOperation.GetSymbolFromOperation();
     }
 }
