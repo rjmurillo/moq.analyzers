@@ -38,6 +38,12 @@ internal static class IOperationExtensions
         return operation;
     }
 
+    /// <summary>
+    /// Extracts the referenced member symbol from a lambda operation, handling both block lambdas
+    /// (e.g., => { return x.Property; }) and expression lambdas (e.g., => x.Property).
+    /// </summary>
+    /// <param name="bodyOperation">The lambda body operation to analyze.</param>
+    /// <returns>The referenced member symbol, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
     internal static ISymbol? GetReferencedMemberSymbolFromLambda(this IOperation? bodyOperation)
     {
         if (bodyOperation is IBlockOperation { Operations.Length: 1 } blockOperation)
@@ -50,6 +56,12 @@ internal static class IOperationExtensions
         return bodyOperation.GetSymbolFromOperation();
     }
 
+    /// <summary>
+    /// Extracts a <see cref="ISymbol"/> from an <see cref="IOperation"/>, handling return operations, property references,
+    /// method invocations, events, and fields.
+    /// </summary>
+    /// <param name="operation">The <see cref="IOperation"/> to analyze.</param>
+    /// <returns>The extracted symbol, or <see langword="null" /> if not found or if the <paramref name="operation"/> operation is <see langword="null" />.</returns>
     private static ISymbol? GetSymbolFromOperation(this IOperation? operation)
     {
         if (operation is IReturnOperation returnOp)
