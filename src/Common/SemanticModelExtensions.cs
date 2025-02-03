@@ -9,24 +9,27 @@ internal static class SemanticModelExtensions
 {
     internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(this SemanticModel semanticModel, MoqKnownSymbols knownSymbols, ExpressionSyntax expression, CancellationToken cancellationToken)
     {
-        InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
-        if (invocation?.Expression is not MemberAccessExpressionSyntax method)
+        while (true)
         {
-            return null;
-        }
+            InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
+            if (invocation?.Expression is not MemberAccessExpressionSyntax method)
+            {
+                return null;
+            }
 
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(method, cancellationToken);
-        if (symbolInfo.Symbol is null)
-        {
-            return null;
-        }
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(method, cancellationToken);
+            if (symbolInfo.Symbol is null)
+            {
+                return null;
+            }
 
-        if (semanticModel.IsMoqSetupMethod(knownSymbols, symbolInfo.Symbol, cancellationToken))
-        {
-            return invocation;
-        }
+            if (semanticModel.IsMoqSetupMethod(knownSymbols, symbolInfo.Symbol, cancellationToken))
+            {
+                return invocation;
+            }
 
-        return semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, method.Expression, cancellationToken);
+            expression = method.Expression;
+        }
     }
 
     internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax? setupMethodInvocation)
