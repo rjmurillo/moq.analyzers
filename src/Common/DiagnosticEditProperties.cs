@@ -37,7 +37,7 @@ internal record class DiagnosticEditProperties
     /// <summary>
     /// Returns the current object as an <see cref="ImmutableDictionary{TKey, TValue}"/>.
     /// </summary>
-    /// <returns>The current objbect as an immutable dictionary.</returns>
+    /// <returns>The current object as an immutable dictionary.</returns>
     public ImmutableDictionary<string, string?> ToImmutableDictionary()
     {
         return new Dictionary<string, string?>(StringComparer.Ordinal)
@@ -48,10 +48,10 @@ internal record class DiagnosticEditProperties
     }
 
     /// <summary>
-    /// Tries to convert an immuatble dictionary to a <see cref="DiagnosticEditProperties"/>.
+    /// Tries to convert an immutable dictionary to a <see cref="DiagnosticEditProperties"/>.
     /// </summary>
     /// <param name="dictionary">The dictionary to try to convert.</param>
-    /// <param name="editProperties">The output edit properties if parsing suceeded, otherwise <c>null</c>.</param>
+    /// <param name="editProperties">The output edit properties if parsing succeeded, otherwise <c>null</c>.</param>
     /// <returns><c>true</c> if parsing succeeded; <c>false</c> otherwise.</returns>
     public static bool TryGetFromImmutableDictionary(ImmutableDictionary<string, string?> dictionary, [NotNullWhen(true)] out DiagnosticEditProperties? editProperties)
     {
