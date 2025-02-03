@@ -1,4 +1,4 @@
-﻿namespace Moq.Analyzers.Common.Tests;
+﻿namespace Moq.Analyzers.Test.Common;
 
 public class ArrayExtensionTests
 {
@@ -7,7 +7,7 @@ public class ArrayExtensionTests
     {
         // Arrange
         int[] actual = [1, 2, 3, 4, 5];
-        int[] expected = [1, 2, 3, 4, 5];
+        int[] expected = [1, 2, 4, 5];
         const int indexToRemove = 2;
 
         // Act
