@@ -122,6 +122,12 @@ internal static class SemanticModelExtensions
         }
 
         string? methodName = methodSymbol.ToString();
+
+        if (string.IsNullOrEmpty(methodName))
+        {
+            return false;
+        }
+
         return methodName.StartsWith("Moq.Language.ICallback", StringComparison.Ordinal)
                || methodName.StartsWith("Moq.Language.IReturns", StringComparison.Ordinal);
     }
