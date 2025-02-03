@@ -27,12 +27,12 @@ internal record class DiagnosticEditProperties
     /// <summary>
     /// Gets the type of edit operation to perform.
     /// </summary>
-    public EditType TypeOfEdit { get; private init; }
+    public EditType TypeOfEdit { get; init; }
 
     /// <summary>
     /// Gets the zero-based position where the edit should be applied.
     /// </summary>
-    public int EditPosition { get; private init; }
+    public int EditPosition { get; init; }
 
     /// <summary>
     /// Returns the current object as an <see cref="ImmutableDictionary{TKey, TValue}"/>.
