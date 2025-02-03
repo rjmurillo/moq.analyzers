@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Moq.Analyzers.Test.Analyzer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "src\Common\Common.csproj", "{622DB72F-5609-4C08-838D-6937A680094A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.Analyzers.Common.Tests", "tests\Moq.Analyzers.Common.Tests\Moq.Analyzers.Common.Tests.csproj", "{71AE51EE-8ADA-438E-BF73-1EE2DBC18BC3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{622DB72F-5609-4C08-838D-6937A680094A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{622DB72F-5609-4C08-838D-6937A680094A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{622DB72F-5609-4C08-838D-6937A680094A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71AE51EE-8ADA-438E-BF73-1EE2DBC18BC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71AE51EE-8ADA-438E-BF73-1EE2DBC18BC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71AE51EE-8ADA-438E-BF73-1EE2DBC18BC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71AE51EE-8ADA-438E-BF73-1EE2DBC18BC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,6 +61,7 @@ Global
 		{D2348836-7129-4BE5-8AE6-D05FC8C28FC1} = {013D4F80-9978-45DA-9BB8-6638239355E4}
 		{11B3412F-456C-452E-94D2-B42D5C52F61C} = {013D4F80-9978-45DA-9BB8-6638239355E4}
 		{C68B6F38-838B-4BD9-963D-95779B6F418B} = {013D4F80-9978-45DA-9BB8-6638239355E4}
+		{71AE51EE-8ADA-438E-BF73-1EE2DBC18BC3} = {013D4F80-9978-45DA-9BB8-6638239355E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8C917BC1-C0DE-4A46-BEE8-32FD66B447B1}
@@ -62,6 +69,7 @@ Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Common\Common.projitems*{41ecc571-f586-460a-9bed-23528c8210c4}*SharedItemsImports = 5
 		src\Common\Common.projitems*{622db72f-5609-4c08-838d-6937a680094a}*SharedItemsImports = 5
+		src\Common\Common.projitems*{71ae51ee-8ada-438e-bf73-1ee2dbc18bc3}*SharedItemsImports = 5
 		src\Common\Common.projitems*{8e99c15c-e80a-49e5-988c-1b5071ce775f}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
