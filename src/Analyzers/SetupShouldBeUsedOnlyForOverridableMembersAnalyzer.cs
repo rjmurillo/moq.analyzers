@@ -89,7 +89,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
     /// Determines whether a property or method is either
     /// <see cref="ValueTask"/>, <see cref="ValueTask{TResult}"/>, <see cref="Task"/>, or <see cref="Task{TResult}"/>
     /// - OR -
-    /// is overridable
+    /// if the <paramref name="mockedMemberSymbol"/> is overridable.
     /// </summary>
     /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
     /// <param name="knownSymbols">The known symbols.</param>
