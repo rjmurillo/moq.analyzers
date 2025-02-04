@@ -5,6 +5,12 @@ namespace Moq.Analyzers.Common;
 
 internal static class ISymbolExtensions
 {
+    public static bool IsConstructor(this ISymbol symbol)
+    {
+        return symbol.DeclaredAccessibility != Accessibility.Private
+                && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and { IsStatic: false };
+    }
+
     /// <summary>
     /// Determines whether the symbol is an instance of the specified symbol.
     /// </summary>
@@ -90,10 +96,16 @@ internal static class ISymbolExtensions
         return symbol.IsInstanceOf(others, out _, symbolEqualityComparer);
     }
 
-    public static bool IsConstructor(this ISymbol symbol)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsOverridable(this ISymbol symbol)
     {
-        return symbol.DeclaredAccessibility != Accessibility.Private
-                && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and { IsStatic: false };
+        return symbol switch
+        {
+            IMethodSymbol { IsStatic: true } or IPropertySymbol { IsStatic: true } => false,
+            _ when symbol.ContainingType?.TypeKind == TypeKind.Interface => true,
+            _ => !symbol.IsSealed &&
+                  (symbol.IsVirtual || symbol.IsAbstract || symbol is { IsOverride: true, IsSealed: false }),
+        };
     }
 
     public static bool IsTaskOrValueResultProperty(this ISymbol symbol, MoqKnownSymbols knownSymbols)
@@ -107,10 +119,15 @@ internal static class ISymbolExtensions
         return false;
     }
 
+    internal static bool IsMoqSetupMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        return symbol.IsInstanceOf(knownSymbols.Mock1Setup) && symbol is IMethodSymbol { IsGenericMethod: true };
+    }
+
     /// <summary>
     /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/> or <see cref="ValueTask{TResult}"/>.
     /// </summary>
-    public static bool IsGenericResultProperty(this ISymbol symbol, INamedTypeSymbol? genericType)
+    private static bool IsGenericResultProperty(this ISymbol symbol, INamedTypeSymbol? genericType)
     {
         if (symbol is IPropertySymbol propertySymbol)
         {
@@ -127,22 +144,5 @@ internal static class ISymbolExtensions
         }
 
         return false;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsOverridable(this ISymbol symbol)
-    {
-        return symbol switch
-        {
-            IMethodSymbol { IsStatic: true } or IPropertySymbol { IsStatic: true } => false,
-            _ when symbol.ContainingType?.TypeKind == TypeKind.Interface => true,
-            _ => !symbol.IsSealed &&
-                  (symbol.IsVirtual || symbol.IsAbstract || symbol is { IsOverride: true, IsSealed: false }),
-        };
-    }
-
-    internal static bool IsMoqSetupMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
-    {
-        return symbol.IsInstanceOf(knownSymbols.Mock1Setup) && symbol is IMethodSymbol { IsGenericMethod: true };
     }
 }
