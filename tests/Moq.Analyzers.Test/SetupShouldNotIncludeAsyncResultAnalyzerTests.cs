@@ -29,7 +29,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
               public class AsyncClient
               {
                   public virtual Task TaskAsync() => Task.CompletedTask;
-              
+
                   public virtual Task<string> GenericTaskAsync() => Task.FromResult(string.Empty);
               }
 

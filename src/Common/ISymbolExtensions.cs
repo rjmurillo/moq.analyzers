@@ -109,6 +109,17 @@ internal static class ISymbolExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsOverridable(this ISymbol symbol)
     {
-        return !symbol.IsSealed && (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride);
+        return symbol switch
+        {
+            IMethodSymbol { IsStatic: true } or IPropertySymbol { IsStatic: true } => false,
+            _ when symbol.ContainingType?.TypeKind == TypeKind.Interface => true,
+            _ => !symbol.IsSealed &&
+                  (symbol.IsVirtual || symbol.IsAbstract || symbol is { IsOverride: true, IsSealed: false }),
+        };
+    }
+
+    internal static bool IsMoqSetupMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        return symbol.IsInstanceOf(knownSymbols.Mock1Setup) && symbol is IMethodSymbol { IsGenericMethod: true };
     }
 }
