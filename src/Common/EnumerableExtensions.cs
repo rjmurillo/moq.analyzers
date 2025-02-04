@@ -10,12 +10,6 @@ internal static class EnumerableExtensions
         return source.DefaultIfNotSingle(static _ => true);
     }
 
-    /// <inheritdoc cref="DefaultIfNotSingle{TSource}(ImmutableArray{TSource}, Func{TSource, bool})"/>
-    public static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source)
-    {
-        return source.DefaultIfNotSingle(static _ => true);
-    }
-
     /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
     /// <param name="source">The collection to enumerate.</param>
     /// <param name="predicate">A function to test each element for a condition.</param>
@@ -56,17 +50,5 @@ internal static class EnumerableExtensions
         }
 
         return item;
-    }
-
-    public static IEnumerable<TSource> WhereNotNull<TSource>(this IEnumerable<TSource?> source)
-        where TSource : class
-    {
-        return source.Where(item => item is not null)!;
-    }
-
-    public static IEnumerable<TSource> WhereNotNull<TSource>(this IEnumerable<TSource?> source)
-        where TSource : struct
-    {
-        return source.Where(item => item.HasValue).Select(item => item!.Value);
     }
 }

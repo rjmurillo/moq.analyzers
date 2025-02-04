@@ -25,9 +25,12 @@
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" />
     <PackageReference Include="Verify.Nupkg" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)/src/Analyzers/Moq.Analyzers.csproj" AddPackageAsOutput="true" />
     <ProjectReference Include="$(RepoRoot)/tests/Moq.Analyzers.Test.Analyzers/Moq.Analyzers.Test.Analyzers.csproj" />
   </ItemGroup>
+
+  <Import Project="$(RepoRoot)/src/Common/Common.projitems" Label="Shared" />
 
 </Project>
