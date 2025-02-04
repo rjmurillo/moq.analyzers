@@ -101,7 +101,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         switch (mockedMemberSymbol)
         {
             case IPropertySymbol propertySymbol:
-                // If the property is Task<T>.Result, skip diagnostic
+                // Check if the property is Task<T>.Result and skip diagnostic if it is
                 if (propertySymbol.IsTaskOrValueResultProperty(knownSymbols))
                 {
                     return true;

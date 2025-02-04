@@ -7,26 +7,33 @@ namespace Moq.Analyzers.Common;
 /// </summary>
 internal static class SemanticModelExtensions
 {
-    internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(this SemanticModel semanticModel, MoqKnownSymbols knownSymbols, ExpressionSyntax expression, CancellationToken cancellationToken)
+    internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(
+        this SemanticModel semanticModel,
+        MoqKnownSymbols knownSymbols,
+        ExpressionSyntax expression,
+        CancellationToken cancellationToken)
     {
-        InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
-        if (invocation?.Expression is not MemberAccessExpressionSyntax method)
+        while (true)
         {
-            return null;
-        }
+            InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
+            if (invocation?.Expression is not MemberAccessExpressionSyntax method)
+            {
+                return null;
+            }
 
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(method, cancellationToken);
-        if (symbolInfo.Symbol is null)
-        {
-            return null;
-        }
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(method, cancellationToken);
+            if (symbolInfo.Symbol is null)
+            {
+                return null;
+            }
 
-        if (symbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
-        {
-            return invocation;
-        }
+            if (symbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
+            {
+                return invocation;
+            }
 
-        return semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, method.Expression, cancellationToken);
+            expression = method.Expression;
+        }
     }
 
     internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax? setupMethodInvocation)
@@ -114,6 +121,12 @@ internal static class SemanticModelExtensions
         }
 
         string? methodName = methodSymbol.ToString();
+
+        if (string.IsNullOrEmpty(methodName))
+        {
+            return false;
+        }
+
         return methodName.StartsWith("Moq.Language.ICallback", StringComparison.Ordinal)
                || methodName.StartsWith("Moq.Language.IReturns", StringComparison.Ordinal);
     }

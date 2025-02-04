@@ -23,19 +23,9 @@ internal class KnownSymbols
     }
 
     /// <summary>
-    /// Gets the class <c>System.Threading.Tasks.Task</c>.
-    /// </summary>
-    public INamedTypeSymbol? Task => TypeProvider.GetOrCreateTypeByMetadataName("System.Threading.Tasks.Task");
-
-    /// <summary>
     /// Gets the class <c>System.Threading.Tasks.Task&lt;T&gt;</c>.
     /// </summary>
     public INamedTypeSymbol? Task1 => TypeProvider.GetOrCreateTypeByMetadataName("System.Threading.Tasks.Task`1");
-
-    /// <summary>
-    /// Gets the class <c>System.Threading.Tasks.ValueTask</c>.
-    /// </summary>
-    public INamedTypeSymbol? ValueTask => TypeProvider.GetOrCreateTypeByMetadataName("System.Threading.Tasks.ValueTask");
 
     /// <summary>
     /// Gets the class <c>System.Threading.Tasks.ValueTask&lt;T&gt;</c>.
