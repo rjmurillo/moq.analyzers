@@ -114,6 +114,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         INamedTypeSymbol? taskOfTType = knownSymbols.Task1;
 
         return taskOfTType != null &&
+
                // If Task<T> type cannot be found, we skip it
                SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, taskOfTType);
     }
@@ -130,6 +131,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         INamedTypeSymbol? valueTaskOfType = knownSymbols.ValueTask1;
 
         return valueTaskOfType != null &&
+
                // If ValueTask<T> type cannot be found, we skip it
                SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, valueTaskOfType);
     }
