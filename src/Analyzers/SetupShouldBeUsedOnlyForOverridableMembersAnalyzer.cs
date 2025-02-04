@@ -73,7 +73,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         {
             case IPropertySymbol propertySymbol:
                 // Check if the property is Task<T>.Result and skip diagnostic if it is
-                if (IsTaskResultProperty(propertySymbol, knownSymbols))
+                if (IsTaskOrValueResultProperty(propertySymbol, knownSymbols))
                 {
                     return;
                 }
@@ -97,6 +97,11 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         context.ReportDiagnostic(diagnostic);
     }
 
+    private static bool IsTaskOrValueResultProperty(IPropertySymbol propertySymbol, MoqKnownSymbols knownSymbols)
+    {
+        return IsTaskResultProperty(propertySymbol, knownSymbols) || IsValueTaskResultProperty(propertySymbol, knownSymbols);
+    }
+
     private static bool IsTaskResultProperty(IPropertySymbol propertySymbol, MoqKnownSymbols knownSymbols)
     {
         // Check if the property is named "Result"
@@ -108,11 +113,24 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         // Check if the containing type is Task<T>
         INamedTypeSymbol? taskOfTType = knownSymbols.Task1;
 
-        if (taskOfTType == null)
+        return taskOfTType != null &&
+               // If Task<T> type cannot be found, we skip it
+               SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, taskOfTType);
+    }
+
+    private static bool IsValueTaskResultProperty(IPropertySymbol propertySymbol, MoqKnownSymbols knownSymbols)
+    {
+        // Check if the property is named "Result"
+        if (!string.Equals(propertySymbol.Name, "Result", StringComparison.Ordinal))
         {
-            return false; // If Task<T> type cannot be found, we skip it
+            return false;
         }
 
-        return SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, taskOfTType);
+        // Check if the containing type is ValueTask<T>
+        INamedTypeSymbol? valueTaskOfType = knownSymbols.ValueTask1;
+
+        return valueTaskOfType != null &&
+               // If ValueTask<T> type cannot be found, we skip it
+               SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, valueTaskOfType);
     }
 }
