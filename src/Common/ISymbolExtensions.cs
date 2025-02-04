@@ -96,14 +96,37 @@ internal static class ISymbolExtensions
                 && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and { IsStatic: false };
     }
 
-    public static bool IsMethodReturnTypeTask(this ISymbol methodSymbol)
+    public static bool IsTaskOrValueResultProperty(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        string type = methodSymbol.ToDisplayString();
-        return string.Equals(type, "System.Threading.Tasks.Task", StringComparison.Ordinal)
-               || string.Equals(type, "System.Threading.ValueTask", StringComparison.Ordinal)
-               || type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal)
-               || (type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal)
-                   && type.EndsWith(".Result", StringComparison.Ordinal));
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            return IsGenericResultProperty(propertySymbol, knownSymbols.Task1)
+                   || IsGenericResultProperty(propertySymbol, knownSymbols.ValueTask1);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/> or <see cref="ValueTask{TResult}"/>.
+    /// </summary>
+    public static bool IsGenericResultProperty(this ISymbol symbol, INamedTypeSymbol? genericType)
+    {
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            // Check if the property is named "Result"
+            if (!string.Equals(propertySymbol.Name, "Result", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return genericType != null &&
+
+                   // If Task<T> type cannot be found, we skip it
+                   SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType.OriginalDefinition, genericType);
+        }
+
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -85,18 +85,29 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         context.ReportDiagnostic(diagnostic);
     }
 
+    /// <summary>
+    /// Determines whether a property or method is either
+    /// <see cref="ValueTask"/>, <see cref="ValueTask{TResult}"/>, <see cref="Task"/>, or <see cref="Task{TResult}"/>
+    /// - OR -
+    /// is overridable
+    /// </summary>
+    /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
+    /// <param name="knownSymbols">The known symbols.</param>
+    /// <returns>
+    /// Returns <see langword="true"/> when the diagnostic should not be triggered; otherwise <see langword="false" />.
+    /// </returns>
     private static bool IsPropertyOrMethod(ISymbol mockedMemberSymbol, MoqKnownSymbols knownSymbols)
     {
         switch (mockedMemberSymbol)
         {
             case IPropertySymbol propertySymbol:
                 // If the property is Task<T>.Result, skip diagnostic
-                if (IsTaskResultProperty(propertySymbol, knownSymbols))
+                if (propertySymbol.IsTaskOrValueResultProperty(knownSymbols))
                 {
                     return true;
                 }
 
-                if (propertySymbol.IsOverridable() || propertySymbol.IsMethodReturnTypeTask())
+                if (propertySymbol.IsOverridable())
                 {
                     return true;
                 }
@@ -104,7 +115,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
                 break;
 
             case IMethodSymbol methodSymbol:
-                if (methodSymbol.IsOverridable() || methodSymbol.IsMethodReturnTypeTask())
+                if (methodSymbol.IsOverridable())
                 {
                     return true;
                 }
@@ -148,27 +159,5 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
 
         // Sometimes it might be a delegate creation or something else. Handle other patterns if needed.
         return null;
-    }
-
-    /// <summary>
-    /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/>.
-    /// </summary>
-    private static bool IsTaskResultProperty(IPropertySymbol propertySymbol, MoqKnownSymbols knownSymbols)
-    {
-        // Check if the property is named "Result"
-        if (!string.Equals(propertySymbol.Name, "Result", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        // Check if the containing type is Task<T>
-        INamedTypeSymbol? taskOfTType = knownSymbols.Task1;
-
-        if (taskOfTType == null)
-        {
-            return false; // If Task<T> type cannot be found, we skip it
-        }
-
-        return SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, taskOfTType);
     }
 }

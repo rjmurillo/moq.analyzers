@@ -64,7 +64,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
         SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(mockedMemberExpression, context.CancellationToken);
         if (symbolInfo.Symbol is not (IPropertySymbol or IMethodSymbol)
             || symbolInfo.Symbol.IsOverridable()
-            || !symbolInfo.Symbol.IsMethodReturnTypeTask())
+            || !symbolInfo.Symbol.IsTaskOrValueResultProperty(knownSymbols))
         {
             return;
         }
