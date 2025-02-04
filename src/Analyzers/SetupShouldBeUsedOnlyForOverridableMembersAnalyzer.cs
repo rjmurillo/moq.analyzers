@@ -99,10 +99,11 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
 
     private static bool IsTaskOrValueResultProperty(IPropertySymbol propertySymbol, MoqKnownSymbols knownSymbols)
     {
-        return IsTaskResultProperty(propertySymbol, knownSymbols) || IsValueTaskResultProperty(propertySymbol, knownSymbols);
+        return IsGenericResultProperty(propertySymbol, knownSymbols.Task1)
+               || IsGenericResultProperty(propertySymbol, knownSymbols.ValueTask1);
     }
 
-    private static bool IsTaskResultProperty(IPropertySymbol propertySymbol, MoqKnownSymbols knownSymbols)
+    private static bool IsGenericResultProperty(IPropertySymbol propertySymbol, INamedTypeSymbol? genericType)
     {
         // Check if the property is named "Result"
         if (!string.Equals(propertySymbol.Name, "Result", StringComparison.Ordinal))
@@ -110,29 +111,9 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
             return false;
         }
 
-        // Check if the containing type is Task<T>
-        INamedTypeSymbol? taskOfTType = knownSymbols.Task1;
-
-        return taskOfTType != null &&
+        return genericType != null &&
 
                // If Task<T> type cannot be found, we skip it
-               SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, taskOfTType);
-    }
-
-    private static bool IsValueTaskResultProperty(IPropertySymbol propertySymbol, MoqKnownSymbols knownSymbols)
-    {
-        // Check if the property is named "Result"
-        if (!string.Equals(propertySymbol.Name, "Result", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        // Check if the containing type is ValueTask<T>
-        INamedTypeSymbol? valueTaskOfType = knownSymbols.ValueTask1;
-
-        return valueTaskOfType != null &&
-
-               // If ValueTask<T> type cannot be found, we skip it
-               SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, valueTaskOfType);
+               SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType.OriginalDefinition, genericType);
     }
 }
