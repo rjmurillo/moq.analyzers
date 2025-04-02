@@ -5,6 +5,12 @@ namespace Moq.Analyzers.Common;
 
 internal static class ISymbolExtensions
 {
+    public static bool IsConstructor(this ISymbol symbol)
+    {
+        return symbol.DeclaredAccessibility != Accessibility.Private
+                && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and { IsStatic: false };
+    }
+
     /// <summary>
     /// Determines whether the symbol is an instance of the specified symbol.
     /// </summary>
@@ -90,22 +96,6 @@ internal static class ISymbolExtensions
         return symbol.IsInstanceOf(others, out _, symbolEqualityComparer);
     }
 
-    public static bool IsConstructor(this ISymbol symbol)
-    {
-        return symbol.DeclaredAccessibility != Accessibility.Private
-                && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and { IsStatic: false };
-    }
-
-    public static bool IsMethodReturnTypeTask(this ISymbol methodSymbol)
-    {
-        string type = methodSymbol.ToDisplayString();
-        return string.Equals(type, "System.Threading.Tasks.Task", StringComparison.Ordinal)
-               || string.Equals(type, "System.Threading.ValueTask", StringComparison.Ordinal)
-               || type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal)
-               || (type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal)
-                   && type.EndsWith(".Result", StringComparison.Ordinal));
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsOverridable(this ISymbol symbol)
     {
@@ -118,8 +108,41 @@ internal static class ISymbolExtensions
         };
     }
 
+    public static bool IsTaskOrValueResultProperty(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            return IsGenericResultProperty(propertySymbol, knownSymbols.Task1)
+                   || IsGenericResultProperty(propertySymbol, knownSymbols.ValueTask1);
+        }
+
+        return false;
+    }
+
     internal static bool IsMoqSetupMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
         return symbol.IsInstanceOf(knownSymbols.Mock1Setup) && symbol is IMethodSymbol { IsGenericMethod: true };
+    }
+
+    /// <summary>
+    /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/> or <see cref="ValueTask{TResult}"/>.
+    /// </summary>
+    private static bool IsGenericResultProperty(this ISymbol symbol, INamedTypeSymbol? genericType)
+    {
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            // Check if the property is named "Result"
+            if (!string.Equals(propertySymbol.Name, "Result", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return genericType != null &&
+
+                   // If Task<T> type cannot be found, we skip it
+                   SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType.OriginalDefinition, genericType);
+        }
+
+        return false;
     }
 }
