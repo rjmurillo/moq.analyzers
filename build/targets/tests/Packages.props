@@ -1,10 +1,10 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="ReportGenerator" Version="5.4.4" />
+    <PackageVersion Include="ReportGenerator" Version="5.4.5" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.2-beta1.24314.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="Verify.Nupkg" Version="3.0.1" />
-    <PackageVersion Include="Verify.Xunit" Version="28.13.0" />
+    <PackageVersion Include="Verify.Xunit" Version="29.1.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.2" />
     <PackageVersion Include="Meziantou.Xunit.ParallelTestFramework" Version="2.3.0" />
