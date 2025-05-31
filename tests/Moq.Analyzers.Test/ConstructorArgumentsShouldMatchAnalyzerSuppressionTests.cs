@@ -16,8 +16,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
     {
         // This test validates that diagnostics are still produced when not suppressed
         // to ensure our suppression tests are meaningful
-        
-        var source = """
+        string source = """
             namespace Test
             {
                 internal class Foo
@@ -35,15 +34,14 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, "net6.0");
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     [Fact]
     public async Task ShouldNotProduceDiagnosticsWhenSuppressedViaPragma()
     {
         // This test validates pragma warning disable suppression
-        
-        var source = """
+        string source = """
             namespace Test
             {
                 internal class Foo
@@ -55,23 +53,22 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
                 {
                     private void Test()
                     {
-#pragma warning disable Moq1002
+            #pragma warning disable Moq1002
                         var mock = new Mock<Foo>(); // Should be suppressed
-#pragma warning restore Moq1002
+            #pragma warning restore Moq1002
                     }
                 }
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, "net6.0");
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     [Fact]
     public async Task ShouldProduceDiagnosticsForInterfaceWithConstructorArgs()
     {
         // Test for interface diagnostic that should be produced when not suppressed
-        
-        var source = """
+        string source = """
             namespace Test
             {
                 internal interface IFoo
@@ -88,15 +85,14 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, "net6.0");
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     [Fact]
     public async Task ShouldNotProduceDiagnosticsForInterfaceWhenSuppressed()
     {
         // Test interface diagnostic suppression via pragma
-        
-        var source = """
+        string source = """
             namespace Test
             {
                 internal interface IFoo
@@ -107,15 +103,15 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
                 {
                     private void Test()
                     {
-#pragma warning disable Moq1001
+            #pragma warning disable Moq1001
                         var mock = new Mock<IFoo>(42); // Should be suppressed
-#pragma warning restore Moq1001
+            #pragma warning restore Moq1001
                     }
                 }
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, "net6.0");
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     [Fact]
@@ -123,8 +119,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
     {
         // Test when both diagnostics are suppressed to validate the behavior
         // This confirms Roslyn handles multiple suppressions correctly
-        
-        var source = """
+        string source = """
             namespace Test
             {
                 internal interface IFoo
@@ -140,15 +135,15 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
                 {
                     private void Test()
                     {
-#pragma warning disable Moq1001, Moq1002
+            #pragma warning disable Moq1001, Moq1002
                         var mock1 = new Mock<IFoo>(42); // Should be suppressed
                         var mock2 = new Mock<Foo>();    // Should be suppressed
-#pragma warning restore Moq1001, Moq1002
+            #pragma warning restore Moq1001, Moq1002
                     }
                 }
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, "net6.0");
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 }
