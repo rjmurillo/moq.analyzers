@@ -21,7 +21,6 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
         };
     }
 
-    // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
     [Theory]
     [MemberData(nameof(CustomMockClassIsUsedData))]
     public async Task ShouldPassIfCustomMockClassIsUsed(string mock)
@@ -76,7 +75,6 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
         };
     }
 
-    // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
     [Theory]
     [MemberData(nameof(RealMoqIsUsedWithInvalidParameters))]
     public async Task ShouldFailIsRealMoqIsUsedWithInvalidParameters(string mock)
@@ -120,7 +118,6 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
                 ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
-    // TODO: This feels like it should be in every analyzer's tests. Tracked by #75.
     [Fact]
     public async Task ShouldPassIfRealMoqIsUsedWithValidParameters()
     {

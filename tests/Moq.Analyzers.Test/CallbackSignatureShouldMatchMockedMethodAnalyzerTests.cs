@@ -1,27 +1,24 @@
 using Moq.Analyzers.Test.Helpers;
-using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoMethodsInPropertySetupAnalyzer>;
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer>;
 
 namespace Moq.Analyzers.Test;
 
-public class NoMethodsInPropertySetupAnalyzerTests
+public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
         return new object[][]
         {
-            ["""new Mock<IFoo>().SetupGet(x => x.Prop1);"""],
-            ["""new Mock<IFoo>().SetupGet(x => x.Prop2);"""],
-            ["""new Mock<IFoo>().SetupSet(x => x.Prop1 = "1");"""],
-            ["""new Mock<IFoo>().SetupSet(x => x.Prop3 = "2");"""],
-            ["""new Mock<IFoo>().Setup(x => x.Method());"""],
-            ["""new Mock<IFoo>().SetupGet(x => {|Moq1101:x.Method()|});"""],
-            ["""new Mock<IFoo>().SetupSet(x => {|Moq1101:x.Method()|});"""],
+            ["""new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback((string s) => { });"""],
+            ["""new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback({|Moq1100:(int i)|} => { });"""],
+            ["""new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>())).Callback((int i, string s) => { });"""],
+            ["""new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>())).Callback({|Moq1100:(string s1, int i1)|} => { });"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShouldAnalyzePropertySetup(string referenceAssemblyGroup, string @namespace, string mock)
+    public async Task ShouldAnalyzeCallbackSignature(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
@@ -29,16 +26,11 @@ public class NoMethodsInPropertySetupAnalyzerTests
 
                 public interface IFoo
                 {
-                    string Prop1 { get; set; }
-
-                    string Prop2 { get; }
-
-                    string Prop3 { set; }
-
-                    string Method();
+                    int Do(string s);
+                    int Do(int i, string s);
                 }
 
-                public class UnitTest
+                internal class UnitTest
                 {
                     private void Test()
                     {
