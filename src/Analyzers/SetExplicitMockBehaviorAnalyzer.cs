@@ -11,14 +11,16 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
 {
     private static readonly LocalizableString Title = "Moq: Explicitly choose a mock behavior";
     private static readonly LocalizableString Message = "Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior";
+    private static readonly LocalizableString Description = "Mock should explicitly specify a behavior and not rely on the default. Use MockBehavior.Strict or MockBehavior.Loose to make intent clear.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.SetExplicitMockBehavior,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.SetExplicitMockBehavior}.md");
 
     /// <inheritdoc />
