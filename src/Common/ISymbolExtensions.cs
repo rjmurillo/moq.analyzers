@@ -14,7 +14,7 @@ internal static class ISymbolExtensions
     /// <param name="symbolEqualityComparer">The <see cref="SymbolEqualityComparer"/> to use for equality.</param>
     /// <returns>
     /// <see langword="true"/> if <paramref name="symbol"/> is an instance of <paramref name="other"/>, either as a direct match,
-    /// or as a specialaization; otherwise, <see langword="false"/>.
+    /// or as a specialization; otherwise, <see langword="false"/>.
     /// </returns>
     /// <example>
     /// <c>MyType.MyMethod&lt;int&gt;()</c> is an instance of <c>MyType.MyMethod&lt;T&gt;()</c>.
