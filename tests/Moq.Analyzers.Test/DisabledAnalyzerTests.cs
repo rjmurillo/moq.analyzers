@@ -48,9 +48,9 @@ public class DisabledAnalyzerTests
                         {
                             private void Test()
                             {
-#pragma warning disable Moq1200
+                        #pragma warning disable Moq1200
                                 new Mock<SampleClass>().Setup(x => x.Property);
-#pragma warning restore Moq1200
+                        #pragma warning restore Moq1200
                             }
                         }
                         """;
@@ -94,9 +94,9 @@ public class DisabledAnalyzerTests
                         {
                             private void Test()
                             {
-#pragma warning disable Moq1000
+                        #pragma warning disable Moq1000
                                 new Mock<FooSealed>();
-#pragma warning restore Moq1000
+                        #pragma warning restore Moq1000
                             }
                         }
                         """;
