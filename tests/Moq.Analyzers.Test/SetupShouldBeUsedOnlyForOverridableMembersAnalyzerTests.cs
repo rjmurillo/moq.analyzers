@@ -20,7 +20,8 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITestOutput
             ["""new Mock<IAsyncMethods>().Setup(x => x.GetBooleanAsync().Result).Returns(true);"""],
             ["""new Mock<IValueTaskMethods>().Setup(x => x.DoSomethingValueTask());"""],
             ["""new Mock<IValueTaskMethods>().Setup(x => x.GetNumberAsync()).Returns(ValueTask.FromResult(42));"""],
-            ["""new Mock<SampleClass>().Setup(x => x.Field);"""],
+            ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.Field)|};"""],
+            ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.TestEvent)|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -63,6 +64,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITestOutput
                                     public virtual int DoSth() => 0;
                                     public int Property { get; set; }
                                     public int Field;
+                                    public event Action? TestEvent;
                                 }
 
                                 internal class UnitTest
