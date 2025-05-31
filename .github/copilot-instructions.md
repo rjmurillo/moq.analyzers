@@ -2,6 +2,21 @@ This is a C# based repository of Roslyn analyzers for the Moq library. It is pri
 
 Please follow these guidelines when contributing:
 
+## Communication
+
+Err on the side of over communicating. Explain the problem being solved, the solution, and any updates or considerations required for maintainers. In code, write annontations as necessary to inform future contributors or maintainers to the "why" something is the way it is. These comments are not necessary on every change, only on those that are not immediately obvious. 
+
+### Comments from reviewers
+
+PRs may be reviewed by one or more tools, maintainers, bots, and/or external processes. As changes occur on your PR, read all comments and requests for feedback. If you disagree with the change being requested, articulate why. If the maintainer insists on the change, perform the change.
+
+## Design
+
+- Use tests as leverage
+- Keep in mind concepts such as SOLID, KISS, DRY, and YAGNI
+- Start with *patterns* in the *problem*, then relate them in *context*
+- Be intentional about changes
+
 ## Performance
 
 The analyzers can run on large code bases, so we need implementations to be fast and efficient. When reviewing or adding code, keep this goal in mind.
@@ -26,8 +41,9 @@ Try to prioritize the changes that will have the largest impact on typical usage
 ## Code Standards
 
 ### Required Before Each Commit
-- Run `dotnet format whitespace`, `dotnet format style`, and `dotnet format analyzers` before committing any changes to ensure proper code formatting
-- This will run format on all .NET files to maintain consistent style
+- Run `dotnet format whitespace`, `dotnet format style`, and `dotnet format analyzers` before committing any changes to ensure proper code formatting.
+- The CI runs with warnings elevated to errors, so any issues will fail a build and your changes will be rejected by the maintainers.
+- This will run format on all .NET files to maintain consistent style.
 
 ### Development Flow
 - Lint: `dotnet format whitespace`, `dotnet format style`, and `dotnet format analyzers` to ensure any changes meet code formatting standards
@@ -35,6 +51,13 @@ Try to prioritize the changes that will have the largest impact on typical usage
 - Test: `dotnet test --settings ./build/targets/tests/test.runsettings` to use the same settings as CI; ensure all tests pass
 
 Run this Development Flow after making each and every change to avoid accumulating errors.
+
+#### Troubleshooting Development Flow
+
+If you encounter:
+
+1. **The versioning is causing issues**
+This may show up in your build output as `error MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly`. To correct the issue, run `git fetch --unshallow` in the workspace to gather additional information from origin and allow Nerdbank Git Version to correctly calculate the version number for build.
 
 ## Repository Structure
 - `.config/`: Configuration files for .NET
