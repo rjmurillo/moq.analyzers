@@ -446,7 +446,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         ArgumentListSyntax? argumentList,
         ArgumentSyntax[] arguments)
     {
-        var constructorsBuilder = ImmutableArray.CreateBuilder<IMethodSymbol>();
+        ImmutableArray<IMethodSymbol>.Builder constructorsBuilder = ImmutableArray.CreateBuilder<IMethodSymbol>();
         foreach (ISymbol member in mockedClass.GetMembers())
         {
             if (member is IMethodSymbol methodSymbol && methodSymbol.IsConstructor())
@@ -454,6 +454,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
                 constructorsBuilder.Add(methodSymbol);
             }
         }
+
         ImmutableArray<IMethodSymbol> constructors = constructorsBuilder.ToImmutable();
 
         // Bail out early if there are no arguments on constructors or no constructors at all

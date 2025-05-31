@@ -75,7 +75,7 @@ internal static class SemanticModelExtensions
     private static IEnumerable<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
         where T : class
     {
-        var matchingSymbols = ImmutableArray.CreateBuilder<T>();
+        ImmutableArray<T>.Builder matchingSymbols = ImmutableArray.CreateBuilder<T>();
 
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
         switch (symbolInfo)
