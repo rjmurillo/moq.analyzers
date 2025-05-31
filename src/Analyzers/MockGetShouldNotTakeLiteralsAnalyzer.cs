@@ -16,7 +16,7 @@ public class MockGetShouldNotTakeLiteralsAnalyzer : DiagnosticAnalyzer
         Title,
         Message,
         DiagnosticCategory.Moq,
-        DiagnosticSeverity.Error,
+        DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.MockGetShouldNotTakeLiterals}.md");
 
