@@ -1,0 +1,9 @@
+{
+  "sdk": {
+    "version": "9.0.100",
+    "rollForward": "patch"
+  },
+  "msbuild-sdks": {
+    "DotNet.ReproducibleBuilds.Isolated": "1.2.25"
+  }
+}
