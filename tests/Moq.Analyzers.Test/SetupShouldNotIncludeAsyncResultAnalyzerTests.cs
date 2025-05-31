@@ -63,3 +63,4 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
 
     #endregion
 }
+

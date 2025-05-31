@@ -95,3 +95,4 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITestOutput
 
     #endregion
 }
+
