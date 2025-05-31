@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using SealedVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoSealedClassMocksAnalyzer>;
 using SetupVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>;
 
@@ -25,12 +24,13 @@ public class DisabledAnalyzerTests
     /// Test data that provides both old and new Moq reference assembly groups
     /// to ensure disabled analyzer behavior works across different Moq versions.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Test data for both old and new Moq reference assembly groups.</returns>
     public static IEnumerable<object[]> TestData()
     {
         return new object[][]
         {
-            ["Test with pragma warning disable"],
+            // Empty array - WithMoqReferenceAssemblyGroups will add the reference assembly group
+            [],
         }.WithMoqReferenceAssemblyGroups();
     }
 
@@ -147,10 +147,12 @@ public class DisabledAnalyzerTests
                         }
                         """;
 
-        await SetupVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup, ".editorconfig", """
+        const string editorConfig = """
             [*.cs]
             dotnet_diagnostic.Moq1200.severity = none
-            """);
+            """;
+
+        await SetupVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup, "/.editorconfig", editorConfig);
     }
 
     [Theory]
@@ -169,10 +171,12 @@ public class DisabledAnalyzerTests
                         }
                         """;
 
-        await SealedVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup, ".editorconfig", """
+        const string editorConfig = """
             [*.cs]
             dotnet_diagnostic.Moq1000.severity = none
-            """);
+            """;
+
+        await SealedVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup, "/.editorconfig", editorConfig);
     }
 
     [Theory]
