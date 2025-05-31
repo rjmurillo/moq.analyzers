@@ -1,0 +1,30 @@
+name: Copilot setup steps
+
+# Allow testing of the setup steps from your repository's "Actions" tab.
+on: workflow_dispatch
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+  copilot-setup-steps:
+    # Only supports Ubuntu x86 Linux runners
+    runs-on: ubuntu-latest
+    permissions:
+      # Copilot would clone anyway, but we want the contents so we can properly setup .NET, NuGet packages, and tools
+      packages: read
+      contents: read
+      actions: read
+
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: ./global.json
+
+      - name: NuGet Restore
+        run: dotnet restore
+
+      - name: Tool Restore
+        run: dotnet tool restore
+
+      - name: Format restore
+        run: dotnet format
