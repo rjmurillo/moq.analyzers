@@ -28,3 +28,6 @@ jobs:
 
       - name: Format restore
         run: dotnet format
+
+      - name: Workload update
+        run: dotnet workload update
