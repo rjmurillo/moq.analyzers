@@ -15,6 +15,4 @@ internal static class DiagnosticIds
     internal const string SetExplicitMockBehavior = "Moq1400";
     internal const string SetStrictMockBehavior = "Moq1410";
     internal const string MockGetShouldNotTakeLiterals = "Moq1500";
-    internal const string AdvancedMatcherAttributeShouldOnlyAcceptIMatcher = "Moq1501";
-    internal const string ProtectedMockMemberReferenceShouldUseProtectedSetup = "Moq1502";
 }
