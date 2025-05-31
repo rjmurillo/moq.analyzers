@@ -13,3 +13,4 @@
 | [Moq1400](./Moq1400.md) | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
 | [Moq1410](./Moq1410.md) | Explicitly set the Strict mocking behavior                                              |
 | [Moq1500](./Moq1500.md) | Mock.Get() should not take literals                                                     |
+| [Moq1502](./Moq1502.md) | Protected members should use Protected() setup                                          |

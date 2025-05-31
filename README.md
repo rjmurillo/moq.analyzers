@@ -23,6 +23,7 @@ something is wrong with your Moq configuration.
 * Moq1400: Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior
 * Moq1410: Explicitly set the Strict mocking behavior
 * Moq1500: Mock.Get() should not take literals
+* Moq1502: Protected members should use Protected() setup
 
 See [docs/rules](./docs/rules/README.md) for full documentation.
 
