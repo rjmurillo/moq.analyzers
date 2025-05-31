@@ -274,7 +274,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <remarks>Handles <see langword="params" /> and optional parameters.</remarks>
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "This should be refactored; suppressing for now to enable TreatWarningsAsErrors in CI.")]
     private static bool? AnyConstructorsFound(
-        IMethodSymbol[] constructors,
+        ImmutableArray<IMethodSymbol> constructors,
         ArgumentSyntax[] arguments,
         SyntaxNodeAnalysisContext context)
     {
@@ -373,7 +373,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     }
 
     private static (bool IsEmpty, Location Location) ConstructorIsEmpty(
-        IMethodSymbol[] constructors,
+        ImmutableArray<IMethodSymbol> constructors,
         ArgumentListSyntax? argumentList,
         SyntaxNodeAnalysisContext context)
     {
@@ -446,11 +446,15 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         ArgumentListSyntax? argumentList,
         ArgumentSyntax[] arguments)
     {
-        IMethodSymbol[] constructors = mockedClass
-            .GetMembers()
-            .OfType<IMethodSymbol>()
-            .Where(methodSymbol => methodSymbol.IsConstructor())
-            .ToArray();
+        var constructorsBuilder = ImmutableArray.CreateBuilder<IMethodSymbol>();
+        foreach (ISymbol member in mockedClass.GetMembers())
+        {
+            if (member is IMethodSymbol methodSymbol && methodSymbol.IsConstructor())
+            {
+                constructorsBuilder.Add(methodSymbol);
+            }
+        }
+        ImmutableArray<IMethodSymbol> constructors = constructorsBuilder.ToImmutable();
 
         // Bail out early if there are no arguments on constructors or no constructors at all
         (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);

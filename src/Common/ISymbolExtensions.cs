@@ -5,6 +5,7 @@ namespace Moq.Analyzers.Common;
 
 internal static class ISymbolExtensions
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsConstructor(this ISymbol symbol)
     {
         return symbol.DeclaredAccessibility != Accessibility.Private
@@ -119,6 +120,7 @@ internal static class ISymbolExtensions
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsMoqSetupMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
         return symbol.IsInstanceOf(knownSymbols.Mock1Setup) && symbol is IMethodSymbol { IsGenericMethod: true };

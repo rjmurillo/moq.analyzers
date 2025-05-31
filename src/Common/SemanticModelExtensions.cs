@@ -72,10 +72,10 @@ internal static class SemanticModelExtensions
         };
     }
 
-    private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
+    private static IEnumerable<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
         where T : class
     {
-        List<T> matchingSymbols = new();
+        var matchingSymbols = ImmutableArray.CreateBuilder<T>();
 
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
         switch (symbolInfo)
@@ -98,18 +98,24 @@ internal static class SemanticModelExtensions
                 {
                     if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
                     {
-                        matchingSymbols.AddRange(symbolInfo.CandidateSymbols.OfType<T>());
+                        foreach (ISymbol candidateSymbol in symbolInfo.CandidateSymbols)
+                        {
+                            if (candidateSymbol is T match)
+                            {
+                                matchingSymbols.Add(match);
+                            }
+                        }
                     }
                     else
                     {
-                        return matchingSymbols;
+                        return matchingSymbols.ToImmutable();
                     }
 
                     break;
                 }
         }
 
-        return matchingSymbols;
+        return matchingSymbols.ToImmutable();
     }
 
     private static bool IsCallbackOrReturnSymbol(ISymbol? symbol)

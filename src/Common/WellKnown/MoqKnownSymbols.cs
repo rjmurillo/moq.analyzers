@@ -5,14 +5,27 @@ namespace Moq.Analyzers.Common.WellKnown;
 
 internal class MoqKnownSymbols : KnownSymbols
 {
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _mockRepositoryCreate;
+    private readonly Lazy<IFieldSymbol?> _mockBehaviorStrict;
+    private readonly Lazy<IFieldSymbol?> _mockBehaviorLoose;
+    private readonly Lazy<IFieldSymbol?> _mockBehaviorDefault;
+
     internal MoqKnownSymbols(WellKnownTypeProvider typeProvider)
         : base(typeProvider)
     {
+        _mockRepositoryCreate = new Lazy<ImmutableArray<IMethodSymbol>>(ComputeMockRepositoryCreate);
+        _mockBehaviorStrict = new Lazy<IFieldSymbol?>(ComputeMockBehaviorStrict);
+        _mockBehaviorLoose = new Lazy<IFieldSymbol?>(ComputeMockBehaviorLoose);
+        _mockBehaviorDefault = new Lazy<IFieldSymbol?>(ComputeMockBehaviorDefault);
     }
 
     internal MoqKnownSymbols(Compilation compilation)
         : base(compilation)
     {
+        _mockRepositoryCreate = new Lazy<ImmutableArray<IMethodSymbol>>(ComputeMockRepositoryCreate);
+        _mockBehaviorStrict = new Lazy<IFieldSymbol?>(ComputeMockBehaviorStrict);
+        _mockBehaviorLoose = new Lazy<IFieldSymbol?>(ComputeMockBehaviorLoose);
+        _mockBehaviorDefault = new Lazy<IFieldSymbol?>(ComputeMockBehaviorDefault);
     }
 
     /// <summary>
@@ -60,7 +73,7 @@ internal class MoqKnownSymbols : KnownSymbols
     /// when looking for members.
     /// </remarks>
     [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Minor perf issues. Should revisit later.")]
-    internal ImmutableArray<IMethodSymbol> MockRepositoryCreate => MockRepository?.GetBaseTypesAndThis().SelectMany(type => type.GetMembers("Create")).OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+    internal ImmutableArray<IMethodSymbol> MockRepositoryCreate => _mockRepositoryCreate.Value;
 
     /// <summary>
     /// Gets the enum <c>Moq.MockBehavior</c>.
@@ -70,15 +83,35 @@ internal class MoqKnownSymbols : KnownSymbols
     /// <summary>
     /// Gets the field <c>Moq.MockBehavior.Strict</c>.
     /// </summary>
-    internal IFieldSymbol? MockBehaviorStrict => MockBehavior?.GetMembers("Strict").OfType<IFieldSymbol>().SingleOrDefault();
+    internal IFieldSymbol? MockBehaviorStrict => _mockBehaviorStrict.Value;
 
     /// <summary>
     /// Gets the field <c>Moq.MockBehavior.Loose</c>.
     /// </summary>
-    internal IFieldSymbol? MockBehaviorLoose => MockBehavior?.GetMembers("Loose").OfType<IFieldSymbol>().SingleOrDefault();
+    internal IFieldSymbol? MockBehaviorLoose => _mockBehaviorLoose.Value;
 
     /// <summary>
     /// Gets the field <c>Moq.MockBehavior.Default</c>.
     /// </summary>
-    internal IFieldSymbol? MockBehaviorDefault => MockBehavior?.GetMembers("Default").OfType<IFieldSymbol>().SingleOrDefault();
+    internal IFieldSymbol? MockBehaviorDefault => _mockBehaviorDefault.Value;
+
+    private ImmutableArray<IMethodSymbol> ComputeMockRepositoryCreate()
+    {
+        return MockRepository?.GetBaseTypesAndThis().SelectMany(type => type.GetMembers("Create")).OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+    }
+
+    private IFieldSymbol? ComputeMockBehaviorStrict()
+    {
+        return MockBehavior?.GetMembers("Strict").OfType<IFieldSymbol>().SingleOrDefault();
+    }
+
+    private IFieldSymbol? ComputeMockBehaviorLoose()
+    {
+        return MockBehavior?.GetMembers("Loose").OfType<IFieldSymbol>().SingleOrDefault();
+    }
+
+    private IFieldSymbol? ComputeMockBehaviorDefault()
+    {
+        return MockBehavior?.GetMembers("Default").OfType<IFieldSymbol>().SingleOrDefault();
+    }
 }

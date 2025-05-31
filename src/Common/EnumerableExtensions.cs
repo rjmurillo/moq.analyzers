@@ -16,7 +16,25 @@ internal static class EnumerableExtensions
     [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Should revisit. Suppressing for now to unblock refactor.")]
     public static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source, Func<TSource, bool> predicate)
     {
-        return source.AsEnumerable().DefaultIfNotSingle(predicate);
+        bool isFound = false;
+        TSource? item = default;
+
+        foreach (TSource element in source)
+        {
+            if (predicate(element))
+            {
+                if (isFound)
+                {
+                    // We already found an element, thus there's multiple matches; return default.
+                    return default;
+                }
+
+                isFound = true;
+                item = element;
+            }
+        }
+
+        return item;
     }
 
     /// <summary>
@@ -37,16 +55,19 @@ internal static class EnumerableExtensions
         bool isFound = false;
         TSource? item = default;
 
-        foreach (TSource element in source.Where(predicate))
+        foreach (TSource element in source)
         {
-            if (isFound)
+            if (predicate(element))
             {
-                // We already found an element, thus there's multiple matches; return default.
-                return default;
-            }
+                if (isFound)
+                {
+                    // We already found an element, thus there's multiple matches; return default.
+                    return default;
+                }
 
-            isFound = true;
-            item = element;
+                isFound = true;
+                item = element;
+            }
         }
 
         return item;
