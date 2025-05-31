@@ -5,8 +5,9 @@ using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.Const
 namespace Moq.Analyzers.Test;
 
 /// <summary>
-/// Tests to validate the suppression behavior of ConstructorArgumentsShouldMatchAnalyzer
-/// to determine if the IsAnalyzerSuppressed check is necessary.
+/// Tests to validate the suppression behavior of ConstructorArgumentsShouldMatchAnalyzer.
+/// These tests confirm that Roslyn handles diagnostic suppression correctly without
+/// needing custom suppression checks in the analyzer.
 /// </summary>
 public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
 {
@@ -121,7 +122,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
     public async Task ShouldSuppressBothDiagnosticsWhenBothAreDisabled()
     {
         // Test when both diagnostics are suppressed to validate the behavior
-        // that the original IsAnalyzerSuppressed check was trying to optimize
+        // This confirms Roslyn handles multiple suppressions correctly
         
         var source = """
             namespace Test
