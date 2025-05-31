@@ -128,7 +128,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
                 private void Test()
                 {
                     var mock = new Mock<INotifier>();
-                    // Valid: EventHandler<CustomEventArgs> expects CustomEventArgs
+                    // Valid: EventHandler<CustomEventArgs> expects CustomEventArgs argument only when used with Moq.Raise
                     mock.Raise(n => n.CustomEvent += null, new CustomEventArgs { Value = "test" });
                     
                     // Invalid: Wrong argument type

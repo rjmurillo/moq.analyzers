@@ -138,13 +138,19 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         // For delegates like Action<T>, we need to get the generic type arguments
         if (eventType is INamedTypeSymbol namedType)
         {
+            // Handle Action (no parameters)
+            if (string.Equals(namedType.Name, "Action", StringComparison.Ordinal) && namedType.TypeArguments.Length == 0)
+            {
+                return Array.Empty<ITypeSymbol>();
+            }
+
             // Handle Action<T1, T2, ...>
             if (string.Equals(namedType.Name, "Action", StringComparison.Ordinal) && namedType.TypeArguments.Length > 0)
             {
                 return namedType.TypeArguments.ToArray();
             }
 
-            // Handle EventHandler<T>
+            // Handle EventHandler<T> - expects single argument of type T (not the sender/args pattern)
             if (string.Equals(namedType.Name, "EventHandler", StringComparison.Ordinal) && namedType.TypeArguments.Length == 1)
             {
                 return new[] { namedType.TypeArguments[0] };
