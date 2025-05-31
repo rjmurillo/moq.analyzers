@@ -123,8 +123,8 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
                 break;
 
             default:
-                // If it's not a property or method, it's not overridable
-                return false;
+                // If it's not a property or method, we do not issue a diagnostic
+                return true;
         }
 
         return false;
