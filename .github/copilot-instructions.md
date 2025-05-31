@@ -9,8 +9,7 @@ Please follow these guidelines when contributing:
 - This will run format on all .NET files to maintain consistent style
 
 ### Development Flow
-- Tool restore: `dotnet tool restore`
-- Build: `dotnet build`
+- Build: `dotnet build /p:PedanticMode=true /p:SquiggleCop_AutoBaseline=true`
 - Test: `dotnet test`
 
 ## Repository Structure
