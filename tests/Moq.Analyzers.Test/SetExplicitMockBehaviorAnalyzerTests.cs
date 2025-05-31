@@ -1,30 +1,33 @@
-﻿using Moq.Analyzers.Test.Helpers;
-using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoSealedClassMocksAnalyzer>;
+using Moq.Analyzers.Test.Helpers;
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetExplicitMockBehaviorAnalyzer>;
 
 namespace Moq.Analyzers.Test;
 
-public class NoSealedClassMocksAnalyzerTests
+public class SetExplicitMockBehaviorAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
         return new object[][]
         {
-            ["""new Mock<{|Moq1000:FooSealed|}>();"""],
-            ["""new Mock<Foo>();"""],
+            ["""{|Moq1400:new Mock<ISample>()|};"""],
+            ["""{|Moq1400:new Mock<ISample>(MockBehavior.Default)|};"""],
+            ["""new Mock<ISample>(MockBehavior.Loose);"""],
+            ["""new Mock<ISample>(MockBehavior.Strict);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShoulAnalyzeSealedClassMocks(string referenceAssemblyGroup, string @namespace, string mock)
+    public async Task ShouldAnalyzeExplicitMockBehavior(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
                 {{@namespace}}
 
-                internal sealed class FooSealed { }
-
-                internal class Foo { }
+                public interface ISample
+                {
+                    void Method();
+                }
 
                 internal class UnitTest
                 {
