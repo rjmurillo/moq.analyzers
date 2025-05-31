@@ -7,8 +7,26 @@ using SealedConfigVerifier = Moq.Analyzers.Test.Helpers.ConfigAnalyzerVerifier<M
 
 namespace Moq.Analyzers.Test;
 
+/// <summary>
+/// Tests to verify that analyzers are properly disabled when configured to be disabled.
+/// This ensures that no false warnings are generated when users explicitly disable analyzers.
+/// 
+/// Performance note: When analyzers are disabled via configuration (severity = none), 
+/// the Roslyn framework automatically avoids calling the analyzer's analysis methods entirely,
+/// which provides optimal performance by avoiding unnecessary analysis work.
+/// 
+/// Test Coverage:
+/// - Pragma warning directives (#pragma warning disable/restore)
+/// - SuppressMessage attributes at method and assembly level
+/// - Configuration-based disabling via .editorconfig files
+/// - Control tests to ensure analyzers work when not disabled
+/// </summary>
 public class DisabledAnalyzerTests
 {
+    /// <summary>
+    /// Test data that provides both old and new Moq reference assembly groups
+    /// to ensure disabled analyzer behavior works across different Moq versions.
+    /// </summary>
     public static IEnumerable<object[]> TestData()
     {
         return new object[][]
