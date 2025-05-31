@@ -8,13 +8,25 @@ internal static class AnalyzerVerifier<TAnalyzer>
 {
     public static async Task VerifyAnalyzerAsync(string source, string referenceAssemblyGroup)
     {
+        await VerifyAnalyzerAsync(source, referenceAssemblyGroup, configFileName: null, configContent: null).ConfigureAwait(false);
+    }
+
+    public static async Task VerifyAnalyzerAsync(string source, string referenceAssemblyGroup, string? configFileName, string? configContent)
+    {
         ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[referenceAssemblyGroup];
 
-        await new Test<TAnalyzer, EmptyCodeFixProvider>
+        Test<TAnalyzer, EmptyCodeFixProvider> test = new Test<TAnalyzer, EmptyCodeFixProvider>
         {
             TestCode = source,
             FixedCode = source,
             ReferenceAssemblies = referenceAssemblies,
-        }.RunAsync().ConfigureAwait(false);
+        };
+
+        if (configFileName != null && configContent != null)
+        {
+            test.TestState.AnalyzerConfigFiles.Add((configFileName, configContent));
+        }
+
+        await test.RunAsync().ConfigureAwait(false);
     }
 }
