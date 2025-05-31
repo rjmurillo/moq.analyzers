@@ -13,8 +13,14 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
             // Prior to Moq 4.16, the setup helper ReturnsAsync(), ThrowsAsync() are preferred
             ["""new Mock<AsyncClient>().Setup(c => c.GenericTaskAsync()).ReturnsAsync(string.Empty);"""],
 
+            ["""new Mock<AsyncClient>().Setup(c => c.ValueTaskAsync());"""],
+
+            ["""new Mock<AsyncClient>().Setup(c => c.GenericValueTaskAsync()).Returns(ValueTask.FromResult(string.Empty));"""],
+
             // Starting with Moq 4.16, you can simply .Setup the returned tasks's .Result property
             ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""],
+
+            ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericValueTaskAsync().Result|});"""],
         }.WithNamespaces().WithOldMoqReferenceAssemblyGroups();
     }
 
@@ -31,6 +37,10 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
                   public virtual Task TaskAsync() => Task.CompletedTask;
 
                   public virtual Task<string> GenericTaskAsync() => Task.FromResult(string.Empty);
+
+                  public virtual ValueTask ValueTaskAsync() => ValueTask.CompletedTask;
+
+                  public virtual ValueTask<string> GenericValueTaskAsync() => ValueTask.FromResult(string.Empty);
               }
 
               internal class UnitTest

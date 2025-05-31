@@ -100,7 +100,7 @@ internal static class ISymbolExtensions
     {
         string type = methodSymbol.ToDisplayString();
         return string.Equals(type, "System.Threading.Tasks.Task", StringComparison.Ordinal)
-               || string.Equals(type, "System.Threading.ValueTask", StringComparison.Ordinal)
+               || string.Equals(type, "System.Threading.Tasks.ValueTask", StringComparison.Ordinal)
                || type.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal)
                || (type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal)
                    && type.EndsWith(".Result", StringComparison.Ordinal));
