@@ -9,15 +9,17 @@ namespace Moq.Analyzers;
 public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Invalid As type parameter";
-    private static readonly LocalizableString Message = "Mock.As() should take interfaces only";
+    private static readonly LocalizableString Message = "Mock.As<{0}>() should only be used with interfaces";
+    private static readonly LocalizableString Description = "Mock.As<T>() should take interfaces only. Classes and other types cannot be used with the As() method.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId}.md");
 
     /// <inheritdoc />
@@ -76,14 +78,14 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (typeArguments[0] is ITypeSymbol { TypeKind: not TypeKind.Interface })
+        if (typeArguments[0] is ITypeSymbol { TypeKind: not TypeKind.Interface } typeSymbol)
         {
             // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.
             // If that fails for any reason, report the diagnostic on the operation itself.
             NameSyntax? memberName = context.Operation.Syntax.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Select(mae => mae.Name).DefaultIfNotSingle();
             Location location = memberName?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
 
-            context.ReportDiagnostic(location.CreateDiagnostic(Rule));
+            context.ReportDiagnostic(location.CreateDiagnostic(Rule, typeSymbol.Name));
         }
     }
 }
