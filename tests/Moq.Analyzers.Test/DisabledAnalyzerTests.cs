@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 using SetupVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>;
 using SealedVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoSealedClassMocksAnalyzer>;
@@ -130,9 +131,6 @@ public class DisabledAnalyzerTests
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShouldStillReportDiagnosticsWhenNotDisabled(string referenceAssemblyGroup, string testName)
-    [Theory]
-    [MemberData(nameof(TestData))]
     public async Task ShouldNotReportSetupDiagnosticsWhenDisabledViaConfiguration(string referenceAssemblyGroup, string testName)
     {
         string source = """
@@ -177,6 +175,10 @@ public class DisabledAnalyzerTests
             dotnet_diagnostic.Moq1000.severity = none
             """);
     }
+
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public async Task ShouldStillReportDiagnosticsWhenNotDisabled(string referenceAssemblyGroup, string testName)
     {
         // This test verifies that the analyzers are working correctly when not disabled
         // This is a control test to ensure our disabled tests are meaningful
