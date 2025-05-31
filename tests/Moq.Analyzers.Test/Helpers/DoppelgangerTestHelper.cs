@@ -1,4 +1,4 @@
-using Moq.Analyzers.Test.Helpers;
+#pragma warning disable ECS0200
 
 namespace Moq.Analyzers.Test.Helpers;
 
@@ -70,6 +70,7 @@ internal static class DoppelgangerTestHelper
     /// <summary>
     /// Test data for custom Mock&lt;T&gt; constructor scenarios.
     /// </summary>
+    /// <returns></returns>
     public static IEnumerable<object[]> CustomMockConstructorData()
     {
         return new object[][]
@@ -86,28 +87,29 @@ internal static class DoppelgangerTestHelper
     /// <summary>
     /// Test data for custom Mock&lt;T&gt; method call scenarios.
     /// </summary>
+    /// <returns></returns>
     public static IEnumerable<object[]> CustomMockMethodCallData()
     {
         return new object[][]
         {
             // As() method calls
             ["""var mock = new Mock<IMyService>().As<IMyService>();"""],
-            
+
             // Setup method calls
             ["""var mock = new Mock<IMyService>().Setup(x => x.Do("test"));"""],
             ["""var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2));"""],
             ["""new Mock<IMyService>().Setup(x => x.Do("test"));"""],
-            
+
             // SetupGet/SetupSet calls
             ["""var mock = new Mock<IMyService>().SetupGet(x => x.Property);"""],
             ["""var mock = new Mock<IMyService>().SetupSet(x => x.Property = "value");"""],
-            
+
             // Returns/Callback chaining
             ["""var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Returns(42);"""],
             ["""var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Callback(() => { });"""],
             ["""var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Callback<int, int>((a, b) => { });"""],
             ["""new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).ReturnsAsync(42);"""],
-            
+
             // Complex chaining
             ["""var mock = new Mock<IMyService>().As<IMyService>().Setup(x => x.Calculate(1, 2)).Returns(42);"""],
             ["""new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Callback((int a, int b) => { }).Returns(42);"""],
@@ -117,6 +119,7 @@ internal static class DoppelgangerTestHelper
     /// <summary>
     /// Gets combined test data for all custom Mock&lt;T&gt; scenarios.
     /// </summary>
+    /// <returns></returns>
     public static IEnumerable<object[]> GetAllCustomMockData()
     {
         return CustomMockConstructorData().Concat(CustomMockMethodCallData());
@@ -125,6 +128,7 @@ internal static class DoppelgangerTestHelper
     /// <summary>
     /// Creates a test string from the template with the provided mock code.
     /// </summary>
+    /// <returns></returns>
     public static string CreateTestCode(string mockCode)
     {
         return string.Format(CustomMockClassTemplate, mockCode);
