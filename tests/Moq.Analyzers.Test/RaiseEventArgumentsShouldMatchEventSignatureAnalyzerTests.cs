@@ -10,16 +10,16 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
         {
             // Valid: Action<string> event with string argument
             ["""mockProvider.Raise(p => p.StringOptionsChanged += null, "correct");"""],
-            
+
             // Valid: Action<int> event with int argument
             ["""mockProvider.Raise(p => p.NumberChanged += null, 42);"""],
-            
+
             // Valid: Action<MyOptions> event with MyOptions argument
             ["""mockProvider.Raise(p => p.OptionsChanged += null, new MyOptions());"""],
-            
+
             // Valid: Action with no parameters
             ["""mockProvider.Raise(p => p.SimpleEvent += null);"""],
-            
+
             // Valid: Implicit conversion from int to double
             ["""mockProvider.Raise(p => p.DoubleChanged += null, 42);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
@@ -31,13 +31,13 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
         {
             // Invalid: Action<string> event with int argument
             ["""mockProvider.Raise(p => p.StringOptionsChanged += null, {|Moq1500:42|});"""],
-            
+
             // Invalid: Action<MyOptions> event with wrong type
             ["""mockProvider.Raise(p => p.OptionsChanged += null, {|Moq1500:new Incorrect()|});"""],
-            
+
             // Invalid: Too many arguments
             ["""mockProvider.Raise(p => p.SimpleEvent += null, {|Moq1500:"extra"|});"""],
-            
+
             // Invalid: Too few arguments
             ["""{|Moq1500:mockProvider.Raise(p => p.StringOptionsChanged += null)|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
