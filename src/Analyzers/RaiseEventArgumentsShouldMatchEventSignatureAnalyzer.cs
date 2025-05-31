@@ -31,8 +31,8 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
 
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
         MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
+        InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         // Check if this is a Raise method call on a Mock<T>
         if (!IsRaiseMethodCall(context.SemanticModel, invocation, knownSymbols))
@@ -130,7 +130,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         }
 
         eventType = eventSymbol.Type;
-        return true;
+        return eventType != null;
     }
 
     private static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType)
@@ -138,20 +138,14 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         // For delegates like Action<T>, we need to get the generic type arguments
         if (eventType is INamedTypeSymbol namedType)
         {
-            // Handle Action (no parameters)
-            if (string.Equals(namedType.Name, "Action", StringComparison.Ordinal) && namedType.TypeArguments.Length == 0)
-            {
-                return Array.Empty<ITypeSymbol>();
-            }
-
-            // Handle Action<T1, T2, ...>
-            if (string.Equals(namedType.Name, "Action", StringComparison.Ordinal) && namedType.TypeArguments.Length > 0)
+            // Handle Action delegates
+            if (IsActionDelegate(namedType))
             {
                 return namedType.TypeArguments.ToArray();
             }
 
             // Handle EventHandler<T> - expects single argument of type T (not the sender/args pattern)
-            if (string.Equals(namedType.Name, "EventHandler", StringComparison.Ordinal) && namedType.TypeArguments.Length == 1)
+            if (IsEventHandlerDelegate(namedType))
             {
                 return new[] { namedType.TypeArguments[0] };
             }
@@ -165,6 +159,16 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         }
 
         return Array.Empty<ITypeSymbol>();
+    }
+
+    private static bool IsActionDelegate(INamedTypeSymbol namedType)
+    {
+        return string.Equals(namedType.Name, "Action", StringComparison.Ordinal);
+    }
+
+    private static bool IsEventHandlerDelegate(INamedTypeSymbol namedType)
+    {
+        return string.Equals(namedType.Name, "EventHandler", StringComparison.Ordinal) && namedType.TypeArguments.Length == 1;
     }
 
     private static bool HasConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
