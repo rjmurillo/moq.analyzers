@@ -32,7 +32,9 @@ Try to prioritize the changes that will have the largest impact on typical usage
 ### Development Flow
 - Lint: `dotnet format whitespace`, `dotnet format style`, and `dotnet format analyzers` to ensure any changes meet code formatting standards
 - Build: `dotnet build /p:PedanticMode=true /p:SquiggleCop_AutoBaseline=true` to ensure everything passes and analyzer warnings and suppressions are kept up to date
-- Test: `dotnet test` to ensure all tests pass
+- Test: `dotnet test --settings ./build/targets/tests/test.runsettings` to use the same settings as CI; ensure all tests pass
+
+Run this Development Flow after making each and every change to avoid accumulating errors.
 
 ## Repository Structure
 - `.config/`: Configuration files for .NET
