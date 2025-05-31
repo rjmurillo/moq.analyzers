@@ -49,8 +49,6 @@ public class NoMethodsInPropertySetupAnalyzerTests
                 referenceAssemblyGroup);
     }
 
-    #region Doppelganger Tests
-
     [Theory]
     [MemberData(nameof(DoppelgangerTestHelper.GetAllCustomMockData), MemberType = typeof(DoppelgangerTestHelper))]
     public async Task ShouldPassIfCustomMockClassIsUsed(string mockCode)
@@ -59,7 +57,4 @@ public class NoMethodsInPropertySetupAnalyzerTests
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
-
-    #endregion
 }
-
