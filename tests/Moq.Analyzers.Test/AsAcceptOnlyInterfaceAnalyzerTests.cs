@@ -51,8 +51,6 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
                 referenceAssemblyGroup);
     }
 
-    #region Doppelganger Tests
-
     [Theory]
     [MemberData(nameof(DoppelgangerTestHelper.GetAllCustomMockData), MemberType = typeof(DoppelgangerTestHelper))]
     public async Task ShouldPassIfCustomMockClassIsUsed(string mockCode)
@@ -61,6 +59,4 @@ public class AsAcceptOnlyInterfaceAnalyzerTests
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
-
-    #endregion
 }
