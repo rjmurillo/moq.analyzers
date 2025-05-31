@@ -15,34 +15,34 @@ internal static class DoppelgangerTestHelper
         namespace TestNamespace.CustomMock;
 
         public enum MockBehavior
-        {
+        {{
             Default,
             Strict,
             Loose,
-        }
+        }}
 
         internal interface IMyService
-        {
+        {{
             void Do(string s);
             int Calculate(int a, int b);
-            string Property { get; set; }
+            string Property {{ get; set; }}
             System.Threading.Tasks.Task DoAsync();
             System.Threading.Tasks.Task<int> CalculateAsync(int a, int b);
-        }
+        }}
 
         internal class MySealedService
-        {
-            public void Do(string s) { }
+        {{
+            public void Do(string s) {{ }}
             public int Calculate(int a, int b) => 0;
-        }
+        }}
 
         public class Mock<T>
             where T : class
-        {
-            public Mock() { }
-            public Mock(params object[] args) { }
-            public Mock(MockBehavior behavior) { }
-            public Mock(MockBehavior behavior, params object[] args) { }
+        {{
+            public Mock() {{ }}
+            public Mock(params object[] args) {{ }}
+            public Mock(MockBehavior behavior) {{ }}
+            public Mock(MockBehavior behavior, params object[] args) {{ }}
             
             public Mock<TInterface> As<TInterface>() where TInterface : class => new Mock<TInterface>();
             public Mock<T> Setup(System.Linq.Expressions.Expression<System.Action<T>> expression) => this;
@@ -56,21 +56,21 @@ internal static class DoppelgangerTestHelper
             public Mock<T> Returns<TResult>(TResult value) => this;
             public Mock<T> ReturnsAsync<TResult>(TResult value) => this;
             public Mock<T> ReturnsAsync<TResult>(System.Threading.Tasks.Task<TResult> value) => this;
-        }
+        }}
 
         internal class MyUnitTests
-        {
+        {{
             private void TestCustomMock()
-            {
+            {{
                 {0}
-            }
-        }
+            }}
+        }}
         """;
 
     /// <summary>
     /// Test data for custom Mock&lt;T&gt; constructor scenarios.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>An enumerable of test data arrays containing custom Mock constructor code examples.</returns>
     public static IEnumerable<object[]> CustomMockConstructorData()
     {
         return new object[][]
@@ -87,7 +87,7 @@ internal static class DoppelgangerTestHelper
     /// <summary>
     /// Test data for custom Mock&lt;T&gt; method call scenarios.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>An enumerable of test data arrays containing custom Mock method call code examples.</returns>
     public static IEnumerable<object[]> CustomMockMethodCallData()
     {
         return new object[][]
@@ -119,7 +119,7 @@ internal static class DoppelgangerTestHelper
     /// <summary>
     /// Gets combined test data for all custom Mock&lt;T&gt; scenarios.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>An enumerable of test data arrays containing all custom Mock constructor and method call code examples.</returns>
     public static IEnumerable<object[]> GetAllCustomMockData()
     {
         return CustomMockConstructorData().Concat(CustomMockMethodCallData());
@@ -128,7 +128,8 @@ internal static class DoppelgangerTestHelper
     /// <summary>
     /// Creates a test string from the template with the provided mock code.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="mockCode">The mock code to insert into the test template.</param>
+    /// <returns>A formatted test code string with the mock code inserted into the template.</returns>
     public static string CreateTestCode(string mockCode)
     {
         return string.Format(CustomMockClassTemplate, mockCode);
