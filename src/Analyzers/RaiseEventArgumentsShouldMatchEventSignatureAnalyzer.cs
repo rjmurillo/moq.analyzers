@@ -40,30 +40,48 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             return;
         }
 
+        if (!TryGetRaiseMethodArguments(invocation, context.SemanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
+        {
+            return;
+        }
+
+        ValidateArgumentTypes(context, eventArguments, expectedParameterTypes, invocation);
+    }
+
+    private static bool TryGetRaiseMethodArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes)
+    {
+        eventArguments = Array.Empty<ArgumentSyntax>();
+        expectedParameterTypes = Array.Empty<ITypeSymbol>();
+
         // Get the arguments to the Raise method
         SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
 
         // Raise method should have at least 1 argument (the event selector)
         if (arguments.Count < 1)
         {
-            return;
+            return false;
         }
 
         // First argument should be a lambda that selects the event
         ExpressionSyntax eventSelector = arguments[0].Expression;
-        if (!TryGetEventTypeFromSelector(context.SemanticModel, eventSelector, out ITypeSymbol? eventType))
+        if (!TryGetEventTypeFromSelector(semanticModel, eventSelector, out ITypeSymbol? eventType))
         {
-            return;
+            return false;
         }
 
         // Get expected parameter types from the event delegate
-        ITypeSymbol[] expectedParameterTypes = GetEventParameterTypes(eventType!);
+        expectedParameterTypes = GetEventParameterTypes(eventType!);
 
         // The remaining arguments should match the event parameter types
 #pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
-        ArgumentSyntax[] eventArguments = arguments.Skip(1).ToArray();
+        eventArguments = arguments.Skip(1).ToArray();
 #pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
 
+        return true;
+    }
+
+    private static void ValidateArgumentTypes(SyntaxNodeAnalysisContext context, ArgumentSyntax[] eventArguments, ITypeSymbol[] expectedParameterTypes, InvocationExpressionSyntax invocation)
+    {
         if (eventArguments.Length != expectedParameterTypes.Length)
         {
             // Wrong number of arguments
@@ -130,7 +148,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         }
 
         eventType = eventSymbol.Type;
-        return eventType != null;
+        return true;
     }
 
     private static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType)
@@ -147,7 +165,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             // Handle EventHandler<T> - expects single argument of type T (not the sender/args pattern)
             if (IsEventHandlerDelegate(namedType))
             {
-                return new[] { namedType.TypeArguments[0] };
+                return [namedType.TypeArguments[0]];
             }
 
             // Handle custom delegates by getting the Invoke method parameters
