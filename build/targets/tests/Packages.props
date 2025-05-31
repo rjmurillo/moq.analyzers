@@ -1,7 +1,7 @@
 <Project>
   <ItemGroup>
     <PackageVersion Include="ReportGenerator" Version="5.4.6" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.2-beta1.22109.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.2-beta1.24314.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="Verify.Nupkg" Version="3.0.1" />
     <PackageVersion Include="Verify.Xunit" Version="30.0.0" />
