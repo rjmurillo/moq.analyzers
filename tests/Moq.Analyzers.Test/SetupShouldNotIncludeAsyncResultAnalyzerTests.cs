@@ -6,7 +6,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
 {
     public static IEnumerable<object[]> TestData()
     {
-        return new object[][]
+        IEnumerable<object[]> old = new object[][]
         {
             ["""new Mock<AsyncClient>().Setup(c => c.TaskAsync());"""],
 
@@ -16,6 +16,14 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
             // Starting with Moq 4.16, you can simply .Setup the returned tasks's .Result property
             ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""],
         }.WithNamespaces().WithOldMoqReferenceAssemblyGroups();
+
+        IEnumerable<object[]> @new = new object[][]
+        {
+            // Moq 4.16 and later allows setting up Task<T>.Result directly
+            ["""new Mock<AsyncClient>().Setup(c => c.GenericTaskAsync().Result);"""],
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+
+        return old.Union(@new);
     }
 
     [Theory]
