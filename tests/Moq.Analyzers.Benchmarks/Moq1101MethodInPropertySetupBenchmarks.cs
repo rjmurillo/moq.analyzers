@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
-public class Moq1103PropertySetupBenchmarks
+public class Moq1101MethodInPropertySetupBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
@@ -51,7 +51,7 @@ internal class {name}
     }
 
     [Benchmark]
-    public async Task Moq1103WithDiagnostics()
+    public async Task Moq1101WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
@@ -67,7 +67,7 @@ internal class {name}
     }
 
     [Benchmark(Baseline = true)]
-    public async Task Moq1103Baseline()
+    public async Task Moq1101Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!
