@@ -11,14 +11,16 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Set MockBehavior to Strict";
     private static readonly LocalizableString Message = "Explicitly set the Strict mocking behavior";
+    private static readonly LocalizableString Description = "Mock should explicitly specify Strict behavior. Using MockBehavior.Strict helps catch unexpected method calls during testing.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.SetStrictMockBehavior,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Info,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.SetStrictMockBehavior}.md");
 
     /// <inheritdoc />

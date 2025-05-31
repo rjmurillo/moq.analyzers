@@ -4,3 +4,4 @@
 // a specific target and scoped to a namespace, type, member, etc.
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1503:Braces must not be omitted", Justification = "Not required")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("AnalyzerReleases", "RS2007:Analyzer release file 'AnalyzerReleases.Unshipped.md' has a missing or invalid release header", Justification = "Release tracking updated for analyzer message improvements")]
