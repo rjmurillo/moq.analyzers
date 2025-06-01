@@ -43,6 +43,14 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    public static IEnumerable<object[]> InvalidTestData2()
+    {
+        return new object[][]
+        {
+            [string.Empty],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(ValidTestData))]
     public async Task ShouldNotReportDiagnosticForValidRaiseArguments(string referenceAssemblyGroup, string @namespace, string raiseCall)
@@ -105,11 +113,13 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
             referenceAssemblyGroup);
     }
 
-    [Fact]
-    public async Task ShouldHandleEventHandlerPattern()
+    [Theory]
+    [MemberData(nameof(InvalidTestData2))]
+    public async Task ShouldHandleEventHandlerPattern(string referenceAssemblyGroup, string @namespace)
     {
         await Verifier.VerifyAnalyzerAsync(
-            """
+            $$"""
+            {{@namespace}}
             using Moq;
             using System;
 
@@ -135,6 +145,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
                     mock.Raise(n => n.CustomEvent += null, {|Moq1500:"wrong"|});
                 }
             }
-            """);
+            """,
+            referenceAssemblyGroup);
     }
 }
