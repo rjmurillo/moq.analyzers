@@ -6,24 +6,26 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
 {
     public static IEnumerable<object[]> TestData()
     {
-        IEnumerable<object[]> old = new object[][]
+        // Common test cases that behave the same across all Moq versions
+        IEnumerable<object[]> common = new object[][]
         {
             ["""new Mock<AsyncClient>().Setup(c => c.TaskAsync());"""],
-
-            // Prior to Moq 4.16, the setup helper ReturnsAsync(), ThrowsAsync() are preferred
             ["""new Mock<AsyncClient>().Setup(c => c.GenericTaskAsync()).ReturnsAsync(string.Empty);"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
-            // Starting with Moq 4.16, you can simply .Setup the returned tasks's .Result property
+        // Old Moq specific: Task<T>.Result should produce diagnostic
+        IEnumerable<object[]> oldMoqSpecific = new object[][]
+        {
             ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""],
         }.WithNamespaces().WithOldMoqReferenceAssemblyGroups();
 
-        IEnumerable<object[]> @new = new object[][]
+        // New Moq specific: Task<T>.Result should NOT produce diagnostic
+        IEnumerable<object[]> newMoqSpecific = new object[][]
         {
-            // Moq 4.16 and later allows setting up Task<T>.Result directly
             ["""new Mock<AsyncClient>().Setup(c => c.GenericTaskAsync().Result);"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
-        return old.Union(@new);
+        return common.Union(oldMoqSpecific).Union(newMoqSpecific);
     }
 
     [Theory]
