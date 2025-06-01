@@ -18,8 +18,35 @@
                   Discuss in https://github.com/microsoft/codecoverage.
                 -->
                 <ModulePath>.*Moq\.Analyzers\.dll$</ModulePath>
+                <ModulePath>.*Moq\.CodeFixes\.dll$</ModulePath>
               </Include>
+              <Exclude>
+                <ModulePath>.*\.TestAdapter\.dll$</ModulePath> <!-- Excludes test adapters -->
+                <ModulePath>.*xunit.*</ModulePath> <!-- Excludes xUnit framework -->
+              </Exclude>
             </ModulePaths>
+            <Attributes>
+              <Exclude>
+                <Attribute>System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute</Attribute>
+              </Exclude>
+            </Attributes>
+            <Sources>
+              <Exclude>
+                <Source>.*/PerformanceSensitiveAttribute\.cs$</Source> <!-- Excludes the class source file -->
+              </Exclude>
+            </Sources>
+            <Classes>
+              <Exclude>
+                <Class>Roslyn.Utilities.PerformanceSensitiveAttribute</Class> <!-- Excludes the class from coverage -->
+              </Exclude>
+            </Classes>
+            <Functions>
+              <Exclude>
+                <Function>^get_.*</Function> <!-- Excludes property getters -->
+                <Function>^set_.*</Function> <!-- Excludes property setters -->
+                <Function>^.*Test.*</Function> <!-- Excludes test methods -->
+              </Exclude>
+            </Functions>
           </CodeCoverage>
         </Configuration>
       </DataCollector>
