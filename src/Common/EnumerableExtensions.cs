@@ -37,8 +37,13 @@ internal static class EnumerableExtensions
         bool isFound = false;
         TSource? item = default;
 
-        foreach (TSource element in source.Where(predicate))
+        foreach (TSource element in source)
         {
+            if (!predicate(element))
+            {
+                continue;
+            }
+
             if (isFound)
             {
                 // We already found an element, thus there's multiple matches; return default.
