@@ -18,7 +18,7 @@ dotnet test --settings ./build/targets/tests/test.runsettings
 dotnet run --configuration Release --project tests/Moq.Analyzers.Benchmarks
 ```
 
-Benchmarks are optional and may require additional local configuration.
+Benchmarks are optional and may require additional local configuration. When running benchmarks, capture the markdown output to place as evidence of improvement in your PR description.
 
 ## Guidelines
 - Add or update xUnit tests with every new feature or bug fix.
