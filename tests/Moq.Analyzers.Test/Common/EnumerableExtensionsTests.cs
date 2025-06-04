@@ -1,4 +1,6 @@
-﻿namespace Moq.Analyzers.Test.Common;
+using System.Collections;
+
+namespace Moq.Analyzers.Test.Common;
 
 public class EnumerableExtensionsTests
 {
@@ -72,5 +74,33 @@ public class EnumerableExtensionsTests
         ImmutableArray<int> source = [.. new[] { 5, 10, 10, 15 }];
         int result = source.DefaultIfNotSingle(x => x > 5);
         Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_StopsEnumeratingAfterSecondMatch()
+    {
+        CountingEnumerable<int> source = new(new[] { 1, 2, 3, 4 });
+        int result = source.DefaultIfNotSingle(x => x > 1);
+
+        Assert.Equal(0, result);
+        Assert.Equal(3, source.Count);
+    }
+
+    private sealed class CountingEnumerable<T>(IEnumerable<T> items) : IEnumerable<T>
+    {
+        private readonly IEnumerable<T> _items = items;
+
+        public int Count { get; private set; }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            foreach (T item in _items)
+            {
+                Count++;
+                yield return item;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
