@@ -643,8 +643,8 @@
 - {Id: RCS1004FadeOut, Title: Remove braces from if-else, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1005, Title: Simplify nested using statement, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1005FadeOut, Title: Simplify nested using statement, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1006, Title: Merge 'else' with nested 'if', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1006FadeOut, Title: Merge 'else' with nested 'if', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: RCS1006, Title: Merge 'else' with nested 'if', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
+- {Id: RCS1006FadeOut, Title: Merge 'else' with nested 'if', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
 - {Id: RCS1007, Title: Add braces, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: RCS1008, Title: "[deprecated] Use explicit type instead of 'var' (when the type is not obvious)", Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}
 - {Id: RCS1009, Title: "[deprecated] Use explicit type instead of 'var' (foreach variable)", Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: false, EffectiveSeverities: [None], IsEverSuppressed: true}

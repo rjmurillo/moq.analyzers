@@ -1,9 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Moq;
 using Moq.Analyzers.Benchmarks.Helpers;
 
 namespace Moq.Analyzers.Benchmarks;
