@@ -380,7 +380,6 @@
 - {Id: IDE0026, Title: Use expression body for indexer, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0027, Title: Use expression body for accessor, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0028, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: IDE0028, Title: Simplify collection initialization, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0029, Title: Use coalesce expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0030, Title: Use coalesce expression, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: IDE0031, Title: Use null propagation, Category: Style, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
@@ -659,8 +658,8 @@
 - {Id: RCS1020, Title: 'Simplify Nullable<T> to T?', Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1021, Title: Convert lambda expression body to expression body, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1021FadeOut, Title: Convert lambda expression body to expression body, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
-- {Id: RCS1031, Title: Remove unnecessary braces in switch section, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
-- {Id: RCS1031FadeOut, Title: Remove unnecessary braces in switch section, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: true}
+- {Id: RCS1031, Title: Remove unnecessary braces in switch section, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
+- {Id: RCS1031FadeOut, Title: Remove unnecessary braces in switch section, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1032, Title: Remove redundant parentheses, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1032FadeOut, Title: Remove redundant parentheses, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}
 - {Id: RCS1033, Title: Remove redundant boolean literal, Category: Roslynator, DefaultSeverity: Note, IsEnabledByDefault: true, EffectiveSeverities: [Note], IsEverSuppressed: false}

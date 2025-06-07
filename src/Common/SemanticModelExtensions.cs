@@ -40,9 +40,17 @@ internal static class SemanticModelExtensions
     {
         LambdaExpressionSyntax? setupLambdaArgument = setupMethodInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
 
-        return setupLambdaArgument?.Body is not InvocationExpressionSyntax mockedMethodInvocation
-            ? []
-            : semanticModel.GetAllMatchingSymbols<IMethodSymbol>(mockedMethodInvocation);
+        if (setupLambdaArgument?.Body is InvocationExpressionSyntax)
+        {
+            InvocationExpressionSyntax mockedMethodInvocation = (InvocationExpressionSyntax)setupLambdaArgument.Body;
+#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
+            return semanticModel.GetAllMatchingSymbols<IMethodSymbol>(mockedMethodInvocation);
+#pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
+        }
+
+#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
+        return ImmutableArray<IMethodSymbol>.Empty;
+#pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
     }
 
     internal static bool IsCallbackOrReturnInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)
@@ -72,44 +80,32 @@ internal static class SemanticModelExtensions
         };
     }
 
-    private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
+    private static ImmutableArray<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
         where T : class
     {
-        List<T> matchingSymbols = new();
+        ImmutableArray<T>.Builder matchingSymbols = ImmutableArray.CreateBuilder<T>();
 
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
-        switch (symbolInfo)
+        if (symbolInfo.CandidateReason == CandidateReason.None && symbolInfo.Symbol is T directMatch)
         {
-            case { CandidateReason: CandidateReason.None, Symbol: T }:
+            matchingSymbols.Add(directMatch);
+        }
+        else if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
+        {
+            foreach (ISymbol candidateSymbol in symbolInfo.CandidateSymbols)
+            {
+                if (candidateSymbol is T match)
                 {
-                    T? value = symbolInfo.Symbol as T;
-                    Debug.Assert(value != null, "Value should not be null.");
-
-#pragma warning disable S2589 // Boolean expressions should not be gratuitous
-                    if (value != default(T))
-                    {
-                        matchingSymbols.Add(value);
-                    }
-#pragma warning restore S2589 // Boolean expressions should not be gratuitous
-                    break;
+                    matchingSymbols.Add(match);
                 }
-
-            default:
-                {
-                    if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
-                    {
-                        matchingSymbols.AddRange(symbolInfo.CandidateSymbols.OfType<T>());
-                    }
-                    else
-                    {
-                        return matchingSymbols;
-                    }
-
-                    break;
-                }
+            }
+        }
+        else
+        {
+            return matchingSymbols.ToImmutable();
         }
 
-        return matchingSymbols;
+        return matchingSymbols.ToImmutable();
     }
 
     private static bool IsCallbackOrReturnSymbol(ISymbol? symbol)
