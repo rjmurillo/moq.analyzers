@@ -92,7 +92,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
     public async Task ShouldNotProduceDiagnosticsForInterfaceWhenSuppressed()
     {
         // Test interface diagnostic suppression via pragma
-        string source = """
+        const string source = """
             namespace Test
             {
                 internal interface IFoo
