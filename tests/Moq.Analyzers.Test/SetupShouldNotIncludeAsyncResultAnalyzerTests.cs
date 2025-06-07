@@ -17,6 +17,8 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
         IEnumerable<object[]> oldMoqSpecific = new object[][]
         {
             ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""],
+
+            ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericValueTaskAsync().Result|});"""],
         }.WithNamespaces().WithOldMoqReferenceAssemblyGroups();
 
         // New Moq specific: Task<T>.Result should NOT produce diagnostic
@@ -41,6 +43,10 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
                   public virtual Task TaskAsync() => Task.CompletedTask;
 
                   public virtual Task<string> GenericTaskAsync() => Task.FromResult(string.Empty);
+
+                  public virtual ValueTask ValueTaskAsync() => ValueTask.CompletedTask;
+
+                  public virtual ValueTask<string> GenericValueTaskAsync() => ValueTask.FromResult(string.Empty);
               }
 
               internal class UnitTest
