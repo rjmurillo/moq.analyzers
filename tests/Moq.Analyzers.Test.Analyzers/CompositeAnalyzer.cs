@@ -47,8 +47,7 @@ public class CompositeAnalyzer : DiagnosticAnalyzer
 
         return diagnosticAnalyzerTypes
                 .Select(type => (DiagnosticAnalyzer?)Activator.CreateInstance(type))
-                .Where(analyzer => analyzer != null)
-                .Cast<DiagnosticAnalyzer>()
+                .Where(analyzer => analyzer != null)!
             ;
     }
 }

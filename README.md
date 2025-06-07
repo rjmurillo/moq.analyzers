@@ -22,6 +22,11 @@ something is wrong with your Moq configuration.
 * Moq1300: Mock.As() should take interfaces
 * Moq1400: Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior
 * Moq1410: Explicitly set the Strict mocking behavior
+* Moq1500: Verify should be used only for overridable members
+* Moq1600: Mock.Of expressions should be simple property assignments
+* Moq1700: SetupSequence and Setup should not be used on the same member
+* Moq1800: Event handler type should match the event signature
+* Moq1900: MockRepository.Verify should be called when a MockRepository is created
 
 See [docs/rules](./docs/rules/README.md) for full documentation.
 
