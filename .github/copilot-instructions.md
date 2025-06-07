@@ -40,6 +40,11 @@ If you encounter:
 - Document public APIs and any complex logic.
 - Consult `docs/rules/` for detailed information about each analyzer rule.
 - Ask clarifying questions if requirements are unclear.
+- If you are adding an analyzer:
+  - There must also be a corresponding code fix
+  - There must also be a corresponding benchmark
+  - There must also be documentation in `docs/rules`
+- If you are changing an analyzer, ensure the corresponding documentation in `docs/rules` is reviewed and updated to reflect new/added, changed, or removed functionality.
 
 ## Repository structure
 - `src/` – analyzers, code fixes, and tools
