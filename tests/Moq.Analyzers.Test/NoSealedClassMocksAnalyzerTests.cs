@@ -42,10 +42,11 @@ public class NoSealedClassMocksAnalyzerTests
     {
         return new object[][]
         {
-            // Built-in sealed types should trigger diagnostic
+            // Built-in sealed reference types should trigger diagnostic
             ["""new Mock<{|Moq1000:string|}>();"""],
-            ["""new Mock<{|Moq1000:int|}>();"""],
-            ["""new Mock<{|Moq1000:DateTime|}>();"""],
+
+            // Note: Value types like int, DateTime are excluded because they cannot be mocked anyway
+            // due to Mock<T> constraint requiring reference types, not because they are sealed
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -71,15 +72,12 @@ public class NoSealedClassMocksAnalyzerTests
     {
         return new object[][]
         {
-            // Nested classes and structs
+            // Nested classes
             ["""new Mock<{|Moq1000:OuterClass.SealedNested|}>();"""],
             ["""new Mock<OuterClass.NonSealedNested>();"""],
 
-            // Sealed structs (structs are always sealed but should trigger diagnostic)
-            ["""new Mock<{|Moq1000:SealedStruct|}>();"""],
-
-            // Enums (enums are sealed but should trigger diagnostic)
-            ["""new Mock<{|Moq1000:TestEnum|}>();"""],
+            // Note: Structs and enums are excluded because they are value types
+            // and cannot be mocked by Mock<T> (reference type constraint)
 
             // Interfaces should not trigger (they can't be sealed)
             ["""new Mock<ITestInterface>();"""],
@@ -142,7 +140,8 @@ public class NoSealedClassMocksAnalyzerTests
                 $$"""
                 {{@namespace}}
 
-                internal sealed delegate void SealedDelegate();
+                // Note: All delegates in .NET are implicitly sealed, so we don't need to explicitly declare them as sealed
+                internal delegate void SealedDelegate();
 
                 internal delegate void NonSealedDelegate();
 
@@ -242,7 +241,7 @@ public class NoSealedClassMocksAnalyzerTests
                     internal class NonSealedNested { }
                 }
 
-                internal sealed struct SealedStruct { }
+                internal struct SealedStruct { }
 
                 internal enum TestEnum { Value1, Value2 }
 
