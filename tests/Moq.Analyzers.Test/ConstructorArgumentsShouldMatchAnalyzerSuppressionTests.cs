@@ -16,7 +16,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
     {
         // This test validates that diagnostics are still produced when not suppressed
         // to ensure our suppression tests are meaningful
-        string source = """
+        const string source = """
             namespace Test
             {
                 internal class Foo
@@ -41,7 +41,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
     public async Task ShouldNotProduceDiagnosticsWhenSuppressedViaPragma()
     {
         // This test validates pragma warning disable suppression
-        string source = """
+        const string source = """
             namespace Test
             {
                 internal class Foo
@@ -68,7 +68,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
     public async Task ShouldProduceDiagnosticsForInterfaceWithConstructorArgs()
     {
         // Test for interface diagnostic that should be produced when not suppressed
-        string source = """
+        const string source = """
             namespace Test
             {
                 internal interface IFoo
@@ -119,7 +119,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
     {
         // Test when both diagnostics are suppressed to validate the behavior
         // This confirms Roslyn handles multiple suppressions correctly
-        string source = """
+        const string source = """
             namespace Test
             {
                 internal interface IFoo
