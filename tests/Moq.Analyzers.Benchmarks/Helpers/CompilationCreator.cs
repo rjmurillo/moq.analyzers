@@ -19,7 +19,7 @@ internal static class CompilationCreator
     static CompilationCreator()
 #pragma warning restore S3963
     {
-        ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]);
+        ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.8.2")]);
     }
 
     public static async Task<(Project Project, AnalyzerOptions Options)> CreateProjectAsync(
