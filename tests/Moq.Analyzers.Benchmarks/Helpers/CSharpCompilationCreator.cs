@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Moq.Analyzers.Benchmarks.Helpers;
 
 namespace Moq.Analyzers.Benchmarks;
@@ -11,14 +12,17 @@ internal static class CSharpCompilationCreator
 {
     public static async Task<Compilation?> CreateAsync((string, string)[] sourceFiles)
     {
-        (Project project, _) = await CreateProjectAsync(sourceFiles, globalOptions: null).ConfigureAwait(false);
+        (Project project, _) = await CompilationCreator.CreateProjectAsync(
+            sourceFiles,
+            null,
+            "TestProject",
+            LanguageNames.CSharp,
+            "/0/Test",
+            "cs",
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            new CSharpParseOptions(LanguageVersion.Default),
+            ReferenceAssemblies.Default).ConfigureAwait(false);
         return await project.GetCompilationAsync().ConfigureAwait(false);
-    }
-
-    public static async Task<(Compilation? Compilation, AnalyzerOptions Options)> CreateWithOptionsAsync((string, string)[] sourceFiles, (string, string)[] globalOptions)
-    {
-        (Project project, AnalyzerOptions options) = await CreateProjectAsync(sourceFiles, globalOptions).ConfigureAwait(false);
-        return (await project.GetCompilationAsync().ConfigureAwait(false), options);
     }
 
     public static async Task<Compilation?> CreateAsync((string, string)[] sourceFiles, ReferenceAssemblies referenceAssemblies)
@@ -36,8 +40,9 @@ internal static class CSharpCompilationCreator
         return await project.GetCompilationAsync().ConfigureAwait(false);
     }
 
-    private static Task<(Project Project, AnalyzerOptions Options)> CreateProjectAsync((string, string)[] sourceFiles, (string, string)[]? globalOptions = null)
-        => CompilationCreator.CreateProjectAsync(
+    public static async Task<(Compilation? Compilation, AnalyzerOptions Options)> CreateWithOptionsAsync((string, string)[] sourceFiles, (string, string)[] globalOptions)
+    {
+        (Project project, AnalyzerOptions options) = await CompilationCreator.CreateProjectAsync(
             sourceFiles,
             globalOptions,
             "TestProject",
@@ -45,5 +50,8 @@ internal static class CSharpCompilationCreator
             "/0/Test",
             "cs",
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-            new CSharpParseOptions(LanguageVersion.Default));
+            new CSharpParseOptions(LanguageVersion.Default),
+            ReferenceAssemblies.Default).ConfigureAwait(false);
+        return (await project.GetCompilationAsync().ConfigureAwait(false), options);
+    }
 }

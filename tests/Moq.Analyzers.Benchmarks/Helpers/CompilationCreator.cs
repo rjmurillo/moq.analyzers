@@ -14,13 +14,9 @@ namespace Moq.Analyzers.Benchmarks.Helpers;
 // See https://github.com/dotnet/roslyn-sdk/issues/1165 for discussion on providing these or similar helpers in the testing packages.
 internal static class CompilationCreator
 {
-    private static readonly ReferenceAssemblies ReferenceAssemblies;
-
-#pragma warning disable S3963
-    static CompilationCreator()
-#pragma warning restore S3963
+    public static ReferenceAssemblies GetReferenceAssemblies(string moqKey)
     {
-        ReferenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithOldMoq];
+        return ReferenceAssemblyCatalog.Catalog[moqKey];
     }
 
     public static async Task<(Project Project, AnalyzerOptions Options)> CreateProjectAsync(
@@ -162,10 +158,5 @@ internal static class CompilationCreator
 
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             => _globalOptions.TryGetValue(key, out value);
-    }
-
-    public static ReferenceAssemblies GetReferenceAssemblies(string moqKey)
-    {
-        return ReferenceAssemblyCatalog.Catalog[moqKey];
     }
 }

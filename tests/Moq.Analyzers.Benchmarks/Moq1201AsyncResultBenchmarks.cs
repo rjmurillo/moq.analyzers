@@ -15,6 +15,7 @@ public class Moq1201AsyncResultBenchmarks
     public string MoqKey { get; set; } = "Net80WithOldMoq";
 
     private CompilationWithAnalyzers? BaselineCompilation { get; set; }
+
     private CompilationWithAnalyzers? TestCompilation { get; set; }
 
     [IterationSetup]
@@ -41,13 +42,13 @@ internal class {name}
     private void Test()
     {{
         new Mock<AsyncClient{index}>().Setup(c => c.GenericTaskAsync().Result);
-        _ = \"sample test\"; // Add an expression that looks similar but does not match
+        _ = ""sample test""; // Add an expression that looks similar but does not match
     }}
 }}
 "));
         }
 
-        var referenceAssemblies = CompilationCreator.GetReferenceAssemblies(MoqKey);
+        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies(MoqKey);
         (BaselineCompilation, TestCompilation) =
             BenchmarkCSharpCompilationFactory
             .CreateAsync<SetupShouldNotIncludeAsyncResultAnalyzer>(sources.ToArray(), referenceAssemblies)
@@ -65,7 +66,7 @@ internal class {name}
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 
-        if (MoqKey == "Net80WithNewMoq")
+        if (string.Equals(MoqKey, "Net80WithNewMoq", StringComparison.Ordinal))
         {
             if (diagnostics.Length != 0)
             {

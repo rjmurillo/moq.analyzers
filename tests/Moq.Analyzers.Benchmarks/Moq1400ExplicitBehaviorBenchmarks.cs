@@ -42,9 +42,9 @@ internal class {name}
 "));
         }
 
+        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq");
         (BaselineCompilation, TestCompilation) =
-            BenchmarkCSharpCompilationFactory
-            .CreateAsync<SetExplicitMockBehaviorAnalyzer>(sources.ToArray())
+            BenchmarkCSharpCompilationFactory.CreateAsync<SetExplicitMockBehaviorAnalyzer>(sources.ToArray(), referenceAssemblies)
             .GetAwaiter()
             .GetResult();
     }

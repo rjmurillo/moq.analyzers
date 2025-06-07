@@ -44,9 +44,9 @@ internal class {name}
 "));
         }
 
+        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq");
         (BaselineCompilation, TestCompilation) =
-            BenchmarkCSharpCompilationFactory
-            .CreateAsync<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>(sources.ToArray())
+            BenchmarkCSharpCompilationFactory.CreateAsync<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>(sources.ToArray(), referenceAssemblies)
             .GetAwaiter()
             .GetResult();
     }
