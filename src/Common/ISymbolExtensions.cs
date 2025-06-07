@@ -134,6 +134,13 @@ internal static class ISymbolExtensions
         return symbol.IsInstanceOf(knownSymbols.MockOf);
     }
 
+    internal static bool IsMoqEventMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        return symbol.IsInstanceOf(knownSymbols.Mock1SetupAdd) ||
+               symbol.IsInstanceOf(knownSymbols.Mock1SetupRemove) ||
+               symbol.IsInstanceOf(knownSymbols.Mock1Raise);
+    }
+
     /// <summary>
     /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/> or <see cref="ValueTask{TResult}"/>.
     /// </summary>

@@ -139,10 +139,8 @@ public class MoqQuickstartAnalyzerOpportunitiesTests
     }
 
     /// <summary>
-    /// Demonstrates event scenarios that could benefit from analyzer guidance.
-    /// Currently these pass without warnings, but analyzers could help with:
-    /// - Validating event handler signatures.
-    /// - Warning about incorrect event patterns.
+    /// Demonstrates event scenarios that now trigger analyzer guidance.
+    /// The analyzer warns about event handler signature mismatches.
     /// </summary>
     /// <returns>A task representing the async operation.</returns>
     [Fact]
@@ -163,18 +161,25 @@ public class MoqQuickstartAnalyzerOpportunitiesTests
                 {
                     var mock = new Mock<IFoo>();
 
-                    // POTENTIAL ANALYZER OPPORTUNITY: Validate event handler signature matching
                     // Correct usage - should match event handler type exactly
                     mock.SetupAdd(m => m.StringEvent += It.IsAny<System.EventHandler<string>>());
+                    mock.SetupRemove(m => m.StringEvent -= It.IsAny<System.EventHandler<string>>());
 
-                    // POTENTIAL ANALYZER OPPORTUNITY: Guide proper event raising patterns
-                    // Correct event argument types for EventHandler<string>
+                    // ANALYZER WARNING: Event handler type mismatch
+                    {|Moq1800:mock.SetupAdd(m => m.StringEvent += It.IsAny<System.EventHandler<int>>())|};
+                    
+                    // ANALYZER WARNING: Wrong event handler for BasicEvent
+                    {|Moq1800:mock.SetupAdd(m => m.BasicEvent += It.IsAny<System.EventHandler<string>>())|};
+
+                    // Correct event raising
                     mock.Raise(m => m.StringEvent += null, "test data");
+                    mock.Raise(m => m.BasicEvent += null, System.EventArgs.Empty);
                 }
             }
             """;
 
-        await AnalyzerVerifier<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        // Now triggers warnings for event handler type mismatches
+        await AnalyzerVerifier<EventHandlerSignatureMismatchAnalyzer>.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     /// <summary>
