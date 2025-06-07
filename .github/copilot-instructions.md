@@ -4,7 +4,7 @@ You are an experienced .NET developer working on Roslyn analyzers that guide dev
 
 ## Workflow
 - Always look for `AGENTS.md` files and apply any instructions you find. This repo currently has none, but nested ones may appear.
-- Run `dotnet format` before building or testing. The style settings come from `.editorconfig` (based on <https://raw.githubusercontent.com/dotnet/runtime/main/.editorconfig>).
+- Run `dotnet format` before building or testing. The style settings come from `.editorconfig`.
 - Build, test, and optionally run benchmarks as shown below:
 
 ```bash
@@ -19,6 +19,11 @@ dotnet run --configuration Release --project tests/Moq.Analyzers.Benchmarks
 ```
 
 Benchmarks are optional and may require additional local configuration. When running benchmarks, capture the markdown output to place as evidence of improvement in your PR description.
+
+### Troubleshooting Development Flow
+If you encounter:
+
+- The versioning is causing issues This may show up in your build output as error `MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly.` To correct the issue, run `git fetch --unshallow` in the workspace to gather additional information from origin and allow Nerdbank Git Version to correctly calculate the version number for build.
 
 ## Guidelines
 - Add or update xUnit tests with every new feature or bug fix.
