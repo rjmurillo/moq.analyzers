@@ -13,11 +13,8 @@ namespace Moq.Analyzers.Test;
 public class MoqQuickstartAnalyzerOpportunitiesTests
 {
     /// <summary>
-    /// Demonstrates verification scenarios that could benefit from analyzer guidance.
-    /// Currently these pass without warnings, but analyzers could help with:
-    /// - Verifying non-overridable members.
-    /// - Detecting unreachable verification calls.
-    /// - Guiding proper Times usage.
+    /// Demonstrates verification scenarios that now trigger analyzer guidance.
+    /// The analyzer warns about verifying non-overridable members.
     /// </summary>
     /// <returns>A task representing the async operation.</returns>
     [Fact]
@@ -42,20 +39,20 @@ public class MoqQuickstartAnalyzerOpportunitiesTests
                 private void Test()
                 {
                     var mock = new Mock<SampleClass>();
-                    // POTENTIAL ANALYZER OPPORTUNITY: Warn about verifying non-virtual members
-                    // Currently this compiles but verification might not work as expected
-                    mock.Verify(x => x.NonVirtualMethod());
+                    // ANALYZER WARNING: Warn about verifying non-virtual members
+                    // Verification might not work as expected
+                    {|Moq1500:mock.Verify(x => x.NonVirtualMethod())|};
 
                     var ifoo = new Mock<IFoo>();
-                    // POTENTIAL ANALYZER OPPORTUNITY: Detect impossible verification conditions
+                    // Interface methods are always overridable, so no warning here
                     ifoo.Setup(x => x.DoSomething("test")).Returns(true);
-                    ifoo.Verify(x => x.DoSomething("different"), Times.AtLeastOnce()); // This will fail
+                    ifoo.Verify(x => x.DoSomething("different"), Times.AtLeastOnce());
                 }
             }
             """;
 
-        // Currently passes without warnings - opportunity for new analyzer
-        await AnalyzerVerifier<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        // Now triggers warnings for verifying non-virtual method
+        await AnalyzerVerifier<VerifyOnlyUsedForOverridableMembersAnalyzer>.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     /// <summary>
