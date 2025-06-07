@@ -8,14 +8,16 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Invalid setup parameter";
     private static readonly LocalizableString Message = "Setup of async methods should use ReturnsAsync instead of .Result";
+    private static readonly LocalizableString Description = "Setup of async method should use ReturnsAsync instead of .Result. Using .Result on async methods can cause deadlocks and should be avoided.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.AsyncUsesReturnsAsyncInsteadOfResult,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.AsyncUsesReturnsAsyncInsteadOfResult}.md");
 
     /// <inheritdoc />

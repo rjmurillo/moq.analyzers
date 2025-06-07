@@ -8,14 +8,16 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 {
     private static readonly LocalizableString Title = "Moq: Bad callback parameters";
     private static readonly LocalizableString Message = "Callback signature must match the signature of the mocked method";
+    private static readonly LocalizableString Description = "Callback signature must match the signature of the mocked method. The number and types of parameters in the callback lambda must match those of the method being mocked.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.BadCallbackParameters,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.BadCallbackParameters}.md");
 
     /// <inheritdoc />
