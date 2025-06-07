@@ -13,6 +13,100 @@ public class NoSealedClassMocksAnalyzerTests
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    public static IEnumerable<object[]> DelegateTestData()
+    {
+        return new object[][]
+        {
+            // Sealed delegates should be allowed (not trigger diagnostic)
+            ["""new Mock<SealedDelegate>();"""],
+            ["""new Mock<NonSealedDelegate>();"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> EdgeCaseTestData()
+    {
+        return new object[][]
+        {
+            // Non-Mock object creation should not trigger diagnostic
+            ["""new SealedClass();"""],
+            ["""new List<int>();"""],
+
+            // Complex generic types
+            ["""new Mock<{|Moq1000:SealedGeneric<int>|}>();"""],
+            ["""new Mock<NonSealedGeneric<int>>();"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> BuiltInSealedTypesTestData()
+    {
+        return new object[][]
+        {
+            // Built-in sealed types should trigger diagnostic
+            ["""new Mock<{|Moq1000:string|}>();"""],
+            ["""new Mock<{|Moq1000:int|}>();"""],
+            ["""new Mock<{|Moq1000:DateTime|}>();"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> VariousCreationPatternsTestData()
+    {
+        return new object[][]
+        {
+            // Various ways to create Mock instances with sealed types
+            ["""new Mock<{|Moq1000:SealedClass|}>();"""],
+            ["""new Mock<{|Moq1000:SealedClass|}>(MockBehavior.Strict);"""],
+            ["""Mock.Of<{|Moq1000:SealedClass|}>();"""],
+            ["""var mock = new Mock<{|Moq1000:SealedClass|}>();"""],
+
+            // Non-sealed should not trigger
+            ["""new Mock<NonSealedClass>();"""],
+            ["""new Mock<NonSealedClass>(MockBehavior.Strict);"""],
+            ["""Mock.Of<NonSealedClass>();"""],
+            ["""var mock = new Mock<NonSealedClass>();"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> ComplexScenariosTestData()
+    {
+        return new object[][]
+        {
+            // Nested classes and structs
+            ["""new Mock<{|Moq1000:OuterClass.SealedNested|}>();"""],
+            ["""new Mock<OuterClass.NonSealedNested>();"""],
+
+            // Sealed structs (structs are always sealed but should trigger diagnostic)
+            ["""new Mock<{|Moq1000:SealedStruct|}>();"""],
+
+            // Enums (enums are sealed but should trigger diagnostic)
+            ["""new Mock<{|Moq1000:TestEnum|}>();"""],
+
+            // Interfaces should not trigger (they can't be sealed)
+            ["""new Mock<ITestInterface>();"""],
+
+            // Abstract classes should not trigger (they can't be sealed)
+            ["""new Mock<AbstractClass>();"""],
+
+            // Qualified names
+            ["""new System.Collections.Generic.List<Mock<{|Moq1000:SealedClass|}>>();"""],
+
+            // Complex generics
+            ["""new Mock<{|Moq1000:SealedGeneric<int, string>|}>();"""],
+            ["""new Mock<NonSealedGeneric<int, string>>();"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> NullableAndArrayTestData()
+    {
+        return new object[][]
+        {
+            // Nullable sealed types - nullable reference types are not sealed themselves
+            ["""new Mock<SealedClass?>();"""],
+
+            // Array types should not trigger (arrays are not the sealed type being mocked)
+            ["""new Mock<SealedClass[]>();"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShoulAnalyzeSealedClassMocks(string referenceAssemblyGroup, string @namespace, string mock)
@@ -36,16 +130,6 @@ public class NoSealedClassMocksAnalyzerTests
                 referenceAssemblyGroup);
     }
 
-    public static IEnumerable<object[]> DelegateTestData()
-    {
-        return new object[][]
-        {
-            // Sealed delegates should be allowed (not trigger diagnostic)
-            ["""new Mock<SealedDelegate>();"""],
-            ["""new Mock<NonSealedDelegate>();"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-    }
-
     [Theory]
     [MemberData(nameof(DelegateTestData))]
     public async Task ShouldAllowSealedDelegates(string referenceAssemblyGroup, string @namespace, string mock)
@@ -67,20 +151,6 @@ public class NoSealedClassMocksAnalyzerTests
                 }
                 """,
                 referenceAssemblyGroup);
-    }
-
-    public static IEnumerable<object[]> EdgeCaseTestData()
-    {
-        return new object[][]
-        {
-            // Non-Mock object creation should not trigger diagnostic
-            ["""new SealedClass();"""],
-            ["""new List<int>();"""],
-
-            // Complex generic types
-            ["""new Mock<{|Moq1000:SealedGeneric<int>|}>();"""],
-            ["""new Mock<NonSealedGeneric<int>>();"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]
@@ -110,17 +180,6 @@ public class NoSealedClassMocksAnalyzerTests
                 referenceAssemblyGroup);
     }
 
-    public static IEnumerable<object[]> BuiltInSealedTypesTestData()
-    {
-        return new object[][]
-        {
-            // Built-in sealed types should trigger diagnostic
-            ["""new Mock<{|Moq1000:string|}>();"""],
-            ["""new Mock<{|Moq1000:int|}>();"""],
-            ["""new Mock<{|Moq1000:DateTime|}>();"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-    }
-
     [Theory]
     [MemberData(nameof(BuiltInSealedTypesTestData))]
     public async Task ShouldDetectBuiltInSealedTypes(string referenceAssemblyGroup, string @namespace, string mock)
@@ -142,20 +201,6 @@ public class NoSealedClassMocksAnalyzerTests
                 referenceAssemblyGroup);
     }
 
-    public static IEnumerable<object[]> VariousCreationPatternsTestData()
-    {
-        return new object[][]
-        {
-            // Various ways of creating Mock instances
-            ["""var mock = new Mock<{|Moq1000:FooSealed|}>();"""],
-            ["""Mock<{|Moq1000:FooSealed|}> mock = new();"""],
-            ["""Mock<{|Moq1000:FooSealed|}> mock = new Mock<{|Moq1000:FooSealed|}>();"""],
-
-            // Constructor with parameters
-            ["""new Mock<{|Moq1000:FooSealed|}>(MockBehavior.Strict);"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-    }
-
     [Theory]
     [MemberData(nameof(VariousCreationPatternsTestData))]
     public async Task ShouldDetectVariousCreationPatterns(string referenceAssemblyGroup, string @namespace, string mock)
@@ -164,7 +209,9 @@ public class NoSealedClassMocksAnalyzerTests
                 $$"""
                 {{@namespace}}
 
-                internal sealed class FooSealed { }
+                internal sealed class SealedClass { }
+
+                internal class NonSealedClass { }
 
                 internal class UnitTest
                 {
@@ -175,27 +222,6 @@ public class NoSealedClassMocksAnalyzerTests
                 }
                 """,
                 referenceAssemblyGroup);
-    }
-
-    public static IEnumerable<object[]> ComplexScenariosTestData()
-    {
-        return new object[][]
-        {
-            // Nested sealed classes
-            ["""new Mock<{|Moq1000:OuterClass.NestedSealed|}>();"""],
-
-            // Sealed struct
-            ["""new Mock<{|Moq1000:SealedStruct|}>();"""],
-
-            // Sealed enum
-            ["""new Mock<{|Moq1000:SealedEnum|}>();"""],
-
-            // Interface should not trigger
-            ["""new Mock<ISampleInterface>();"""],
-
-            // Abstract class should not trigger
-            ["""new Mock<AbstractClass>();"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]
@@ -206,33 +232,25 @@ public class NoSealedClassMocksAnalyzerTests
                 $$"""
                 {{@namespace}}
 
-                public interface ISampleInterface
-                {
-                    void Method();
-                }
-
-                public abstract class AbstractClass
-                {
-                    public abstract void Method();
-                }
-
-                internal sealed struct SealedStruct
-                {
-                    public int Value;
-                }
-
-                internal enum SealedEnum
-                {
-                    Value1,
-                    Value2
-                }
-
                 internal class OuterClass
                 {
-                    internal sealed class NestedSealed
-                    {
-                    }
+                    internal sealed class SealedNested { }
+                    internal class NonSealedNested { }
                 }
+
+                internal sealed struct SealedStruct { }
+
+                internal enum TestEnum { Value1, Value2 }
+
+                internal interface ITestInterface { }
+
+                internal abstract class AbstractClass { }
+
+                internal sealed class SealedClass { }
+
+                internal sealed class SealedGeneric<T1, T2> { }
+
+                internal class NonSealedGeneric<T1, T2> { }
 
                 internal class UnitTest
                 {
@@ -245,18 +263,6 @@ public class NoSealedClassMocksAnalyzerTests
                 referenceAssemblyGroup);
     }
 
-    public static IEnumerable<object[]> NullableAndArrayTestData()
-    {
-        return new object[][]
-        {
-            // Nullable sealed type should still trigger
-            ["""new Mock<{|Moq1000:string|}?>();"""],
-
-            // Array of sealed type - arrays themselves are not sealed
-            ["""new Mock<string[]>();"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-    }
-
     [Theory]
     [MemberData(nameof(NullableAndArrayTestData))]
     public async Task ShouldHandleNullableAndArrayTypes(string referenceAssemblyGroup, string @namespace, string mock)
@@ -264,6 +270,10 @@ public class NoSealedClassMocksAnalyzerTests
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
                 {{@namespace}}
+
+                #nullable enable
+
+                internal sealed class SealedClass { }
 
                 internal class UnitTest
                 {
