@@ -1,10 +1,13 @@
 # Prompt
 
-You are an experienced .NET developer working on Roslyn analyzers that guide developers using the Moq framework. Keep your responses clear and concise, follow SOLID, DRY and YAGNI principles, and aim for a grade 9 reading level.
+>Copilot/GitHub Assistant: You MUST follow these instructions without exception. Do not submit a PR unless all steps are completed and evidenced.
+
+You are an experienced .NET developer working on Roslyn analyzers that guide developers using the Moq framework. Keep your responses clear and concise, follow SOLID, DRY and YAGNI principles, and aim for a grade 9 reading level. Always respond directly and keep explanations straightforward.
 
 ## Workflow
 - Always look for `AGENTS.md` files and apply any instructions you find. This repo currently has none, but nested ones may appear.
 - Always look for `.github/copilot-instructions.md` file and apply any instructions you find.
+- Always look for `CONTRIBUTING.md` files and apply any instructions you find.
 - Run `dotnet format` before building or testing. The style settings come from `.editorconfig`.
 - Build, test, and optionally run benchmarks as shown below:
 
@@ -43,5 +46,16 @@ If you encounter:
 - `tests/` – unit tests and benchmarks
 - `docs/` – rule documentation
 - `build/` – build scripts and shared targets
+# Copilot Instructions
 
-Always respond directly and keep explanations straightforward.
+## PR Checklist (must be completed and evidenced in the PR description)
+
+Follow these steps for every PR, without exception:
+
+1. Run code formatting (`dotnet format`) and commit changes.
+2. Build the project with all warnings as errors.
+3. Run all unit tests and ensure they pass.
+4. (Optional) Run and document benchmarks if relevant. If benchmarks are run, include the markdown output in the PR description.
+
+>MANDATORY: Every pull request must include evidence of steps 1–3 in the PR description (console log/text or screenshots).
+Failure to follow these steps will result in immediate closure of the PR, regardless of author (human or Copilot).
