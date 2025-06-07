@@ -85,8 +85,8 @@ public class NoSealedClassMocksAnalyzerTests
             // Abstract classes should not trigger (they can't be sealed)
             ["""new Mock<AbstractClass>();"""],
 
-            // Qualified names
-            ["""new System.Collections.Generic.List<Mock<{|Moq1000:SealedClass|}>>();"""],
+            // Qualified names - List creation should not trigger diagnostic
+            ["""new System.Collections.Generic.List<Mock<SealedClass>>();"""],
 
             // Complex generics
             ["""new Mock<{|Moq1000:SealedGeneric<int, string>|}>();"""],

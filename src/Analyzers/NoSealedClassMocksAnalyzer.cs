@@ -51,42 +51,76 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
 
         context.RegisterOperationAction(
             operationAnalysisContext => Analyze(operationAnalysisContext, knownSymbols),
-            OperationKind.ObjectCreation);
+            OperationKind.ObjectCreation,
+            OperationKind.Invocation);
     }
 
     private static void Analyze(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        if (!IsValidMockCreation(context.Operation, knownSymbols, out IObjectCreationOperation? creation))
+        ITypeSymbol? mockedType = null;
+        Location? diagnosticLocation = null;
+
+        // Handle object creation: new Mock<T>()
+        if (context.Operation is IObjectCreationOperation creation &&
+            IsValidMockCreation(creation, knownSymbols, out mockedType))
         {
-            return;
+            diagnosticLocation = GetDiagnosticLocationForObjectCreation(context.Operation, creation);
         }
 
-        if (!TryGetMockedType(creation, out ITypeSymbol? mockedType))
+        // Handle static method invocation: Mock.Of<T>()
+        else if (context.Operation is IInvocationOperation invocation &&
+                 IsValidMockOfInvocation(invocation, knownSymbols, out mockedType))
         {
-            return;
+            diagnosticLocation = GetDiagnosticLocationForInvocation(context.Operation, invocation);
         }
 
-        if (ShouldReportDiagnostic(mockedType))
+        if (mockedType != null && diagnosticLocation != null && ShouldReportDiagnostic(mockedType))
         {
-            Location location = GetDiagnosticLocation(context.Operation, creation);
-            context.ReportDiagnostic(location.CreateDiagnostic(Rule));
+            context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(Rule));
         }
     }
 
-    private static bool IsValidMockCreation(IOperation operation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out IObjectCreationOperation? creation)
-    {
-        creation = operation as IObjectCreationOperation;
-        return creation is not null &&
-               creation.Type is not null &&
-               creation.Constructor is not null &&
-               creation.Type.IsInstanceOf(knownSymbols.Mock1);
-    }
-
-    private static bool TryGetMockedType(IObjectCreationOperation creation, [NotNullWhen(true)] out ITypeSymbol? mockedType)
+    private static bool IsValidMockCreation(IObjectCreationOperation creation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
 
-        if (creation.Type is not INamedTypeSymbol namedType || namedType.TypeArguments.Length != 1)
+        if (creation.Type is null || creation.Constructor is null || !creation.Type.IsInstanceOf(knownSymbols.Mock1))
+        {
+            return false;
+        }
+
+        return TryGetMockedTypeFromGeneric(creation.Type, out mockedType);
+    }
+
+    private static bool IsValidMockOfInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
+    {
+        mockedType = null;
+
+        // Check if this is a static method call to Mock.Of<T>()
+        if (invocation.TargetMethod is null ||
+            !invocation.TargetMethod.IsStatic ||
+            !string.Equals(invocation.TargetMethod.Name, "Of", StringComparison.Ordinal) ||
+            invocation.TargetMethod.ContainingType is null ||
+            !invocation.TargetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default))
+        {
+            return false;
+        }
+
+        // Get the type argument from Mock.Of<T>()
+        if (invocation.TargetMethod.TypeArguments.Length == 1)
+        {
+            mockedType = invocation.TargetMethod.TypeArguments[0];
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetMockedTypeFromGeneric(ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? mockedType)
+    {
+        mockedType = null;
+
+        if (type is not INamedTypeSymbol namedType || namedType.TypeArguments.Length != 1)
         {
             return false;
         }
@@ -99,10 +133,24 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     {
         // Check if the mocked type is sealed (but allow delegates)
         // Note: All delegates in .NET are sealed by default, but they can still be mocked by Moq
+
+        // For nullable reference types (T?), we don't consider them as sealed
+        // because you're mocking the nullable wrapper, not the underlying sealed type
+        if (mockedType.CanBeReferencedByName && mockedType.NullableAnnotation == NullableAnnotation.Annotated)
+        {
+            return false;
+        }
+
+        // Handle nullable value types (Nullable<T>)
+        if (mockedType.OriginalDefinition?.SpecialType == SpecialType.System_Nullable_T)
+        {
+            return false;
+        }
+
         return mockedType.IsSealed && mockedType.TypeKind != TypeKind.Delegate;
     }
 
-    private static Location GetDiagnosticLocation(IOperation operation, IObjectCreationOperation creation)
+    private static Location GetDiagnosticLocationForObjectCreation(IOperation operation, IObjectCreationOperation creation)
     {
         // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.
         // If that fails for any reason, report the diagnostic on the operation itself.
@@ -115,5 +163,19 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
             .FirstOrDefault();
 
         return typeArgument?.GetLocation() ?? creation.Syntax.GetLocation();
+    }
+
+    private static Location GetDiagnosticLocationForInvocation(IOperation operation, IInvocationOperation invocation)
+    {
+        // For Mock.Of<T>(), try to locate the type argument in the syntax tree
+        TypeSyntax? typeArgument = operation.Syntax
+            .DescendantNodes()
+            .OfType<GenericNameSyntax>()
+            .FirstOrDefault()?
+            .TypeArgumentList?
+            .Arguments
+            .FirstOrDefault();
+
+        return typeArgument?.GetLocation() ?? invocation.Syntax.GetLocation();
     }
 }
