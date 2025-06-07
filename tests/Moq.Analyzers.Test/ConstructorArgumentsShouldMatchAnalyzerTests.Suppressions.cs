@@ -9,7 +9,7 @@ namespace Moq.Analyzers.Test;
 /// These tests confirm that Roslyn handles diagnostic suppression correctly without
 /// needing custom suppression checks in the analyzer.
 /// </summary>
-public class ConstructorArgumentsShouldMatchAnalyzerSuppressionTests
+public partial class ConstructorArgumentsShouldMatchAnalyzerTests
 {
     [Fact]
     public async Task ShouldProduceDiagnosticsWhenNotSuppressed()
