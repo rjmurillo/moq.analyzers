@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
+  <PropertyGroup Label="Shared project settings">
     <ShowCommonFiles>true</ShowCommonFiles>
     <EnableDefaultItems>false</EnableDefaultItems><!-- Disable default behavior so we rely on the included props -->
   </PropertyGroup>
@@ -26,8 +26,6 @@
     <SquiggleCop_Enabled>false</SquiggleCop_Enabled>
   </PropertyGroup>
 
-  <PropertyGroup Label="Shared project settings">
-  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />

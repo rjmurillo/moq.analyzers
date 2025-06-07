@@ -3,11 +3,11 @@
     <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
   </PropertyGroup>
 
-  <!-- Properties that need to be available early for SDK targets -->
+  <!-- Properties that need to be available early for NuGet pack targets -->
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Moq.Analyzers'">
     <Description>Roslyn analyzer that helps to write unit tests using Moq mocking library by highlighting typical errors and suggesting quick fixes. Port of Resharper extension to Roslyn. Find the full list of detected issues at project GitHub page.</Description>
-    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules><!-- Resolves RS1036 -->
   </PropertyGroup>
+
 
   <Import Project="build/targets/artifacts/Artifacts.props" />
   <Import Project="build/targets/compiler/Compiler.props" />
