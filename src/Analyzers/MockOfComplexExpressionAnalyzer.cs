@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
@@ -32,7 +31,6 @@ public class MockOfComplexExpressionAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
     }
 
-    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
     private static void AnalyzeInvocation(OperationAnalysisContext context)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
@@ -41,7 +39,6 @@ public class MockOfComplexExpressionAnalyzer : DiagnosticAnalyzer
         }
 
         SemanticModel? semanticModel = invocationOperation.SemanticModel;
-
         if (semanticModel == null)
         {
             return;
@@ -50,19 +47,19 @@ public class MockOfComplexExpressionAnalyzer : DiagnosticAnalyzer
         MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
 
-        // 1. Check if the invoked method is a Mock.Of method
         if (!targetMethod.IsMockOfMethod(knownSymbols))
         {
             return;
         }
 
-        // 2. Check if there are arguments (Mock.Of with lambda expressions)
-        if (invocationOperation.Arguments.Length == 0)
+        if (invocationOperation.Arguments.Length > 0)
         {
-            return;
+            ValidateMockOfExpression(context, invocationOperation);
         }
+    }
 
-        // 3. Analyze the lambda expression argument for complexity
+    private static void ValidateMockOfExpression(OperationAnalysisContext context, IInvocationOperation invocationOperation)
+    {
         IOperation argumentOperation = invocationOperation.Arguments[0].Value;
         argumentOperation = argumentOperation.WalkDownImplicitConversion();
 
@@ -104,7 +101,7 @@ public class MockOfComplexExpressionAnalyzer : DiagnosticAnalyzer
 
             default:
                 // For other operations, recursively check children
-                foreach (var child in operation.ChildOperations)
+                foreach (IOperation child in operation.ChildOperations)
                 {
                     if (HasComplexExpression(child))
                     {
@@ -126,7 +123,7 @@ public class MockOfComplexExpressionAnalyzer : DiagnosticAnalyzer
             return true;
         }
 
-        foreach (var child in operation.ChildOperations)
+        foreach (IOperation child in operation.ChildOperations)
         {
             if (ContainsMethodCallOrNestedMockOf(child))
             {

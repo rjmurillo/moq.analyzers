@@ -136,9 +136,9 @@ internal static class ISymbolExtensions
 
     internal static bool IsMoqEventMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        return symbol.IsInstanceOf(knownSymbols.Mock1SetupAdd) ||
-               symbol.IsInstanceOf(knownSymbols.Mock1SetupRemove) ||
-               symbol.IsInstanceOf(knownSymbols.Mock1Raise);
+        return knownSymbols.Mock1SetupAdd.Any(s => symbol.IsInstanceOf(s)) ||
+               knownSymbols.Mock1SetupRemove.Any(s => symbol.IsInstanceOf(s)) ||
+               knownSymbols.Mock1Raise.Any(s => symbol.IsInstanceOf(s));
     }
 
     /// <summary>

@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
@@ -32,7 +31,6 @@ public class EventHandlerSignatureMismatchAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
     }
 
-    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
     private static void AnalyzeInvocation(OperationAnalysisContext context)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
@@ -41,7 +39,6 @@ public class EventHandlerSignatureMismatchAnalyzer : DiagnosticAnalyzer
         }
 
         SemanticModel? semanticModel = invocationOperation.SemanticModel;
-
         if (semanticModel == null)
         {
             return;
@@ -50,38 +47,35 @@ public class EventHandlerSignatureMismatchAnalyzer : DiagnosticAnalyzer
         MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
 
-        // 1. Check if the invoked method is a Moq event method (SetupAdd, SetupRemove, Raise)
         if (!targetMethod.IsMoqEventMethod(knownSymbols))
         {
             return;
         }
 
-        // 2. Attempt to locate the event reference and handler type from the arguments
-        if (!TryGetEventAndHandlerInfo(invocationOperation, out var eventSymbol, out var handlerTypeSymbol))
+        if (TryGetEventAndHandlerInfo(invocationOperation, out IEventSymbol? eventSymbol, out ITypeSymbol? handlerTypeSymbol))
+        {
+            ValidateEventHandlerMatch(context, invocationOperation, eventSymbol!, handlerTypeSymbol!);
+        }
+    }
+
+    private static void ValidateEventHandlerMatch(OperationAnalysisContext context, IInvocationOperation invocationOperation, IEventSymbol eventSymbol, ITypeSymbol handlerTypeSymbol)
+    {
+        if (eventSymbol?.Type is not INamedTypeSymbol eventType ||
+            handlerTypeSymbol is not INamedTypeSymbol handlerType ||
+            SymbolEqualityComparer.Default.Equals(eventType.OriginalDefinition, handlerType.OriginalDefinition))
         {
             return;
         }
 
-        // 3. Compare the event type with the handler type
-        if (eventSymbol?.Type is INamedTypeSymbol eventType &&
-            handlerTypeSymbol is INamedTypeSymbol handlerType &&
-            !SymbolEqualityComparer.Default.Equals(eventType.OriginalDefinition, handlerType.OriginalDefinition))
+        if (eventType.TypeKind == TypeKind.Delegate &&
+            handlerType.TypeKind == TypeKind.Delegate &&
+            AreEventHandlerTypesCompatible(eventType, handlerType))
         {
-            // Check if both are delegate types and could be compatible
-            if (eventType.TypeKind == TypeKind.Delegate && handlerType.TypeKind == TypeKind.Delegate)
-            {
-                if (!AreEventHandlerTypesCompatible(eventType, handlerType))
-                {
-                    Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule);
-                    context.ReportDiagnostic(diagnostic);
-                }
-            }
-            else
-            {
-                Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule);
-                context.ReportDiagnostic(diagnostic);
-            }
+            return;
         }
+
+        Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule);
+        context.ReportDiagnostic(diagnostic);
     }
 
     /// <summary>
@@ -134,9 +128,9 @@ public class EventHandlerSignatureMismatchAnalyzer : DiagnosticAnalyzer
         }
 
         // Recursively search in child operations
-        foreach (var child in operation.ChildOperations)
+        foreach (IOperation child in operation.ChildOperations)
         {
-            var result = GetEventSymbolFromLambda(child);
+            IEventSymbol? result = GetEventSymbolFromLambda(child);
             if (result != null)
             {
                 return result;
@@ -166,9 +160,9 @@ public class EventHandlerSignatureMismatchAnalyzer : DiagnosticAnalyzer
         }
 
         // Recursively search in child operations
-        foreach (var child in operation.ChildOperations)
+        foreach (IOperation child in operation.ChildOperations)
         {
-            var result = GetHandlerTypeFromLambda(child);
+            ITypeSymbol? result = GetHandlerTypeFromLambda(child);
             if (result != null)
             {
                 return result;
