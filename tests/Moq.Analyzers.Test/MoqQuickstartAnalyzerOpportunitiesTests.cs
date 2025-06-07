@@ -56,10 +56,8 @@ public class MoqQuickstartAnalyzerOpportunitiesTests
     }
 
     /// <summary>
-    /// Demonstrates LINQ to Mocks scenarios that could benefit from analyzer guidance.
-    /// Currently these pass without warnings, but analyzers could help with:
-    /// - Validating LINQ expressions.
-    /// - Warning about potentially problematic patterns.
+    /// Demonstrates LINQ to Mocks scenarios that now trigger analyzer guidance.
+    /// The analyzer warns about complex expressions in Mock.Of.
     /// </summary>
     /// <returns>A task representing the async operation.</returns>
     [Fact]
@@ -78,21 +76,23 @@ public class MoqQuickstartAnalyzerOpportunitiesTests
             {
                 private void Test()
                 {
-                    // POTENTIAL ANALYZER OPPORTUNITY: Guide proper Mock.Of usage
-                    // Complex expressions in Mock.Of might not work as expected
-                    var repo = Mock.Of<IRepository>(r => 
-                        r.IsAuthenticated == true && 
-                        r.GetData(It.IsAny<int>()) == "test"); // Method calls in LINQ expressions
+                    // Simple property assignments are fine
+                    var simple = Mock.Of<IRepository>(r => r.IsAuthenticated == true);
 
-                    // POTENTIAL ANALYZER OPPORTUNITY: Warn about nested Mock.Of patterns
-                    // These can become hard to understand and maintain
-                    var complex = Mock.Of<IRepository>(r =>
-                        r.GetData(1) == Mock.Of<IRepository>(inner => inner.IsAuthenticated == true).GetData(2));
+                    // ANALYZER WARNING: Complex expressions with method calls
+                    {|Moq1600:Mock.Of<IRepository>(r => 
+                        r.IsAuthenticated == true && 
+                        r.GetData(It.IsAny<int>()) == "test")|};
+
+                    // ANALYZER WARNING: Nested Mock.Of patterns  
+                    {|Moq1600:Mock.Of<IRepository>(r =>
+                        r.GetData(1) == Mock.Of<IRepository>(inner => inner.IsAuthenticated == true).GetData(2))|};
                 }
             }
             """;
 
-        await AnalyzerVerifier<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        // Now triggers warnings for complex Mock.Of expressions
+        await AnalyzerVerifier<MockOfComplexExpressionAnalyzer>.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     /// <summary>

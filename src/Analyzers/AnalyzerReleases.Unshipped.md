@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 Moq1500 | Moq | Warning | VerifyOnlyUsedForOverridableMembersAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1500.md)
+Moq1600 | Moq | Warning | MockOfComplexExpressionAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1600.md)

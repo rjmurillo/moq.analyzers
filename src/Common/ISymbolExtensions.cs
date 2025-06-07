@@ -129,6 +129,11 @@ internal static class ISymbolExtensions
         return symbol.IsInstanceOf(knownSymbols.Mock1Verify) && symbol is IMethodSymbol { IsGenericMethod: true };
     }
 
+    internal static bool IsMockOfMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        return symbol.IsInstanceOf(knownSymbols.MockOf);
+    }
+
     /// <summary>
     /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/> or <see cref="ValueTask{TResult}"/>.
     /// </summary>
