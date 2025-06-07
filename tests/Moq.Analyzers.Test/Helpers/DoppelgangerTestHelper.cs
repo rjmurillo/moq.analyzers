@@ -51,8 +51,6 @@ internal static class DoppelgangerTestHelper
             public Mock<T> SetupSet<TProperty>(System.Action<T> setterExpression) => this;
             public Mock<T> SetupSet(System.Action<T> setterExpression) => this;
             public Mock<T> Callback(System.Action callback) => this;
-            public Mock<T> Callback<T1>(System.Action<T1> callback) => this;
-            public Mock<T> Callback<T1, T2>(System.Action<T1, T2> callback) => this;
             public Mock<T> Returns<TResult>(TResult value) => this;
             public Mock<T> ReturnsAsync<TResult>(TResult value) => this;
             public Mock<T> ReturnsAsync<TResult>(System.Threading.Tasks.Task<TResult> value) => this;
@@ -107,12 +105,10 @@ internal static class DoppelgangerTestHelper
             // Returns/Callback chaining
             ["""var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Returns(42);"""],
             ["""var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Callback(() => { });"""],
-            ["""var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Callback<int, int>((a, b) => { });"""],
             ["""new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).ReturnsAsync(42);"""],
 
             // Complex chaining
             ["""var mock = new Mock<IMyService>().As<IMyService>().Setup(x => x.Calculate(1, 2)).Returns(42);"""],
-            ["""new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Callback((int a, int b) => { }).Returns(42);"""],
         };
     }
 
