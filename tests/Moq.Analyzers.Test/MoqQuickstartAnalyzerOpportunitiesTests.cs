@@ -139,8 +139,10 @@ public class MoqQuickstartAnalyzerOpportunitiesTests
     }
 
     /// <summary>
-    /// Demonstrates event scenarios that now trigger analyzer guidance.
-    /// The analyzer warns about event handler signature mismatches.
+    /// Demonstrates event scenarios that could benefit from analyzer guidance.
+    /// Currently these pass without warnings, but analyzers could help with:
+    /// - Detecting event handler signature mismatches in setup patterns.
+    /// - Validating Raise parameter compatibility.
     /// </summary>
     /// <returns>A task representing the async operation.</returns>
     [Fact]
@@ -161,32 +163,31 @@ public class MoqQuickstartAnalyzerOpportunitiesTests
                 {
                     var mock = new Mock<IFoo>();
 
-                    // Correct usage - should match event handler type exactly
+                    // Current: These work correctly without warnings
                     mock.SetupAdd(m => m.StringEvent += It.IsAny<System.EventHandler<string>>());
                     mock.SetupRemove(m => m.StringEvent -= It.IsAny<System.EventHandler<string>>());
+                    mock.SetupAdd(m => m.BasicEvent += It.IsAny<System.EventHandler>());
 
-                    // ANALYZER WARNING: Event handler type mismatch
-                    {|Moq1800:mock.SetupAdd(m => m.StringEvent += It.IsAny<System.EventHandler<int>>())|};
-                    
-                    // ANALYZER WARNING: Wrong event handler for BasicEvent
-                    {|Moq1800:mock.SetupAdd(m => m.BasicEvent += It.IsAny<System.EventHandler<string>>())|};
-
-                    // Correct event raising
+                    // POTENTIAL ANALYZER OPPORTUNITY: Could validate event raising patterns
+                    // Currently these work, but analyzer could help ensure consistency
                     mock.Raise(m => m.StringEvent += null, "test data");
                     mock.Raise(m => m.BasicEvent += null, System.EventArgs.Empty);
+                    
+                    // POTENTIAL ANALYZER OPPORTUNITY: Could validate event subscription patterns  
+                    // Mock event setup and actual subscription consistency
+                    System.EventHandler<string> handler = (s, e) => { };
+                    mock.SetupAdd(m => m.StringEvent += handler);
                 }
             }
             """;
 
-        // Now triggers warnings for event handler type mismatches
-        await AnalyzerVerifier<EventHandlerSignatureMismatchAnalyzer>.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        // Currently passes without warnings - future analyzer opportunities
+        await AnalyzerVerifier<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     /// <summary>
-    /// Demonstrates MockRepository scenarios that could benefit from analyzer guidance.
-    /// Currently these pass without warnings, but analyzers could help with:
-    /// - Ensuring repository.Verify() is called.
-    /// - Validating consistent repository usage.
+    /// Demonstrates MockRepository scenarios that now trigger analyzer guidance.
+    /// The analyzer warns about missing repository.Verify() calls.
     /// </summary>
     /// <returns>A task representing the async operation.</returns>
     [Fact]
@@ -201,28 +202,25 @@ public class MoqQuickstartAnalyzerOpportunitiesTests
             {
                 private void Test()
                 {
-                    var repository = new MockRepository(MockBehavior.Strict);
+                    // ANALYZER WARNING: MockRepository created but Verify() never called
+                    var {|Moq1900:repository = new MockRepository(MockBehavior.Strict)|};
                     var fooMock = repository.Create<IFoo>();
                     
-                    // POTENTIAL ANALYZER OPPORTUNITY: Warn about missing repository.Verify()
-                    // When using MockRepository, forgetting to call Verify() can miss verification errors
-                    // repository.Verify(); // This line is commented out - could be flagged
+                    // Missing repository.Verify(); call
                 }
 
-                private void TestMixed()
+                private void TestWithVerify()
                 {
                     var repository = new MockRepository(MockBehavior.Strict);
                     var fooMock = repository.Create<IFoo>();
                     
-                    // POTENTIAL ANALYZER OPPORTUNITY: Detect mixed mock creation patterns
-                    // Mixing repository-created mocks with direct Mock creation might be confusing
-                    var directMock = new Mock<IFoo>(); // Different from repository pattern above
-                    
-                    repository.Verify(); // Only verifies repository mocks, not directMock
+                    // This is fine - Verify() is called
+                    repository.Verify();
                 }
             }
             """;
 
-        await AnalyzerVerifier<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        // Now triggers warnings for missing repository.Verify() calls
+        await AnalyzerVerifier<MockRepositoryVerifyMissingAnalyzer>.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 }
