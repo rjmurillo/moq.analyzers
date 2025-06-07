@@ -34,20 +34,20 @@ internal static class ExportProviderExtensions
             if (metadataType != null)
             {
                 MethodInfo methodInfo = (from method in _exportProvider.GetType().GetTypeInfo().GetMethods()
-                                  where string.Equals(method.Name, nameof(ExportProvider.GetExports), StringComparison.Ordinal)
+                                         where string.Equals(method.Name, nameof(ExportProvider.GetExports), StringComparison.Ordinal)
                                          where method.IsGenericMethod && method.GetGenericArguments().Length == 2
-                                  where method.GetParameters().Length == 1 && method.GetParameters()[0].ParameterType == typeof(string)
-                                  select method).Single();
+                                         where method.GetParameters().Length == 1 && method.GetParameters()[0].ParameterType == typeof(string)
+                                         select method).Single();
                 MethodInfo parameterizedMethod = methodInfo.MakeGenericMethod(contractType, metadataType);
                 export = parameterizedMethod.Invoke(_exportProvider, [contract.ContractName]);
             }
             else
             {
                 MethodInfo methodInfo = (from method in _exportProvider.GetType().GetTypeInfo().GetMethods()
-                                  where string.Equals(method.Name, nameof(ExportProvider.GetExports), StringComparison.Ordinal)
+                                         where string.Equals(method.Name, nameof(ExportProvider.GetExports), StringComparison.Ordinal)
                                          where method.IsGenericMethod && method.GetGenericArguments().Length == 1
-                                  where method.GetParameters().Length == 1 && method.GetParameters()[0].ParameterType == typeof(string)
-                                  select method).Single();
+                                         where method.GetParameters().Length == 1 && method.GetParameters()[0].ParameterType == typeof(string)
+                                         select method).Single();
                 MethodInfo parameterizedMethod = methodInfo.MakeGenericMethod(contractType);
                 export = parameterizedMethod.Invoke(_exportProvider, [contract.ContractName]);
             }
