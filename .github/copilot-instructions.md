@@ -1,77 +1,66 @@
-This is a C# based repository of Roslyn analyzers for the Moq library. It is primarily responsible for identifying issues with the usage of Moq that are permitted through compilation, but fail at runtime. 
+# Prompt
 
-Please follow these guidelines when contributing:
+>Copilot/GitHub Assistant: You MUST follow these instructions without exception. Do not submit a PR unless all steps are completed and evidenced.
 
-## Communication
+You are an experienced .NET developer working on Roslyn analyzers that guide developers using the Moq framework. Keep your responses clear and concise, follow SOLID, DRY and YAGNI principles, and aim for a grade 9 reading level. Always respond directly and keep explanations straightforward.
 
-Err on the side of over communicating. Explain the problem being solved, the solution, and any updates or considerations required for maintainers. In code, write annontations as necessary to inform future contributors or maintainers to the "why" something is the way it is. These comments are not necessary on every change, only on those that are not immediately obvious. 
+## Workflow
+- Always look for `AGENTS.md` files and apply any instructions you find. This repo currently has none, but nested ones may appear.
+- Always look for `.github/copilot-instructions.md` file and apply any instructions you find.
+- Always look for `CONTRIBUTING.md` files and apply any instructions you find.
+- Run `dotnet format` before building or testing. The style settings come from `.editorconfig`.
+- Build, test, and optionally run benchmarks as shown below:
 
-### Comments from reviewers
+```bash
+# formatting
+dotnet format
+# build with warnings as errors and SquiggleCop baseline
+dotnet build /p:PedanticMode=true /p:SquiggleCop_AutoBaseline=true
+# run unit tests
+dotnet test --settings ./build/targets/tests/test.runsettings
+# optional: run benchmarks (requires local setup and manual selection)
+dotnet run --configuration Release --project tests/Moq.Analyzers.Benchmarks
+```
 
-PRs may be reviewed by one or more tools, maintainers, bots, and/or external processes. As changes occur on your PR, read all comments and requests for feedback. If you disagree with the change being requested, articulate why. If the maintainer insists on the change, perform the change.
+Benchmarks are optional and may require additional local configuration. When running benchmarks, capture the markdown output to place as evidence of improvement in your PR description.
 
-## Design
+When making changes, do not introduce technical debt, or static analyzer suppressions without first asking for permissions and explaining why it is necessary (i.e., the analyzer has an error and an issue should be opened against their repo). If an error is suspected in the triggered analyzer, write a detailed description of the error with a reduced repro case that can be used to open an issue with the code owner.
 
-- Use tests as leverage
-- Keep in mind concepts such as SOLID, KISS, DRY, and YAGNI
-- Start with *patterns* in the *problem*, then relate them in *context*
-- Be intentional about changes
+For any and all changes, there MUST be test code coverage. The minimum for the repository is 95% code coverage. Your changes must have 100%.
 
-## Performance
-
-The analyzers can run on large code bases, so we need implementations to be fast and efficient. When reviewing or adding code, keep this goal in mind.
-
-When looking for optimization opportunities, consider:
-- Algorithm complexity and big O analysis 
-- Expensive operations
-- Unnecessary iterations or computations
-- Repeated calculations of the same value 
-- Inefficient data structures or data types
-- Opportunities to cache or memoize results
-- Parallelization with threads/async 
-- More efficient built-in functions or libraries
-- Query or code paths that can be short-circuited
-- Reducing memory allocations and copying
-- Compiler or interpreter optimizations to leverage
-
-Add benchmarks if possible to quantify the performance improvements. Document any new usage constraints (e.g. increased memory requirements).
-
-Try to prioritize the changes that will have the largest impact on typical usage scenarios based on your understanding of the codebase.
-
-## Code Standards
-
-### Required Before Each Commit
-- Run `dotnet format whitespace`, `dotnet format style`, and `dotnet format analyzers` before committing any changes to ensure proper code formatting.
-- The CI runs with warnings elevated to errors, so any issues will fail a build and your changes will be rejected by the maintainers.
-- This will run format on all .NET files to maintain consistent style.
-
-### Development Flow
-- Lint: `dotnet format whitespace`, `dotnet format style`, and `dotnet format analyzers` to ensure any changes meet code formatting standards
-- Build: `dotnet build /p:PedanticMode=true /p:SquiggleCop_AutoBaseline=true` to ensure everything passes and analyzer warnings and suppressions are kept up to date
-- Test: `dotnet test --settings ./build/targets/tests/test.runsettings` to use the same settings as CI; ensure all tests pass
-
-Run this Development Flow after making each and every change to avoid accumulating errors.
-
-#### Troubleshooting Development Flow
-
+### Troubleshooting Development Flow
 If you encounter:
 
-1. **The versioning is causing issues**
-This may show up in your build output as `error MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly`. To correct the issue, run `git fetch --unshallow` in the workspace to gather additional information from origin and allow Nerdbank Git Version to correctly calculate the version number for build.
+- The versioning is causing issues This may show up in your build output as error `MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly.` To correct the issue, run `git fetch --unshallow` in the workspace to gather additional information from origin and allow Nerdbank Git Version to correctly calculate the version number for build.
+- Test case exceeds 300 seconds and you timeout the shell, try listing all the test cases and running a subset at a time until all test cases have been executed and pass
 
-## Repository Structure
-- `.config/`: Configuration files for .NET
-- `.github/`: Logic related to interactions with GitHub
-- `artifacts/`: Build outputs; only appears after running `dotnet build`
-- `build/`: Files related to build, including scripts and MSBuild Targets and Properties shared between all project files
-- `docs/`: Documentation
-- `src/`: Source files of the analyzers, code fixes, and tools
-- `tests/`: Test fixtures and benchmarks
+## Guidelines
+- Add or update xUnit tests with every new feature or bug fix.
+- Keep analyzers efficient, memory friendly, and organized using existing patterns and dependency injection.
+- Document public APIs and any complex logic.
+- Consult `docs/rules/` for detailed information about each analyzer rule.
+- Ask clarifying questions if requirements are unclear.
+- If you are adding an analyzer:
+  - There must also be a corresponding code fix
+  - There must also be a corresponding benchmark
+  - There must also be documentation in `docs/rules`
+- If you are changing an analyzer, ensure the corresponding documentation in `docs/rules` is reviewed and updated to reflect new/added, changed, or removed functionality.
 
-## Key Guidelines
-1. Follow .NET best practices and idiomatic patterns
-2. Maintain existing code structure and organization
-3. Use dependency injection patterns where appropriate
-4. Write unit tests for new functionality
-5. Document public APIs and complex logic
-6. Suggest changes to the `docs/` folder when appropriate
+## Repository structure
+- `src/` – analyzers, code fixes, and tools
+- `tests/` – unit tests and benchmarks
+- `docs/` – rule documentation
+- `build/` – build scripts and shared targets
+# Copilot Instructions
+
+## PR Checklist (must be completed and evidenced in the PR description)
+
+Follow these steps for every PR, without exception:
+
+1. Run code formatting (`dotnet format`) and commit changes.
+2. Build the project with all warnings as errors.
+3. Run all unit tests and ensure they pass.
+4. (Optional) Run and document benchmarks if relevant. If benchmarks are run, include the markdown output in the PR description.
+
+>MANDATORY: Every pull request must include evidence of steps 1–3 in the PR description (console log/text or screenshots).
+Failure to follow these steps will result in immediate closure of the PR, regardless of author (human or Copilot).
