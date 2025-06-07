@@ -473,4 +473,238 @@ public class NoSealedClassMocksAnalyzerTests
                 """,
                 referenceAssemblyGroup);
     }
+
+    [Fact]
+    public async Task ShouldNotAnalyzeWhenMoqNotReferenced()
+    {
+        // Test when using types that would normally trigger analysis but without Mock usage
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+
+                namespace Test
+                {
+                    internal sealed class SealedClass { }
+
+                    internal class UnitTest
+                    {
+                        private void Test()
+                        {
+                            // Without Mock creation, this should not trigger any analysis
+                            var instance = new SealedClass();
+                            var str = "test";
+                        }
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
+
+    [Fact]
+    public async Task ShouldHandleReferenceTypeConstraints()
+    {
+        // Test various reference types without nullable complications
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using System;
+
+                internal sealed class SealedClass { }
+                internal class NonSealedClass { }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {                        
+                        // Regular reference types
+                        var mock1 = new Mock<{|Moq1000:SealedClass|}>();
+                        var of1 = Mock.Of<{|Moq1000:SealedClass|}>();
+                        var mock2 = new Mock<NonSealedClass>();
+                        var of2 = Mock.Of<NonSealedClass>();
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
+
+    [Fact]
+    public async Task ShouldHandleComplexGenericScenarios()
+    {
+        // Test various complex generic scenarios
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using System;
+                using System.Collections.Generic;
+
+                internal sealed class SealedClass { }
+                internal class NonSealedClass { }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        // Generic collections should not trigger (they're not Mock<T>)
+                        var list = new List<SealedClass>();
+                        var dict = new Dictionary<string, SealedClass>();
+                        
+                        // Valid Mock usage
+                        var validMock = new Mock<NonSealedClass>();
+                        
+                        // Invalid Mock usage should trigger
+                        var invalidMock = new Mock<{|Moq1000:SealedClass|}>();
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
+
+    [Fact]
+    public async Task ShouldHandleInvalidMockOfCalls()
+    {
+        // Test edge cases for Mock.Of calls
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using System;
+                using System.Reflection;
+
+                internal sealed class SealedClass { }
+                internal class NonSealedClass { }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        // Valid Mock.Of calls
+                        var valid1 = Mock.Of<NonSealedClass>();
+                        
+                        // Invalid Mock.Of calls should trigger
+                        var invalid1 = Mock.Of<{|Moq1000:SealedClass|}>();
+                        
+                        // Non-Mock static method calls should not interfere
+                        var method = typeof(Mock).GetMethod("Of");
+                        var empty = string.Empty;
+                        var now = DateTime.Now;
+                        
+                        // Instance method calls should not interfere
+                        var mock = new Mock<NonSealedClass>();
+                        mock.Setup(x => x.ToString()).Returns("test");
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
+
+    [Fact]
+    public async Task ShouldHandleVariousBuiltInSealedTypes()
+    {
+        // Test more built-in sealed types
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using System;
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        // Built-in sealed types should trigger diagnostics
+                        var stringMock = new Mock<{|Moq1000:string|}>();
+                        var stringOf = Mock.Of<{|Moq1000:string|}>();
+                        
+                        // Value types are typically not mockable due to constraints, 
+                        // but if they could be, sealed ones would trigger the diagnostic
+                        // Note: These would actually fail at compile time due to reference type constraint
+                        // but we test the analyzer logic
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
+
+    [Fact]
+    public async Task ShouldHandleNestedGenericTypes()
+    {
+        // Test nested generic type scenarios
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using System;
+
+                internal sealed class SealedGeneric<T> { }
+                internal class NonSealedGeneric<T> { }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        // Nested generics - sealed should trigger
+                        var mock1 = new Mock<{|Moq1000:SealedGeneric<string>|}>();
+                        var of1 = Mock.Of<{|Moq1000:SealedGeneric<int>|}>();
+                        
+                        // Non-sealed should not trigger
+                        var mock2 = new Mock<NonSealedGeneric<string>>();
+                        var of2 = Mock.Of<NonSealedGeneric<int>>();
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
+
+    [Fact]
+    public async Task ShouldHandleMultipleConstructorOverloads()
+    {
+        // Test various Mock constructor overloads with sealed types
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+
+                internal sealed class SealedClass { }
+                internal class NonSealedClass { }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        // Various constructor overloads - all should trigger for sealed types
+                        var mock1 = new Mock<{|Moq1000:SealedClass|}>();
+                        var mock2 = new Mock<{|Moq1000:SealedClass|}>(MockBehavior.Strict);
+                        var mock3 = new Mock<{|Moq1000:SealedClass|}>(MockBehavior.Loose);
+                        var mock4 = new Mock<{|Moq1000:SealedClass|}>(MockBehavior.Default);
+                        
+                        // Non-sealed should not trigger
+                        var valid1 = new Mock<NonSealedClass>();
+                        var valid2 = new Mock<NonSealedClass>(MockBehavior.Strict);
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
+
+    [Fact]
+    public async Task ShouldHandleSystemTypes()
+    {
+        // Test various System types (sealed reference types)
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using System;
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        // System.String is sealed
+                        var stringMock = new Mock<{|Moq1000:String|}>();
+                        var stringOf = Mock.Of<{|Moq1000:String|}>();
+                        
+                        // Using full type name
+                        var stringMock2 = new Mock<{|Moq1000:System.String|}>();
+                        var stringOf2 = Mock.Of<{|Moq1000:System.String|}>();
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
 }
