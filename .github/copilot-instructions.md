@@ -25,6 +25,7 @@ Benchmarks are optional and may require additional local configuration. When run
 If you encounter:
 
 - The versioning is causing issues This may show up in your build output as error `MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly.` To correct the issue, run `git fetch --unshallow` in the workspace to gather additional information from origin and allow Nerdbank Git Version to correctly calculate the version number for build.
+- Test case exceeds 300 seconds and you timeout the shell, try listing all the test cases and running a subset at a time until all test cases have been executed and pass
 
 ## Guidelines
 - Add or update xUnit tests with every new feature or bug fix.
