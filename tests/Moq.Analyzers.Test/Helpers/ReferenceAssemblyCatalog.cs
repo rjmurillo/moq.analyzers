@@ -12,7 +12,7 @@ namespace Moq.Analyzers.Test.Helpers;
 /// Visual Studio's Test Explorer to collapse all test cases down to a single entry, which makes it harder to see which test cases
 /// are failing or debug a single test case.
 /// </remarks>
-internal static class ReferenceAssemblyCatalog
+public static class ReferenceAssemblyCatalog
 {
     public static string Net80WithOldMoq => nameof(Net80WithOldMoq);
 

@@ -1,5 +1,4 @@
-﻿using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing;
+﻿using Microsoft.CodeAnalysis.Testing;
 
 namespace Moq.Analyzers.Test.Helpers;
 
