@@ -1,8 +1,10 @@
+using Moq;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Moq.Analyzers.Benchmarks.Helpers;
+using System.Linq;
 
 namespace Moq.Analyzers.Benchmarks;
 
@@ -61,9 +63,22 @@ internal class {name}
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 
-        if (diagnostics.Length != Constants.NumberOfCodeFiles)
+        // Analyzer skips diagnostics for Moq >= 4.16.0 by design
+        Version? moqVersion = TestCompilation.Compilation.ReferencedAssemblyNames
+            .FirstOrDefault(a => string.Equals(a.Name, "Moq", StringComparison.Ordinal))?.Version;
+        if (moqVersion != null && moqVersion >= new Version(4, 16, 0))
         {
-            throw new InvalidOperationException($"Expected '{Constants.NumberOfCodeFiles:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
+            if (diagnostics.Length != 0)
+            {
+                throw new InvalidOperationException($"Expected no analyzer diagnostics for Moq >= 4.16.0 but found '{diagnostics.Length}'");
+            }
+        }
+        else
+        {
+            if (diagnostics.Length != Constants.NumberOfCodeFiles)
+            {
+                throw new InvalidOperationException($"Expected '{Constants.NumberOfCodeFiles:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
+            }
         }
     }
 
