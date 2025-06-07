@@ -2,7 +2,7 @@
 
 namespace Moq.Analyzers.Test;
 
-public class NoSealedClassMocksAnalyzerTests
+public partial class NoSealedClassMocksAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {

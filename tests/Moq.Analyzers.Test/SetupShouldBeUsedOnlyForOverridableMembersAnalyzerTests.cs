@@ -2,7 +2,7 @@ using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.Setup
 
 namespace Moq.Analyzers.Test;
 
-public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITestOutputHelper output)
+public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITestOutputHelper output)
 {
     public static IEnumerable<object[]> TestData()
     {
