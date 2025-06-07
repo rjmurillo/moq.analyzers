@@ -47,6 +47,9 @@ jobs:
     - name: NuGet Restore
       run: dotnet restore
 
+    - name: BuildCheck
+      run: dotnet build /check
+
     - name: Build
       run: dotnet build --no-restore --configuration Release /bl:./artifacts/logs/release/build.release.binlog
 
