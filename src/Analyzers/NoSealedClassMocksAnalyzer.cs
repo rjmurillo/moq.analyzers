@@ -152,22 +152,18 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
 
     private static Location GetDiagnosticLocationForObjectCreation(IOperation operation, IObjectCreationOperation creation)
     {
-        // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.
-        // If that fails for any reason, report the diagnostic on the operation itself.
-        TypeSyntax? typeArgument = operation.Syntax
-            .DescendantNodes()
-            .OfType<GenericNameSyntax>()
-            .FirstOrDefault()?
-            .TypeArgumentList?
-            .Arguments
-            .FirstOrDefault();
-
-        return typeArgument?.GetLocation() ?? creation.Syntax.GetLocation();
+        return GetDiagnosticLocation(operation, creation.Syntax);
     }
 
     private static Location GetDiagnosticLocationForInvocation(IOperation operation, IInvocationOperation invocation)
     {
-        // For Mock.Of<T>(), try to locate the type argument in the syntax tree
+        return GetDiagnosticLocation(operation, invocation.Syntax);
+    }
+
+    private static Location GetDiagnosticLocation(IOperation operation, SyntaxNode fallbackSyntax)
+    {
+        // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.
+        // If that fails for any reason, report the diagnostic on the fallback syntax.
         TypeSyntax? typeArgument = operation.Syntax
             .DescendantNodes()
             .OfType<GenericNameSyntax>()
@@ -176,6 +172,6 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
             .Arguments
             .FirstOrDefault();
 
-        return typeArgument?.GetLocation() ?? invocation.Syntax.GetLocation();
+        return typeArgument?.GetLocation() ?? fallbackSyntax.GetLocation();
     }
 }
