@@ -21,6 +21,21 @@ internal static class CSharpCompilationCreator
         return (await project.GetCompilationAsync().ConfigureAwait(false), options);
     }
 
+    public static async Task<Compilation?> CreateAsync((string, string)[] sourceFiles, ReferenceAssemblies referenceAssemblies)
+    {
+        (Project project, _) = await CompilationCreator.CreateProjectAsync(
+            sourceFiles,
+            null,
+            "TestProject",
+            LanguageNames.CSharp,
+            "/0/Test",
+            "cs",
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            new CSharpParseOptions(LanguageVersion.Default),
+            referenceAssemblies).ConfigureAwait(false);
+        return await project.GetCompilationAsync().ConfigureAwait(false);
+    }
+
     private static Task<(Project Project, AnalyzerOptions Options)> CreateProjectAsync((string, string)[] sourceFiles, (string, string)[]? globalOptions = null)
         => CompilationCreator.CreateProjectAsync(
             sourceFiles,

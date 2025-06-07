@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Moq.Analyzers.Benchmarks.Helpers;
@@ -10,13 +11,15 @@ namespace Moq.Analyzers.Benchmarks;
 [MemoryDiagnoser]
 public class Moq1201AsyncResultBenchmarks
 {
-    private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
+    [Params("Net80WithOldMoq", "Net80WithNewMoq")]
+    public string MoqKey { get; set; } = "Net80WithOldMoq";
 
-    private static CompilationWithAnalyzers? TestCompilation { get; set; }
+    private CompilationWithAnalyzers? BaselineCompilation { get; set; }
+    private CompilationWithAnalyzers? TestCompilation { get; set; }
 
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
-    public static void SetupCompilation()
+    public void SetupCompilation()
     {
         List<(string Name, string Content)> sources = [];
         for (int index = 0; index < Constants.NumberOfCodeFiles; index++)
@@ -38,15 +41,16 @@ internal class {name}
     private void Test()
     {{
         new Mock<AsyncClient{index}>().Setup(c => c.GenericTaskAsync().Result);
-        _ = ""sample test""; // Add an expression that looks similar but does not match
+        _ = \"sample test\"; // Add an expression that looks similar but does not match
     }}
 }}
 "));
         }
 
+        var referenceAssemblies = CompilationCreator.GetReferenceAssemblies(MoqKey);
         (BaselineCompilation, TestCompilation) =
             BenchmarkCSharpCompilationFactory
-            .CreateAsync<SetupShouldNotIncludeAsyncResultAnalyzer>(sources.ToArray())
+            .CreateAsync<SetupShouldNotIncludeAsyncResultAnalyzer>(sources.ToArray(), referenceAssemblies)
             .GetAwaiter()
             .GetResult();
     }
@@ -61,10 +65,7 @@ internal class {name}
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 
-        // Analyzer skips diagnostics for Moq >= 4.16.0 by design
-        Version? moqVersion = TestCompilation.Compilation.ReferencedAssemblyNames
-            .FirstOrDefault(a => string.Equals(a.Name, "Moq", StringComparison.Ordinal))?.Version;
-        if (moqVersion != null && moqVersion >= new Version(4, 16, 0))
+        if (MoqKey == "Net80WithNewMoq")
         {
             if (diagnostics.Length != 0)
             {

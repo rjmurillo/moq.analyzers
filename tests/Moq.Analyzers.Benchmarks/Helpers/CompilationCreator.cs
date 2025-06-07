@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Model;
 using Microsoft.VisualStudio.Composition;
+using Moq.Analyzers.Test.Helpers;
 
 namespace Moq.Analyzers.Benchmarks.Helpers;
 
@@ -19,7 +20,7 @@ internal static class CompilationCreator
     static CompilationCreator()
 #pragma warning restore S3963
     {
-        ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]);
+        ReferenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithOldMoq];
     }
 
     public static async Task<(Project Project, AnalyzerOptions Options)> CreateProjectAsync(
@@ -30,7 +31,8 @@ internal static class CompilationCreator
         string defaultPrefix,
         string defaultExtension,
         CompilationOptions compilationOptions,
-        ParseOptions parseOptions)
+        ParseOptions parseOptions,
+        ReferenceAssemblies referenceAssemblies)
     {
         ProjectState projectState = new(name, language, defaultPrefix, defaultExtension);
         foreach ((string filename, string content) in sourceFiles)
@@ -38,7 +40,7 @@ internal static class CompilationCreator
             projectState.Sources.Add((defaultPrefix + filename + "." + defaultExtension, content));
         }
 
-        EvaluatedProjectState evaluatedProj = new(projectState, ReferenceAssemblies);
+        EvaluatedProjectState evaluatedProj = new(projectState, referenceAssemblies);
 
         Project project = await CreateProjectAsync(evaluatedProj, compilationOptions, parseOptions).ConfigureAwait(false);
 
@@ -160,5 +162,10 @@ internal static class CompilationCreator
 
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             => _globalOptions.TryGetValue(key, out value);
+    }
+
+    public static ReferenceAssemblies GetReferenceAssemblies(string moqKey)
+    {
+        return ReferenceAssemblyCatalog.Catalog[moqKey];
     }
 }
