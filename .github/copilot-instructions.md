@@ -21,6 +21,10 @@ dotnet run --configuration Release --project tests/Moq.Analyzers.Benchmarks
 
 Benchmarks are optional and may require additional local configuration. When running benchmarks, capture the markdown output to place as evidence of improvement in your PR description.
 
+When making changes, do not introduce technical debt, or static analyzer suppressions without first asking for permissions and explaining why it is necessary (i.e., the analyzer has an error and an issue should be opened against their repo). If an error is suspected in the triggered analyzer, write a detailed description of the error with a reduced repro case that can be used to open an issue with the code owner.
+
+For any and all changes, there MUST be test code coverage. The minimum for the repository is 95% code coverage. Your changes must have 100%.
+
 ### Troubleshooting Development Flow
 If you encounter:
 
