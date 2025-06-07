@@ -40,11 +40,10 @@ internal record class DiagnosticEditProperties
     /// <returns>The current object as an immutable dictionary.</returns>
     public ImmutableDictionary<string, string?> ToImmutableDictionary()
     {
-        return new Dictionary<string, string?>(StringComparer.Ordinal)
-        {
-            { EditTypeKey, TypeOfEdit.ToString() },
-            { EditPositionKey, EditPosition.ToString(CultureInfo.InvariantCulture) },
-        }.ToImmutableDictionary();
+        var builder = ImmutableDictionary.CreateBuilder<string, string?>(StringComparer.Ordinal);
+        builder.Add(EditTypeKey, TypeOfEdit.ToString());
+        builder.Add(EditPositionKey, EditPosition.ToString(CultureInfo.InvariantCulture));
+        return builder.ToImmutable();
     }
 
     /// <summary>
