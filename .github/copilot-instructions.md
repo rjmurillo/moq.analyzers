@@ -19,7 +19,7 @@ dotnet build /p:PedanticMode=true /p:SquiggleCop_AutoBaseline=true
 # run unit tests
 dotnet test --settings ./build/targets/tests/test.runsettings
 # optional: run benchmarks (requires local setup and manual selection)
-dotnet run --configuration Release --project tests/Moq.Analyzers.Benchmarks
+# See build/scripts/perf/README.md for detailed benchmarking instructions
 ```
 
 Benchmarks are optional and may require additional local configuration. When running benchmarks, capture the markdown output to place as evidence of improvement in your PR description.
