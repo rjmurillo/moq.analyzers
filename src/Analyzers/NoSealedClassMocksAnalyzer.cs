@@ -73,6 +73,11 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         {
             diagnosticLocation = GetDiagnosticLocationForInvocation(context.Operation, invocation);
         }
+        else
+        {
+            // Operation is neither a Mock object creation nor a Mock.Of invocation that we need to analyze
+            return;
+        }
 
         if (mockedType != null && diagnosticLocation != null && ShouldReportDiagnostic(mockedType))
         {
@@ -97,11 +102,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         mockedType = null;
 
         // Check if this is a static method call to Mock.Of<T>()
-        if (invocation.TargetMethod is null ||
-            !invocation.TargetMethod.IsStatic ||
-            !string.Equals(invocation.TargetMethod.Name, "Of", StringComparison.Ordinal) ||
-            invocation.TargetMethod.ContainingType is null ||
-            !invocation.TargetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default))
+        if (!IsValidMockOfMethod(invocation.TargetMethod, knownSymbols))
         {
             return false;
         }
@@ -114,6 +115,22 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         }
 
         return false;
+    }
+
+    private static bool IsValidMockOfMethod(IMethodSymbol? targetMethod, MoqKnownSymbols knownSymbols)
+    {
+        if (targetMethod is null || !targetMethod.IsStatic)
+        {
+            return false;
+        }
+
+        if (!string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return targetMethod.ContainingType is not null &&
+               targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default);
     }
 
     private static bool TryGetMockedTypeFromGeneric(ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? mockedType)
