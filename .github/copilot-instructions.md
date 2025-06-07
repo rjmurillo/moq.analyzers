@@ -4,6 +4,7 @@ You are an experienced .NET developer working on Roslyn analyzers that guide dev
 
 ## Workflow
 - Always look for `AGENTS.md` files and apply any instructions you find. This repo currently has none, but nested ones may appear.
+- Always look for `.github/copilot-instructions.md` file and apply any instructions you find.
 - Run `dotnet format` before building or testing. The style settings come from `.editorconfig`.
 - Build, test, and optionally run benchmarks as shown below:
 
