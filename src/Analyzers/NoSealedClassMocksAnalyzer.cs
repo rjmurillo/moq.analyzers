@@ -78,6 +78,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         ITypeSymbol mockedType = namedType.TypeArguments[0];
 
         // Check if the mocked type is sealed (but allow delegates)
+        // Note: All delegates in .NET are sealed by default, but they can still be mocked by Moq
         if (mockedType.IsSealed && mockedType.TypeKind != TypeKind.Delegate)
         {
             // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.

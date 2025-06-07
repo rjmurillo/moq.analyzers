@@ -18,6 +18,7 @@ public class NoSealedClassMocksAnalyzerTests
         return new object[][]
         {
             // Sealed delegates should be allowed (not trigger diagnostic)
+            // Note: All delegates in .NET are sealed by default, but can still be mocked by Moq
             ["""new Mock<SealedDelegate>();"""],
             ["""new Mock<NonSealedDelegate>();"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
@@ -134,6 +135,9 @@ public class NoSealedClassMocksAnalyzerTests
     [MemberData(nameof(DelegateTestData))]
     public async Task ShouldAllowSealedDelegates(string referenceAssemblyGroup, string @namespace, string mock)
     {
+        // This test verifies that delegates (which are always sealed in .NET) can still be mocked
+        // The analyzer specifically excludes delegates from the sealed type check because
+        // Moq can mock delegates even though they are sealed
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
                 {{@namespace}}
