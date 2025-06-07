@@ -1,44 +1,35 @@
 using Moq.Analyzers.Test.Helpers;
-using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoMethodsInPropertySetupAnalyzer>;
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetStrictMockBehaviorAnalyzer>;
 
 namespace Moq.Analyzers.Test;
 
-public class NoMethodsInPropertySetupAnalyzerTests
+public class SetStrictMockBehaviorAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
         return new object[][]
         {
-            ["""new Mock<IFoo>().SetupGet(x => x.Prop1);"""],
-            ["""new Mock<IFoo>().SetupGet(x => x.Prop2);"""],
-            ["""new Mock<IFoo>().SetupSet(x => x.Prop1 = "1");"""],
-            ["""new Mock<IFoo>().SetupSet(x => x.Prop3 = "2");"""],
-            ["""new Mock<IFoo>().Setup(x => x.Method());"""],
-            ["""new Mock<IFoo>().SetupGet(x => {|Moq1101:x.Method()|});"""],
-            ["""new Mock<IFoo>().SetupSet(x => {|Moq1101:x.Method()|});"""],
+            ["""{|Moq1410:new Mock<ISample>()|};"""],
+            ["""{|Moq1410:new Mock<ISample>(MockBehavior.Default)|};"""],
+            ["""{|Moq1410:new Mock<ISample>(MockBehavior.Loose)|};"""],
+            ["""new Mock<ISample>(MockBehavior.Strict);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShouldAnalyzePropertySetup(string referenceAssemblyGroup, string @namespace, string mock)
+    public async Task ShouldAnalyzeStrictMockBehavior(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
                 {{@namespace}}
 
-                public interface IFoo
+                public interface ISample
                 {
-                    string Prop1 { get; set; }
-
-                    string Prop2 { get; }
-
-                    string Prop3 { set; }
-
-                    string Method();
+                    void Method();
                 }
 
-                public class UnitTest
+                internal class UnitTest
                 {
                     private void Test()
                     {
