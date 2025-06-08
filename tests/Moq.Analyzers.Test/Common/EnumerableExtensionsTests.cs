@@ -104,14 +104,49 @@ public class EnumerableExtensionsTests
         Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
     }
 
+    [Fact]
+    public void CountingEnumerable_Count_Resets_OnEachEnumeration()
+    {
+        // The Count property resets to 0 every time GetEnumerator() is called.
+        // This means if enumeration is started but not completed, Count will reset on the next enumeration.
+        // This test verifies that behavior explicitly.
+        CountingEnumerable<int> source = new CountingEnumerable<int>(new[] { 1, 2, 3 });
+
+        // First enumeration (partial)
+        using (IEnumerator<int> enumerator = source.GetEnumerator())
+        {
+            Assert.Equal(0, source.Count); // Not started
+            Assert.True(enumerator.MoveNext()); // 1
+            Assert.Equal(1, source.Count);
+
+            // Do not complete enumeration
+        }
+
+        // Second enumeration (full)
+        List<int> items = new List<int>();
+        foreach (int item in source)
+        {
+            items.Add(item);
+        }
+
+        Assert.Equal(3, source.Count); // Count resets and counts all items
+        Assert.Equal(new[] { 1, 2, 3 }, items);
+    }
+
     private sealed class CountingEnumerable<T>(IEnumerable<T> items) : IEnumerable<T>
     {
         private readonly IEnumerable<T> _items = items;
 
+        /// <summary>
+        /// Gets tracks the number of items enumerated. Resets to 0 every time <see cref="GetEnumerator"/> is called.
+        /// This means if enumeration is started but not completed, <see cref="Count"/> will reset on the next enumeration.
+        /// This behavior is intentional for test scenarios that need to track enumeration per run.
+        /// </summary>
         public int Count { get; private set; }
 
         public IEnumerator<T> GetEnumerator()
         {
+            // Reset count on every new enumeration. This can cause Count to reset if enumeration is started but not completed.
             Count = 0;
             foreach (T item in _items)
             {
