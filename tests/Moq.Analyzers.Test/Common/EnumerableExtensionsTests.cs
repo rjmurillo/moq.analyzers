@@ -13,7 +13,7 @@ public class EnumerableExtensionsTests
     {
         IEnumerable<int> source = [];
         int? result = source.DefaultIfNotSingle();
-        Assert.Null(result);
+        Assert.Equal(0, result);
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class EnumerableExtensionsTests
     {
         int[] source = [1, 2, 3];
         int? result = source.DefaultIfNotSingle();
-        Assert.Null(result);
+        Assert.Equal(0, result);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class EnumerableExtensionsTests
     {
         int[] source = [1, 2, 3];
         int? result = source.DefaultIfNotSingle(x => x > 10);
-        Assert.Null(result);
+        Assert.Equal(0, result);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class EnumerableExtensionsTests
     {
         int[] source = [1, 2, 2, 3];
         int? result = source.DefaultIfNotSingle(x => x > 1);
-        Assert.Null(result);
+        Assert.Equal(0, result);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class EnumerableExtensionsTests
     {
         ImmutableArray<int> source = ImmutableArray<int>.Empty;
         int? result = source.DefaultIfNotSingle(x => x > 0);
-        Assert.Null(result);
+        Assert.Equal(0, result);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class EnumerableExtensionsTests
     {
         ImmutableArray<int> source = [.. new[] { 5, 10, 10, 15 }];
         int? result = source.DefaultIfNotSingle(x => x > 5);
-        Assert.Null(result);
+        Assert.Equal(0, result);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class EnumerableExtensionsTests
         CountingEnumerable<int> source = new(new[] { 1, 2, 3, 4 });
         int? result = source.DefaultIfNotSingle(x => x > 1);
 
-        Assert.Null(result);
+        Assert.Equal(0, result);
         Assert.Equal(3, source.Count);
     }
 
