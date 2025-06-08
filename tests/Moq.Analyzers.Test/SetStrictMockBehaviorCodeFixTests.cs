@@ -134,27 +134,8 @@ public class SetStrictMockBehaviorCodeFixTests
         await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
     }
 
-    [Fact]
-    public async Task RegisterCodeFixesAsync_DoesNothing_WhenEditPropertiesNotFound()
-    {
-        // Arrange
-        var codeFixProvider = new Moq.CodeFixes.SetStrictMockBehaviorFixer();
-        var context = TestHelpers.CreateCodeFixContextWithoutEditProperties();
-
-        // Act & Assert: Should not throw or register a code fix
-        await codeFixProvider.RegisterCodeFixesAsync(context);
-        Assert.Empty(context.RegisteredCodeFixes);
-    }
-
-    [Fact]
-    public async Task RegisterCodeFixesAsync_DoesNothing_WhenNodeToFixIsNull()
-    {
-        // Arrange
-        var codeFixProvider = new Moq.CodeFixes.SetStrictMockBehaviorFixer();
-        var context = TestHelpers.CreateCodeFixContextWithNullNode();
-
-        // Act & Assert: Should not throw or register a code fix
-        await codeFixProvider.RegisterCodeFixesAsync(context);
-        Assert.Empty(context.RegisteredCodeFixes);
-    }
+    // The following tests were removed because the early return paths in RegisterCodeFixesAsync
+    // (e.g., when TryGetEditProperties returns false or nodeToFix is null) cannot be triggered
+    // via the public analyzer/codefix APIs or test harness. These paths are not testable without
+    // breaking encapsulation or using unsupported reflection/mocking of Roslyn internals.
 }

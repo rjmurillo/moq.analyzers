@@ -9,8 +9,8 @@ public class DiagnosticEditPropertiesTests
     [Fact]
     public void ToImmutableDictionary_RoundTripsProperties()
     {
-        var props = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Insert, EditPosition = 2 };
-        var dict = props.ToImmutableDictionary();
+        DiagnosticEditProperties props = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Insert, EditPosition = 2 };
+        ImmutableDictionary<string, string?> dict = props.ToImmutableDictionary();
         Assert.Equal("Insert", dict[DiagnosticEditProperties.EditTypeKey]);
         Assert.Equal("2", dict[DiagnosticEditProperties.EditPositionKey]);
     }
@@ -18,10 +18,10 @@ public class DiagnosticEditPropertiesTests
     [Fact]
     public void TryGetFromImmutableDictionary_Succeeds_WithValidDictionary()
     {
-        var dict = ImmutableDictionary<string, string?>.Empty
+        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
             .Add(DiagnosticEditProperties.EditTypeKey, "Replace")
             .Add(DiagnosticEditProperties.EditPositionKey, "5");
-        var result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out var props);
+        bool result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props);
         Assert.True(result);
         Assert.NotNull(props);
         Assert.Equal(DiagnosticEditProperties.EditType.Replace, props!.TypeOfEdit);
@@ -31,8 +31,8 @@ public class DiagnosticEditPropertiesTests
     [Fact]
     public void TryGetFromImmutableDictionary_Fails_WhenEditTypeKeyMissing()
     {
-        var dict = ImmutableDictionary<string, string?>.Empty.Add(DiagnosticEditProperties.EditPositionKey, "1");
-        var result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out var props);
+        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty.Add(DiagnosticEditProperties.EditPositionKey, "1");
+        bool result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props);
         Assert.False(result);
         Assert.Null(props);
     }
@@ -40,8 +40,8 @@ public class DiagnosticEditPropertiesTests
     [Fact]
     public void TryGetFromImmutableDictionary_Fails_WhenEditPositionKeyMissing()
     {
-        var dict = ImmutableDictionary<string, string?>.Empty.Add(DiagnosticEditProperties.EditTypeKey, "Insert");
-        var result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out var props);
+        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty.Add(DiagnosticEditProperties.EditTypeKey, "Insert");
+        bool result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props);
         Assert.False(result);
         Assert.Null(props);
     }
@@ -49,10 +49,10 @@ public class DiagnosticEditPropertiesTests
     [Fact]
     public void TryGetFromImmutableDictionary_Fails_WhenEditTypeInvalid()
     {
-        var dict = ImmutableDictionary<string, string?>.Empty
+        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
             .Add(DiagnosticEditProperties.EditTypeKey, "NotAType")
             .Add(DiagnosticEditProperties.EditPositionKey, "1");
-        var result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out var props);
+        bool result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props);
         Assert.False(result);
         Assert.Null(props);
     }
@@ -60,11 +60,11 @@ public class DiagnosticEditPropertiesTests
     [Fact]
     public void TryGetFromImmutableDictionary_Fails_WhenEditPositionInvalid()
     {
-        var dict = ImmutableDictionary<string, string?>.Empty
+        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
             .Add(DiagnosticEditProperties.EditTypeKey, "Insert")
             .Add(DiagnosticEditProperties.EditPositionKey, "notAnInt");
-        var result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out var props);
+        bool result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props);
         Assert.False(result);
         Assert.Null(props);
     }
-} 
+}
