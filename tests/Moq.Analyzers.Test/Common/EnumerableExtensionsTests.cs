@@ -97,18 +97,33 @@ public class EnumerableExtensionsTests
         Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(x => true));
     }
 
+    //[Fact]
+    //public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenPredicateIsNull()
+    //{
+    //    IEnumerable<int> source = new List<int> { 1, 2, 3 };
+    //    ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+    //    Assert.Equal("predicate", ex.ParamName);
+    //}
+
+    //[Fact]
+    //public void DefaultIfNotSingle_ImmutableArray_ThrowsArgumentNullException_WhenPredicateIsNull()
+    //{
+    //    ImmutableArray<int> source = ImmutableArray.Create(1, 2, 3);
+    //    Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+    //}
+
     [Fact]
-    public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenPredicateIsNull()
+    public void DefaultIfNotSingle_String_ThrowsArgumentNullException_WhenPredicateIsNull()
     {
-        IEnumerable<int> source = new List<int> { 1, 2, 3 };
+        IEnumerable<string> source = new List<string> { "a", "b", "c" };
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
         Assert.Equal("predicate", ex.ParamName);
     }
 
     [Fact]
-    public void DefaultIfNotSingle_ImmutableArray_ThrowsArgumentNullException_WhenPredicateIsNull()
+    public void DefaultIfNotSingle_ImmutableArray_String_ThrowsArgumentNullException_WhenPredicateIsNull()
     {
-        ImmutableArray<int> source = ImmutableArray.Create(1, 2, 3);
+        ImmutableArray<string> source = ImmutableArray.Create("a", "b", "c");
         Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
     }
 
