@@ -20,6 +20,9 @@
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>
     <SquiggleCop_Enabled>false</SquiggleCop_Enabled>
+    <InternalsVisibleTo>Moq.Analyzers</InternalsVisibleTo>
+    <InternalsVisibleTo>Moq.Analyzers.Test</InternalsVisibleTo>
+    <InternalsVisibleTo>Moq.Analyzers.Test.Analyzers</InternalsVisibleTo>
   </PropertyGroup>
 
   <PropertyGroup Label="Shared project settings">
