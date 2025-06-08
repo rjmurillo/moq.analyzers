@@ -86,6 +86,27 @@ public class EnumerableExtensionsTests
         Assert.Equal(3, source.Count);
     }
 
+    [Fact]
+    public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenSourceIsNull()
+    {
+        IEnumerable<int> source = null!;
+        Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(x => true));
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenPredicateIsNull()
+    {
+        IEnumerable<int> source = new List<int> { 1, 2, 3 };
+        Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_ImmutableArray_ThrowsArgumentNullException_WhenPredicateIsNull()
+    {
+        var source = ImmutableArray.Create(1, 2, 3);
+        Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+    }
+
     private sealed class CountingEnumerable<T>(IEnumerable<T> items) : IEnumerable<T>
     {
         private readonly IEnumerable<T> _items = items;
