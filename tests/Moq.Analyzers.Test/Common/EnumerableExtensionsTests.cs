@@ -101,7 +101,8 @@ public class EnumerableExtensionsTests
     public void DefaultIfNotSingle_ImmutableArray_String_ThrowsArgumentNullException_WhenPredicateIsNull()
     {
         ImmutableArray<string> source = ImmutableArray.Create("a", "b", "c");
-        Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+        Assert.Equal("predicate", ex.ParamName);
     }
 
     [Fact]
