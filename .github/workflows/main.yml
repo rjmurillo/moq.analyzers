@@ -48,7 +48,7 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --no-restore --configuration Release /bl:./artifacts/logs/release/build.release.binlog
+      run: dotnet build --no-restore --configuration Release /check /bl:./artifacts/logs/release/build.release.binlog
 
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings

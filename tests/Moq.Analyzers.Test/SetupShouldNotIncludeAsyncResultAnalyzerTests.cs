@@ -1,3 +1,4 @@
+using Moq.Analyzers.Test.Helpers;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetupShouldNotIncludeAsyncResultAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -17,6 +18,8 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
         IEnumerable<object[]> oldMoqSpecific = new object[][]
         {
             ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""],
+
+            ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericValueTaskAsync().Result|});"""],
         }.WithNamespaces().WithOldMoqReferenceAssemblyGroups();
 
         // New Moq specific: Task<T>.Result should NOT produce diagnostic
@@ -41,6 +44,10 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
                   public virtual Task TaskAsync() => Task.CompletedTask;
 
                   public virtual Task<string> GenericTaskAsync() => Task.FromResult(string.Empty);
+
+                  public virtual ValueTask ValueTaskAsync() => ValueTask.CompletedTask;
+
+                  public virtual ValueTask<string> GenericValueTaskAsync() => ValueTask.FromResult(string.Empty);
               }
 
               internal class UnitTest
@@ -57,5 +64,14 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
         await Verifier.VerifyAnalyzerAsync(
                 source,
                 referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(DoppelgangerTestHelper.GetAllCustomMockData), MemberType = typeof(DoppelgangerTestHelper))]
+    public async Task ShouldPassIfCustomMockClassIsUsed(string mockCode)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            DoppelgangerTestHelper.CreateTestCode(mockCode),
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 }

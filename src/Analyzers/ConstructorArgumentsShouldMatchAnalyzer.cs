@@ -145,12 +145,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     {
         context.CancellationToken.ThrowIfCancellationRequested();
 
-        if (context.Compilation.Options.IsAnalyzerSuppressed(InterfaceMustNotHaveConstructorParameters)
-            && context.Compilation.Options.IsAnalyzerSuppressed(ClassMustHaveMatchingConstructor))
-        {
-            return;
-        }
-
         MoqKnownSymbols knownSymbols = new(context.Compilation);
 
         // We're interested in the few ways to create mocks:

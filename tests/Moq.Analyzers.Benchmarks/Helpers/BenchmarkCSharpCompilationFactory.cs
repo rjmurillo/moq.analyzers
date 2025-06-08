@@ -8,10 +8,11 @@ internal static class BenchmarkCSharpCompilationFactory
 {
     public static async Task<(CompilationWithAnalyzers Baseline, CompilationWithAnalyzers Test)> CreateAsync<TAnalyzer>(
         (string Name, string Contents)[] sources,
+        ReferenceAssemblies referenceAssemblies,
         AnalyzerOptions? options = null)
         where TAnalyzer : DiagnosticAnalyzer, new()
     {
-        Compilation? compilation = await CSharpCompilationCreator.CreateAsync(sources).ConfigureAwait(false);
+        Compilation? compilation = await CSharpCompilationCreator.CreateAsync(sources, referenceAssemblies).ConfigureAwait(false);
 
         if (compilation is null)
         {

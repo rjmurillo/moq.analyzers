@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
-public class Moq1300Benchmarks
+public class Moq1200OverridableMembersBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
@@ -28,16 +28,17 @@ using Moq;
 
 public class SampleClass{index}
 {{
-
-    public int Calculate() => 0;
+    public string Property {{ get; set; }}
+    public int Calculate() => 0; // Non-virtual method
+    public virtual int CalculateVirtual(int a, int b) => 0; // Virtual method
 }}
 
 internal class {name}
 {{
     private void Test()
     {{
-        new Mock<SampleClass{index}>().As<SampleClass{index}>();
-        _ = new SampleClass{index}().Calculate(); // Add an expression that looks similar but does not match
+        new Mock<SampleClass{index}>().Setup(x => x.Property);
+        _ = ""sample test""; // Add an expression that looks similar but does not match
     }}
 }}
 "));
@@ -45,13 +46,13 @@ internal class {name}
 
         Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq");
         (BaselineCompilation, TestCompilation) =
-            BenchmarkCSharpCompilationFactory.CreateAsync<AsShouldBeUsedOnlyForInterfaceAnalyzer>(sources.ToArray(), referenceAssemblies)
+            BenchmarkCSharpCompilationFactory.CreateAsync<SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>(sources.ToArray(), referenceAssemblies)
             .GetAwaiter()
             .GetResult();
     }
 
     [Benchmark]
-    public async Task Moq1300WithDiagnostics()
+    public async Task Moq1200WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
@@ -67,7 +68,7 @@ internal class {name}
     }
 
     [Benchmark(Baseline = true)]
-    public async Task Moq1300Baseline()
+    public async Task Moq1200Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!
