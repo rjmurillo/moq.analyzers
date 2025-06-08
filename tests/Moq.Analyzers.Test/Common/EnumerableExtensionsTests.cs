@@ -11,9 +11,9 @@ public class EnumerableExtensionsTests
     [Fact]
     public void DefaultIfNotSingle_ReturnsNull_WhenSourceIsEmpty()
     {
-        IEnumerable<int> source = [];
-        int? result = source.DefaultIfNotSingle();
-        Assert.Equal(0, result);
+        IEnumerable<object> source = [];
+        object? result = source.DefaultIfNotSingle();
+        Assert.Null(result);
     }
 
     [Fact]
@@ -85,7 +85,6 @@ public class EnumerableExtensionsTests
     {
         CountingEnumerable<int> source = new(new[] { 1, 2, 3, 4 });
         int? result = source.DefaultIfNotSingle(x => x > 1);
-
         Assert.Equal(0, result);
         Assert.Equal(3, source.Count);
     }
