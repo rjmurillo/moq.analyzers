@@ -14,8 +14,8 @@ You are an experienced .NET developer working on Roslyn analyzers that guide dev
 ```bash
 # formatting
 dotnet format
-# build with warnings as errors and SquiggleCop baseline
-dotnet build /p:PedanticMode=true /p:SquiggleCop_AutoBaseline=true
+# build with warnings as errors
+dotnet build /p:PedanticMode=true
 # run unit tests
 dotnet test --settings ./build/targets/tests/test.runsettings
 # optional: run benchmarks (requires local setup and manual selection)
@@ -33,7 +33,7 @@ If you encounter:
 
 - The versioning is causing issues This may show up in your build output as error `MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly.` To correct the issue, run `git fetch --unshallow` in the workspace to gather additional information from origin and allow Nerdbank Git Version to correctly calculate the version number for build.
 - Test case exceeds 300 seconds and you timeout the shell, try listing all the test cases and running a subset at a time until all test cases have been executed and pass
-- You may see a build output warning or error error `SQ2000: Baseline mismatch: SquiggleCop.Baseline.yaml`. To correct the issue run `dotnet build <PATH_TO_CSPROJ> /p:PedanticMode=true /p:SquiggleCop_AutoBaseline=true`. Ensure the build passes from the repository root with `dotnet build /p:PedanticMode=true /p:SquiggleCop_AutoBaseline=true`. Commit the changed `SquiggleCop.baseline.yaml` files
+
 
 ## Guidelines
 - Add or update xUnit tests with every new feature or bug fix.
