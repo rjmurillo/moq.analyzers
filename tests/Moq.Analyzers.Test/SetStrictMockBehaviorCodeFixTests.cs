@@ -133,4 +133,28 @@ public class SetStrictMockBehaviorCodeFixTests
 
         await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
     }
+
+    [Fact]
+    public async Task RegisterCodeFixesAsync_DoesNothing_WhenEditPropertiesNotFound()
+    {
+        // Arrange
+        var codeFixProvider = new Moq.CodeFixes.SetStrictMockBehaviorFixer();
+        var context = TestHelpers.CreateCodeFixContextWithoutEditProperties();
+
+        // Act & Assert: Should not throw or register a code fix
+        await codeFixProvider.RegisterCodeFixesAsync(context);
+        Assert.Empty(context.RegisteredCodeFixes);
+    }
+
+    [Fact]
+    public async Task RegisterCodeFixesAsync_DoesNothing_WhenNodeToFixIsNull()
+    {
+        // Arrange
+        var codeFixProvider = new Moq.CodeFixes.SetStrictMockBehaviorFixer();
+        var context = TestHelpers.CreateCodeFixContextWithNullNode();
+
+        // Act & Assert: Should not throw or register a code fix
+        await codeFixProvider.RegisterCodeFixesAsync(context);
+        Assert.Empty(context.RegisteredCodeFixes);
+    }
 }
