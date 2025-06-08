@@ -1,4 +1,8 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Xunit;
 
 namespace Moq.Analyzers.Test.Common;
 
@@ -97,14 +101,14 @@ public class EnumerableExtensionsTests
     public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenPredicateIsNull()
     {
         IEnumerable<int> source = new List<int> { 1, 2, 3 };
-        var ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
         Assert.Equal("predicate", ex.ParamName);
     }
 
     [Fact]
     public void DefaultIfNotSingle_ImmutableArray_ThrowsArgumentNullException_WhenPredicateIsNull()
     {
-        var source = ImmutableArray.Create(1, 2, 3);
+        ImmutableArray<int> source = ImmutableArray.Create(1, 2, 3);
         Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
     }
 
