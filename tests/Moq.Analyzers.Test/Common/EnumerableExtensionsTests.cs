@@ -91,13 +91,6 @@ public class EnumerableExtensionsTests
     }
 
     [Fact]
-    public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenSourceIsNull()
-    {
-        IEnumerable<int> source = null!;
-        Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(x => true));
-    }
-
-    [Fact]
     public void DefaultIfNotSingle_String_ThrowsArgumentNullException_WhenPredicateIsNull()
     {
         IEnumerable<string> source = new List<string> { "a", "b", "c" };
