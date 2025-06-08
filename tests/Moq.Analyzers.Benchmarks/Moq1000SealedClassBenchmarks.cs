@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Moq.Analyzers.Benchmarks.Helpers;
@@ -59,6 +58,7 @@ internal class {name}
     /// <summary>
     /// Benchmarks the analyzer's performance when detecting attempts to mock sealed classes.
     /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [Benchmark]
     public async Task Moq1000WithDiagnostics()
     {
@@ -78,6 +78,7 @@ internal class {name}
     /// <summary>
     /// Benchmarks the baseline performance without the analyzer.
     /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [Benchmark(Baseline = true)]
     public async Task Moq1000Baseline()
     {
