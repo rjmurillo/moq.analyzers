@@ -6,14 +6,21 @@ using Moq.Analyzers.Benchmarks.Helpers;
 
 namespace Moq.Analyzers.Benchmarks;
 
+/// <summary>
+/// Benchmarks for the Moq1000 analyzer that detects attempts to mock sealed classes.
+/// </summary>
 [InProcess]
 [MemoryDiagnoser]
+[BenchmarkCategory("Moq1000")]
 public class Moq1000SealedClassBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Sets up the compilation with test sources for benchmarking.
+    /// </summary>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public static void SetupCompilation()
@@ -48,6 +55,10 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer's performance when detecting attempts to mock sealed classes.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [Benchmark]
     public async Task Moq1000WithDiagnostics()
     {
@@ -64,6 +75,10 @@ internal class {name}
         }
     }
 
+    /// <summary>
+    /// Benchmarks the baseline performance without the analyzer.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [Benchmark(Baseline = true)]
     public async Task Moq1000Baseline()
     {

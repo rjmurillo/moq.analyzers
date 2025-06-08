@@ -1,4 +1,5 @@
-﻿using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoSealedClassMocksAnalyzer>;
+﻿using Moq.Analyzers.Test.Helpers;
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoSealedClassMocksAnalyzer>;
 
 namespace Moq.Analyzers.Test;
 
@@ -34,5 +35,14 @@ public partial class NoSealedClassMocksAnalyzerTests
                 }
                 """,
                 referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(DoppelgangerTestHelper.GetAllCustomMockData), MemberType = typeof(DoppelgangerTestHelper))]
+    public async Task ShouldPassIfCustomMockClassIsUsed(string mockCode)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            DoppelgangerTestHelper.CreateTestCode(mockCode),
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 }

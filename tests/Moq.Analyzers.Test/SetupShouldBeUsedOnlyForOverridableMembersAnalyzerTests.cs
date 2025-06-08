@@ -1,3 +1,4 @@
+using Moq.Analyzers.Test.Helpers;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -79,5 +80,14 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
         await Verifier.VerifyAnalyzerAsync(
                 source,
                 referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(DoppelgangerTestHelper.GetAllCustomMockData), MemberType = typeof(DoppelgangerTestHelper))]
+    public async Task ShouldPassIfCustomMockClassIsUsed(string mockCode)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            DoppelgangerTestHelper.CreateTestCode(mockCode),
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 }
