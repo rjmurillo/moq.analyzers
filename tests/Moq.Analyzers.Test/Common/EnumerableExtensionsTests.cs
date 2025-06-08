@@ -107,30 +107,47 @@ public class EnumerableExtensionsTests
     [Fact]
     public void CountingEnumerable_Count_Resets_OnEachEnumeration()
     {
-        // The Count property resets to 0 every time GetEnumerator() is called.
-        // This means if enumeration is started but not completed, Count will reset on the next enumeration.
-        // This test verifies that behavior explicitly.
         CountingEnumerable<int> source = new CountingEnumerable<int>(new[] { 1, 2, 3 });
 
-        // First enumeration (partial)
         using (IEnumerator<int> enumerator = source.GetEnumerator())
         {
-            Assert.Equal(0, source.Count); // Not started
-            Assert.True(enumerator.MoveNext()); // 1
+            Assert.Equal(0, source.Count);
+            Assert.True(enumerator.MoveNext());
             Assert.Equal(1, source.Count);
-
-            // Do not complete enumeration
         }
 
-        // Second enumeration (full)
         List<int> items = new List<int>();
         foreach (int item in source)
         {
             items.Add(item);
         }
 
-        Assert.Equal(3, source.Count); // Count resets and counts all items
+        Assert.Equal(3, source.Count);
         Assert.Equal(new[] { 1, 2, 3 }, items);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_ImmutableArray_CallsEnumerableExtension()
+    {
+        ImmutableArray<string> source = ImmutableArray.Create("a", "b", "c");
+        string? result = source.DefaultIfNotSingle(x => string.Equals(x, "b"));
+        Assert.Equal("b", result);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenSourceIsNull()
+    {
+        IEnumerable<string>? source = null;
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => EnumerableExtensions.DefaultIfNotSingle(source!, x => true));
+        Assert.Equal("source", ex.ParamName);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenPredicateIsNull()
+    {
+        IEnumerable<string> source = new[] { "a", "b", "c" };
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => EnumerableExtensions.DefaultIfNotSingle(source, null!));
+        Assert.Equal("predicate", ex.ParamName);
     }
 
     private sealed class CountingEnumerable<T>(IEnumerable<T> items) : IEnumerable<T>
