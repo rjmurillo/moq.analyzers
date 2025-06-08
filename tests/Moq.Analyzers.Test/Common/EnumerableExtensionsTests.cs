@@ -97,7 +97,8 @@ public class EnumerableExtensionsTests
     public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenPredicateIsNull()
     {
         IEnumerable<int> source = new List<int> { 1, 2, 3 };
-        Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+        var ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+        Assert.Equal("predicate", ex.ParamName);
     }
 
     [Fact]
@@ -115,6 +116,7 @@ public class EnumerableExtensionsTests
 
         public IEnumerator<T> GetEnumerator()
         {
+            Count = 0;
             foreach (T item in _items)
             {
                 Count++;
