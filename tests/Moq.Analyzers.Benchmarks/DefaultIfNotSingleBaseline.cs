@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -8,6 +9,8 @@ internal static class DefaultIfNotSingleBaseline
 {
     public static T? DefaultIfNotSingleBaselineMethod<T>(this IEnumerable<T> source, Func<T, bool> predicate)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(predicate);
         bool found = false;
         T? item = default;
         foreach (T element in source.Where(predicate))
