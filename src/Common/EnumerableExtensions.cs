@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Moq.Analyzers.Common;
 
@@ -40,15 +41,7 @@ internal static class EnumerableExtensions
     /// </remarks>
     public static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (predicate == null)
-        {
-            throw new ArgumentNullException(nameof(predicate));
-        }
+        ValidateDefaultIfNotSingleArguments(source, predicate);
 
         bool isFound = false;
         TSource? item = default;
@@ -71,5 +64,19 @@ internal static class EnumerableExtensions
         }
 
         return item;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void ValidateDefaultIfNotSingleArguments<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (predicate == null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
     }
 }
