@@ -10,7 +10,7 @@ public class DiagnosticEditPropertiesBenchmarks
     [Benchmark(Baseline = true)]
     public ImmutableDictionary<string, string?> UsingBuilder()
     {
-        var builder = ImmutableDictionary.CreateBuilder<string, string?>(StringComparer.Ordinal);
+        ImmutableDictionary<string, string?>.Builder builder = ImmutableDictionary.CreateBuilder<string, string?>(StringComparer.Ordinal);
         builder.Add("Type", "Insert");
         builder.Add("Position", 1.ToString(CultureInfo.InvariantCulture));
         return builder.ToImmutable();
