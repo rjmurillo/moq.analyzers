@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -6,14 +6,21 @@ using Moq.Analyzers.Benchmarks.Helpers;
 
 namespace Moq.Analyzers.Benchmarks;
 
+/// <summary>
+/// Benchmarks for the Moq1000 analyzer that detects attempts to mock sealed classes.
+/// </summary>
 [InProcess]
 [MemoryDiagnoser]
-public class Moq1300Benchmarks
+[BenchmarkCategory("Moq1000")]
+public class Moq1000SealedClassBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Sets up the compilation with test sources for benchmarking.
+    /// </summary>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public static void SetupCompilation()
@@ -26,18 +33,16 @@ public class Moq1300Benchmarks
 using System;
 using Moq;
 
-public class SampleClass{index}
-{{
+internal sealed class FooSealed{index} {{ }}
 
-    public int Calculate() => 0;
-}}
+internal class Foo{index} {{ }}
 
 internal class {name}
 {{
     private void Test()
     {{
-        new Mock<SampleClass{index}>().As<SampleClass{index}>();
-        _ = new SampleClass{index}().Calculate(); // Add an expression that looks similar but does not match
+        new Mock<FooSealed{index}>();
+        _ = ""sample test""; // Add an expression that looks similar but does not match
     }}
 }}
 "));
@@ -45,13 +50,17 @@ internal class {name}
 
         Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq");
         (BaselineCompilation, TestCompilation) =
-            BenchmarkCSharpCompilationFactory.CreateAsync<AsShouldBeUsedOnlyForInterfaceAnalyzer>(sources.ToArray(), referenceAssemblies)
+            BenchmarkCSharpCompilationFactory.CreateAsync<NoSealedClassMocksAnalyzer>(sources.ToArray(), referenceAssemblies)
             .GetAwaiter()
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer's performance when detecting attempts to mock sealed classes.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [Benchmark]
-    public async Task Moq1300WithDiagnostics()
+    public async Task Moq1000WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
@@ -66,8 +75,12 @@ internal class {name}
         }
     }
 
+    /// <summary>
+    /// Benchmarks the baseline performance without the analyzer.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [Benchmark(Baseline = true)]
-    public async Task Moq1300Baseline()
+    public async Task Moq1000Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!
