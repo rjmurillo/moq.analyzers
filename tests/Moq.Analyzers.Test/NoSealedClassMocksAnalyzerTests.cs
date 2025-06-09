@@ -1,8 +1,9 @@
-﻿using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoSealedClassMocksAnalyzer>;
+﻿using Moq.Analyzers.Test.Helpers;
+using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoSealedClassMocksAnalyzer>;
 
 namespace Moq.Analyzers.Test;
 
-public class NoSealedClassMocksAnalyzerTests
+public partial class NoSealedClassMocksAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {

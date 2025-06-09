@@ -14,12 +14,12 @@ You are an experienced .NET developer working on Roslyn analyzers that guide dev
 ```bash
 # formatting
 dotnet format
-# build with warnings as errors and SquiggleCop baseline
-dotnet build /p:PedanticMode=true /p:SquiggleCop_AutoBaseline=true
+# build with warnings as errors
+dotnet build /p:PedanticMode=true
 # run unit tests
 dotnet test --settings ./build/targets/tests/test.runsettings
 # optional: run benchmarks (requires local setup and manual selection)
-dotnet run --configuration Release --project tests/Moq.Analyzers.Benchmarks
+# See build/scripts/perf/README.md for detailed benchmarking instructions
 ```
 
 Benchmarks are optional and may require additional local configuration. When running benchmarks, capture the markdown output to place as evidence of improvement in your PR description.
@@ -33,6 +33,7 @@ If you encounter:
 
 - The versioning is causing issues This may show up in your build output as error `MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly.` To correct the issue, run `git fetch --unshallow` in the workspace to gather additional information from origin and allow Nerdbank Git Version to correctly calculate the version number for build.
 - Test case exceeds 300 seconds and you timeout the shell, try listing all the test cases and running a subset at a time until all test cases have been executed and pass
+
 
 ## Guidelines
 - Add or update xUnit tests with every new feature or bug fix.
