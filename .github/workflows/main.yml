@@ -110,33 +110,8 @@ jobs:
           ./artifacts/package
         if-no-files-found: error
 
-    - name: Install PowerShell (Linux/macOS)
-      if: ${{ runner.os != 'Windows' }}
-      shell: bash
-      run: |
-        # Install PowerShell on Linux
-        if [[ "${{ runner.os }}" == "Linux" ]]; then
-          # Update the list of packages
-          sudo apt-get update
-          # Install pre-requisite packages
-          sudo apt-get install -y wget apt-transport-https software-properties-common
-          # Download the Microsoft repository GPG keys
-          wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
-          # Register the Microsoft repository GPG keys
-          sudo dpkg -i packages-microsoft-prod.deb
-          # Delete the the Microsoft repository GPG keys file
-          rm packages-microsoft-prod.deb
-          # Update the list of packages after we added packages.microsoft.com
-          sudo apt-get update
-          # Install PowerShell
-          sudo apt-get install -y powershell
-        elif [[ "${{ runner.os }}" == "macOS" ]]; then
-          # Install PowerShell on macOS
-          brew install --cask powershell
-        fi
-
     - name: Validate performance
       shell: pwsh
-      # Now runs on all platforms, with ETL disabled on non-Windows
+      # Now runs on Linux instead of Windows, with ETL disabled on non-Windows
       if: ${{ runner.os == 'Linux' }} 
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
