@@ -112,6 +112,6 @@ jobs:
 
     - name: Validate performance
       shell: pwsh
-      # Now runs on Linux instead of Windows, with ETL disabled on non-Windows
-      if: ${{ runner.os == 'Linux' }} 
+      # Runs on both Linux and Windows, with ETL disabled on non-Windows
+      if: ${{ runner.os == 'Linux' || runner.os == 'Windows' }} 
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
