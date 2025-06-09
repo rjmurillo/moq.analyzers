@@ -23,21 +23,75 @@ public class CallbackReturnsSymbolBenchmarks
         ];
 
         Compilation? compilation = await CSharpCompilationCreator.CreateAsync(sources).ConfigureAwait(false);
-        _callbackMethod = compilation!.GetTypeByMetadataName("Moq.Language.ICallback")!.GetMembers("Callback").OfType<IMethodSymbol>().Single();
-        _returnsMethod = compilation.GetTypeByMetadataName("Moq.Language.IReturns")!.GetMembers("Returns").OfType<IMethodSymbol>().Single();
+        if (compilation is null)
+        {
+            throw new InvalidOperationException("Failed to create C# compilation for benchmark sources.");
+        }
+
+        INamedTypeSymbol? callbackType = compilation.GetTypeByMetadataName("Moq.Language.ICallback");
+        if (callbackType is null)
+        {
+            throw new InvalidOperationException("Type 'Moq.Language.ICallback' not found in compilation.");
+        }
+        var callbackMembers = callbackType.GetMembers("Callback").OfType<IMethodSymbol>().ToArray();
+        if (callbackMembers.Length != 1)
+        {
+            throw new InvalidOperationException($"Expected exactly one 'Callback' method in 'Moq.Language.ICallback', found {callbackMembers.Length}.");
+        }
+        _callbackMethod = callbackMembers[0];
+
+        INamedTypeSymbol? returnsType = compilation.GetTypeByMetadataName("Moq.Language.IReturns");
+        if (returnsType is null)
+        {
+            throw new InvalidOperationException("Type 'Moq.Language.IReturns' not found in compilation.");
+        }
+        var returnsMembers = returnsType.GetMembers("Returns").OfType<IMethodSymbol>().ToArray();
+        if (returnsMembers.Length != 1)
+        {
+            throw new InvalidOperationException($"Expected exactly one 'Returns' method in 'Moq.Language.IReturns', found {returnsMembers.Length}.");
+        }
+        _returnsMethod = returnsMembers[0];
     }
 
     [Benchmark(Baseline = true)]
-    public bool OldCallbackCheck() => OldIsCallbackOrReturnSymbol(_callbackMethod!);
+    public bool OldCallbackCheck()
+    {
+        if (_callbackMethod is null)
+        {
+            throw new InvalidOperationException("_callbackMethod is null. Ensure SetupAsync completed successfully.");
+        }
+        return OldIsCallbackOrReturnSymbol(_callbackMethod);
+    }
 
     [Benchmark]
-    public bool NewCallbackCheck() => NewIsCallbackOrReturnSymbol(_callbackMethod!);
+    public bool NewCallbackCheck()
+    {
+        if (_callbackMethod is null)
+        {
+            throw new InvalidOperationException("_callbackMethod is null. Ensure SetupAsync completed successfully.");
+        }
+        return NewIsCallbackOrReturnSymbol(_callbackMethod);
+    }
 
     [Benchmark]
-    public bool OldReturnsCheck() => OldIsCallbackOrReturnSymbol(_returnsMethod!);
+    public bool OldReturnsCheck()
+    {
+        if (_returnsMethod is null)
+        {
+            throw new InvalidOperationException("_returnsMethod is null. Ensure SetupAsync completed successfully.");
+        }
+        return OldIsCallbackOrReturnSymbol(_returnsMethod);
+    }
 
     [Benchmark]
-    public bool NewReturnsCheck() => NewIsCallbackOrReturnSymbol(_returnsMethod!);
+    public bool NewReturnsCheck()
+    {
+        if (_returnsMethod is null)
+        {
+            throw new InvalidOperationException("_returnsMethod is null. Ensure SetupAsync completed successfully.");
+        }
+        return NewIsCallbackOrReturnSymbol(_returnsMethod);
+    }
 
     private static bool OldIsCallbackOrReturnSymbol(IMethodSymbol symbol)
     {
