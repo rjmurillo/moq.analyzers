@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Moq.Analyzers.Common;
 
@@ -16,6 +18,11 @@ internal static class EnumerableExtensions
     [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Should revisit. Suppressing for now to unblock refactor.")]
     public static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source, Func<TSource, bool> predicate)
     {
+        if (predicate == null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
+
         return source.AsEnumerable().DefaultIfNotSingle(predicate);
     }
 
@@ -34,11 +41,18 @@ internal static class EnumerableExtensions
     /// </remarks>
     public static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
     {
+        ValidateDefaultIfNotSingleArguments(source, predicate);
+
         bool isFound = false;
         TSource? item = default;
 
-        foreach (TSource element in source.Where(predicate))
+        foreach (TSource element in source)
         {
+            if (!predicate(element))
+            {
+                continue;
+            }
+
             if (isFound)
             {
                 // We already found an element, thus there's multiple matches; return default.
@@ -50,5 +64,19 @@ internal static class EnumerableExtensions
         }
 
         return item;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void ValidateDefaultIfNotSingleArguments<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (predicate == null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
     }
 }
