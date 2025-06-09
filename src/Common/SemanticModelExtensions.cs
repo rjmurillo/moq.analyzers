@@ -120,14 +120,20 @@ internal static class SemanticModelExtensions
             return false;
         }
 
-        string? methodName = methodSymbol.ToString();
-
-        if (string.IsNullOrEmpty(methodName))
+        INamedTypeSymbol? containingType = methodSymbol.ContainingType;
+        if (containingType is null)
         {
             return false;
         }
 
-        return methodName.StartsWith("Moq.Language.ICallback", StringComparison.Ordinal)
-               || methodName.StartsWith("Moq.Language.IReturns", StringComparison.Ordinal);
+        string containingTypeName = containingType.ToDisplayString();
+
+        bool isCallback = string.Equals(methodSymbol.Name, "Callback", StringComparison.Ordinal)
+                          && containingTypeName.StartsWith("Moq.Language.ICallback", StringComparison.Ordinal);
+
+        bool isReturns = string.Equals(methodSymbol.Name, "Returns", StringComparison.Ordinal)
+                         && containingTypeName.StartsWith("Moq.Language.IReturns", StringComparison.Ordinal);
+
+        return isCallback || isReturns;
     }
 }
