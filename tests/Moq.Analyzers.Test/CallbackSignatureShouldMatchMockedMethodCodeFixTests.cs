@@ -97,10 +97,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
             ],
             [
-                """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
-                """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
-            ],
-            [
                 """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((object? bar) => true);""",
                 """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((object? bar) => true);""",
             ],
