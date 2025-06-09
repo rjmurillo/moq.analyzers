@@ -57,7 +57,7 @@ try {
      
     #  Diff two different SHAs
     if ($diff) {
-        $DiffPerfToBaseLine = Join-Path $RepoRoot "build\scripts\perf\DiffPerfToBaseLine.ps1"
+        $DiffPerfToBaseLine = Join-Path $RepoRoot "build\scripts\perf\DiffPerfToBaseline.ps1"
         $baselinejson = Get-Content -Raw -Path (Join-Path $RepoRoot "build\perf\baseline.json") | ConvertFrom-Json
         $baselineSHA = $baselinejson.sha
         Write-Host "Running performance comparison against baseline: '$baselineSHA'"
