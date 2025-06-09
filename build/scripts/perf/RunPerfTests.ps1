@@ -32,6 +32,7 @@ try {
         }
         else {
             Write-Host "Running tests in project '$projectFullPath'"
+            Write-Host "dotnet $comandArguments --filter $filter"
             Invoke-Expression "dotnet $comandArguments --filter $filter"
         }
     }
