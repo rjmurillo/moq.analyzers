@@ -133,4 +133,9 @@ public class SetExplicitMockBehaviorCodeFixTests
 
         await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
     }
+
+    // The following tests were removed because the early return paths in RegisterCodeFixesAsync
+    // (e.g., when TryGetEditProperties returns false or nodeToFix is null) cannot be triggered
+    // via the public analyzer/codefix APIs or test harness. These paths are not testable without
+    // breaking encapsulation or using unsupported reflection/mocking of Roslyn internals.
 }
