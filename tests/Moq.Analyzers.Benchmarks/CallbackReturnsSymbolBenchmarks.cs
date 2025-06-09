@@ -33,11 +33,13 @@ public class CallbackReturnsSymbolBenchmarks
         {
             throw new InvalidOperationException("Type 'Moq.Language.ICallback' not found in compilation.");
         }
-        var callbackMembers = callbackType.GetMembers("Callback").OfType<IMethodSymbol>().ToArray();
+
+        IMethodSymbol[] callbackMembers = callbackType.GetMembers("Callback").OfType<IMethodSymbol>().ToArray();
         if (callbackMembers.Length != 1)
         {
             throw new InvalidOperationException($"Expected exactly one 'Callback' method in 'Moq.Language.ICallback', found {callbackMembers.Length}.");
         }
+
         _callbackMethod = callbackMembers[0];
 
         INamedTypeSymbol? returnsType = compilation.GetTypeByMetadataName("Moq.Language.IReturns");
@@ -45,11 +47,13 @@ public class CallbackReturnsSymbolBenchmarks
         {
             throw new InvalidOperationException("Type 'Moq.Language.IReturns' not found in compilation.");
         }
-        var returnsMembers = returnsType.GetMembers("Returns").OfType<IMethodSymbol>().ToArray();
+
+        IMethodSymbol[] returnsMembers = returnsType.GetMembers("Returns").OfType<IMethodSymbol>().ToArray();
         if (returnsMembers.Length != 1)
         {
             throw new InvalidOperationException($"Expected exactly one 'Returns' method in 'Moq.Language.IReturns', found {returnsMembers.Length}.");
         }
+
         _returnsMethod = returnsMembers[0];
     }
 
@@ -60,6 +64,7 @@ public class CallbackReturnsSymbolBenchmarks
         {
             throw new InvalidOperationException("_callbackMethod is null. Ensure Setup completed successfully.");
         }
+
         return OldIsCallbackOrReturnSymbol(_callbackMethod);
     }
 
@@ -70,6 +75,7 @@ public class CallbackReturnsSymbolBenchmarks
         {
             throw new InvalidOperationException("_callbackMethod is null. Ensure Setup completed successfully.");
         }
+
         return NewIsCallbackOrReturnSymbol(_callbackMethod);
     }
 
@@ -80,6 +86,7 @@ public class CallbackReturnsSymbolBenchmarks
         {
             throw new InvalidOperationException("_returnsMethod is null. Ensure Setup completed successfully.");
         }
+
         return OldIsCallbackOrReturnSymbol(_returnsMethod);
     }
 
@@ -90,6 +97,7 @@ public class CallbackReturnsSymbolBenchmarks
         {
             throw new InvalidOperationException("_returnsMethod is null. Ensure Setup completed successfully.");
         }
+
         return NewIsCallbackOrReturnSymbol(_returnsMethod);
     }
 
