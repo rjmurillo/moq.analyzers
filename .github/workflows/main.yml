@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false # Run all OSes, even if one fails, to help narrow down issues that only impact some platforms
       matrix:
-        os: [windows-latest, ubuntu-24.04-arm]
+        os: [windows-11-arm, ubuntu-24.04-arm]
 
     runs-on: ${{ matrix.os }}
 
@@ -48,7 +48,7 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --no-restore --configuration Release /check /bl:./artifacts/logs/release/build.release.binlog
+      run: dotnet build --no-restore --configuration Release /check /p:Deterministic=true /p:UseSharedCompilation=false /p:BuildInParallel=false /nodeReuse:false /bl:./artifacts/logs/release/build.release.binlog
 
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
