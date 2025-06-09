@@ -15,14 +15,14 @@ public class CallbackReturnsSymbolBenchmarks
     private IMethodSymbol? _returnsMethod;
 
     [GlobalSetup]
-    public async Task SetupAsync()
+    public void Setup()
     {
         (string Name, string Content)[] sources =
         [
             ("Sample", @"namespace Moq.Language { public interface ICallback { void Callback(); } public interface IReturns { void Returns(); } }")
         ];
 
-        Compilation? compilation = await CSharpCompilationCreator.CreateAsync(sources).ConfigureAwait(false);
+        Compilation? compilation = CSharpCompilationCreator.CreateAsync(sources).GetAwaiter().GetResult();
         if (compilation is null)
         {
             throw new InvalidOperationException("Failed to create C# compilation for benchmark sources.");
@@ -58,7 +58,7 @@ public class CallbackReturnsSymbolBenchmarks
     {
         if (_callbackMethod is null)
         {
-            throw new InvalidOperationException("_callbackMethod is null. Ensure SetupAsync completed successfully.");
+            throw new InvalidOperationException("_callbackMethod is null. Ensure Setup completed successfully.");
         }
         return OldIsCallbackOrReturnSymbol(_callbackMethod);
     }
@@ -68,7 +68,7 @@ public class CallbackReturnsSymbolBenchmarks
     {
         if (_callbackMethod is null)
         {
-            throw new InvalidOperationException("_callbackMethod is null. Ensure SetupAsync completed successfully.");
+            throw new InvalidOperationException("_callbackMethod is null. Ensure Setup completed successfully.");
         }
         return NewIsCallbackOrReturnSymbol(_callbackMethod);
     }
@@ -78,7 +78,7 @@ public class CallbackReturnsSymbolBenchmarks
     {
         if (_returnsMethod is null)
         {
-            throw new InvalidOperationException("_returnsMethod is null. Ensure SetupAsync completed successfully.");
+            throw new InvalidOperationException("_returnsMethod is null. Ensure Setup completed successfully.");
         }
         return OldIsCallbackOrReturnSymbol(_returnsMethod);
     }
@@ -88,7 +88,7 @@ public class CallbackReturnsSymbolBenchmarks
     {
         if (_returnsMethod is null)
         {
-            throw new InvalidOperationException("_returnsMethod is null. Ensure SetupAsync completed successfully.");
+            throw new InvalidOperationException("_returnsMethod is null. Ensure Setup completed successfully.");
         }
         return NewIsCallbackOrReturnSymbol(_returnsMethod);
     }
