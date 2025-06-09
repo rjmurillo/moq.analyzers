@@ -22,7 +22,11 @@ public class CallbackReturnsSymbolBenchmarks
             ("Sample", @"namespace Moq.Language { public interface ICallback { void Callback(); } public interface IReturns { void Returns(); } }")
         ];
 
+        // Suppress VSTHRD002: Synchronously waiting on tasks or awaiters may cause deadlocks.
+        // This is required for BenchmarkDotNet compatibility and is safe in this context.
+#pragma warning disable VSTHRD002
         Compilation? compilation = CSharpCompilationCreator.CreateAsync(sources).GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
         if (compilation is null)
         {
             throw new InvalidOperationException("Failed to create C# compilation for benchmark sources.");
@@ -39,7 +43,6 @@ public class CallbackReturnsSymbolBenchmarks
         {
             throw new InvalidOperationException($"Expected exactly one 'Callback' method in 'Moq.Language.ICallback', found {callbackMembers.Length}.");
         }
-
         _callbackMethod = callbackMembers[0];
 
         INamedTypeSymbol? returnsType = compilation.GetTypeByMetadataName("Moq.Language.IReturns");
@@ -53,7 +56,6 @@ public class CallbackReturnsSymbolBenchmarks
         {
             throw new InvalidOperationException($"Expected exactly one 'Returns' method in 'Moq.Language.IReturns', found {returnsMembers.Length}.");
         }
-
         _returnsMethod = returnsMembers[0];
     }
 
