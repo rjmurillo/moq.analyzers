@@ -43,6 +43,7 @@ public class CallbackReturnsSymbolBenchmarks
         {
             throw new InvalidOperationException($"Expected exactly one 'Callback' method in 'Moq.Language.ICallback', found {callbackMembers.Length}.");
         }
+
         _callbackMethod = callbackMembers[0];
 
         INamedTypeSymbol? returnsType = compilation.GetTypeByMetadataName("Moq.Language.IReturns");
@@ -56,6 +57,7 @@ public class CallbackReturnsSymbolBenchmarks
         {
             throw new InvalidOperationException($"Expected exactly one 'Returns' method in 'Moq.Language.IReturns', found {returnsMembers.Length}.");
         }
+
         _returnsMethod = returnsMembers[0];
     }
 
