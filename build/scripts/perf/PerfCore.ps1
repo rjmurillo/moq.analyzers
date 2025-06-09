@@ -22,7 +22,7 @@ Param(
     Write-Host ""
     
     Write-Host "Advanced settings:"
-    Write-Host "  -etl                    Capture ETL traces of performance tests (requires admin permissions, default value is 'false')"
+    Write-Host "  -etl                    Capture ETL traces of performance tests (Windows only, requires admin permissions, default value is 'false')"
     Write-Host "  -filter                 Filter for tests to run (supports wildcards)"
     Write-Host "  -projects <value>       Semi-colon delimited list of relative paths to benchmark projects."
     Write-Host ""
@@ -32,6 +32,13 @@ Param(
   }
   
 try {
+    # Check if running on Windows and warn about ETL on non-Windows platforms
+    $isWindowsPlatform = $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
+    if ($etl -and -not $isWindowsPlatform) {
+        Write-Host "Warning: ETL tracing is only supported on Windows. Disabling ETL for this run." -ForegroundColor Yellow
+        $etl = $false
+    }
+
     if ($help -or (($null -ne $properties) -and ($properties.Contains('/help') -or $properties.Contains('/?')))) {
         Print-Usage
         exit 0
