@@ -1,3 +1,5 @@
+using Moq.Analyzers.Test.Helpers;
+using AnalyzerVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer>;
 using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer, Moq.CodeFixes.CallbackSignatureShouldMatchMockedMethodFixer>;
 
 namespace Moq.Analyzers.Test;
@@ -89,10 +91,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             [
                 """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((long bar) => true);""",
                 """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((long bar) => true);""",
-            ],
-            [
-                """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
-                """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
             ],
             [
                 """new Mock<IFoo>().Setup(m => m.Do((long)42)).Returns((long bar) => true);""",
@@ -239,5 +237,14 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         _output.WriteLine(f);
 
         await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(DoppelgangerTestHelper.GetAllCustomMockData), MemberType = typeof(DoppelgangerTestHelper))]
+    public async Task ShouldPassIfCustomMockClassIsUsed(string mockCode)
+    {
+        await AnalyzerVerifier.VerifyAnalyzerAsync(
+            DoppelgangerTestHelper.CreateTestCode(mockCode),
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 }

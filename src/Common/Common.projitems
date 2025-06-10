@@ -1,4 +1,7 @@
 <Project>
+  <PropertyGroup>
+    <ShowCommonFiles Condition="'$(ShowCommonFiles)' == ''">false</ShowCommonFiles>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)/**/*.cs" Visible=" '$(ShowCommonFiles)' == 'true' " />
   </ItemGroup>
