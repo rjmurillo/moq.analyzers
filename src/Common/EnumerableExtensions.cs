@@ -8,6 +8,11 @@ internal static class EnumerableExtensions
     /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
     public static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source)
     {
+        if (source == null)
+        {
+            return default;
+        }
+
         return source.DefaultIfNotSingle(static _ => true);
     }
 
@@ -19,7 +24,7 @@ internal static class EnumerableExtensions
     {
         if (source == null)
         {
-            throw new ArgumentNullException(nameof(source));
+            return default;
         }
 
         if (predicate == null)
@@ -73,7 +78,7 @@ internal static class EnumerableExtensions
     {
         if (source == null)
         {
-            throw new ArgumentNullException(nameof(source));
+            return default;
         }
 
         if (predicate == null)
