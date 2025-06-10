@@ -5,6 +5,12 @@
             "id": "GITHUB_PERSONAL_ACCESS_TOKEN",
             "description": "GitHub personal access token",
             "password": true
+        },
+        {
+            "type":"promptString",
+            "id": "CODACY_ACCOUNT_TOKEN",
+            "description": "Codacy account token",
+            "password": true
         }
     ],
     "servers": {
@@ -30,6 +36,16 @@
             ],
             "env": {
                 "GITHUB_PERSONAL_ACCESS_TOKEN": "${input:GITHUB_PERSONAL_ACCESS_TOKEN}"
+            }
+        },
+        "codacy": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@codacy/codacy-mcp"
+            ],
+            "env": {
+                "CODACY_ACCOUNT_TOKEN": "${input:CODACY_ACCOUNT_TOKEN}"
             }
         }
     }
