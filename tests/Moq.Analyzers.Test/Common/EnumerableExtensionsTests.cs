@@ -9,6 +9,14 @@ namespace Moq.Analyzers.Test.Common;
 public class EnumerableExtensionsTests
 {
     [Fact]
+    public void DefaultIfNotSingle_ReturnsNull_WhenSourceIsNull()
+    {
+        IEnumerable<object> source = null!;
+        object? result = source.DefaultIfNotSingle();
+        Assert.Null(result);
+    }
+
+    [Fact]
     public void DefaultIfNotSingle_ReturnsNull_WhenSourceIsEmpty()
     {
         IEnumerable<object> source = [];

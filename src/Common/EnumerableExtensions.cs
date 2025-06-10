@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 
 namespace Moq.Analyzers.Common;
 
@@ -15,15 +14,46 @@ internal static class EnumerableExtensions
     /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
     /// <param name="source">The collection to enumerate.</param>
     /// <param name="predicate">A function to test each element for a condition.</param>
-    [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Should revisit. Suppressing for now to unblock refactor.")]
+    [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Direct array access avoids boxing and improves cross-platform performance.")]
     public static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source, Func<TSource, bool> predicate)
     {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
         if (predicate == null)
         {
             throw new ArgumentNullException(nameof(predicate));
         }
 
-        return source.AsEnumerable().DefaultIfNotSingle(predicate);
+        if (source.IsEmpty)
+        {
+            return default;
+        }
+
+        bool found = false;
+        TSource? item = default;
+
+        for (int i = 0; i < source.Length; i++)
+        {
+            TSource element = source[i];
+            if (!predicate(element))
+            {
+                continue;
+            }
+
+            if (found)
+            {
+                // Multiple matches found; return default.
+                return default;
+            }
+
+            found = true;
+            item = element;
+        }
+
+        return item;
     }
 
     /// <summary>
@@ -41,7 +71,15 @@ internal static class EnumerableExtensions
     /// </remarks>
     public static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
     {
-        ValidateDefaultIfNotSingleArguments(source, predicate);
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (predicate == null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
 
         bool isFound = false;
         TSource? item = default;
@@ -64,19 +102,5 @@ internal static class EnumerableExtensions
         }
 
         return item;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ValidateDefaultIfNotSingleArguments<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
-    {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (predicate == null)
-        {
-            throw new ArgumentNullException(nameof(predicate));
-        }
     }
 }
