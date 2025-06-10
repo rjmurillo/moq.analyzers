@@ -17,13 +17,11 @@
       - https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs#lifecycle
       - https://learn.microsoft.com/en-us/visualstudio/productinfo/vs-servicing
     -->
-    <!-- We are using 4.8, which introduces .NET 8 and supports VS 2022 17.8 -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+    <!-- We are using 4.8, which introduces .NET 8 and supports VS 2022 17.8 -->    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="4.14.0" />
-    <PackageVersion Include="BenchmarkDotNet" Version="0.15.1" />
+  <ItemGroup>    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.11.0-beta1.25123.3" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.13.12" />
     <PackageVersion Include="GetPackFromProject" Version="1.0.10" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta1.21216.1" />
