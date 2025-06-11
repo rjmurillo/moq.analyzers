@@ -7,8 +7,9 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
 {
     public static IEnumerable<object[]> TestData()
     {
-        IEnumerable<object[]> old = new object[][]
+        IEnumerable<object[]> both = new object[][]
         {
+            // Valid in both versions, but flagged as error for non-virtual/invalid targets
             ["""{|Moq1200:new Mock<BaseSampleClass>().Setup(x => x.Calculate())|};"""],
             ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.Property)|};"""],
             ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))|};"""],
@@ -22,17 +23,25 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
             ["""new Mock<IValueTaskMethods>().Setup(x => x.DoSomethingValueTask());"""],
             ["""new Mock<IValueTaskMethods>().Setup(x => x.GetNumberAsync()).Returns(ValueTask.FromResult(42));"""],
             ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.Field)|};"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+            ["""{|Moq1200:new Mock<SampleClassWithNonVirtualIndexer>().Setup(x => x[0])|};"""],
+        }.WithNamespaces().WithOldMoqReferenceAssemblyGroups();
 
         IEnumerable<object[]> @new = new object[][]
         {
+            // Only supported in Moq 4.18.4+
+            // SetupAdd/SetupRemove for virtual event (should NOT be flagged)
             ["""new Mock<SampleClass>().SetupAdd(x => x.TestEvent += It.IsAny<EventHandler>());"""],
             ["""new Mock<SampleClass>().SetupRemove(x => x.TestEvent -= It.IsAny<EventHandler>());"""],
             ["""new Mock<SampleClassWithVirtualEvent>().SetupAdd(x => x.TestEvent += It.IsAny<EventHandler>());"""],
             ["""new Mock<SampleClassWithVirtualEvent>().SetupRemove(x => x.TestEvent -= It.IsAny<EventHandler>());"""],
+            // Indexer on interface and virtual indexer (should NOT be flagged)
+            ["""new Mock<IIndexerInterface>().Setup(x => x[0]);"""],
+            ["""new Mock<SampleClassWithVirtualIndexer>().Setup(x => x[0]);"""],
+            // Explicit interface implementation (should NOT be flagged in new)
+            ["""new Mock<IExplicitInterface>().Setup(x => ((IExplicitInterface)x).ExplicitMethod());"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
-        return old.Concat(@new);
+        return both.Concat(@new);
     }
 
     [Theory]
@@ -59,6 +68,12 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
                                     ValueTask DoSomethingValueTask();
                                     ValueTask<int> GetNumberAsync();
                                 }
+
+                                public interface IIndexerInterface { int this[int i] { get; set; } }
+                                public class SampleClassWithVirtualIndexer { public virtual int this[int i] { get => 0; set { } } }
+                                public class SampleClassWithNonVirtualIndexer { public int this[int i] { get => 0; set { } } }
+                                public interface IExplicitInterface { void ExplicitMethod(); }
+                                public class SampleClassWithStaticMembers { public static int StaticField; public const int ConstField = 42; public static readonly int ReadonlyField = 42; public static void StaticMethod() { } }
 
                                 public abstract class BaseSampleClass
                                 {
