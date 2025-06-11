@@ -33,6 +33,7 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
   - **General:**
     - Never expect analyzer diagnostics for code that cannot compile due to missing APIs or language restrictions.
     - When in doubt, consult the official Moq documentation and changelogs for feature support.
+- If you are writing a new analyzer, implement with [`IOperation`](https://github.com/rjmurillo/moq.analyzers/issues/118) (see issue #118)
 
 ---
 
