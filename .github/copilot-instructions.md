@@ -20,6 +20,19 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 - If adding an analyzer: also add a code fix, a benchmark, and documentation in `docs/rules`.
 - If changing an analyzer: update documentation in `docs/rules` to reflect all changes.
 - Ask clarifying questions if requirements are unclear.
+- **Moq Version Compatibility:**
+  - When writing or updating analyzer tests, always verify which Moq features are available in each supported version.
+  - **Moq 4.8.2:**
+    - Does _not_ support `SetupAdd`, `SetupRemove`, or `.Protected().Setup`.
+    - Indexer setups are supported only for virtual or interface indexers.
+    - Do _not_ add tests for APIs or patterns that do not exist in this version; such tests will fail at compile time, not at analyzer time.
+  - **Moq 4.18.4+:**
+    - Supports `SetupAdd`, `SetupRemove`, and `.Protected().Setup`.
+    - Allows setups for virtual events and indexers, and explicit interface implementations.
+    - Tests for these features should be placed in the "new" test group and must not be expected to pass in "old" Moq test runs.
+  - **General:**
+    - Never expect analyzer diagnostics for code that cannot compile due to missing APIs or language restrictions.
+    - When in doubt, consult the official Moq documentation and changelogs for feature support.
 
 ---
 
@@ -50,6 +63,11 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
   - Writing unit tests for every branch, including edge and fail paths.
 - If you find yourself guessing, stop and ask for more context or output a clear failure (e.g., `throw new NotImplementedException("Unclear requirement: ...")`).
 - Never copy-and-tweak analyzer patterns. Re-read the requirements before you start.
+- **Test Data Grouping:**
+  - When adding or updating test data, group tests by Moq version compatibility:
+    - Place tests for features only available in Moq 4.18.4+ in a "new" group.
+    - Place tests for features available in both 4.8.2 and 4.18.4 in a "both" or "old" group.
+    - Do not include tests for features/APIs that do not exist in the targeted Moq version.
 
 ---
 
@@ -72,6 +90,8 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 4. (Optional) Run and document benchmarks if relevant. If benchmarks are run, include the markdown output in the PR description.
 5. Summarize all changes in the PR description.
 6. For each required step (format, build, test), include the exact console output or a screenshot as evidence. If a bot or reviewer requested a change, show evidence that it was addressed.
+7. **Evidence of Moq Version Awareness:**
+   - If your PR changes or adds analyzer tests, include a note in the PR description about which Moq versions are targeted and how test data is grouped accordingly.
 
 > **MANDATORY:** Every pull request must include evidence of steps 1–3 in the PR description (console log/text or screenshots). Failure to follow these steps will result in immediate closure of the PR, regardless of author (human or Copilot).
 
