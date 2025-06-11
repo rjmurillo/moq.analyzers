@@ -84,27 +84,17 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
     {
         if (eventArguments.Length != expectedParameterTypes.Length)
         {
-            // Wrong number of arguments
             Location location;
             if (eventArguments.Length < expectedParameterTypes.Length)
             {
-                // Too few arguments: report at the start of the statement
-                ExpressionStatementSyntax? statement = invocation.Parent as ExpressionStatementSyntax;
-                if (statement != null)
-                {
-                    location = statement.GetFirstToken().GetLocation();
-                }
-                else
-                {
-                    location = invocation.GetLocation();
-                }
+                // Too few arguments: report on the invocation
+                location = invocation.GetLocation();
             }
             else
             {
                 // Too many arguments: report on the first extra argument
                 location = eventArguments[expectedParameterTypes.Length].GetLocation();
             }
-
             Diagnostic diagnostic = location.CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
             return;
@@ -119,7 +109,8 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
 
             if (argumentType != null && !HasConversion(context.SemanticModel, argumentType, expectedType))
             {
-                Diagnostic diagnostic = eventArguments[i].CreateDiagnostic(Rule);
+                // Report on the specific argument with the wrong type
+                Diagnostic diagnostic = eventArguments[i].GetLocation().CreateDiagnostic(Rule);
                 context.ReportDiagnostic(diagnostic);
             }
         }
