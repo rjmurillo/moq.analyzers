@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-
-namespace Moq.Analyzers.Common;
+﻿namespace Moq.Analyzers.Common;
 
 internal static class EnumerableExtensions
 {
