@@ -47,6 +47,14 @@ public class EnumerableExtensionsTests
     }
 
     [Fact]
+    public void DefaultIfNotSingle_ImmutableArrayAsIEnumerable_ReturnsNull_WhenIsDefaultOrEmpty()
+    {
+        IEnumerable<int> source = ImmutableArray<int>.Empty;
+        int? result = source.DefaultIfNotSingle(x => true);
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
     public void DefaultIfNotSingle_ImmutableArray_ReturnsNull_WhenMultipleMatches()
     {
         ImmutableArray<int> source = [1, 2, 2, 3];
@@ -100,5 +108,29 @@ public class EnumerableExtensionsTests
         IEnumerable<object> source = null!;
         object? result = source.DefaultIfNotSingle();
         Assert.Null(result);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_ReturnsNull_WhenSourceIsNullAndPredicateIsNotNull()
+    {
+        IEnumerable<object> source = null!;
+        object? result = source.DefaultIfNotSingle(_ => true);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_ReturnsNull_WhenSourceIsNullAndPredicateIsNull()
+    {
+        IEnumerable<object> source = null!;
+        object? result = source.DefaultIfNotSingle(null!);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_IEnumerable_ReturnsNull_WhenMultipleMatches()
+    {
+        IEnumerable<int> source = new[] { 1, 2, 2, 3 };
+        int? result = source.DefaultIfNotSingle(x => x == 2);
+        Assert.Equal(0, result);
     }
 }
