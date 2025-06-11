@@ -14,10 +14,22 @@ namespace Moq.Analyzers.Test.Helpers;
 /// </remarks>
 public static class ReferenceAssemblyCatalog
 {
+    /// <summary>
+    /// Gets the name of the reference assembly group for .NET 8.0 with an older version of Moq (4.8.2).
+    /// </summary>
     public static string Net80WithOldMoq => nameof(Net80WithOldMoq);
 
+    /// <summary>
+    /// Gets the name of the reference assembly group for .NET 8.0 with a newer version of Moq (4.18.4).
+    /// </summary>
     public static string Net80WithNewMoq => nameof(Net80WithNewMoq);
 
+    /// <summary>
+    /// Gets the catalog of reference assemblies.
+    /// </summary>
+    /// <remarks>
+    /// The key is the name of the reference assembly group (<see cref="Net80WithOldMoq"/> and <see cref="Net80WithNewMoq"/>).
+    /// </remarks>
     public static IReadOnlyDictionary<string, ReferenceAssemblies> Catalog { get; } = new Dictionary<string, ReferenceAssemblies>(StringComparer.Ordinal)
     {
         // 4.8.2 was one of the first popular versions of Moq. Ensure this version is prior to 4.13.1, as it changed the internal

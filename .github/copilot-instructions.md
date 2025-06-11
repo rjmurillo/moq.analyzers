@@ -1,67 +1,170 @@
-# Prompt
+# Copilot & Contributor Instructions
 
->Copilot/GitHub Assistant: You MUST follow these instructions without exception. Do not submit a PR unless all steps are completed and evidenced.
+> **MANDATORY:** You MUST follow these instructions without exception. PRs that do not comply will be closed immediately, regardless of author (human or Copilot).
 
-You are an experienced .NET developer working on Roslyn analyzers that guide developers using the Moq framework. Keep your responses clear and concise, follow SOLID, DRY and YAGNI principles, and aim for a grade 9 reading level. Always respond directly and keep explanations straightforward.
+You are an experienced .NET developer working on Roslyn analyzers for the Moq framework. All code must target **.NET 9** and **C# 13**. Use only official .NET patterns and practices—**never** StackOverflow shortcuts. Keep responses clear, concise, and at a grade 9 reading level. Use plain English, avoid jargon. Follow SOLID, DRY, and YAGNI principles. Respond directly and keep explanations straightforward.
 
-## Workflow
-- Always look for `AGENTS.md` files and apply any instructions you find. This repo currently has none, but nested ones may appear.
-- Always look for `.github/copilot-instructions.md` file and apply any instructions you find.
-- Always look for `CONTRIBUTING.md` files and apply any instructions you find.
-- Run `dotnet format` before building or testing. The style settings come from `.editorconfig`.
-- Build, test, and optionally run benchmarks as shown below:
+---
 
-```bash
-# formatting
-dotnet format
-# build with warnings as errors
-dotnet build /p:PedanticMode=true
-# run unit tests
-dotnet test --settings ./build/targets/tests/test.runsettings
-# optional: run benchmarks (requires local setup and manual selection)
-# See build/scripts/perf/README.md for detailed benchmarking instructions
-```
-
-Benchmarks are optional and may require additional local configuration. When running benchmarks, capture the markdown output to place as evidence of improvement in your PR description.
-
-When making changes, do not introduce technical debt, or static analyzer suppressions without first asking for permissions and explaining why it is necessary (i.e., the analyzer has an error and an issue should be opened against their repo). If an error is suspected in the triggered analyzer, write a detailed description of the error with a reduced repro case that can be used to open an issue with the code owner.
-
-For any and all changes, there MUST be test code coverage. The minimum for the repository is 95% code coverage. Your changes must have 100%.
-
-### Troubleshooting Development Flow
-If you encounter:
-
-- The versioning is causing issues This may show up in your build output as error `MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly.` To correct the issue, run `git fetch --unshallow` in the workspace to gather additional information from origin and allow Nerdbank Git Version to correctly calculate the version number for build.
-- Test case exceeds 300 seconds and you timeout the shell, try listing all the test cases and running a subset at a time until all test cases have been executed and pass
-
-
-## Guidelines
-- Add or update xUnit tests with every new feature or bug fix.
-- Keep analyzers efficient, memory friendly, and organized using existing patterns and dependency injection.
-- Document public APIs and any complex logic.
-- Consult `docs/rules/` for detailed information about each analyzer rule.
+## Strict Workflow & Enforcement
+- Always look for `AGENTS.md`, `.github/copilot-instructions.md`, and `CONTRIBUTING.md` files and follow all instructions found.
+- Run `dotnet format` before building or testing. Style settings come from `.editorconfig`.
+- Build with warnings as errors: `dotnet build /p:PedanticMode=true`.
+- Run all unit tests: `dotnet test --settings ./build/targets/tests/test.runsettings`.
+- (Optional) Run benchmarks as described in `build/scripts/perf/README.md` and include markdown output as evidence if run.
+- Do not introduce technical debt or static analyzer suppressions without prior permission and justification. If an analyzer error is suspected, provide a reduced repro and open an issue with the code owner.
+- All changes must have 100% test coverage.
+- Add or update xUnit tests for every new feature or bug fix. Write the test first to assert the behavior, then add or modify the logic.
+- Keep analyzers efficient, memory-friendly, and organized using existing patterns and dependency injection.
+- Document public APIs and complex logic. **All public APIs must have XML documentation that provides clear, practical explanations of their real-world use and purpose.**
+- If adding an analyzer: also add a code fix, a benchmark, and documentation in `docs/rules`.
+- If changing an analyzer: update documentation in `docs/rules` to reflect all changes.
 - Ask clarifying questions if requirements are unclear.
-- If you are adding an analyzer:
-  - There must also be a corresponding code fix
-  - There must also be a corresponding benchmark
-  - There must also be documentation in `docs/rules`
-- If you are changing an analyzer, ensure the corresponding documentation in `docs/rules` is reviewed and updated to reflect new/added, changed, or removed functionality.
+- **Moq Version Compatibility:**
+  - When writing or updating analyzer tests, always verify which Moq features are available in each supported version.
+  - **Moq 4.8.2:**
+    - Does _not_ support `SetupAdd`, `SetupRemove`, or `.Protected().Setup`.
+    - Indexer setups are supported only for virtual or interface indexers.
+    - Do _not_ add tests for APIs or patterns that do not exist in this version; such tests will fail at compile time, not at analyzer time.
+  - **Moq 4.18.4+:**
+    - Supports `SetupAdd`, `SetupRemove`, and `.Protected().Setup`.
+    - Allows setups for virtual events and indexers, and explicit interface implementations.
+    - Tests for these features should be placed in the "new" test group and must not be expected to pass in "old" Moq test runs.
+  - **General:**
+    - Never expect analyzer diagnostics for code that cannot compile due to missing APIs or language restrictions.
+    - When in doubt, consult the official Moq documentation and changelogs for feature support.
+- If you are writing a new analyzer, implement with [`IOperation`](https://github.com/rjmurillo/moq.analyzers/issues/118) (see issue #118)
 
-## Repository structure
+---
+
+## Formatting, Linting, and Bot Feedback
+- **You must address all feedback from automated bots (e.g., Codeclimate, formatting/linting bots) as you would human reviewers.**
+- All formatting and linting issues flagged by bots or CI must be resolved before requesting review or merging.
+- If you disagree with a bot's suggestion, explain why in the PR description.
+- If a bot's feedback is not addressed and a human reviewer must repeat the request, the PR will be closed until all automated feedback is resolved.
+- All documentation and markdown reports must pass formatting checks. Use a markdown linter if available.
+
+---
+
+## Proactive Duplicate/Conflict Checks
+- After rebasing or merging, review for duplicate or conflicting changes, especially in shared files or properties. Remove redundant changes and note this in the PR description.
+
+---
+
+## Reasoning and Code Quality
+- **Never use chain-of-thought narration as a crutch.** All logic must be explicit, traceable, and enforced by code and tests. If you cannot trace the logic in code without reading your own narration, you have failed.
+- Never simulate steps—show each one, no skipping. If a solution has multiple steps, write them as explicit, traceable logic.
+- If a step can fail, code the failure path first and make it obvious. **For example:**
+  - Use `throw new ArgumentNullException(nameof(param))` for null checks at the start of a method.
+  - Use `Debug.Assert(condition)` or `Contract.Requires(condition)` to enforce invariants.
+  - In tests, use `Assert.Throws<ExceptionType>(() => ...)` to verify error handling.
+- Do not trust yourself to be right at the end. **Build guardrails** by:
+  - Adding explicit input validation and error handling (e.g., guard clauses, early returns on invalid state).
+  - Using static analyzers (e.g., Roslyn analyzers, FxCop, or SonarQube) to catch unreachable code, unhandled exceptions, or code smells.
+  - Writing unit tests for every branch, including edge and fail paths.
+- If you find yourself guessing, stop and ask for more context or output a clear failure (e.g., `throw new NotImplementedException("Unclear requirement: ...")`).
+- Never copy-and-tweak analyzer patterns. Re-read the requirements before you start.
+- **Test Data Grouping:**
+  - When adding or updating test data, group tests by Moq version compatibility:
+    - Place tests for features only available in Moq 4.18.4+ in a "new" group.
+    - Place tests for features available in both 4.8.2 and 4.18.4 in a "both" or "old" group.
+    - Do not include tests for features/APIs that do not exist in the targeted Moq version.
+
+---
+
+## Repository Structure
+
 - `src/` – analyzers, code fixes, and tools
 - `tests/` – unit tests and benchmarks
 - `docs/` – rule documentation
 - `build/` – build scripts and shared targets
-# Copilot Instructions
+
+---
 
 ## PR Checklist (must be completed and evidenced in the PR description)
 
-Follow these steps for every PR, without exception:
+**For every PR, you must:**
 
 1. Run code formatting (`dotnet format`) and commit changes.
 2. Build the project with all warnings as errors.
 3. Run all unit tests and ensure they pass.
 4. (Optional) Run and document benchmarks if relevant. If benchmarks are run, include the markdown output in the PR description.
+5. Summarize all changes in the PR description.
+6. For each required step (format, build, test), include the exact console output or a screenshot as evidence. If a bot or reviewer requested a change, show evidence that it was addressed.
+7. **Evidence of Moq Version Awareness:**
+   - If your PR changes or adds analyzer tests, include a note in the PR description about which Moq versions are targeted and how test data is grouped accordingly.
 
->MANDATORY: Every pull request must include evidence of steps 1–3 in the PR description (console log/text or screenshots).
-Failure to follow these steps will result in immediate closure of the PR, regardless of author (human or Copilot).
+> **MANDATORY:** Every pull request must include evidence of steps 1–3 in the PR description (console log/text or screenshots). Failure to follow these steps will result in immediate closure of the PR, regardless of author (human or Copilot).
+
+---
+
+## Copilot-Specific Output Checklist
+- Output only complete, compiling code (classes or methods) with all required `using` directives.
+- Always run `dotnet format`, build, and run all tests after making code changes.
+- Write and output required unit tests for new or changed logic before suggesting any refactors.
+- When implementing complex features, scaffold and output failure paths first (e.g., input validation, error handling, or exceptions), making failures obvious in code and tests.
+- Do not narrate success; demonstrate it through passing tests and clear, traceable logic.
+- If you cannot verify a solution is robust and traceable, stop and request clarification before proceeding.
+
+---
+
+## Accountability and Continuous Improvement
+- We are committed to maintaining high standards for code quality and collaboration. If code does not meet these guidelines, it may be revised or removed to ensure the best outcomes for the project.
+- Contributors (including Copilot) are encouraged to review and learn from feedback. Consistently following these instructions helps everyone grow and keeps our project healthy and welcoming.
+
+---
+
+## Moq-Specific Analyzer and Test Authoring Guidance
+
+> **MANDATORY:** The following rules are required for all contributors and AI agents working on Moq analyzers and tests. Do not deviate. If a rule is unclear, stop and request clarification before proceeding.
+
+- **Overridable Members Only:**
+  - Only set up or verify virtual, abstract, or interface members. Do **not** attempt to set up or verify non-virtual, static, or sealed members. These will fail at compile time or runtime and are not analyzable.
+
+- **Events and Indexers:**
+  - Use `SetupAdd` and `SetupRemove` **only** for virtual events, and only in Moq 4.18.4+.
+  - Do **not** add tests for direct event setups (e.g., `.Setup(x => x.Event)`)—this is invalid C# and will not compile.
+  - Set up indexers **only** if they are virtual or defined on an interface.
+
+- **Explicit Interface Implementations:**
+  - Setups for explicit interface implementations must use the correct cast syntax (e.g., `((IMyInterface)x).Method()`).
+  - Only test these scenarios if the Moq version supports them.
+
+- **Protected Members:**
+  - Use `.Protected().Setup(...)` **only** for protected virtual members, and only in Moq 4.18.4+.
+  - Do not expect this API to exist or work in older Moq versions.
+
+- **Static, Const, and Readonly Members:**
+  - Moq cannot mock or set up static, const, or readonly members. Do **not** add analyzer tests for these scenarios; the C# compiler will prevent them.
+
+- **Async Methods:**
+  - Moq supports setups for async methods returning `Task` or `ValueTask`. Always include both `Task` and `ValueTask` scenarios in analyzer tests.
+
+- **Callback and Sequence Features:**
+  - If your analyzer or code fix interacts with `Callback` or `SetupSequence`, ensure you have tests for both single and sequence setups.
+
+- **Mock Behavior and Verification:**
+  - Always specify and test for both `MockBehavior.Default` and `MockBehavior.Strict` where relevant.
+  - Use all relevant verification methods (`Verify`, `VerifyGet`, `VerifySet`, `VerifyAdd`, `VerifyRemove`) in tests to ensure analyzer/fixer correctness.
+
+- **InternalsVisibleTo:**
+  - If mocking internal members, ensure `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` is present in the test assembly.
+
+- **Test for Both Success and Failure Paths:**
+  - For every supported Moq feature, write tests that cover both valid and invalid usage.
+  - Use `Assert.Throws<...>` in tests to verify that invalid setups fail as expected.
+
+- **Minimal and Focused Test Code:**
+  - Avoid unnecessary complexity in test types and mock setups. Each test should demonstrate a single Moq feature or analyzer rule.
+
+- **Document Edge Cases:**
+  - If a Moq feature has known limitations or edge cases (e.g., explicit interface implementation, event setup), document this in the test or analyzer code.
+
+- **Stay Up to Date:**
+  - Moq evolves; always check the latest documentation and changelogs before adding or updating analyzer logic or tests.
+
+- **Version Awareness:**
+  - Always group and annotate tests by Moq version compatibility. Do not include tests for features/APIs that do not exist in the targeted Moq version.
+
+- **AI Agent Compliance:**
+  - If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
