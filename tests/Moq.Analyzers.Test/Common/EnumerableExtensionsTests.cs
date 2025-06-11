@@ -49,9 +49,9 @@ public class EnumerableExtensionsTests
     [Fact]
     public void DefaultIfNotSingle_ImmutableArrayAsIEnumerable_ReturnsNull_WhenIsDefaultOrEmpty()
     {
-        IEnumerable<int> source = ImmutableArray<int>.Empty;
-        int? result = source.DefaultIfNotSingle(x => true);
-        Assert.Equal(0, result);
+        IEnumerable<string> source = ImmutableArray<string>.Empty;
+        string? result = source.DefaultIfNotSingle(x => true);
+        Assert.Null(result);
     }
 
     [Fact]
