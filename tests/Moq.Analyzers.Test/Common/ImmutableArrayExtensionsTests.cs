@@ -39,6 +39,14 @@ public class ImmutableArrayExtensionsTests
     }
 
     [Fact]
+    public void DefaultIfNotSingle_IEnumerable_ThrowsArgumentNullException_WhenPredicateIsNull()
+    {
+        IEnumerable<string> source = new[] { "a", "b", "c" };
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+        Assert.Equal("predicate", ex.ParamName);
+    }
+
+    [Fact]
     public void DefaultIfNotSingle_ImmutableArray_CallsEnumerableExtension()
     {
         ImmutableArray<string> source = ImmutableArray.Create("a", "b", "c");
