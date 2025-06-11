@@ -18,7 +18,7 @@ try {
     Write-Host " - results: '$resultsFolder' "
     
     $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
-    $perfDiff = Join-Path $RepoRoot "src\Tools\PerfDiff\PerfDiff.csproj"
+    $perfDiff = Join-Path $RepoRoot "src\tools\PerfDiff\PerfDiff.csproj"
     & dotnet build $perfDiff -c Release
     & dotnet run -c Release --project $perfDiff -- --baseline $baselineFolder --results $resultsFolder --failOnRegression --verbosity diag
     $host.SetShouldExit($LASTEXITCODE)
