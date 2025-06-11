@@ -85,7 +85,26 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         if (eventArguments.Length != expectedParameterTypes.Length)
         {
             // Wrong number of arguments
-            Location location = eventArguments.Length > 0 ? eventArguments[0].GetLocation() : invocation.ArgumentList.GetLocation();
+            Location location;
+            if (eventArguments.Length < expectedParameterTypes.Length)
+            {
+                // Too few arguments: report at the start of the statement
+                ExpressionStatementSyntax? statement = invocation.Parent as ExpressionStatementSyntax;
+                if (statement != null)
+                {
+                    location = statement.GetFirstToken().GetLocation();
+                }
+                else
+                {
+                    location = invocation.GetLocation();
+                }
+            }
+            else
+            {
+                // Too many arguments: report on the first extra argument
+                location = eventArguments[expectedParameterTypes.Length].GetLocation();
+            }
+
             Diagnostic diagnostic = location.CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
             return;

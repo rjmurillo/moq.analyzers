@@ -47,7 +47,11 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
     {
         return new object[][]
         {
-            [string.Empty],
+            // Valid: EventHandler<CustomEventArgs> expects CustomEventArgs argument only when used with Moq.Raise
+            ["""mock.Raise(n => n.CustomEvent += null, new CustomEventArgs { Value = "test" });"""],
+
+            // Invalid: Wrong argument type
+            ["""mock.Raise(n => n.CustomEvent += null, {|Moq1500:"wrong"|});"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -115,7 +119,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
 
     [Theory]
     [MemberData(nameof(InvalidTestData2))]
-    public async Task ShouldHandleEventHandlerPattern(string referenceAssemblyGroup, string @namespace)
+    public async Task ShouldHandleEventHandlerPattern(string referenceAssemblyGroup, string @namespace, string raiseCall)
     {
         await Verifier.VerifyAnalyzerAsync(
             $$"""
@@ -138,11 +142,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
                 private void Test()
                 {
                     var mock = new Mock<INotifier>();
-                    // Valid: EventHandler<CustomEventArgs> expects CustomEventArgs argument only when used with Moq.Raise
-                    mock.Raise(n => n.CustomEvent += null, new CustomEventArgs { Value = "test" });
-                    
-                    // Invalid: Wrong argument type
-                    mock.Raise(n => n.CustomEvent += null, {|Moq1500:"wrong"|});
+                    {{raiseCall}}
                 }
             }
             """,
