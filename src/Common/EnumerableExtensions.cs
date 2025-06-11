@@ -33,14 +33,14 @@ internal static class EnumerableExtensions
             return default;
         }
 
-        if (source is ImmutableArray<TSource> immutableArray)
-        {
-            return DefaultIfNotSingle(immutableArray, predicate);
-        }
-
         if (predicate == null)
         {
             throw new ArgumentNullException(nameof(predicate));
+        }
+
+        if (source is ImmutableArray<TSource> immutableArray)
+        {
+            return DefaultIfNotSingle(immutableArray, predicate);
         }
 
         bool isFound = false;
