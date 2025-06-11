@@ -34,9 +34,11 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
             ["""new Mock<SampleClass>().SetupRemove(x => x.TestEvent -= It.IsAny<EventHandler>());"""],
             ["""new Mock<SampleClassWithVirtualEvent>().SetupAdd(x => x.TestEvent += It.IsAny<EventHandler>());"""],
             ["""new Mock<SampleClassWithVirtualEvent>().SetupRemove(x => x.TestEvent -= It.IsAny<EventHandler>());"""],
+
             // Indexer on interface and virtual indexer (should NOT be flagged)
             ["""new Mock<IIndexerInterface>().Setup(x => x[0]);"""],
             ["""new Mock<SampleClassWithVirtualIndexer>().Setup(x => x[0]);"""],
+
             // Explicit interface implementation (should NOT be flagged in new)
             ["""new Mock<IExplicitInterface>().Setup(x => ((IExplicitInterface)x).ExplicitMethod());"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
