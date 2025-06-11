@@ -28,14 +28,14 @@ internal static class EnumerableExtensions
     /// </remarks>
     internal static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
     {
-        if (source is ImmutableArray<TSource> immutableArray)
-        {
-            return DefaultIfNotSingle(immutableArray, predicate);
-        }
-
         if (source == null)
         {
             return default;
+        }
+
+        if (source is ImmutableArray<TSource> immutableArray)
+        {
+            return DefaultIfNotSingle(immutableArray, predicate);
         }
 
         if (predicate == null)
