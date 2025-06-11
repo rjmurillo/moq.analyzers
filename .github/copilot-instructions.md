@@ -20,6 +20,19 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 - If adding an analyzer: also add a code fix, a benchmark, and documentation in `docs/rules`.
 - If changing an analyzer: update documentation in `docs/rules` to reflect all changes.
 - Ask clarifying questions if requirements are unclear.
+- **Moq Version Compatibility:**
+  - When writing or updating analyzer tests, always verify which Moq features are available in each supported version.
+  - **Moq 4.8.2:**
+    - Does _not_ support `SetupAdd`, `SetupRemove`, or `.Protected().Setup`.
+    - Indexer setups are supported only for virtual or interface indexers.
+    - Do _not_ add tests for APIs or patterns that do not exist in this version; such tests will fail at compile time, not at analyzer time.
+  - **Moq 4.18.4+:**
+    - Supports `SetupAdd`, `SetupRemove`, and `.Protected().Setup`.
+    - Allows setups for virtual events and indexers, and explicit interface implementations.
+    - Tests for these features should be placed in the "new" test group and must not be expected to pass in "old" Moq test runs.
+  - **General:**
+    - Never expect analyzer diagnostics for code that cannot compile due to missing APIs or language restrictions.
+    - When in doubt, consult the official Moq documentation and changelogs for feature support.
 
 ---
 
@@ -50,6 +63,11 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
   - Writing unit tests for every branch, including edge and fail paths.
 - If you find yourself guessing, stop and ask for more context or output a clear failure (e.g., `throw new NotImplementedException("Unclear requirement: ...")`).
 - Never copy-and-tweak analyzer patterns. Re-read the requirements before you start.
+- **Test Data Grouping:**
+  - When adding or updating test data, group tests by Moq version compatibility:
+    - Place tests for features only available in Moq 4.18.4+ in a "new" group.
+    - Place tests for features available in both 4.8.2 and 4.18.4 in a "both" or "old" group.
+    - Do not include tests for features/APIs that do not exist in the targeted Moq version.
 
 ---
 
@@ -72,6 +90,8 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 4. (Optional) Run and document benchmarks if relevant. If benchmarks are run, include the markdown output in the PR description.
 5. Summarize all changes in the PR description.
 6. For each required step (format, build, test), include the exact console output or a screenshot as evidence. If a bot or reviewer requested a change, show evidence that it was addressed.
+7. **Evidence of Moq Version Awareness:**
+   - If your PR changes or adds analyzer tests, include a note in the PR description about which Moq versions are targeted and how test data is grouped accordingly.
 
 > **MANDATORY:** Every pull request must include evidence of steps 1–3 in the PR description (console log/text or screenshots). Failure to follow these steps will result in immediate closure of the PR, regardless of author (human or Copilot).
 
@@ -90,3 +110,60 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ## Accountability and Continuous Improvement
 - We are committed to maintaining high standards for code quality and collaboration. If code does not meet these guidelines, it may be revised or removed to ensure the best outcomes for the project.
 - Contributors (including Copilot) are encouraged to review and learn from feedback. Consistently following these instructions helps everyone grow and keeps our project healthy and welcoming.
+
+---
+
+## Moq-Specific Analyzer and Test Authoring Guidance
+
+> **MANDATORY:** The following rules are required for all contributors and AI agents working on Moq analyzers and tests. Do not deviate. If a rule is unclear, stop and request clarification before proceeding.
+
+- **Overridable Members Only:**
+  - Only set up or verify virtual, abstract, or interface members. Do **not** attempt to set up or verify non-virtual, static, or sealed members. These will fail at compile time or runtime and are not analyzable.
+
+- **Events and Indexers:**
+  - Use `SetupAdd` and `SetupRemove` **only** for virtual events, and only in Moq 4.18.4+.
+  - Do **not** add tests for direct event setups (e.g., `.Setup(x => x.Event)`)—this is invalid C# and will not compile.
+  - Set up indexers **only** if they are virtual or defined on an interface.
+
+- **Explicit Interface Implementations:**
+  - Setups for explicit interface implementations must use the correct cast syntax (e.g., `((IMyInterface)x).Method()`).
+  - Only test these scenarios if the Moq version supports them.
+
+- **Protected Members:**
+  - Use `.Protected().Setup(...)` **only** for protected virtual members, and only in Moq 4.18.4+.
+  - Do not expect this API to exist or work in older Moq versions.
+
+- **Static, Const, and Readonly Members:**
+  - Moq cannot mock or set up static, const, or readonly members. Do **not** add analyzer tests for these scenarios; the C# compiler will prevent them.
+
+- **Async Methods:**
+  - Moq supports setups for async methods returning `Task` or `ValueTask`. Always include both `Task` and `ValueTask` scenarios in analyzer tests.
+
+- **Callback and Sequence Features:**
+  - If your analyzer or code fix interacts with `Callback` or `SetupSequence`, ensure you have tests for both single and sequence setups.
+
+- **Mock Behavior and Verification:**
+  - Always specify and test for both `MockBehavior.Default` and `MockBehavior.Strict` where relevant.
+  - Use all relevant verification methods (`Verify`, `VerifyGet`, `VerifySet`, `VerifyAdd`, `VerifyRemove`) in tests to ensure analyzer/fixer correctness.
+
+- **InternalsVisibleTo:**
+  - If mocking internal members, ensure `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` is present in the test assembly.
+
+- **Test for Both Success and Failure Paths:**
+  - For every supported Moq feature, write tests that cover both valid and invalid usage.
+  - Use `Assert.Throws<...>` in tests to verify that invalid setups fail as expected.
+
+- **Minimal and Focused Test Code:**
+  - Avoid unnecessary complexity in test types and mock setups. Each test should demonstrate a single Moq feature or analyzer rule.
+
+- **Document Edge Cases:**
+  - If a Moq feature has known limitations or edge cases (e.g., explicit interface implementation, event setup), document this in the test or analyzer code.
+
+- **Stay Up to Date:**
+  - Moq evolves; always check the latest documentation and changelogs before adding or updating analyzer logic or tests.
+
+- **Version Awareness:**
+  - Always group and annotate tests by Moq version compatibility. Do not include tests for features/APIs that do not exist in the targeted Moq version.
+
+- **AI Agent Compliance:**
+  - If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
