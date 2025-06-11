@@ -11,7 +11,7 @@ public class ImmutableArrayExtensionsTests
     {
         ImmutableArray<int> source = ImmutableArray<int>.Empty;
         int? result = source.DefaultIfNotSingle(x => x > 0);
-        Assert.Equal(0, result);
+        Assert.Equal(default(int), result);
     }
 
     [Fact]
