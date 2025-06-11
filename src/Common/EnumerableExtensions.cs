@@ -1,4 +1,4 @@
-﻿namespace Moq.Analyzers.Common;
+﻿﻿namespace Moq.Analyzers.Common;
 
 internal static class EnumerableExtensions
 {
@@ -24,7 +24,7 @@ internal static class EnumerableExtensions
     /// </returns>
     /// <remarks>
     /// This should be equivalent to calling <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
-    /// combined with a catch that returns <see langword="null"/>.
+    /// combined with a catch that returns <see langword="default"/>.
     /// </remarks>
     public static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source, Func<TSource, bool> predicate)
     {
@@ -73,7 +73,7 @@ internal static class EnumerableExtensions
     /// </returns>
     /// <remarks>
     /// This should be equivalent to calling <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
-    /// combined with a catch that returns <see langword="null"/>.
+    /// combined with a catch that returns <see langword="default"/>.
     /// </remarks>
     public static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
     {
