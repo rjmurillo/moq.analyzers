@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Model;
 using Microsoft.VisualStudio.Composition;
+using Moq.Analyzers.Test.Helpers;
 
 namespace Moq.Analyzers.Benchmarks.Helpers;
 
@@ -13,13 +14,9 @@ namespace Moq.Analyzers.Benchmarks.Helpers;
 // See https://github.com/dotnet/roslyn-sdk/issues/1165 for discussion on providing these or similar helpers in the testing packages.
 internal static class CompilationCreator
 {
-    private static readonly ReferenceAssemblies ReferenceAssemblies;
-
-#pragma warning disable S3963
-    static CompilationCreator()
-#pragma warning restore S3963
+    public static ReferenceAssemblies GetReferenceAssemblies(string moqKey)
     {
-        ReferenceAssemblies = ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]);
+        return ReferenceAssemblyCatalog.Catalog[moqKey];
     }
 
     public static async Task<(Project Project, AnalyzerOptions Options)> CreateProjectAsync(
@@ -30,7 +27,8 @@ internal static class CompilationCreator
         string defaultPrefix,
         string defaultExtension,
         CompilationOptions compilationOptions,
-        ParseOptions parseOptions)
+        ParseOptions parseOptions,
+        ReferenceAssemblies referenceAssemblies)
     {
         ProjectState projectState = new(name, language, defaultPrefix, defaultExtension);
         foreach ((string filename, string content) in sourceFiles)
@@ -38,7 +36,7 @@ internal static class CompilationCreator
             projectState.Sources.Add((defaultPrefix + filename + "." + defaultExtension, content));
         }
 
-        EvaluatedProjectState evaluatedProj = new(projectState, ReferenceAssemblies);
+        EvaluatedProjectState evaluatedProj = new(projectState, referenceAssemblies);
 
         Project project = await CreateProjectAsync(evaluatedProj, compilationOptions, parseOptions).ConfigureAwait(false);
 

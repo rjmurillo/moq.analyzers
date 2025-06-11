@@ -870,3 +870,5 @@ Temporary Items
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,aspnetcore,batch,macos,visualstudio,visualstudiocode,jetbrains
+
+temp/perfBaseline

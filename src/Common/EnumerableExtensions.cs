@@ -1,22 +1,16 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Moq.Analyzers.Common;
+﻿namespace Moq.Analyzers.Common;
 
 internal static class EnumerableExtensions
 {
     /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
-    public static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source)
+    internal static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source)
     {
-        return source.DefaultIfNotSingle(static _ => true);
-    }
+        if (source == null)
+        {
+            return default;
+        }
 
-    /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
-    /// <param name="source">The collection to enumerate.</param>
-    /// <param name="predicate">A function to test each element for a condition.</param>
-    [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Should revisit. Suppressing for now to unblock refactor.")]
-    public static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source, Func<TSource, bool> predicate)
-    {
-        return source.AsEnumerable().DefaultIfNotSingle(predicate);
+        return source.DefaultIfNotSingle(static _ => true);
     }
 
     /// <summary>
@@ -30,15 +24,35 @@ internal static class EnumerableExtensions
     /// </returns>
     /// <remarks>
     /// This should be equivalent to calling <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
-    /// combined with a catch that returns <see langword="null"/>.
+    /// combined with a catch that returns <see langword="default"/>.
     /// </remarks>
-    public static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+    internal static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
     {
+        if (source == null)
+        {
+            return default;
+        }
+
+        if (predicate == null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
+
+        if (source is ImmutableArray<TSource> immutableArray)
+        {
+            return DefaultIfNotSingle(immutableArray, predicate);
+        }
+
         bool isFound = false;
         TSource? item = default;
 
-        foreach (TSource element in source.Where(predicate))
+        foreach (TSource element in source)
         {
+            if (!predicate(element))
+            {
+                continue;
+            }
+
             if (isFound)
             {
                 // We already found an element, thus there's multiple matches; return default.
@@ -46,6 +60,43 @@ internal static class EnumerableExtensions
             }
 
             isFound = true;
+            item = element;
+        }
+
+        return item;
+    }
+
+    /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+    internal static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source, Func<TSource, bool> predicate)
+    {
+        if (predicate == null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
+
+        if (source.IsDefaultOrEmpty)
+        {
+            return default;
+        }
+
+        bool found = false;
+        TSource? item = default;
+
+        for (int i = 0; i < source.Length; i++)
+        {
+            TSource element = source[i];
+            if (!predicate(element))
+            {
+                continue;
+            }
+
+            if (found)
+            {
+                // Multiple matches found; return default.
+                return default;
+            }
+
+            found = true;
             item = element;
         }
 

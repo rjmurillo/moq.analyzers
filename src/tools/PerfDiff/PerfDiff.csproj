@@ -5,7 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <NonShipping>true</NonShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
-    <SquiggleCop_Enabled>false</SquiggleCop_Enabled>
+
   </PropertyGroup>
 
   <ItemGroup>
