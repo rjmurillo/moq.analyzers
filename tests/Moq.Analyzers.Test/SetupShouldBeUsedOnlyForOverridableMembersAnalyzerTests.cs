@@ -28,6 +28,8 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
         {
             ["""new Mock<SampleClass>().SetupAdd(x => x.TestEvent += It.IsAny<EventHandler>());"""],
             ["""new Mock<SampleClass>().SetupRemove(x => x.TestEvent -= It.IsAny<EventHandler>());"""],
+            ["""new Mock<SampleClassWithVirtualEvent>().SetupAdd(x => x.TestEvent += It.IsAny<EventHandler>());"""],
+            ["""new Mock<SampleClassWithVirtualEvent>().SetupRemove(x => x.TestEvent -= It.IsAny<EventHandler>());"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
         return old.Concat(@new);
@@ -73,6 +75,11 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
                                     public int Property { get; set; }
                                     public int Field;
                                     public event EventHandler? TestEvent;
+                                }
+
+                                public class SampleClassWithVirtualEvent
+                                {
+                                    public virtual event EventHandler? TestEvent;
                                 }
 
                                 internal class UnitTest
