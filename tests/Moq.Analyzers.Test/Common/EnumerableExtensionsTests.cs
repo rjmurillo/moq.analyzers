@@ -49,7 +49,9 @@ public class EnumerableExtensionsTests
     [Fact]
     public void DefaultIfNotSingle_ImmutableArrayAsIEnumerable_ReturnsNull_WhenIsDefaultOrEmpty()
     {
+#pragma warning disable ECS0900 // Minimize boxing and unboxing
         IEnumerable<string> source = ImmutableArray<string>.Empty;
+#pragma warning restore ECS0900 // Minimize boxing and unboxing
         string? result = source.DefaultIfNotSingle(x => true);
         Assert.Null(result);
     }
