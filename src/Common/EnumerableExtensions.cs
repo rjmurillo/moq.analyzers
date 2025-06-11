@@ -16,13 +16,22 @@ internal static class EnumerableExtensions
         return source.DefaultIfNotSingle(static _ => true);
     }
 
-    /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+    /// <summary>
+    /// Returns the only element of a sequence that satisfies a specified condition or default if no such element exists or more than one element satisfies the condition.
+    /// </summary>
+    /// <typeparam name="TSource">The type of the <paramref name="source"/> collection.</typeparam>
     /// <param name="source">The collection to enumerate.</param>
     /// <param name="predicate">A function to test each element for a condition.</param>
-    [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Direct array access avoids boxing and improves cross-platform performance.")]
+    /// <returns>
+    /// The single element that satisfies the condition, or default if no such element exists or more than one element satisfies the condition.
+    /// </returns>
+    /// <remarks>
+    /// This should be equivalent to calling <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+    /// combined with a catch that returns <see langword="null"/>.
+    /// </remarks>
     public static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source, Func<TSource, bool> predicate)
     {
-        if (source == null)
+        if (source.IsDefaultOrEmpty)
         {
             return default;
         }
@@ -30,11 +39,6 @@ internal static class EnumerableExtensions
         if (predicate == null)
         {
             throw new ArgumentNullException(nameof(predicate));
-        }
-
-        if (source.IsEmpty)
-        {
-            return default;
         }
 
         bool found = false;
