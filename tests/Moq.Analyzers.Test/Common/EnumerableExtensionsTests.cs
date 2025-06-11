@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Xunit;
-
 namespace Moq.Analyzers.Test.Common;
 
 public class EnumerableExtensionsTests
@@ -41,41 +37,27 @@ public class EnumerableExtensionsTests
     [Fact]
     public void DefaultIfNotSingle_IEnumerable_ThrowsArgumentNullException_WhenPredicateIsNull()
     {
-        IEnumerable<string> source = new[] { "a", "b", "c" };
-        try
-        {
-            source.DefaultIfNotSingle(null!);
-            Assert.Fail("Expected ArgumentNullException");
-        }
-        catch (ArgumentNullException ex)
-        {
-            Assert.Equal("predicate", ex.ParamName);
-        }
+        IEnumerable<string> source = ["a", "b", "c"];
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+        Assert.Equal("predicate", ex.ParamName);
     }
 
     [Fact]
     public void DefaultIfNotSingle_ImmutableArray_ThrowsArgumentNullException_WhenPredicateIsNull()
     {
-        System.Collections.Immutable.ImmutableArray<int> source = System.Collections.Immutable.ImmutableArray.Create(1, 2, 3);
-        try
-        {
-            source.DefaultIfNotSingle(null!);
-            Assert.Fail("Expected ArgumentNullException");
-        }
-        catch (ArgumentNullException ex)
-        {
-            Assert.Equal("predicate", ex.ParamName);
-        }
+        ImmutableArray<int> source = [1, 2, 3];
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+        Assert.Equal("predicate", ex.ParamName);
     }
 
     [Fact]
     public void DefaultIfNotSingle_ImmutableArray_ReturnsNull_WhenIsDefaultOrEmpty()
     {
-        System.Collections.Immutable.ImmutableArray<int> source = System.Collections.Immutable.ImmutableArray<int>.Empty;
+        ImmutableArray<int> source = ImmutableArray<int>.Empty;
         int? result = source.DefaultIfNotSingle(x => true);
         Assert.Equal(0, result);
 
-        System.Collections.Immutable.ImmutableArray<int> defaultSource = default(System.Collections.Immutable.ImmutableArray<int>);
+        ImmutableArray<int> defaultSource = default;
         result = defaultSource.DefaultIfNotSingle(x => true);
         Assert.Equal(0, result);
     }
@@ -83,7 +65,7 @@ public class EnumerableExtensionsTests
     [Fact]
     public void DefaultIfNotSingle_ImmutableArray_ReturnsElement_WhenSingleMatch()
     {
-        System.Collections.Immutable.ImmutableArray<int> source = System.Collections.Immutable.ImmutableArray.Create(1, 2, 3);
+        ImmutableArray<int> source = [1, 2, 3];
         int? result = source.DefaultIfNotSingle(x => x == 2);
         Assert.Equal(2, result);
     }
@@ -91,7 +73,7 @@ public class EnumerableExtensionsTests
     [Fact]
     public void DefaultIfNotSingle_ImmutableArray_ReturnsNull_WhenMultipleMatches()
     {
-        System.Collections.Immutable.ImmutableArray<int> source = System.Collections.Immutable.ImmutableArray.Create(1, 2, 2, 3);
+        ImmutableArray<int> source = [1, 2, 2, 3];
         int? result = source.DefaultIfNotSingle(x => x == 2);
         Assert.Equal(0, result);
     }
