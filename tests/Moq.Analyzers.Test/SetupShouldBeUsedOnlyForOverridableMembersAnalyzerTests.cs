@@ -7,7 +7,7 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
 {
     public static IEnumerable<object[]> TestData()
     {
-        return new object[][]
+        IEnumerable<object[]> old = new object[][]
         {
             ["""{|Moq1200:new Mock<BaseSampleClass>().Setup(x => x.Calculate())|};"""],
             ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.Property)|};"""],
@@ -22,8 +22,15 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
             ["""new Mock<IValueTaskMethods>().Setup(x => x.DoSomethingValueTask());"""],
             ["""new Mock<IValueTaskMethods>().Setup(x => x.GetNumberAsync()).Returns(ValueTask.FromResult(42));"""],
             ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.Field)|};"""],
-            ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.TestEvent)|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+
+        IEnumerable<object[]> @new = new object[][]
+        {
+            ["""new Mock<SampleClass>().SetupAdd(x => x.TestEvent += It.IsAny<EventHandler>());"""],
+            ["""new Mock<SampleClass>().SetupRemove(x => x.TestEvent -= It.IsAny<EventHandler>());"""],
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+
+        return old.Concat(@new);
     }
 
     [Theory]
@@ -65,7 +72,7 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
                                     public virtual int DoSth() => 0;
                                     public int Property { get; set; }
                                     public int Field;
-                                    public event Action? TestEvent;
+                                    public event EventHandler? TestEvent;
                                 }
 
                                 internal class UnitTest
