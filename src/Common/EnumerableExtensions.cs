@@ -69,14 +69,14 @@ internal static class EnumerableExtensions
     /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
     internal static TSource? DefaultIfNotSingle<TSource>(this ImmutableArray<TSource> source, Func<TSource, bool> predicate)
     {
-        if (source.IsDefaultOrEmpty)
-        {
-            return default;
-        }
-
         if (predicate == null)
         {
             throw new ArgumentNullException(nameof(predicate));
+        }
+
+        if (source.IsDefaultOrEmpty)
+        {
+            return default;
         }
 
         bool found = false;
