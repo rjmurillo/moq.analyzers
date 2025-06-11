@@ -110,3 +110,60 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ## Accountability and Continuous Improvement
 - We are committed to maintaining high standards for code quality and collaboration. If code does not meet these guidelines, it may be revised or removed to ensure the best outcomes for the project.
 - Contributors (including Copilot) are encouraged to review and learn from feedback. Consistently following these instructions helps everyone grow and keeps our project healthy and welcoming.
+
+---
+
+## Moq-Specific Analyzer and Test Authoring Guidance
+
+> **MANDATORY:** The following rules are required for all contributors and AI agents working on Moq analyzers and tests. Do not deviate. If a rule is unclear, stop and request clarification before proceeding.
+
+- **Overridable Members Only:**
+  - Only set up or verify virtual, abstract, or interface members. Do **not** attempt to set up or verify non-virtual, static, or sealed members. These will fail at compile time or runtime and are not analyzable.
+
+- **Events and Indexers:**
+  - Use `SetupAdd` and `SetupRemove` **only** for virtual events, and only in Moq 4.18.4+.
+  - Do **not** add tests for direct event setups (e.g., `.Setup(x => x.Event)`)—this is invalid C# and will not compile.
+  - Set up indexers **only** if they are virtual or defined on an interface.
+
+- **Explicit Interface Implementations:**
+  - Setups for explicit interface implementations must use the correct cast syntax (e.g., `((IMyInterface)x).Method()`).
+  - Only test these scenarios if the Moq version supports them.
+
+- **Protected Members:**
+  - Use `.Protected().Setup(...)` **only** for protected virtual members, and only in Moq 4.18.4+.
+  - Do not expect this API to exist or work in older Moq versions.
+
+- **Static, Const, and Readonly Members:**
+  - Moq cannot mock or set up static, const, or readonly members. Do **not** add analyzer tests for these scenarios; the C# compiler will prevent them.
+
+- **Async Methods:**
+  - Moq supports setups for async methods returning `Task` or `ValueTask`. Always include both `Task` and `ValueTask` scenarios in analyzer tests.
+
+- **Callback and Sequence Features:**
+  - If your analyzer or code fix interacts with `Callback` or `SetupSequence`, ensure you have tests for both single and sequence setups.
+
+- **Mock Behavior and Verification:**
+  - Always specify and test for both `MockBehavior.Default` and `MockBehavior.Strict` where relevant.
+  - Use all relevant verification methods (`Verify`, `VerifyGet`, `VerifySet`, `VerifyAdd`, `VerifyRemove`) in tests to ensure analyzer/fixer correctness.
+
+- **InternalsVisibleTo:**
+  - If mocking internal members, ensure `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` is present in the test assembly.
+
+- **Test for Both Success and Failure Paths:**
+  - For every supported Moq feature, write tests that cover both valid and invalid usage.
+  - Use `Assert.Throws<...>` in tests to verify that invalid setups fail as expected.
+
+- **Minimal and Focused Test Code:**
+  - Avoid unnecessary complexity in test types and mock setups. Each test should demonstrate a single Moq feature or analyzer rule.
+
+- **Document Edge Cases:**
+  - If a Moq feature has known limitations or edge cases (e.g., explicit interface implementation, event setup), document this in the test or analyzer code.
+
+- **Stay Up to Date:**
+  - Moq evolves; always check the latest documentation and changelogs before adding or updating analyzer logic or tests.
+
+- **Version Awareness:**
+  - Always group and annotate tests by Moq version compatibility. Do not include tests for features/APIs that do not exist in the targeted Moq version.
+
+- **AI Agent Compliance:**
+  - If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
