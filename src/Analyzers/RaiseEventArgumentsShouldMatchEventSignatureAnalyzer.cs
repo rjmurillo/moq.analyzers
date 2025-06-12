@@ -95,6 +95,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
                 // Too many arguments: report on the first extra argument
                 location = eventArguments[expectedParameterTypes.Length].GetLocation();
             }
+
             Diagnostic diagnostic = location.CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
             return;
