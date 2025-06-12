@@ -12,3 +12,4 @@
 | [Moq1300](./Moq1300.md) | `Mock.As()` should take interfaces only                                                 |
 | [Moq1400](./Moq1400.md) | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
 | [Moq1410](./Moq1410.md) | Explicitly set the Strict mocking behavior                                              |
+| [Moq1500](./Moq1500.md) | Raise event arguments should match the event delegate signature                        |
