@@ -1,8 +1,8 @@
 <Project>
   <ItemGroup>    
-    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.201" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.11.0-beta1.25123.3" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.202" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="3.11.0-beta1.25173.3" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.13.1" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
