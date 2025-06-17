@@ -157,17 +157,26 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     /// </returns>
     private static bool ShouldReportDiagnostic(ITypeSymbol mockedType)
     {
-        // Check if the mocked type is sealed (but allow delegates)
-        // Note: All delegates in .NET are sealed by default, but they can still be mocked by Moq
+        // Exclude delegates (all delegates are sealed, but Moq allows mocking them)
+        if (mockedType.TypeKind == TypeKind.Delegate)
+        {
+            return false;
+        }
 
-        // For nullable value types (Nullable<T>), skip diagnostic
+        // Exclude nullable value types (Nullable<T>)
         if (mockedType.OriginalDefinition?.SpecialType == SpecialType.System_Nullable_T)
         {
             return false;
         }
 
-        // For reference types, ignore nullable annotation; report if sealed and not a delegate
-        return mockedType.IsSealed && mockedType.TypeKind != TypeKind.Delegate;
+        // Exclude structs and enums
+        if (mockedType.TypeKind == TypeKind.Struct || mockedType.TypeKind == TypeKind.Enum)
+        {
+            return false;
+        }
+
+        // For reference types, report if sealed
+        return mockedType.IsSealed;
     }
 
     private static Location GetDiagnosticLocationForObjectCreation(IOperation operation, IObjectCreationOperation creation)
