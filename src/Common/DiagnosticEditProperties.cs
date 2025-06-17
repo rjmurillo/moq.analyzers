@@ -50,8 +50,8 @@ internal record DiagnosticEditProperties
     /// Tries to convert an immutable dictionary to a <see cref="DiagnosticEditProperties"/>.
     /// </summary>
     /// <param name="dictionary">The dictionary to try to convert.</param>
-    /// <param name="editProperties">The output edit properties if parsing succeeded, otherwise <c>null</c>.</param>
-    /// <returns><c>true</c> if parsing succeeded; <c>false</c> otherwise.</returns>
+    /// <param name="editProperties">The output edit properties if parsing succeeded, otherwise <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if parsing succeeded; <see langword="false"/> otherwise.</returns>
     internal static bool TryGetFromImmutableDictionary(ImmutableDictionary<string, string?> dictionary, [NotNullWhen(true)] out DiagnosticEditProperties? editProperties)
     {
         editProperties = null;
