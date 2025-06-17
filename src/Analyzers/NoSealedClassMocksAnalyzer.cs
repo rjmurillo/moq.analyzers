@@ -33,6 +33,9 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
+    /// <summary>
+    /// Registers the operation action for object creation and invocation if Moq is referenced and Mock&lt;T&gt; is available.
+    /// </summary>
     private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
         MoqKnownSymbols knownSymbols = new(context.Compilation);
@@ -55,6 +58,9 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
             OperationKind.Invocation);
     }
 
+    /// <summary>
+    /// Analyzes object creation and invocation operations to report diagnostics for sealed class mocks.
+    /// </summary>
     private static void Analyze(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         ITypeSymbol? mockedType = null;
@@ -85,6 +91,9 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         }
     }
 
+    /// <summary>
+    /// Determines if the operation is a valid Mock&lt;T&gt; object creation and extracts the mocked type.
+    /// </summary>
     private static bool IsValidMockCreation(IObjectCreationOperation creation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
@@ -97,6 +106,9 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         return TryGetMockedTypeFromGeneric(creation.Type, out mockedType);
     }
 
+    /// <summary>
+    /// Determines if the operation is a valid Mock.Of&lt;T&gt;() invocation and extracts the mocked type.
+    /// </summary>
     private static bool IsValidMockOfInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
@@ -117,6 +129,9 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
+    /// <summary>
+    /// Checks if the method symbol represents a static Mock.Of&lt;T&gt;() method.
+    /// </summary>
     private static bool IsValidMockOfMethod(IMethodSymbol? targetMethod, MoqKnownSymbols knownSymbols)
     {
         if (targetMethod is null || !targetMethod.IsStatic)
@@ -133,6 +148,9 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
                targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default);
     }
 
+    /// <summary>
+    /// Attempts to extract the mocked type argument from a generic Mock&lt;T&gt; type.
+    /// </summary>
     private static bool TryGetMockedTypeFromGeneric(ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
@@ -151,9 +169,9 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     /// </summary>
     /// <param name="mockedType">The type being mocked.</param>
     /// <returns>
-    ///   Returns <c>true</c> when the mocked type is a sealed *reference* type (including nullable reference
-    ///   types). Returns <c>false</c> for delegates and for all value types (structs / enums), including
-    ///   <c>Nullable&lt;T&gt;</c>.
+    ///   Returns <see langword="true"/> when the mocked type is a sealed *reference* type (including nullable reference
+    ///   types). Returns <see langword="false"/> for delegates and for all value types (structs / enums), including
+    ///   <see cref="Nullable{T}"/>.
     /// </returns>
     private static bool ShouldReportDiagnostic(ITypeSymbol mockedType)
     {
@@ -179,16 +197,25 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         return mockedType.IsSealed;
     }
 
+    /// <summary>
+    /// Gets the diagnostic location for a Mock&lt;T&gt; object creation.
+    /// </summary>
     private static Location GetDiagnosticLocationForObjectCreation(IOperation operation, IObjectCreationOperation creation)
     {
         return GetDiagnosticLocation(operation, creation.Syntax);
     }
 
+    /// <summary>
+    /// Gets the diagnostic location for a Mock.Of&lt;T&gt;() invocation.
+    /// </summary>
     private static Location GetDiagnosticLocationForInvocation(IOperation operation, IInvocationOperation invocation)
     {
         return GetDiagnosticLocation(operation, invocation.Syntax);
     }
 
+    /// <summary>
+    /// Attempts to locate the type argument in the syntax tree for precise diagnostic reporting.
+    /// </summary>
     private static Location GetDiagnosticLocation(IOperation operation, SyntaxNode fallbackSyntax)
     {
         // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.
