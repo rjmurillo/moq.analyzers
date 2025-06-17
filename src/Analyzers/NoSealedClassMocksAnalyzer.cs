@@ -151,19 +151,13 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         // Check if the mocked type is sealed (but allow delegates)
         // Note: All delegates in .NET are sealed by default, but they can still be mocked by Moq
 
-        // For nullable reference types (T?), we don't consider them as sealed
-        // because you're mocking the nullable wrapper, not the underlying sealed type
-        if (mockedType.CanBeReferencedByName && mockedType.NullableAnnotation == NullableAnnotation.Annotated)
-        {
-            return false;
-        }
-
-        // Handle nullable value types (Nullable<T>)
+        // For nullable value types (Nullable<T>), skip diagnostic
         if (mockedType.OriginalDefinition?.SpecialType == SpecialType.System_Nullable_T)
         {
             return false;
         }
 
+        // For reference types, ignore nullable annotation; report if sealed and not a delegate
         return mockedType.IsSealed && mockedType.TypeKind != TypeKind.Delegate;
     }
 
