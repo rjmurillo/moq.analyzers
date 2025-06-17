@@ -99,8 +99,9 @@ public partial class NoSealedClassMocksAnalyzerTests
     {
         return new object[][]
         {
-            // Nullable sealed types - nullable reference types are not sealed themselves
-            ["""new Mock<SealedClass?>();"""],
+            // Positive: Nullable reference types (should trigger diagnostic)
+            ["""new Mock<{|Moq1000:string?|}>();"""],
+            ["""new Mock<{|Moq1000:SealedClass?|}>();"""],
 
             // Array types should not trigger (arrays are not the sealed type being mocked)
             ["""new Mock<SealedClass[]>();"""],
@@ -337,6 +338,7 @@ public partial class NoSealedClassMocksAnalyzerTests
                 #nullable enable
 
                 internal sealed class SealedClass { }
+                internal struct Struct { }
 
                 internal class UnitTest
                 {

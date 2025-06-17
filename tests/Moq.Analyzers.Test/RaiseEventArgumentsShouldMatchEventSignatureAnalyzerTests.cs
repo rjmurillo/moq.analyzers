@@ -29,16 +29,16 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
     {
         return new object[][]
         {
-            // Invalid: Action<string> event with int argument
+            // Invalid: Action<string> event with int argument (wrap only the problematic argument)
             ["""mockProvider.Raise(p => p.StringOptionsChanged += null, {|Moq1500:42|});"""],
 
-            // Invalid: Action<MyOptions> event with wrong type
+            // Invalid: Action<MyOptions> event with wrong type (wrap only the problematic argument)
             ["""mockProvider.Raise(p => p.OptionsChanged += null, {|Moq1500:new Incorrect()|});"""],
 
-            // Invalid: Too many arguments
+            // Invalid: Too many arguments (wrap only the extra argument)
             ["""mockProvider.Raise(p => p.SimpleEvent += null, {|Moq1500:"extra"|});"""],
 
-            // Invalid: Too few arguments
+            // Invalid: Too few arguments (wrap the entire invocation)
             ["""{|Moq1500:mockProvider.Raise(p => p.StringOptionsChanged += null)|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
