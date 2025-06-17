@@ -23,12 +23,12 @@ internal class KnownSymbols
     }
 
     /// <summary>
-    /// Gets the class <c>System.Threading.Tasks.Task{T}</c>.
+    /// Gets the class <see cref="System.Threading.Tasks.Task{T}"/>.
     /// </summary>
     public INamedTypeSymbol? Task1 => TypeProvider.GetOrCreateTypeByMetadataName("System.Threading.Tasks.Task`1");
 
     /// <summary>
-    /// Gets the class <c>System.Threading.Tasks.ValueTask{T}</c>.
+    /// Gets the class <see cref="System.Threading.Tasks.ValueTask{T}"/>.
     /// </summary>
     public INamedTypeSymbol? ValueTask1 => TypeProvider.GetOrCreateTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
 
