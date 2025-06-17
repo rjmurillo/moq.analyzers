@@ -31,22 +31,22 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> MockOf => Mock?.GetMembers("Of").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
-    /// Gets the class <c>Moq.Mock&lt;T&gt;</c>.
+    /// Gets the class <c>Moq.Mock{T}</c>.
     /// </summary>
     internal INamedTypeSymbol? Mock1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Mock`1");
 
     /// <summary>
-    /// Gets the methods for <c>Moq.Mock&lt;T&gt;.As</c>.
+    /// Gets the methods for <c>Moq.Mock{T}.As</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> Mock1As => Mock1?.GetMembers("As").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
-    /// Gets the methods for <c>Moq.Mock&lt;T&gt;.Setup</c>.
+    /// Gets the methods for <c>Moq.Mock{T}.Setup</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> Mock1Setup => Mock1?.GetMembers("Setup").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
-    /// Gets the methods for <c>Moq.Mock&lt;T&gt;.Raise</c>.
+    /// Gets the methods for <c>Moq.Mock{T}.Raise</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> Mock1Raise => Mock1?.GetMembers("Raise").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 

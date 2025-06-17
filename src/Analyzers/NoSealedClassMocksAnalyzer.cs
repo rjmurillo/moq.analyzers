@@ -34,7 +34,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Registers the operation action for object creation and invocation if Moq is referenced and Mock&lt;T&gt; is available.
+    /// Registers the operation action for object creation and invocation if Moq is referenced and Mock{T} is available.
     /// </summary>
     private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
@@ -46,7 +46,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Check that Mock<T> type is available
+        // Check that Mock{T} type is available
         if (knownSymbols.Mock1 is null)
         {
             return;
@@ -66,14 +66,14 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         ITypeSymbol? mockedType = null;
         Location? diagnosticLocation = null;
 
-        // Handle object creation: new Mock<T>()
+        // Handle object creation: new Mock{T}()
         if (context.Operation is IObjectCreationOperation creation &&
             IsValidMockCreation(creation, knownSymbols, out mockedType))
         {
             diagnosticLocation = GetDiagnosticLocationForObjectCreation(context.Operation, creation);
         }
 
-        // Handle static method invocation: Mock.Of<T>()
+        // Handle static method invocation: Mock.Of{T}()
         else if (context.Operation is IInvocationOperation invocation &&
                  IsValidMockOfInvocation(invocation, knownSymbols, out mockedType))
         {
@@ -92,7 +92,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Determines if the operation is a valid Mock&lt;T&gt; object creation and extracts the mocked type.
+    /// Determines if the operation is a valid Mock{T} object creation and extracts the mocked type.
     /// </summary>
     private static bool IsValidMockCreation(IObjectCreationOperation creation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
@@ -107,19 +107,19 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Determines if the operation is a valid Mock.Of&lt;T&gt;() invocation and extracts the mocked type.
+    /// Determines if the operation is a valid Mock.Of{T}() invocation and extracts the mocked type.
     /// </summary>
     private static bool IsValidMockOfInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
 
-        // Check if this is a static method call to Mock.Of<T>()
+        // Check if this is a static method call to Mock.Of{T}()
         if (!IsValidMockOfMethod(invocation.TargetMethod, knownSymbols))
         {
             return false;
         }
 
-        // Get the type argument from Mock.Of<T>()
+        // Get the type argument from Mock.Of{T}()
         if (invocation.TargetMethod.TypeArguments.Length == 1)
         {
             mockedType = invocation.TargetMethod.TypeArguments[0];
@@ -130,7 +130,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Checks if the method symbol represents a static Mock.Of&lt;T&gt;() method.
+    /// Checks if the method symbol represents a static Mock.Of{T}() method.
     /// </summary>
     private static bool IsValidMockOfMethod(IMethodSymbol? targetMethod, MoqKnownSymbols knownSymbols)
     {
@@ -149,7 +149,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Attempts to extract the mocked type argument from a generic Mock&lt;T&gt; type.
+    /// Attempts to extract the mocked type argument from a generic Mock{T} type.
     /// </summary>
     private static bool TryGetMockedTypeFromGeneric(ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
@@ -181,7 +181,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        // Exclude nullable value types (Nullable<T>)
+        // Exclude nullable value types (Nullable{T})
         if (mockedType.OriginalDefinition?.SpecialType == SpecialType.System_Nullable_T)
         {
             return false;
@@ -198,7 +198,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Gets the diagnostic location for a Mock&lt;T&gt; object creation.
+    /// Gets the diagnostic location for a Mock{T} object creation.
     /// </summary>
     private static Location GetDiagnosticLocationForObjectCreation(IOperation operation, IObjectCreationOperation creation)
     {
@@ -206,7 +206,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Gets the diagnostic location for a Mock.Of&lt;T&gt;() invocation.
+    /// Gets the diagnostic location for a Mock.Of{T}() invocation.
     /// </summary>
     private static Location GetDiagnosticLocationForInvocation(IOperation operation, IInvocationOperation invocation)
     {

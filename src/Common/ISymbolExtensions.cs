@@ -23,10 +23,10 @@ internal static class ISymbolExtensions
     /// or as a specialization; otherwise, <see langword="false"/>.
     /// </returns>
     /// <example>
-    /// <c>MyType.MyMethod&lt;int&gt;()</c> is an instance of <c>MyType.MyMethod&lt;T&gt;()</c>.
+    /// <c>MyType.MyMethod{int}()</c> is an instance of <c>MyType.MyMethod{T}()</c>.
     /// </example>
     /// <example>
-    /// <c>MyType&lt;int&gt;()</c> is an instance of <c>MyType&lt;T&gt;()</c>.
+    /// <c>MyType{int}()</c> is an instance of <c>MyType{T}()</c>.
     /// </example>
     public static bool IsInstanceOf<TSymbol>(this ISymbol? symbol, TSymbol? other, SymbolEqualityComparer? symbolEqualityComparer = null)
         where TSymbol : class, ISymbol
