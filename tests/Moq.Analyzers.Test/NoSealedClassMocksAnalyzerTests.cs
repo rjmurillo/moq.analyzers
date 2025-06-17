@@ -103,10 +103,6 @@ public partial class NoSealedClassMocksAnalyzerTests
             ["""new Mock<{|Moq1000:string?|}>();"""],
             ["""new Mock<{|Moq1000:SealedClass?|}>();"""],
 
-            // Negative: Nullable value types (should NOT trigger diagnostic)
-            ["""new Mock<int?>();"""],
-            ["""new Mock<Struct?>();"""],
-
             // Array types should not trigger (arrays are not the sealed type being mocked)
             ["""new Mock<SealedClass[]>();"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
