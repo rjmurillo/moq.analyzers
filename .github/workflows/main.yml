@@ -115,3 +115,10 @@ jobs:
       # Runs on both Linux and Windows, with ETL disabled on non-Windows
       if: ${{ runner.os == 'Linux' || runner.os == 'Windows' }} 
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
+
+    - name: Upload performance files
+      uses: actions/upload-artifact@v4
+      if: success() || failure()
+      with:
+        name: Performance files (${{ matrix.os }})
+        path: "./artifacts/performance/**"
