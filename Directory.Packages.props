@@ -26,7 +26,7 @@
     <PackageVersion Include="BenchmarkDotNet" Version="0.13.12" />
     <PackageVersion Include="GetPackFromProject" Version="1.0.10" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta1.21216.1" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.CommandLine.Rendering" Version="2.0.0-beta1.20074.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="Perfolizer" Version="0.2.1" />
