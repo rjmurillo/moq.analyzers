@@ -1,0 +1,22 @@
+name: Renovate Pull Request Approve and Merge
+on: pull_request_target
+permissions:
+  pull-requests: write
+  contents: write
+jobs:
+  renovate:
+    runs-on: ubuntu-24.04-arm
+    if: ${{ github.actor == 'renovate' || github.actor == 'renovate[bot]' }}
+    steps:
+      - name: renovate-approve-and-merge
+      # You may pin to the exact commit or the version.
+      # uses: cypher7682/renovate-approve-and-merge@39bc69414ad7a4a7d28b3ccc9bf196b387e2d5ab
+        uses: cypher7682/renovate-approve-and-merge@v1.0.4
+        with:
+          # A token with the permissions to access the repos in a particular organisation
+          github_token: "${{ secrets.GH_ACTIONS_PR_WRITE }}"
+          # The organisation name
+          organisation: "rjmurillo"
+        
+
+          
