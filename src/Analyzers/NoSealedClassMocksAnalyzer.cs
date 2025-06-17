@@ -146,6 +146,11 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         return true;
     }
 
+    /// <summary>
+    /// Determines whether a diagnostic should be reported for the mocked type based on its characteristics.
+    /// </summary>
+    /// <param name="mockedType">The type being mocked.</param>
+    /// <returns>True if the type is sealed and not a delegate (excluding nullable value types); otherwise, false.</returns>
     private static bool ShouldReportDiagnostic(ITypeSymbol mockedType)
     {
         // Check if the mocked type is sealed (but allow delegates)
