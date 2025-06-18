@@ -104,6 +104,10 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((int bar) => true);""",
                 """new Mock<IFoo>().Setup(m => m.Do(42)).Returns((int bar) => true);""",
             ],
+            [ // Test delegate construction callbacks - these should work the same as lambdas
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new StringDelegate((string s) => { }));""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new StringDelegate((string s) => { }));""",
+            ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -127,6 +131,8 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
 
                 bool Do(long bar);
             }
+
+            internal delegate void StringDelegate(string s);
 
             internal class UnitTest
             {
