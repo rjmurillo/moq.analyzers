@@ -9,19 +9,19 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
         return new object[][]
         {
             // Valid: Action<string> event with string argument
-            ["""mock.Setup(x => x.Submit()).Raises(x => x.StringEvent += null, "test");"""],
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.StringEvent += null, "test");"""],
 
             // Valid: Action<int> event with int argument
-            ["""mock.Setup(x => x.Submit()).Raises(x => x.NumberEvent += null, 42);"""],
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.NumberEvent += null, 42);"""],
 
             // Valid: EventHandler<CustomArgs> event with CustomArgs argument
-            ["""mock.Setup(x => x.Submit()).Raises(x => x.CustomEvent += null, new CustomArgs());"""],
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.CustomEvent += null, new CustomArgs());"""],
 
             // Valid: Action event with no parameters
-            ["""mock.Setup(x => x.Submit()).Raises(x => x.SimpleEvent += null);"""],
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.SimpleEvent += null);"""],
 
             // Valid: Custom delegate with correct arguments
-            ["""mock.Setup(x => x.Submit()).Raises(x => x.CustomDelegate += null, "test");"""],
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.CustomDelegate += null, "test");"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -30,19 +30,19 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
         return new object[][]
         {
             // Invalid: Action<string> event with int argument
-            ["""mock.Setup(x => x.Submit()).Raises(x => x.StringEvent += null, {|Moq1204:42|});"""],
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.StringEvent += null, {|Moq1204:42|});"""],
 
             // Invalid: Action<int> event with string argument
-            ["""mock.Setup(x => x.Submit()).Raises(x => x.NumberEvent += null, {|Moq1204:"test"|});"""],
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.NumberEvent += null, {|Moq1204:"test"|});"""],
 
             // Invalid: EventHandler<CustomArgs> event with wrong type
-            ["""mock.Setup(x => x.Submit()).Raises(x => x.CustomEvent += null, {|Moq1204:"wrong"|});"""],
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.CustomEvent += null, {|Moq1204:"wrong"|});"""],
 
             // Invalid: Too many arguments
-            ["""mock.Setup(x => x.Submit()).Raises(x => x.StringEvent += null, "test", {|Moq1204:"extra"|});"""],
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.StringEvent += null, "test", {|Moq1204:"extra"|});"""],
 
             // Invalid: Too few arguments
-            ["""{|Moq1204:mock.Setup(x => x.Submit()).Raises(x => x.StringEvent += null)|};"""],
+            ["""{|Moq1204:mockProvider.Setup(x => x.Submit()).Raises(x => x.StringEvent += null)|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -77,7 +77,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
             {
                 private void Test()
                 {
-                    var mock = new Mock<ITestInterface>();
+                    var mockProvider = new Mock<ITestInterface>();
                     {{raisesCall}}
                 }
             }
@@ -116,7 +116,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
             {
                 private void Test()
                 {
-                    var mock = new Mock<ITestInterface>();
+                    var mockProvider = new Mock<ITestInterface>();
                     {{raisesCall}}
                 }
             }
