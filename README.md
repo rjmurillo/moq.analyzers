@@ -21,10 +21,10 @@ something is wrong with your Moq configuration.
 | [Moq1101](docs/rules/Moq1101.md) | Usage         | SetupGet/SetupSet should be used for properties, not for methods                        |
 | [Moq1200](docs/rules/Moq1200.md) | Correctness   | Setup should be used only for overridable members                                       |
 | [Moq1201](docs/rules/Moq1201.md) | Correctness   | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`         |
+| [Moq1202](docs/rules/Moq1202.md) | Correctness   | Raise event arguments should match the event delegate signature                         |
 | [Moq1300](docs/rules/Moq1300.md) | Usage         | `Mock.As()` should take interfaces only                                                 |
 | [Moq1400](docs/rules/Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
 | [Moq1410](docs/rules/Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              |
-| [Moq1500](docs/rules/Moq1500.md) | Correctness   | Raise event arguments should match the event delegate signature                         |
 
 See [docs/rules/README.md](docs/rules/README.md) for full documentation.
 

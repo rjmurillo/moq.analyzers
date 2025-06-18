@@ -30,16 +30,16 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
         return new object[][]
         {
             // Invalid: Action<string> event with int argument (wrap only the problematic argument)
-            ["""mockProvider.Raise(p => p.StringOptionsChanged += null, {|Moq1500:42|});"""],
+            ["""mockProvider.Raise(p => p.StringOptionsChanged += null, {|Moq1202:42|});"""],
 
             // Invalid: Action<MyOptions> event with wrong type (wrap only the problematic argument)
-            ["""mockProvider.Raise(p => p.OptionsChanged += null, {|Moq1500:new Incorrect()|});"""],
+            ["""mockProvider.Raise(p => p.OptionsChanged += null, {|Moq1202:new Incorrect()|});"""],
 
             // Invalid: Too many arguments (wrap only the extra argument)
-            ["""mockProvider.Raise(p => p.SimpleEvent += null, {|Moq1500:"extra"|});"""],
+            ["""mockProvider.Raise(p => p.SimpleEvent += null, {|Moq1202:"extra"|});"""],
 
             // Invalid: Too few arguments (wrap the entire invocation)
-            ["""{|Moq1500:mockProvider.Raise(p => p.StringOptionsChanged += null)|};"""],
+            ["""{|Moq1202:mockProvider.Raise(p => p.StringOptionsChanged += null)|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -51,7 +51,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
             ["""mock.Raise(n => n.CustomEvent += null, new CustomEventArgs { Value = "test" });"""],
 
             // Invalid: Wrong argument type
-            ["""mock.Raise(n => n.CustomEvent += null, {|Moq1500:"wrong"|});"""],
+            ["""mock.Raise(n => n.CustomEvent += null, {|Moq1202:"wrong"|});"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
