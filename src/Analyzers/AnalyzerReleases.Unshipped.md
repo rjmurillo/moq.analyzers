@@ -4,4 +4,4 @@
 ### New Rules
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1500 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
+Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
