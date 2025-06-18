@@ -91,14 +91,4 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the field <c>Moq.MockBehavior.Default</c>.
     /// </summary>
     internal IFieldSymbol? MockBehaviorDefault => MockBehavior?.GetMembers("Default").OfType<IFieldSymbol>().SingleOrDefault();
-
-    /// <summary>
-    /// Gets the class <c>Moq.MockSequence</c>.
-    /// </summary>
-    internal INamedTypeSymbol? MockSequence => TypeProvider.GetOrCreateTypeByMetadataName("Moq.MockSequence");
-
-    /// <summary>
-    /// Gets the methods for <c>Moq.Mock{T}.InSequence</c>.
-    /// </summary>
-    internal ImmutableArray<IMethodSymbol> Mock1InSequence => Mock1?.GetMembers("InSequence").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 }

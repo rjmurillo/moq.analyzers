@@ -19,25 +19,4 @@ internal static class ITypeSymbolExtensions
             current = current.BaseType;
         }
     }
-
-    /// <summary>
-    /// Checks if a type inherits from or implements a given base type.
-    /// </summary>
-    /// <param name="type">The <see cref="ITypeSymbol"/> to check.</param>
-    /// <param name="baseType">The base <see cref="ITypeSymbol"/> to check for.</param>
-    /// <returns><see langword="true"/> if the <paramref name="type"/> inherits from or implements the <paramref name="baseType"/>, <see langword="false"/> otherwise.</returns>
-    internal static bool InheritsFromOrImplements(this ITypeSymbol? type, ITypeSymbol? baseType)
-    {
-        while (type != null)
-        {
-            if (SymbolEqualityComparer.Default.Equals(type, baseType))
-            {
-                return true;
-            }
-
-            type = type.BaseType;
-        }
-
-        return false;
-    }
 }
