@@ -18,7 +18,7 @@ something is wrong with your Moq configuration.
 | [Moq1001](docs/rules/Moq1001.md) | Usage         | Mocked interfaces cannot have constructor parameters                                    |
 | [Moq1002](docs/rules/Moq1002.md) | Usage         | Parameters provided into mock do not match any existing constructors                    |
 | [Moq1100](docs/rules/Moq1100.md) | Correctness   | Callback signature must match the signature of the mocked method                        |
-| [Moq1101](docs/rules/Moq1101.md) | Usage         | SetupGet/SetupSet should be used for properties, not for methods                        |
+| [Moq1101](docs/rules/Moq1101.md) | Usage         | SetupGet/SetupSet/SetupProperty should be used for properties, not for methods          |
 | [Moq1200](docs/rules/Moq1200.md) | Correctness   | Setup should be used only for overridable members                                       |
 | [Moq1201](docs/rules/Moq1201.md) | Correctness   | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`         |
 | [Moq1202](docs/rules/Moq1202.md) | Correctness   | Raise event arguments should match the event delegate signature                         |

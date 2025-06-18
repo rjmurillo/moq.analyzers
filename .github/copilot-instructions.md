@@ -35,6 +35,11 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
     - When in doubt, consult the official Moq documentation and changelogs for feature support.
 - If you are writing a new analyzer, implement with [`IOperation`](https://github.com/rjmurillo/moq.analyzers/issues/118) (see issue #118)
 
+### Troubleshooting Development FlowAdd commentMore actions
+If you encounter:
+
+- The versioning is causing issues This may show up in your build output as error `MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly.` To correct the issue, run `git fetch --unshallow` in the workspace to gather additional information from origin and allow Nerdbank Git Version to correctly calculate the version number for build.
+
 ---
 
 ## Formatting, Linting, and Bot Feedback

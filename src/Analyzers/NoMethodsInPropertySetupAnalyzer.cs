@@ -1,13 +1,13 @@
 namespace Moq.Analyzers;
 
 /// <summary>
-/// SetupGet/SetupSet should be used for properties, not for methods.
+/// SetupGet/SetupSet/SetupProperty should be used for properties, not for methods.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Property setup used for a method";
-    private static readonly LocalizableString Message = "SetupGet/SetupSet should be used for properties, not for methods";
+    private static readonly LocalizableString Message = "SetupGet/SetupSet/SetupProperty should be used for properties, not for methods";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.PropertySetupUsedForMethod,
@@ -35,7 +35,8 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
 
         if (setupGetOrSetInvocation.Expression is not MemberAccessExpressionSyntax setupGetOrSetMethod) return;
         if (!string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupGet", StringComparison.Ordinal)
-            && !string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupSet", StringComparison.Ordinal)) return;
+            && !string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupSet", StringComparison.Ordinal)
+            && !string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupProperty", StringComparison.Ordinal)) return;
 
         InvocationExpressionSyntax? mockedMethodCall = setupGetOrSetInvocation.FindMockedMethodInvocationFromSetupMethod();
         if (mockedMethodCall == null) return;
