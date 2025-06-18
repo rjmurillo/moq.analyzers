@@ -11,9 +11,9 @@
 | [Moq1201](./Moq1201.md) | Correctness   | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`         | [SetupShouldNotIncludeAsyncResultAnalyzer.cs](../../src/Analyzers/SetupShouldNotIncludeAsyncResultAnalyzer.cs)                     |
 | [Moq1202](./Moq1202.md) | Correctness   | Raise event arguments should match the event delegate signature                         | [RaiseEventArgumentsShouldMatchEventSignatureAnalyzer.cs](../../src/Analyzers/RaiseEventArgumentsShouldMatchEventSignatureAnalyzer.cs)     |
 | [Moq1300](./Moq1300.md) | Usage         | `Mock.As()` should take interfaces only                                                 | [AsShouldBeUsedOnlyForInterfaceAnalyzer.cs](../../src/Analyzers/AsShouldBeUsedOnlyForInterfaceAnalyzer.cs)                         |
+| [Moq1301](./Moq1301.md) | Usage         | Mock.Get() should not take literals                                                     | [MockGetShouldNotTakeLiteralsAnalyzer.cs](../../src/Analyzers/MockGetShouldNotTakeLiteralsAnalyzer.cs)                             |
 | [Moq1400](./Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior | [SetExplicitMockBehaviorAnalyzer.cs](../../src/Analyzers/SetExplicitMockBehaviorAnalyzer.cs)                                       |
 | [Moq1410](./Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              | [SetStrictMockBehaviorAnalyzer.cs](../../src/Analyzers/SetStrictMockBehaviorAnalyzer.cs)                                           |
-| [Moq1500](./Moq1500.md) | Usage         | Mock.Get() should not take literals                                                     | [MockGetShouldNotTakeLiteralsAnalyzer.cs](../../src/Analyzers/MockGetShouldNotTakeLiteralsAnalyzer.cs)                             |
 ## Guidance for Future Rules
 
 ### Categories

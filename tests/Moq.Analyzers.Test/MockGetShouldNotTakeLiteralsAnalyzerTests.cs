@@ -8,9 +8,9 @@ public class MockGetShouldNotTakeLiteralsAnalyzerTests
     {
         return new object[][]
         {
-            ["""Mock.Get<string>({|Moq1500:"literal string"|});"""],
-            ["""Mock.Get<ISampleInterface>({|Moq1500:null|});"""],
-            ["""Mock.Get<ISampleInterface>({|Moq1500:default(ISampleInterface)|});"""],
+            ["""Mock.Get<string>({|Moq1301:"literal string"|});"""],
+            ["""Mock.Get<ISampleInterface>({|Moq1301:null|});"""],
+            ["""Mock.Get<ISampleInterface>({|Moq1301:default(ISampleInterface)|});"""],
             ["""var mock = new Mock<ISampleInterface>(); Mock.Get(mock.Object);"""], // Valid usage
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }

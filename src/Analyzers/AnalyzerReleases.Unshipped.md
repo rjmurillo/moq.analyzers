@@ -5,4 +5,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
-Moq1500 | Moq      | Warning    | Mock.Get() should not take literals
+Moq1301 | Moq      | Warning    | Mock.Get() should not take literals
