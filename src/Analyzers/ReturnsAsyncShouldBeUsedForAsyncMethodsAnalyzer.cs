@@ -54,8 +54,24 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
             return;
         }
 
-        Diagnostic diagnostic = invocation.CreateDiagnostic(Rule);
-        context.ReportDiagnostic(diagnostic);
+        // Report diagnostic on just the Returns(...) method call
+        if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+        {
+            // Create a span from the Returns identifier through the end of the invocation
+            int startPos = memberAccess.Name.SpanStart;
+            int endPos = invocation.Span.End;
+            Microsoft.CodeAnalysis.Text.TextSpan span = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(startPos, endPos);
+            Location location = Location.Create(invocation.SyntaxTree, span);
+
+            Diagnostic diagnostic = location.CreateDiagnostic(Rule);
+            context.ReportDiagnostic(diagnostic);
+        }
+        else
+        {
+            // Fallback to entire invocation if we can't parse the structure
+            Diagnostic diagnostic = invocation.CreateDiagnostic(Rule);
+            context.ReportDiagnostic(diagnostic);
+        }
     }
 
     private static bool IsReturnsMethodCallWithAsyncLambda(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
@@ -72,13 +88,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
             return false;
         }
 
-        if (!string.Equals(method.Name, "Returns", StringComparison.Ordinal) || method.ContainingType == null)
-        {
-            return false;
-        }
-
-        // Check if this is from Moq namespace
-        if (!method.ContainingType.ToDisplayString().StartsWith("Moq.", StringComparison.Ordinal))
+        if (!method.IsMoqReturnsMethod())
         {
             return false;
         }
@@ -144,21 +154,6 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         }
 
         // Check if the mocked method returns Task or Task<T>
-        return IsTaskType(mockedMethod.ReturnType);
-    }
-
-    private static bool IsTaskType(ITypeSymbol returnType)
-    {
-        if (returnType is not INamedTypeSymbol namedType)
-        {
-            return false;
-        }
-
-        // Check for Task or Task<T>
-        string typeName = namedType.OriginalDefinition.ToDisplayString();
-        return string.Equals(typeName, "System.Threading.Tasks.Task", StringComparison.Ordinal) ||
-string.Equals(typeName, "System.Threading.Tasks.Task<T>", StringComparison.Ordinal) ||
-string.Equals(typeName, "System.Threading.Tasks.ValueTask", StringComparison.Ordinal) ||
-string.Equals(typeName, "System.Threading.Tasks.ValueTask<T>", StringComparison.Ordinal);
+        return mockedMethod.ReturnType.IsTaskOrValueTaskType(knownSymbols);
     }
 }

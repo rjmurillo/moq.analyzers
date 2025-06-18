@@ -119,9 +119,55 @@ internal static class ISymbolExtensions
         return false;
     }
 
+    /// <summary>
+    /// Determines whether a type symbol represents a Task or ValueTask type.
+    /// </summary>
+    /// <param name="typeSymbol">The type symbol to check.</param>
+    /// <param name="knownSymbols">The known symbols from the compilation.</param>
+    /// <returns>True if the type is Task, Task&lt;T&gt;, ValueTask, or ValueTask&lt;T&gt;; otherwise false.</returns>
+    public static bool IsTaskOrValueTaskType(this ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
+    {
+        if (typeSymbol is not INamedTypeSymbol namedType)
+        {
+            return false;
+        }
+
+        // Check for Task, Task<T>, ValueTask, or ValueTask<T>
+        INamedTypeSymbol originalDefinition = namedType.OriginalDefinition;
+
+        return SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.Task) ||
+               SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.Task1) ||
+               SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.ValueTask) ||
+               SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.ValueTask1);
+    }
+
     internal static bool IsMoqSetupMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
         return symbol.IsInstanceOf(knownSymbols.Mock1Setup) && symbol is IMethodSymbol { IsGenericMethod: true };
+    }
+
+    /// <summary>
+    /// Determines whether a symbol is a Moq Returns method.
+    /// </summary>
+    /// <param name="symbol">The symbol to check.</param>
+    /// <returns>True if the symbol is a Returns method from Moq.Language.IReturns; otherwise false.</returns>
+    internal static bool IsMoqReturnsMethod(this ISymbol symbol)
+    {
+        if (symbol is not IMethodSymbol methodSymbol)
+        {
+            return false;
+        }
+
+        INamedTypeSymbol? containingType = methodSymbol.ContainingType;
+        if (containingType is null)
+        {
+            return false;
+        }
+
+        string containingTypeName = containingType.ToDisplayString();
+
+        return string.Equals(methodSymbol.Name, "Returns", StringComparison.Ordinal)
+               && containingTypeName.StartsWith("Moq.Language.IReturns", StringComparison.Ordinal);
     }
 
     /// <summary>

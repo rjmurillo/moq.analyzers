@@ -12,11 +12,13 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzerTests(ITestOutputHel
         {
             // Correct usage with ReturnsAsync
             ["""new Mock<AsyncClient>().Setup(c => c.GetAsync()).ReturnsAsync("value");"""],
-            ["""new Mock<AsyncClient>().Setup(c => c.DoAsync()).ReturnsAsync();"""],
+            ["""new Mock<AsyncClient>().Setup(c => c.GetValueTaskAsync()).ReturnsAsync("value");"""],
 
             // Correct usage with Returns and sync lambda
             ["""new Mock<AsyncClient>().Setup(c => c.GetAsync()).Returns(() => Task.FromResult("value"));"""],
             ["""new Mock<AsyncClient>().Setup(c => c.DoAsync()).Returns(() => Task.CompletedTask);"""],
+            ["""new Mock<AsyncClient>().Setup(c => c.GetValueTaskAsync()).Returns(() => ValueTask.FromResult("value"));"""],
+            ["""new Mock<AsyncClient>().Setup(c => c.DoValueTaskAsync()).Returns(() => ValueTask.CompletedTask);"""],
 
             // Non-async methods should not be affected
             ["""new Mock<AsyncClient>().Setup(c => c.GetSync()).Returns("value");"""],
