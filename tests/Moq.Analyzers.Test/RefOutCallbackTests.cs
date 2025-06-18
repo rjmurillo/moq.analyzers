@@ -97,4 +97,35 @@ public class RefOutCallbackTests
             testCode,
             ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
+
+    [Fact]
+    public async Task ShouldDetectRefParameterMismatch()
+    {
+        string testCode = """
+            using Moq;
+
+            internal interface IFoo
+            {
+                void Submit(ref string data);
+            }
+
+            internal delegate void SubmitCallback(string data); // Wrong: missing ref
+
+            internal class TestClass
+            {
+                public void TestMethod()
+                {
+                    var mock = new Mock<IFoo>();
+                    
+                    // This should trigger warning - ref vs non-ref mismatch
+                    mock.Setup(foo => foo.Submit(ref It.Ref<string>.IsAny))
+                        .Callback(new SubmitCallback({|Moq1100:(string data)|} => System.Console.WriteLine("Submit called")));
+                }
+            }
+            """;
+
+        await AnalyzerVerifier<CallbackSignatureShouldMatchMockedMethodAnalyzer>.VerifyAnalyzerAsync(
+            testCode,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
 }
