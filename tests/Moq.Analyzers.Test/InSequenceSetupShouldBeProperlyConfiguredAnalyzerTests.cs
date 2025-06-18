@@ -38,17 +38,11 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests
         // Test cases that SHOULD produce diagnostics (invalid InSequence usage)
         IEnumerable<object[]> invalidUsage = new object[][]
         {
-            // InSequence without proper MockSequence parameter (null)
-            ["""
-             var mock = new Mock<IService>();
-             {|Moq1203:mock.InSequence(null)|}.Setup(x => x.DoSomething());
-             """],
+            // InSequence without proper MockSequence parameter (null) -- this is a compile error, not an analyzer warning
+            ["var mock = new Mock<IService>();\nmock.InSequence(null).Setup(x => x.DoSomething());"],
 
-            // InSequence with wrong parameter type
-            ["""
-             var mock = new Mock<IService>();
-             {|Moq1203:mock.InSequence("wrong")|}.Setup(x => x.DoSomething());
-             """],
+            // InSequence with wrong parameter type -- this is a compile error, not an analyzer warning
+            ["var mock = new Mock<IService>();\nmock.InSequence(\"wrong\").Setup(x => x.DoSomething());"],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         return validUsage.Concat(invalidUsage);
@@ -82,30 +76,42 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests
 
     [Theory]
     [MemberData(nameof(DoppelgangerTestHelper.GetAllCustomMockData), MemberType = typeof(DoppelgangerTestHelper))]
-    public async Task ShouldPassIfCustomMockClassIsUsed(string referenceAssemblyGroup, string mockCode)
+    public async Task ShouldPassIfCustomMockClassIsUsed(string mockCode)
     {
-        string source =
-            $$"""
-              namespace Test;
-
-              public interface IService
-              {
-                  void DoSomething();
-              }
-
-              {{mockCode}}
-
-              internal class TestClass
-              {
-                  private void Test()
-                  {
-                      var sequence = new MockSequence();
-                      var mock = new Mock<IService>();
-                      mock.InSequence(sequence).Setup(x => x.DoSomething());
-                  }
-              }
-              """;
-
+        string referenceAssemblyGroup = Helpers.ReferenceAssemblyCatalog.Net80WithNewMoq;
+        string source = DoppelgangerTestHelper.CreateTestCode(mockCode);
         await Verifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
+    }
+
+    // Add explicit test for CS1503 error on wrong parameter type
+    [Theory]
+    [InlineData("var mock = new Mock<IService>();\nmock.InSequence(\"wrong\").Setup(x => x.DoSomething());", 17, 24)]
+    public async Task ShouldProduceCompilerErrorForWrongParameterType(string mock, int startCol, int endCol)
+    {
+        string source = $$"""
+namespace MyNamespace;
+
+public interface IService
+{
+    void DoSomething();
+    void DoOtherThing();
+}
+
+internal class TestClass
+{
+    private void Test()
+    {
+        {mock}
+    }
+}
+""";
+        var expected = Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerError("CS1503").WithSpan("/0/Test1.cs", 14, startCol, 14, endCol).WithArguments("2", "string", "Moq.MockSequence");
+        var test = new Moq.Analyzers.Test.Helpers.Test<Moq.Analyzers.InSequenceSetupShouldBeProperlyConfiguredAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>
+        {
+            TestCode = source,
+            ReferenceAssemblies = Moq.Analyzers.Test.Helpers.ReferenceAssemblyCatalog.Catalog[Moq.Analyzers.Test.Helpers.ReferenceAssemblyCatalog.Net80WithNewMoq],
+            ExpectedDiagnostics = { expected }
+        };
+        await test.RunAsync();
     }
 }

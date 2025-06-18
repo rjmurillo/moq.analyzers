@@ -73,12 +73,12 @@ internal static class DoppelgangerTestHelper
     {
         return new object[][]
         {
-            ["""var mock1 = new Mock<IMyService>();"""],
-            ["""var mock2 = new Mock<IMyService>("param");"""],
-            ["""var mock3 = new Mock<IMyService>(5, true);"""],
-            ["""var mock4 = new Mock<IMyService>(MockBehavior.Strict);"""],
-            ["""var mock5 = new Mock<IMyService>(MockBehavior.Strict, 6, true);"""],
-            ["""var mock6 = new Mock<MySealedService>();"""],
+            ["var mock1 = new Mock<IMyService>();"],
+            ["var mock2 = new Mock<IMyService>(\"param\");"],
+            ["var mock3 = new Mock<IMyService>(5, true);"],
+            ["var mock4 = new Mock<IMyService>(MockBehavior.Strict);"],
+            ["var mock5 = new Mock<IMyService>(MockBehavior.Strict, 6, true);"],
+            ["var mock6 = new Mock<MySealedService>();"],
         };
     }
 
@@ -90,25 +90,16 @@ internal static class DoppelgangerTestHelper
     {
         return new object[][]
         {
-            // As() method calls
-            ["""var mock = new Mock<IMyService>().As<IMyService>();"""],
-
-            // Setup method calls
-            ["""var mock = new Mock<IMyService>().Setup(x => x.Do("test"));"""],
-            ["""var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2));"""],
-            ["""new Mock<IMyService>().Setup(x => x.Do("test"));"""],
-
-            // SetupGet/SetupSet calls
-            ["""var mock = new Mock<IMyService>().SetupGet(x => x.Property);"""],
-            ["""var mock = new Mock<IMyService>().SetupSet(x => x.Property = "value");"""],
-
-            // Returns/Callback chaining
-            ["""var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Returns(42);"""],
-            ["""var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Callback(() => { });"""],
-            ["""new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).ReturnsAsync(42);"""],
-
-            // Complex chaining
-            ["""var mock = new Mock<IMyService>().As<IMyService>().Setup(x => x.Calculate(1, 2)).Returns(42);"""],
+            ["var mock = new Mock<IMyService>().As<IMyService>();"],
+            ["var mock = new Mock<IMyService>().Setup(x => x.Do(\"test\"));"],
+            ["var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2));"],
+            ["new Mock<IMyService>().Setup(x => x.Do(\"test\"));"],
+            ["var mock = new Mock<IMyService>().SetupGet(x => x.Property);"],
+            ["var mock = new Mock<IMyService>().SetupSet(x => x.Property = \"value\");"],
+            ["var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Returns(42);"],
+            ["var mock = new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).Callback(() => { });"],
+            ["new Mock<IMyService>().Setup(x => x.Calculate(1, 2)).ReturnsAsync(42);"],
+            ["var mock = new Mock<IMyService>().As<IMyService>().Setup(x => x.Calculate(1, 2)).Returns(42);"],
         };
     }
 
@@ -118,7 +109,8 @@ internal static class DoppelgangerTestHelper
     /// <returns>An enumerable of test data arrays containing all custom Mock constructor and method call code examples.</returns>
     public static IEnumerable<object[]> GetAllCustomMockData()
     {
-        return CustomMockConstructorData().Concat(CustomMockMethodCallData());
+        return CustomMockConstructorData().Concat(CustomMockMethodCallData())
+            .Select(arr => new object[] { arr[0] });
     }
 
     /// <summary>
