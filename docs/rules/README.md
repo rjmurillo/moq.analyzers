@@ -1,18 +1,18 @@
 # Diagnostics / rules
 
-| ID                               | Category      | Title                                                                                   |
-| -------------------------------- | ------------- | --------------------------------------------------------------------------------------- |
-| [Moq1000](./Moq1000.md)          | Usage         | Sealed classes cannot be mocked                                                         |
-| [Moq1001](./Moq1001.md)          | Usage         | Mocked interfaces cannot have constructor parameters                                    |
-| [Moq1002](./Moq1002.md)          | Usage         | Parameters provided into mock do not match any existing constructors                    |
-| [Moq1100](./Moq1100.md)          | Correctness   | Callback signature must match the signature of the mocked method                        |
-| [Moq1101](./Moq1101.md)          | Usage         | SetupGet/SetupSet should be used for properties, not for methods                        |
-| [Moq1200](./Moq1200.md)          | Correctness   | Setup should be used only for overridable members                                       |
-| [Moq1201](./Moq1201.md)          | Correctness   | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`         |
-| [Moq1300](./Moq1300.md)          | Usage         | `Mock.As()` should take interfaces only                                                 |
-| [Moq1400](./Moq1400.md)          | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
-| [Moq1410](./Moq1410.md)          | Best Practice | Explicitly set the Strict mocking behavior                                              |
-| [Moq1500](./Moq1500.md)          | Correctness   | Raise event arguments should match the event delegate signature                         |
+| ID                      | Category      | Title                                                                                   | Implementation File                                                                                                                |
+| ----------------------- | ------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| [Moq1000](./Moq1000.md) | Usage         | Sealed classes cannot be mocked                                                         | [NoSealedClassMocksAnalyzer.cs](../../src/Analyzers/NoSealedClassMocksAnalyzer.cs)                                                 |
+| [Moq1001](./Moq1001.md) | Usage         | Mocked interfaces cannot have constructor parameters                                    | [ConstructorArgumentsShouldMatchAnalyzer.cs](../../src/Analyzers/ConstructorArgumentsShouldMatchAnalyzer.cs)                       |
+| [Moq1002](./Moq1002.md) | Usage         | Parameters provided into mock do not match any existing constructors                    | [ConstructorArgumentsShouldMatchAnalyzer.cs](../../src/Analyzers/ConstructorArgumentsShouldMatchAnalyzer.cs)                       |
+| [Moq1100](./Moq1100.md) | Correctness   | Callback signature must match the signature of the mocked method                        | [CallbackSignatureShouldMatchMockedMethodAnalyzer.cs](../../src/Analyzers/CallbackSignatureShouldMatchMockedMethodAnalyzer.cs)     |
+| [Moq1101](./Moq1101.md) | Usage         | SetupGet/SetupSet should be used for properties, not for methods                        | [NoMethodsInPropertySetupAnalyzer.cs](../../src/Analyzers/NoMethodsInPropertySetupAnalyzer.cs)                                     |
+| [Moq1200](./Moq1200.md) | Correctness   | Setup should be used only for overridable members                                       | [SetupShouldBeUsedOnlyForOverridableMembersAnalyzer.cs](../../src/Analyzers/SetupShouldBeUsedOnlyForOverridableMembersAnalyzer.cs) |
+| [Moq1201](./Moq1201.md) | Correctness   | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`         | [SetupShouldNotIncludeAsyncResultAnalyzer.cs](../../src/Analyzers/SetupShouldNotIncludeAsyncResultAnalyzer.cs)                     |
+| [Moq1300](./Moq1300.md) | Usage         | `Mock.As()` should take interfaces only                                                 | [AsShouldBeUsedOnlyForInterfaceAnalyzer.cs](../../src/Analyzers/AsShouldBeUsedOnlyForInterfaceAnalyzer.cs)                         |
+| [Moq1400](./Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior | [SetExplicitMockBehaviorAnalyzer.cs](../../src/Analyzers/SetExplicitMockBehaviorAnalyzer.cs)                                       |
+| [Moq1410](./Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              | [SetStrictMockBehaviorAnalyzer.cs](../../src/Analyzers/SetStrictMockBehaviorAnalyzer.cs)                                           |
+| [Moq1500](./Moq1500.md) | Correctness   | Raise event arguments should match the event delegate signature                         | [CallbackSignatureShouldMatchMockedMethodAnalyzer.cs](../../src/Analyzers/CallbackSignatureShouldMatchMockedMethodAnalyzer.cs)     |
 
 ## Guidance for Future Rules
 
@@ -32,5 +32,5 @@
 | Moq1500-1999  | Reserved      | Reserved for future rules                                   |
 
 - When adding new rules, assign the next available ID in the appropriate category range.
-- Document new rules in this table, including their category and a concise title.
+- Document new rules in this table, including their category, a concise title, and links to both documentation and implementation.
 - For more, see the root [README.md](../../README.md).
