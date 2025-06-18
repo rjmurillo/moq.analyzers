@@ -72,7 +72,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
             return false;
         }
 
-        if (method.Name != "Returns" || method.ContainingType == null)
+        if (!string.Equals(method.Name, "Returns", StringComparison.Ordinal) || method.ContainingType == null)
         {
             return false;
         }
@@ -91,18 +91,19 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
     {
         // Walk up the syntax tree to find the Setup invocation
         SyntaxNode? current = returnsInvocation.Parent;
-        
+
         while (current != null)
         {
             if (current is InvocationExpressionSyntax invocation &&
                 invocation.Expression is MemberAccessExpressionSyntax memberAccess &&
-                memberAccess.Name.Identifier.ValueText == "Setup")
+string.Equals(memberAccess.Name.Identifier.ValueText, "Setup", StringComparison.Ordinal))
             {
                 return invocation;
             }
+
             current = current.Parent;
         }
-        
+
         return null;
     }
 
@@ -114,9 +115,9 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         }
 
         ExpressionSyntax firstArgument = invocation.ArgumentList.Arguments[0].Expression;
-        
+
         // Check for async lambda expressions
-        return firstArgument is LambdaExpressionSyntax lambda && 
+        return firstArgument is LambdaExpressionSyntax lambda &&
                lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
     }
 
@@ -148,10 +149,10 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         }
 
         // Check if the mocked method returns Task or Task<T>
-        return IsTaskType(mockedMethod.ReturnType, knownSymbols);
+        return IsTaskType(mockedMethod.ReturnType);
     }
 
-    private static bool IsTaskType(ITypeSymbol returnType, MoqKnownSymbols knownSymbols)
+    private static bool IsTaskType(ITypeSymbol returnType)
     {
         if (returnType is not INamedTypeSymbol namedType)
         {
@@ -160,9 +161,9 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
 
         // Check for Task or Task<T>
         string typeName = namedType.OriginalDefinition.ToDisplayString();
-        return typeName == "System.Threading.Tasks.Task" || 
-               typeName == "System.Threading.Tasks.Task<T>" ||
-               typeName == "System.Threading.Tasks.ValueTask" ||
-               typeName == "System.Threading.Tasks.ValueTask<T>";
+        return string.Equals(typeName, "System.Threading.Tasks.Task", StringComparison.Ordinal) ||
+string.Equals(typeName, "System.Threading.Tasks.Task<T>", StringComparison.Ordinal) ||
+string.Equals(typeName, "System.Threading.Tasks.ValueTask", StringComparison.Ordinal) ||
+string.Equals(typeName, "System.Threading.Tasks.ValueTask<T>", StringComparison.Ordinal);
     }
 }

@@ -13,32 +13,32 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzerTests(ITestOutputHel
             // Correct usage with ReturnsAsync
             ["""new Mock<AsyncClient>().Setup(c => c.GetAsync()).ReturnsAsync("value");"""],
             ["""new Mock<AsyncClient>().Setup(c => c.DoAsync()).ReturnsAsync();"""],
-            
+
             // Correct usage with Returns and sync lambda
             ["""new Mock<AsyncClient>().Setup(c => c.GetAsync()).Returns(() => Task.FromResult("value"));"""],
             ["""new Mock<AsyncClient>().Setup(c => c.DoAsync()).Returns(() => Task.CompletedTask);"""],
-            
+
             // Non-async methods should not be affected
             ["""new Mock<AsyncClient>().Setup(c => c.GetSync()).Returns("value");"""],
             ["""new Mock<AsyncClient>().Setup(c => c.GetSync()).Returns(() => "value");"""],
-            
+
             // Setup without Returns call should not be affected
             ["""new Mock<AsyncClient>().Setup(c => c.GetAsync());"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
-        // Invalid patterns that SHOULD trigger the analyzer 
+        // Invalid patterns that SHOULD trigger the analyzer
         IEnumerable<object[]> invalid = new object[][]
         {
             // Async lambda in Returns for Task<T> method
             ["""new Mock<AsyncClient>().Setup(c => c.GetAsync()).{|Moq1203:Returns(async () => "value")|};"""],
-            
+
             // Async lambda in Returns for Task method
             ["""new Mock<AsyncClient>().Setup(c => c.DoAsync()).{|Moq1203:Returns(async () => { })|};"""],
-            
+
             // Async lambda in Returns for ValueTask<T> method
             ["""new Mock<AsyncClient>().Setup(c => c.GetValueTaskAsync()).{|Moq1203:Returns(async () => "value")|};"""],
-            
-            // Async lambda in Returns for ValueTask method  
+
+            // Async lambda in Returns for ValueTask method
             ["""new Mock<AsyncClient>().Setup(c => c.DoValueTaskAsync()).{|Moq1203:Returns(async () => { })|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
