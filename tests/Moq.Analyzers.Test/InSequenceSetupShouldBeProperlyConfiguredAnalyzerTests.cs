@@ -128,4 +128,60 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests
 
         await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
+
+    [Fact]
+    public async Task ShouldHandleInSequenceWithInvalidParameterType()
+    {
+        string source = """
+            using Moq;
+
+            public interface IService
+            {
+                void DoSomething();
+            }
+
+            public class MockSequenceSubclass : MockSequence
+            {
+            }
+
+            internal class TestClass
+            {
+                private void Test()
+                {
+                    var mock = new Mock<IService>();
+                    MockSequenceSubclass sequence = new MockSequenceSubclass();
+                    // This should actually be valid since subclass inherits from MockSequence
+                    mock.InSequence(sequence).Setup(x => x.DoSomething());
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldNotAnalyzeNonMockInvocations()
+    {
+        string source = """
+            using System;
+
+            public interface IService  
+            {
+                void DoSomething();
+            }
+
+            internal class TestClass
+            {
+                private void Test()
+                {
+                    // Non-mock method calls should not trigger analyzer
+                    var service = new object();
+                    Console.WriteLine("test");
+                    var result = service.ToString();
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
 }
