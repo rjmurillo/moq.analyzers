@@ -81,17 +81,4 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzer : DiagnosticAnaly
         // Check if the parameter type is compatible with MockSequence
         return argument.Value.Type.InheritsFromOrImplements(knownSymbols.MockSequence);
     }
-
-    private static bool InheritsFromOrImplements(ITypeSymbol type, ITypeSymbol baseType)
-    {
-        while (type != null)
-        {
-            if (SymbolEqualityComparer.Default.Equals(type, baseType))
-            {
-                return true;
-            }
-            type = type.BaseType;
-        }
-        return false;
-    }
 }
