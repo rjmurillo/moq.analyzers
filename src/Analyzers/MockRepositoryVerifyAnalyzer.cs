@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
@@ -74,7 +75,7 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
         }
 
         // Get the containing method or property
-        var containingMember = GetContainingMember(declarator);
+        IOperation? containingMember = GetContainingMember(declarator);
         if (containingMember is null)
         {
             return;
@@ -87,7 +88,8 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
         // Report diagnostic if Create() calls exist but no Verify() calls
         if (hasCreateCalls && !hasVerifyCalls)
         {
-            var diagnostic = declarator.CreateDiagnostic(Rule, declarator.Symbol.Name);
+            Location diagnosticLocation = GetDiagnosticLocationForVariableDeclarator(declarator);
+            Diagnostic diagnostic = diagnosticLocation.CreateDiagnostic(Rule, declarator.Symbol.Name);
             context.ReportDiagnostic(diagnostic);
         }
     }
@@ -97,7 +99,7 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static IOperation? GetContainingMember(IOperation operation)
     {
-        var current = operation;
+        IOperation? current = operation;
         while (current != null)
         {
             if (current.Kind == OperationKind.MethodBody || current.Kind == OperationKind.PropertyReference)
@@ -116,7 +118,7 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static bool HasCreateCallsForRepository(ILocalSymbol repositorySymbol, IOperation memberOperation, MoqKnownSymbols knownSymbols)
     {
-        foreach (var operation in GetAllChildOperations(memberOperation))
+        foreach (IOperation operation in GetAllChildOperations(memberOperation))
         {
             if (operation is IInvocationOperation invocation &&
                 IsValidMockRepositoryCreateCall(invocation, knownSymbols) &&
@@ -134,7 +136,7 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static bool HasVerifyCallsForRepository(ILocalSymbol repositorySymbol, IOperation memberOperation, MoqKnownSymbols knownSymbols)
     {
-        foreach (var operation in GetAllChildOperations(memberOperation))
+        foreach (IOperation operation in GetAllChildOperations(memberOperation))
         {
             if (operation is IInvocationOperation invocation &&
                 IsValidMockRepositoryVerifyCall(invocation, knownSymbols) &&
@@ -148,31 +150,15 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Gets all operations from a block operation recursively.
-    /// </summary>
-    private static IEnumerable<IOperation> GetAllOperations(IBlockOperation blockOperation)
-    {
-        foreach (var operation in blockOperation.Operations)
-        {
-            yield return operation;
-
-            foreach (var child in GetAllChildOperations(operation))
-            {
-                yield return child;
-            }
-        }
-    }
-
-    /// <summary>
     /// Gets all child operations recursively.
     /// </summary>
     private static IEnumerable<IOperation> GetAllChildOperations(IOperation operation)
     {
-        foreach (var child in operation.ChildOperations)
+        foreach (IOperation child in operation.ChildOperations)
         {
             yield return child;
 
-            foreach (var grandchild in GetAllChildOperations(child))
+            foreach (IOperation grandchild in GetAllChildOperations(child))
             {
                 yield return grandchild;
             }
@@ -226,5 +212,20 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
             ILocalReferenceOperation localRef => localRef.Local,
             _ => null,
         };
+    }
+
+    /// <summary>
+    /// Gets the diagnostic location for a variable declarator, targeting the variable identifier.
+    /// </summary>
+    private static Location GetDiagnosticLocationForVariableDeclarator(IVariableDeclaratorOperation declarator)
+    {
+        // Try to locate the variable identifier in the syntax tree to report the diagnostic at the correct location.
+        // If that fails for any reason, report the diagnostic on the entire declarator.
+        if (declarator.Syntax is VariableDeclaratorSyntax declaratorSyntax)
+        {
+            return declaratorSyntax.Identifier.GetLocation();
+        }
+
+        return declarator.Syntax.GetLocation();
     }
 }
