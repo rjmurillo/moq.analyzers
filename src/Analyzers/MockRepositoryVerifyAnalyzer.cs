@@ -52,74 +52,99 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        context.RegisterOperationBlockStartAction(operationBlockContext =>
-        {
-            operationBlockContext.RegisterOperationAction(
-                operationContext => AnalyzeOperation(operationContext, knownSymbols),
-                OperationKind.Block);
-        });
+        context.RegisterOperationAction(
+            operationContext => AnalyzeVariableDeclaration(operationContext, knownSymbols),
+            OperationKind.VariableDeclarator);
     }
 
     /// <summary>
-    /// Analyzes a block of operations to find MockRepository instances that need Verify() called.
+    /// Analyzes a variable declaration to find MockRepository instances that may need verification.
     /// </summary>
-    private static void AnalyzeOperation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
+    private static void AnalyzeVariableDeclaration(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        if (context.Operation is not IBlockOperation blockOperation)
+        if (context.Operation is not IVariableDeclaratorOperation declarator)
         {
             return;
         }
 
-        HashSet<ILocalSymbol> mockRepositoryVariables = new HashSet<ILocalSymbol>(SymbolEqualityComparer.Default);
-        HashSet<ILocalSymbol> verifiedRepositories = new HashSet<ILocalSymbol>(SymbolEqualityComparer.Default);
-
-        // First pass: Find MockRepository variable declarations and Verify() calls
-        foreach (IOperation operation in GetAllOperations(blockOperation))
+        // Check if this declares a MockRepository variable
+        if (!IsValidMockRepositoryDeclaration(declarator, knownSymbols))
         {
-            switch (operation)
-            {
-                case IVariableDeclaratorOperation declarator
-                    when IsValidMockRepositoryDeclaration(declarator, knownSymbols):
-                    if (declarator.Symbol is ILocalSymbol localSymbol)
-                    {
-                        mockRepositoryVariables.Add(localSymbol);
-                    }
-
-                    break;
-
-                case IInvocationOperation invocation
-                    when IsValidMockRepositoryVerifyCall(invocation, knownSymbols):
-                    if (GetRepositorySymbolFromVerifyCall(invocation) is ILocalSymbol verifiedSymbol)
-                    {
-                        verifiedRepositories.Add(verifiedSymbol);
-                    }
-
-                    break;
-            }
+            return;
         }
 
-        // Second pass: Check if any MockRepository variables have Create() calls but no Verify()
-        HashSet<ILocalSymbol> repositoriesWithCreateCalls = new HashSet<ILocalSymbol>(SymbolEqualityComparer.Default);
+        // Get the containing method or property
+        var containingMember = GetContainingMember(declarator);
+        if (containingMember is null)
+        {
+            return;
+        }
 
-        foreach (IOperation operation in GetAllOperations(blockOperation))
+        // Check if there are Create() calls and Verify() calls for this repository in the same scope
+        bool hasCreateCalls = HasCreateCallsForRepository(declarator.Symbol, containingMember, knownSymbols);
+        bool hasVerifyCalls = HasVerifyCallsForRepository(declarator.Symbol, containingMember, knownSymbols);
+
+        // Report diagnostic if Create() calls exist but no Verify() calls
+        if (hasCreateCalls && !hasVerifyCalls)
+        {
+            var diagnostic = declarator.CreateDiagnostic(Rule, declarator.Symbol.Name);
+            context.ReportDiagnostic(diagnostic);
+        }
+    }
+
+    /// <summary>
+    /// Gets the containing method or property for an operation.
+    /// </summary>
+    private static IOperation? GetContainingMember(IOperation operation)
+    {
+        var current = operation;
+        while (current != null)
+        {
+            if (current.Kind == OperationKind.MethodBody || current.Kind == OperationKind.PropertyReference)
+            {
+                return current;
+            }
+
+            current = current.Parent;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Checks if there are Create() calls for the specified repository in the given member.
+    /// </summary>
+    private static bool HasCreateCallsForRepository(ILocalSymbol repositorySymbol, IOperation memberOperation, MoqKnownSymbols knownSymbols)
+    {
+        foreach (var operation in GetAllChildOperations(memberOperation))
         {
             if (operation is IInvocationOperation invocation &&
                 IsValidMockRepositoryCreateCall(invocation, knownSymbols) &&
-                GetRepositorySymbolFromCreateCall(invocation) is ILocalSymbol repoSymbol)
+                GetRepositorySymbolFromCreateCall(invocation)?.Equals(repositorySymbol, SymbolEqualityComparer.Default) == true)
             {
-                repositoriesWithCreateCalls.Add(repoSymbol);
+                return true;
             }
         }
 
-        // Report diagnostics for repositories with Create() calls but no Verify()
-        foreach (ILocalSymbol repoSymbol in repositoriesWithCreateCalls)
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if there are Verify() calls for the specified repository in the given member.
+    /// </summary>
+    private static bool HasVerifyCallsForRepository(ILocalSymbol repositorySymbol, IOperation memberOperation, MoqKnownSymbols knownSymbols)
+    {
+        foreach (var operation in GetAllChildOperations(memberOperation))
         {
-            if (!verifiedRepositories.Contains(repoSymbol))
+            if (operation is IInvocationOperation invocation &&
+                IsValidMockRepositoryVerifyCall(invocation, knownSymbols) &&
+                GetRepositorySymbolFromVerifyCall(invocation)?.Equals(repositorySymbol, SymbolEqualityComparer.Default) == true)
             {
-                Diagnostic diagnostic = context.Operation.CreateDiagnostic(Rule, repoSymbol.Name);
-                context.ReportDiagnostic(diagnostic);
+                return true;
             }
         }
+
+        return false;
     }
 
     /// <summary>
