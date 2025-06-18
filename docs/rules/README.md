@@ -9,11 +9,10 @@
 | [Moq1101](./Moq1101.md) | Usage         | SetupGet/SetupSet should be used for properties, not for methods                        | [NoMethodsInPropertySetupAnalyzer.cs](../../src/Analyzers/NoMethodsInPropertySetupAnalyzer.cs)                                     |
 | [Moq1200](./Moq1200.md) | Correctness   | Setup should be used only for overridable members                                       | [SetupShouldBeUsedOnlyForOverridableMembersAnalyzer.cs](../../src/Analyzers/SetupShouldBeUsedOnlyForOverridableMembersAnalyzer.cs) |
 | [Moq1201](./Moq1201.md) | Correctness   | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`         | [SetupShouldNotIncludeAsyncResultAnalyzer.cs](../../src/Analyzers/SetupShouldNotIncludeAsyncResultAnalyzer.cs)                     |
-| [Moq1202](./Moq1202.md) | Correctness   | Raise event arguments should match the event delegate signature                         | [CallbackSignatureShouldMatchMockedMethodAnalyzer.cs](../../src/Analyzers/CallbackSignatureShouldMatchMockedMethodAnalyzer.cs)     |
+| [Moq1202](./Moq1202.md) | Correctness   | Raise event arguments should match the event delegate signature                         | [RaiseEventArgumentsShouldMatchEventSignatureAnalyzer.cs](../../src/Analyzers/RaiseEventArgumentsShouldMatchEventSignatureAnalyzer.cs)     |
 | [Moq1300](./Moq1300.md) | Usage         | `Mock.As()` should take interfaces only                                                 | [AsShouldBeUsedOnlyForInterfaceAnalyzer.cs](../../src/Analyzers/AsShouldBeUsedOnlyForInterfaceAnalyzer.cs)                         |
 | [Moq1400](./Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior | [SetExplicitMockBehaviorAnalyzer.cs](../../src/Analyzers/SetExplicitMockBehaviorAnalyzer.cs)                                       |
 | [Moq1410](./Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              | [SetStrictMockBehaviorAnalyzer.cs](../../src/Analyzers/SetStrictMockBehaviorAnalyzer.cs)                                           |
-
 ## Guidance for Future Rules
 
 ### Categories
