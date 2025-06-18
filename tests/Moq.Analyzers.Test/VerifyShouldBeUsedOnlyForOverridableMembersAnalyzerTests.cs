@@ -20,7 +20,7 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
             ["""{|Moq1210:new Mock<SampleClass>().VerifyGet(x => x.Property)|}"""],
             ["""new Mock<ISampleInterface>().VerifyGet(x => x.TestProperty);"""],
 
-            // VerifySet tests  
+            // VerifySet tests
             ["""{|Moq1210:new Mock<SampleClass>().VerifySet(x => x.Property = It.IsAny<int>())|}"""],
             ["""new Mock<ISampleInterface>().VerifySet(x => x.TestProperty = It.IsAny<string>());"""],
 
