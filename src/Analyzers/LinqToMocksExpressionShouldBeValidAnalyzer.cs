@@ -10,7 +10,7 @@ namespace Moq.Analyzers;
 public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Invalid LINQ to Mocks expression";
-    private static readonly LocalizableString Message = "LINQ to Mocks expression should be valid and supported";
+    private static readonly LocalizableString Message = "LINQ to Mocks expression contains non-virtual member '{0}' that cannot be mocked";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.LinqToMocksExpressionShouldBeValid,
@@ -43,19 +43,12 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Look for the Mock.Of() methods
-        ImmutableArray<IMethodSymbol> ofMethods = knownSymbols.MockOf;
-        if (ofMethods.IsEmpty)
-        {
-            return;
-        }
-
         context.RegisterOperationAction(
-            operationAnalysisContext => Analyze(operationAnalysisContext, knownSymbols),
+            operationAnalysisContext => Analyze(operationAnalysisContext),
             OperationKind.Invocation);
     }
 
-    private static void Analyze(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
+    private static void Analyze(OperationAnalysisContext context)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
@@ -63,7 +56,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         }
 
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
-        if (!IsValidMockOfMethod(targetMethod, knownSymbols))
+        if (!IsValidMockOfMethod(targetMethod))
         {
             return;
         }
@@ -73,106 +66,54 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         {
             if (argument.Value is IAnonymousFunctionOperation lambdaOperation)
             {
-                AnalyzeLambdaExpression(context, lambdaOperation, knownSymbols);
+                AnalyzeLambdaExpression(context, lambdaOperation);
             }
         }
     }
 
-    private static bool IsValidMockOfMethod(IMethodSymbol? targetMethod, MoqKnownSymbols knownSymbols)
+    private static bool IsValidMockOfMethod(IMethodSymbol? targetMethod)
     {
-        if (targetMethod is null || !targetMethod.IsStatic)
+        if (targetMethod is null)
         {
             return false;
         }
 
-        if (!string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return targetMethod.ContainingType is not null &&
-               targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default);
+        // Simple check for Mock.Of method
+        return string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal) &&
+               string.Equals(targetMethod.ContainingType?.Name, "Mock", StringComparison.Ordinal);
     }
 
-    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Analyzing lambda expressions requires multiple checks")]
-    private static void AnalyzeLambdaExpression(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, MoqKnownSymbols knownSymbols)
+    private static void AnalyzeLambdaExpression(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation)
     {
-        // The lambda body might be a single expression or a block
-        if (lambdaOperation.Body is IBlockOperation blockOperation)
-        {
-            foreach (IOperation operation in blockOperation.Operations)
-            {
-                AnalyzeOperation(context, operation, knownSymbols);
-            }
-        }
-        else
-        {
-            // Single expression lambda (e.g., r => r.IsAuthenticated == true)
-            AnalyzeExpression(context, lambdaOperation.Body, knownSymbols);
-        }
+        // Recursively walk through the lambda body to find member accesses
+        WalkOperation(context, lambdaOperation.Body);
     }
 
-    private static void AnalyzeOperation(OperationAnalysisContext context, IOperation operation, MoqKnownSymbols knownSymbols)
+    private static void WalkOperation(OperationAnalysisContext context, IOperation operation)
     {
-        switch (operation)
+        switch (operation.Kind)
         {
-            case IReturnOperation returnOperation when returnOperation.ReturnedValue != null:
-                AnalyzeExpression(context, returnOperation.ReturnedValue, knownSymbols);
-                break;
-            case IExpressionStatementOperation expressionStatement:
-                AnalyzeExpression(context, expressionStatement.Operation, knownSymbols);
-                break;
-            default:
-                // For simple lambda expressions without return statements
-                AnalyzeExpression(context, operation, knownSymbols);
-                break;
-        }
-    }
+            case OperationKind.PropertyReference:
+                if (operation is IPropertyReferenceOperation propertyRef)
+                {
+                    AnalyzePropertyReference(context, propertyRef);
+                }
 
-    private static void AnalyzeExpression(OperationAnalysisContext context, IOperation expression, MoqKnownSymbols knownSymbols)
-    {
-        switch (expression)
-        {
-            case IBinaryOperation binaryOp:
-                AnalyzeBinaryOperation(context, binaryOp, knownSymbols);
                 break;
-            case IInvocationOperation invocation:
-                AnalyzeInvocationInLinqExpression(context, invocation);
-                break;
-            case IPropertyReferenceOperation propertyRef:
-                AnalyzePropertyReference(context, propertyRef);
-                break;
-        }
-    }
 
-    private static void AnalyzeBinaryOperation(OperationAnalysisContext context, IBinaryOperation binaryOperation, MoqKnownSymbols knownSymbols)
-    {
-        // Check left side of binary operation (e.g., r.IsAuthenticated in r.IsAuthenticated == true)
-        if (binaryOperation.LeftOperand is IPropertyReferenceOperation propertyRef)
-        {
-            AnalyzePropertyReference(context, propertyRef);
-        }
-        else if (binaryOperation.LeftOperand is IInvocationOperation invocation)
-        {
-            AnalyzeInvocationInLinqExpression(context, invocation);
+            case OperationKind.Invocation:
+                if (operation is IInvocationOperation invocation)
+                {
+                    AnalyzeMethodInvocation(context, invocation);
+                }
+
+                break;
         }
 
-        // Recursively analyze nested binary operations
-        if (binaryOperation.LeftOperand is IBinaryOperation leftBinary)
+        // Recursively process child operations
+        foreach (IOperation childOperation in operation.ChildOperations)
         {
-            AnalyzeBinaryOperation(context, leftBinary, knownSymbols);
-        }
-
-        if (binaryOperation.RightOperand is IBinaryOperation rightBinary)
-        {
-            AnalyzeBinaryOperation(context, rightBinary, knownSymbols);
-        }
-
-        // Check for nested Mock.Of calls in the right operand
-        if (binaryOperation.RightOperand is IInvocationOperation rightInvocation && IsNestedMockOfCall(rightInvocation, knownSymbols))
-        {
-            // This might be too complex - warn about nested Mock.Of expressions
-            context.ReportDiagnostic(rightInvocation.Syntax.GetLocation().CreateDiagnostic(Rule));
+            WalkOperation(context, childOperation);
         }
     }
 
@@ -188,11 +129,12 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         if (!propertyRef.Property.IsVirtual && !propertyRef.Property.IsAbstract && !propertyRef.Property.IsOverride)
         {
             // Non-virtual properties cannot be mocked properly in LINQ to Mocks
-            context.ReportDiagnostic(propertyRef.Syntax.GetLocation().CreateDiagnostic(Rule));
+            var diagnostic = propertyRef.Syntax.GetLocation().CreateDiagnostic(Rule, propertyRef.Property.Name);
+            context.ReportDiagnostic(diagnostic);
         }
     }
 
-    private static void AnalyzeInvocationInLinqExpression(OperationAnalysisContext context, IInvocationOperation invocation)
+    private static void AnalyzeMethodInvocation(OperationAnalysisContext context, IInvocationOperation invocation)
     {
         if (invocation.TargetMethod.ContainingType?.TypeKind == TypeKind.Interface)
         {
@@ -204,12 +146,8 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         if (!invocation.TargetMethod.IsVirtual && !invocation.TargetMethod.IsAbstract && !invocation.TargetMethod.IsOverride)
         {
             // Non-virtual methods cannot be mocked properly in LINQ to Mocks
-            context.ReportDiagnostic(invocation.Syntax.GetLocation().CreateDiagnostic(Rule));
+            var diagnostic = invocation.Syntax.GetLocation().CreateDiagnostic(Rule, invocation.TargetMethod.Name);
+            context.ReportDiagnostic(diagnostic);
         }
-    }
-
-    private static bool IsNestedMockOfCall(IInvocationOperation invocation, MoqKnownSymbols knownSymbols)
-    {
-        return invocation.TargetMethod.IsInstanceOf(knownSymbols.MockOf);
     }
 }
