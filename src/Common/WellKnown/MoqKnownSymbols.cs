@@ -73,6 +73,18 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> MockRepositoryCreate => MockRepository?.GetBaseTypesAndThis().SelectMany(type => type.GetMembers("Create")).OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the methods for <c>Moq.MockRepository.Verify</c>.
+    /// </summary>
+    /// <remarks>
+    /// <c>MockRepository</c> is a subclass of <c>MockFactory</c>.
+    /// However, MockFactory is marked as obsolete. To avoid coupling
+    /// ourselves to this implementation detail, we walk base types
+    /// when looking for members.
+    /// </remarks>
+    [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Minor perf issues. Should revisit later.")]
+    internal ImmutableArray<IMethodSymbol> MockRepositoryVerify => MockRepository?.GetBaseTypesAndThis().SelectMany(type => type.GetMembers("Verify")).OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the enum <c>Moq.MockBehavior</c>.
     /// </summary>
     internal INamedTypeSymbol? MockBehavior => TypeProvider.GetOrCreateTypeByMetadataName("Moq.MockBehavior");
