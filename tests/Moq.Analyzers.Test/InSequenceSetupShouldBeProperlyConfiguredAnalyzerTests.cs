@@ -3,7 +3,7 @@ using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.InSeq
 
 namespace Moq.Analyzers.Test;
 
-public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests(ITestOutputHelper output)
+public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
@@ -82,7 +82,7 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests(ITestOutputH
 
     [Theory]
     [MemberData(nameof(DoppelgangerTestHelper.GetAllCustomMockData), MemberType = typeof(DoppelgangerTestHelper))]
-    public async Task ShouldPassIfCustomMockClassIsUsed(string mockCode)
+    public async Task ShouldPassIfCustomMockClassIsUsed(string referenceAssemblyGroup, string mockCode)
     {
         string source =
             $$"""
@@ -106,6 +106,6 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests(ITestOutputH
               }
               """;
 
-        await Verifier.VerifyAnalyzerAsync(source);
+        await Verifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
     }
 }
