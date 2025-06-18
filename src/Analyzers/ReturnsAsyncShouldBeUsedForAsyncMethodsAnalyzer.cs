@@ -87,21 +87,16 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         return HasAsyncLambdaArgument(invocation);
     }
 
-    private static InvocationExpressionSyntax? FindSetupInvocation(SyntaxNode returnsInvocation)
+    private static InvocationExpressionSyntax? FindSetupInvocation(InvocationExpressionSyntax returnsInvocation)
     {
-        // Walk up the syntax tree to find the Setup invocation
-        SyntaxNode? current = returnsInvocation.Parent;
-
-        while (current != null)
+        // The pattern is: mock.Setup(...).Returns(...)
+        // The returnsInvocation is the entire chain, so we need to examine its structure
+        if (returnsInvocation.Expression is MemberAccessExpressionSyntax memberAccess &&
+            memberAccess.Expression is InvocationExpressionSyntax setupInvocation &&
+            setupInvocation.Expression is MemberAccessExpressionSyntax setupMemberAccess &&
+            string.Equals(setupMemberAccess.Name.Identifier.ValueText, "Setup", StringComparison.Ordinal))
         {
-            if (current is InvocationExpressionSyntax invocation &&
-                invocation.Expression is MemberAccessExpressionSyntax memberAccess &&
-string.Equals(memberAccess.Name.Identifier.ValueText, "Setup", StringComparison.Ordinal))
-            {
-                return invocation;
-            }
-
-            current = current.Parent;
+            return setupInvocation;
         }
 
         return null;
