@@ -29,125 +29,138 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
+        context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
     }
 
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        // Ensure Moq is referenced in the compilation
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
-        context.RegisterOperationAction(
-            operationAnalysisContext => Analyze(operationAnalysisContext),
-            OperationKind.Invocation);
-    }
-
-    private static void Analyze(OperationAnalysisContext context)
+    private static void AnalyzeInvocation(OperationAnalysisContext context)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
             return;
         }
 
-        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
-        if (!IsValidMockOfMethod(targetMethod))
+        SemanticModel? semanticModel = invocationOperation.SemanticModel;
+        if (semanticModel == null)
         {
             return;
         }
 
+        MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
+
+        // Check if this is a Mock.Of invocation
+        if (!IsValidMockOfInvocation(invocationOperation, knownSymbols))
+        {
+            return;
+        }
+
+        // Analyze lambda expressions in the arguments
+        AnalyzeMockOfArguments(context, invocationOperation);
+    }
+
+    /// <summary>
+    /// Determines if the operation is a valid Mock.Of() invocation.
+    /// </summary>
+    private static bool IsValidMockOfInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols)
+    {
+        IMethodSymbol targetMethod = invocation.TargetMethod;
+
+        // Check if this is a static method call to Mock.Of()
+        if (!targetMethod.IsStatic || !string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return targetMethod.ContainingType is not null &&
+               targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default);
+    }
+
+    private static void AnalyzeMockOfArguments(OperationAnalysisContext context, IInvocationOperation invocationOperation)
+    {
         // Look for lambda expressions in the arguments (LINQ to Mocks expressions)
         foreach (IArgumentOperation argument in invocationOperation.Arguments)
         {
-            if (argument.Value is IAnonymousFunctionOperation lambdaOperation)
+            IOperation argumentValue = argument.Value.WalkDownImplicitConversion();
+
+            if (argumentValue is IAnonymousFunctionOperation lambdaOperation)
             {
                 AnalyzeLambdaExpression(context, lambdaOperation);
             }
         }
     }
 
-    private static bool IsValidMockOfMethod(IMethodSymbol? targetMethod)
-    {
-        if (targetMethod is null)
-        {
-            return false;
-        }
-
-        // Simple check for Mock.Of method
-        return string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal) &&
-               string.Equals(targetMethod.ContainingType?.Name, "Mock", StringComparison.Ordinal);
-    }
-
     private static void AnalyzeLambdaExpression(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation)
     {
-        // Recursively walk through the lambda body to find member accesses
-        WalkOperation(context, lambdaOperation.Body);
-    }
+        // DEBUG: Report that we found a lambda
+        Diagnostic debugDiagnostic = lambdaOperation.Syntax.GetLocation().CreateDiagnostic(Rule, "LAMBDA_FOUND");
+        context.ReportDiagnostic(debugDiagnostic);
 
-    private static void WalkOperation(OperationAnalysisContext context, IOperation operation)
-    {
-        switch (operation.Kind)
+        // Use the existing utility to find referenced member symbols
+        ISymbol? referencedMember = lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
+
+        if (referencedMember != null)
         {
-            case OperationKind.PropertyReference:
-                if (operation is IPropertyReferenceOperation propertyRef)
-                {
-                    AnalyzePropertyReference(context, propertyRef);
-                }
+            // DEBUG: Report that we found a member
+            Diagnostic memberDebugDiagnostic = lambdaOperation.Syntax.GetLocation().CreateDiagnostic(Rule, $"MEMBER_{referencedMember.Name}");
+            context.ReportDiagnostic(memberDebugDiagnostic);
 
-                break;
-
-            case OperationKind.Invocation:
-                if (operation is IInvocationOperation invocation)
-                {
-                    AnalyzeMethodInvocation(context, invocation);
-                }
-
-                break;
+            AnalyzeMemberSymbol(context, referencedMember, lambdaOperation);
         }
-
-        // Recursively process child operations
-        foreach (IOperation childOperation in operation.ChildOperations)
+        else
         {
-            WalkOperation(context, childOperation);
+            // DEBUG: Report that we didn't find a member
+            Diagnostic noMemberDebugDiagnostic = lambdaOperation.Syntax.GetLocation().CreateDiagnostic(Rule, "NO_MEMBER");
+            context.ReportDiagnostic(noMemberDebugDiagnostic);
         }
     }
 
-    private static void AnalyzePropertyReference(OperationAnalysisContext context, IPropertyReferenceOperation propertyRef)
+    private static void AnalyzeMemberSymbol(OperationAnalysisContext context, ISymbol memberSymbol, IAnonymousFunctionOperation lambdaOperation)
     {
-        if (propertyRef.Property.ContainingType?.TypeKind == TypeKind.Interface)
+        // Skip if the symbol is part of an interface, those are always mockable
+        if (memberSymbol.ContainingType?.TypeKind == TypeKind.Interface)
         {
-            // Interface properties are always fine for mocking
             return;
         }
 
-        // Check if the property is virtual or abstract
-        if (!propertyRef.Property.IsVirtual && !propertyRef.Property.IsAbstract && !propertyRef.Property.IsOverride)
+        bool shouldReportDiagnostic = memberSymbol switch
         {
-            // Non-virtual properties cannot be mocked properly in LINQ to Mocks
-            var diagnostic = propertyRef.Syntax.GetLocation().CreateDiagnostic(Rule, propertyRef.Property.Name);
+            IPropertySymbol property => ShouldReportForProperty(property),
+            IMethodSymbol method => ShouldReportForMethod(method),
+            _ => false,
+        };
+
+        if (shouldReportDiagnostic)
+        {
+            // Try to find the specific syntax location for the member reference
+            Location diagnosticLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol.Name)
+                                        ?? lambdaOperation.Syntax.GetLocation();
+
+            Diagnostic diagnostic = diagnosticLocation.CreateDiagnostic(Rule, memberSymbol.Name);
             context.ReportDiagnostic(diagnostic);
         }
     }
 
-    private static void AnalyzeMethodInvocation(OperationAnalysisContext context, IInvocationOperation invocation)
+    private static bool ShouldReportForProperty(IPropertySymbol property)
     {
-        if (invocation.TargetMethod.ContainingType?.TypeKind == TypeKind.Interface)
-        {
-            // Interface methods are always fine for mocking
-            return;
-        }
+        // Report diagnostic if property is not virtual, abstract, or override
+        return !property.IsVirtual && !property.IsAbstract && !property.IsOverride;
+    }
 
-        // Check if the method is virtual or abstract
-        if (!invocation.TargetMethod.IsVirtual && !invocation.TargetMethod.IsAbstract && !invocation.TargetMethod.IsOverride)
-        {
-            // Non-virtual methods cannot be mocked properly in LINQ to Mocks
-            var diagnostic = invocation.Syntax.GetLocation().CreateDiagnostic(Rule, invocation.TargetMethod.Name);
-            context.ReportDiagnostic(diagnostic);
-        }
+    private static bool ShouldReportForMethod(IMethodSymbol method)
+    {
+        // Report diagnostic if method is not virtual, abstract, or override
+        return !method.IsVirtual && !method.IsAbstract && !method.IsOverride;
+    }
+
+    /// <summary>
+    /// Attempts to find the specific syntax location of the member reference within the lambda.
+    /// </summary>
+    private static Location? GetMemberReferenceLocation(IAnonymousFunctionOperation lambdaOperation, string memberName)
+    {
+        // Walk through the lambda body to find the specific member reference syntax
+        var memberReferenceSyntax = lambdaOperation.Syntax
+            .DescendantNodes()
+            .FirstOrDefault(node => node.ToString().Contains(memberName));
+
+        return memberReferenceSyntax?.GetLocation();
     }
 }
