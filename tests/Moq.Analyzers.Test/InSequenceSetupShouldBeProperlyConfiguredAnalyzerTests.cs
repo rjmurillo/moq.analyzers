@@ -16,7 +16,7 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests(ITestOutputH
              var mock = new Mock<IService>();
              mock.InSequence(sequence).Setup(x => x.DoSomething());
              """],
-            
+
             // Multiple InSequence calls with same sequence
             ["""
              var sequence = new MockSequence();
@@ -43,8 +43,8 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests(ITestOutputH
              var mock = new Mock<IService>();
              {|Moq1203:mock.InSequence(null)|}.Setup(x => x.DoSomething());
              """],
-            
-            // InSequence with wrong parameter type  
+
+            // InSequence with wrong parameter type
             ["""
              var mock = new Mock<IService>();
              {|Moq1203:mock.InSequence("wrong")|}.Setup(x => x.DoSomething());
@@ -77,7 +77,7 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests(ITestOutputH
               }
               """;
 
-        await Verifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup).ConfigureAwait(false);
+        await Verifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
     }
 
     [Theory]
@@ -106,6 +106,6 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests(ITestOutputH
               }
               """;
 
-        await Verifier.VerifyAnalyzerAsync(source).ConfigureAwait(false);
+        await Verifier.VerifyAnalyzerAsync(source);
     }
 }
