@@ -14,5 +14,6 @@ internal static class DiagnosticIds
     internal const string AsShouldOnlyBeUsedForInterfacesRuleId = "Moq1300";
     internal const string SetExplicitMockBehavior = "Moq1400";
     internal const string SetStrictMockBehavior = "Moq1410";
+    internal const string RaiseEventArgumentsShouldMatchEventSignature = "Moq1202";
     internal const string MockGetShouldNotTakeLiterals = "Moq1500";
 }

@@ -4,12 +4,12 @@ namespace Moq.Analyzers.Test.Helpers;
 
 /// <summary>
 /// Provides common test data and helpers for doppelganger tests.
-/// Doppelganger tests ensure analyzers don't flag user's custom Mock&lt;T&gt; classes.
+/// Doppelganger tests ensure analyzers don't flag user's custom Mock{T} classes.
 /// </summary>
 internal static class DoppelgangerTestHelper
 {
     /// <summary>
-    /// Base template for doppelganger tests with a custom Mock&lt;T&gt; class.
+    /// Base template for doppelganger tests with a custom Mock{T} class.
     /// </summary>
     public const string CustomMockClassTemplate = """
         namespace TestNamespace.CustomMock;
@@ -66,7 +66,7 @@ internal static class DoppelgangerTestHelper
         """;
 
     /// <summary>
-    /// Test data for custom Mock&lt;T&gt; constructor scenarios.
+    /// Test data for custom Mock{T} constructor scenarios.
     /// </summary>
     /// <returns>An enumerable of test data arrays containing custom Mock constructor code examples.</returns>
     public static IEnumerable<object[]> CustomMockConstructorData()
@@ -83,7 +83,7 @@ internal static class DoppelgangerTestHelper
     }
 
     /// <summary>
-    /// Test data for custom Mock&lt;T&gt; method call scenarios.
+    /// Test data for custom Mock{T} method call scenarios.
     /// </summary>
     /// <returns>An enumerable of test data arrays containing custom Mock method call code examples.</returns>
     public static IEnumerable<object[]> CustomMockMethodCallData()
@@ -113,7 +113,7 @@ internal static class DoppelgangerTestHelper
     }
 
     /// <summary>
-    /// Gets combined test data for all custom Mock&lt;T&gt; scenarios.
+    /// Gets combined test data for all custom Mock{T} scenarios.
     /// </summary>
     /// <returns>An enumerable of test data arrays containing all custom Mock constructor and method call code examples.</returns>
     public static IEnumerable<object[]> GetAllCustomMockData()
