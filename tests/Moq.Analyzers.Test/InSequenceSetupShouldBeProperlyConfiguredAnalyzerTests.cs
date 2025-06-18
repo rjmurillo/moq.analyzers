@@ -3,7 +3,7 @@ using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.InSeq
 
 namespace Moq.Analyzers.Test;
 
-public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests(ITestOutputHelper output)
+public class InSequenceSetupShouldBeProperlyConfiguredAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
