@@ -78,7 +78,20 @@ public class InSequenceSetupShouldBeProperlyConfiguredAnalyzer : DiagnosticAnaly
             return false;
         }
 
-        // Check if the parameter type is MockSequence
-        return SymbolEqualityComparer.Default.Equals(argument.Value.Type, knownSymbols.MockSequence);
+        // Check if the parameter type is compatible with MockSequence
+        return argument.Value.Type.InheritsFromOrImplements(knownSymbols.MockSequence);
+    }
+
+    private static bool InheritsFromOrImplements(ITypeSymbol type, ITypeSymbol baseType)
+    {
+        while (type != null)
+        {
+            if (SymbolEqualityComparer.Default.Equals(type, baseType))
+            {
+                return true;
+            }
+            type = type.BaseType;
+        }
+        return false;
     }
 }
