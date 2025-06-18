@@ -34,48 +34,76 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeInvocation(OperationAnalysisContext context)
     {
-        if (context.Operation is not IInvocationOperation invocationOperation)
+        if (!TryGetSetupInvocation(context, out IInvocationOperation? setupInvocation, out _))
         {
             return;
         }
 
-        SemanticModel? semanticModel = invocationOperation.SemanticModel;
-        if (semanticModel == null)
+        if (!TryGetMockedMethodWithReturnValue(setupInvocation, out IMethodSymbol? mockedMethod))
         {
             return;
         }
 
-        MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
-        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
-
-        // Check if this is a Moq Setup method call
-        if (!targetMethod.IsMoqSetupMethod(knownSymbols))
-        {
-            return;
-        }
-
-        // Get the mocked method symbol from the setup expression
-        ISymbol? mockedMethodSymbol = TryGetMockedMethodSymbol(invocationOperation);
-        if (mockedMethodSymbol is not IMethodSymbol mockedMethod)
-        {
-            return;
-        }
-
-        // Skip if method has void return type
-        if (mockedMethod.ReturnsVoid)
-        {
-            return;
-        }
-
-        // Skip if the method setup already has a Returns/Throws chain
-        if (HasReturnValueSpecification(invocationOperation))
+        if (HasReturnValueSpecification(setupInvocation))
         {
             return;
         }
 
         // Report diagnostic for methods with return types that don't specify a return value
-        Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule, mockedMethod.Name);
+        Diagnostic diagnostic = setupInvocation.Syntax.CreateDiagnostic(Rule, mockedMethod.Name);
         context.ReportDiagnostic(diagnostic);
+    }
+
+    private static bool TryGetSetupInvocation(
+        OperationAnalysisContext context,
+        out IInvocationOperation setupInvocation,
+        out MoqKnownSymbols knownSymbols)
+    {
+        setupInvocation = null!;
+        knownSymbols = null!;
+
+        if (context.Operation is not IInvocationOperation invocationOperation)
+        {
+            return false;
+        }
+
+        SemanticModel? semanticModel = invocationOperation.SemanticModel;
+        if (semanticModel == null)
+        {
+            return false;
+        }
+
+        knownSymbols = new MoqKnownSymbols(semanticModel.Compilation);
+        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
+
+        if (!targetMethod.IsMoqSetupMethod(knownSymbols))
+        {
+            return false;
+        }
+
+        setupInvocation = invocationOperation;
+        return true;
+    }
+
+    private static bool TryGetMockedMethodWithReturnValue(
+        IInvocationOperation setupInvocation,
+        out IMethodSymbol mockedMethod)
+    {
+        mockedMethod = null!;
+
+        ISymbol? mockedMethodSymbol = TryGetMockedMethodSymbol(setupInvocation);
+        if (mockedMethodSymbol is not IMethodSymbol method)
+        {
+            return false;
+        }
+
+        if (method.ReturnsVoid)
+        {
+            return false;
+        }
+
+        mockedMethod = method;
+        return true;
     }
 
     /// <summary>
@@ -108,19 +136,15 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static bool HasReturnValueSpecification(IInvocationOperation setupInvocation)
     {
-        // Get the syntax node of the Setup call
         SyntaxNode setupSyntax = setupInvocation.Syntax;
 
-        // Check if the Setup call is part of a method chain
-        // by looking at the parent node. If it's a member access, it means
-        // the Setup is being chained with something like .Returns() or .Throws()
-        if (setupSyntax.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax memberAccess)
-        {
-            // Check if the member being accessed is Returns, Throws, ReturnsAsync, ThrowsAsync
-            string memberName = memberAccess.Name.Identifier.ValueText;
-            return memberName.StartsWith("Returns", StringComparison.Ordinal) || memberName.StartsWith("Throws", StringComparison.Ordinal);
-        }
+        return setupSyntax.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax memberAccess
+            && IsReturnValueMethod(memberAccess.Name.Identifier.ValueText);
+    }
 
-        return false;
+    private static bool IsReturnValueMethod(string memberName)
+    {
+        return memberName.StartsWith("Returns", StringComparison.Ordinal) ||
+               memberName.StartsWith("Throws", StringComparison.Ordinal);
     }
 }
