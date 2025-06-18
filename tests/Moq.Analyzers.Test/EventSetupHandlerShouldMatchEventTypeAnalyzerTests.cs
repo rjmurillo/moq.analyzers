@@ -30,19 +30,19 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzerTests
         return new object[][]
         {
             // Invalid: Action<string> event with It.IsAny<Action<int>>
-            ["""mockProvider.SetupAdd(x => x.StringEvent += {|Moq1203:It.IsAny<Action<int>>()});"""],
+            ["""mockProvider.SetupAdd(x => x.StringEvent += {|Moq1203:It.IsAny<Action<int>>()|}); """],
 
             // Invalid: Action<string> event with It.IsAny<EventHandler>
-            ["""mockProvider.SetupAdd(x => x.StringEvent += {|Moq1203:It.IsAny<EventHandler>()});"""],
+            ["""mockProvider.SetupAdd(x => x.StringEvent += {|Moq1203:It.IsAny<EventHandler>()|}); """],
 
             // Invalid: EventHandler<CustomArgs> event with It.IsAny<Action<CustomArgs>>
-            ["""mockProvider.SetupAdd(x => x.CustomEvent += {|Moq1203:It.IsAny<Action<CustomArgs>>()});"""],
+            ["""mockProvider.SetupAdd(x => x.CustomEvent += {|Moq1203:It.IsAny<Action<CustomArgs>>()|}); """],
 
             // Invalid: SetupRemove with wrong handler type
-            ["""mockProvider.SetupRemove(x => x.StringEvent -= {|Moq1203:It.IsAny<Action<int>>()});"""],
+            ["""mockProvider.SetupRemove(x => x.StringEvent -= {|Moq1203:It.IsAny<Action<int>>()|}); """],
 
             // Invalid: Simple Action event with It.IsAny<Action<string>>
-            ["""mockProvider.SetupAdd(x => x.SimpleEvent += {|Moq1203:It.IsAny<Action<string>>()});"""],
+            ["""mockProvider.SetupAdd(x => x.SimpleEvent += {|Moq1203:It.IsAny<Action<string>>()|}); """],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
     }
 

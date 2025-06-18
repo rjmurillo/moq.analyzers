@@ -72,6 +72,19 @@ internal static class SemanticModelExtensions
         };
     }
 
+    /// <summary>
+    /// Determines if a conversion exists between two types (implicit, explicit, or identity).
+    /// </summary>
+    /// <param name="semanticModel">The semantic model to use for classification.</param>
+    /// <param name="source">The source type symbol.</param>
+    /// <param name="destination">The destination type symbol.</param>
+    /// <returns><see langword="true"/> if a conversion exists; otherwise, <see langword="false"/>.</returns>
+    internal static bool HasConversion(this SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
+    {
+        Microsoft.CodeAnalysis.CSharp.Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
+        return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
+    }
+
     private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
         where T : class
     {
