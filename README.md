@@ -25,6 +25,7 @@ something is wrong with your Moq configuration.
 | [Moq1300](docs/rules/Moq1300.md) | Usage         | `Mock.As()` should take interfaces only                                                 |
 | [Moq1400](docs/rules/Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
 | [Moq1410](docs/rules/Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              |
+| [Moq1500](docs/rules/Moq1500.md) | Usage         | Mock.Get() should not take literals                                                     |
 
 See [docs/rules/README.md](docs/rules/README.md) for full documentation.
 
