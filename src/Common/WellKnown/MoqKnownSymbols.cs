@@ -56,6 +56,26 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> Mock1Raise => Mock1?.GetMembers("Raise").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.Verify</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1Verify => Mock1?.GetMembers("Verify").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.VerifyGet</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1VerifyGet => Mock1?.GetMembers("VerifyGet").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.VerifySet</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1VerifySet => Mock1?.GetMembers("VerifySet").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.VerifyNoOtherCalls</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1VerifyNoOtherCalls => Mock1?.GetMembers("VerifyNoOtherCalls").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the class <c>Moq.MockRepository</c>.
     /// </summary>
     internal INamedTypeSymbol? MockRepository => TypeProvider.GetOrCreateTypeByMetadataName("Moq.MockRepository");
