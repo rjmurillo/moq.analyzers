@@ -42,14 +42,12 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
         if (!context.SemanticModel.IsCallbackOrReturnInvocation(callbackOrReturnsInvocation)) return;
 
-        // Check if this is a lambda expression callback
         ParenthesizedLambdaExpressionSyntax? callbackLambda = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ParenthesizedLambdaExpressionSyntax;
 
         // Check if this is a delegate constructor callback (e.g., new SomeDelegate(...))
-        ObjectCreationExpressionSyntax? delegateConstructor = null;
         if (callbackLambda == null)
         {
-            delegateConstructor = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ObjectCreationExpressionSyntax;
+            ObjectCreationExpressionSyntax? delegateConstructor = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ObjectCreationExpressionSyntax;
             if (delegateConstructor?.ArgumentList?.Arguments.Count > 0)
             {
                 // Extract the lambda from the delegate constructor
@@ -98,7 +96,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
             }
         }
 
-        // No matching overload found, report diagnostic on the entire parameter list
+        // No matching overload found, report diagnostic on the first parameter
         if (lambdaParameters.Count > 0)
         {
             Diagnostic diagnostic = lambdaParameters[0].CreateDiagnostic(Rule);
