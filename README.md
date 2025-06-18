@@ -12,19 +12,21 @@ something is wrong with your Moq configuration.
 
 ## Analyzer rules
 
-* Moq1000: Sealed classes cannot be mocked
-* Moq1001: Mocked interfaces cannot have constructor parameters
-* Moq1002: Parameters provided into mock do not match any existing constructors
-* Moq1100: Callback signature must match the signature of the mocked method
-* Moq1101: SetupGet/SetupSet should be used for properties, not for methods
-* Moq1200: Setup should be used only for overridable members
-* Moq1201: Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`
-* Moq1300: Mock.As() should take interfaces
-* Moq1400: Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior
-* Moq1410: Explicitly set the Strict mocking behavior
-* Moq1500: Raise event arguments should match the event delegate signature
+| ID                      | Title                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| [Moq1000](docs/rules/Moq1000.md) | Sealed classes cannot be mocked                                                         |
+| [Moq1001](docs/rules/Moq1001.md) | Mocked interfaces cannot have constructor parameters                                    |
+| [Moq1002](docs/rules/Moq1002.md) | Parameters provided into mock do not match any existing constructors                    |
+| [Moq1100](docs/rules/Moq1100.md) | Callback signature must match the signature of the mocked method                        |
+| [Moq1101](docs/rules/Moq1101.md) | SetupGet/SetupSet should be used for properties, not for methods                        |
+| [Moq1200](docs/rules/Moq1200.md) | Setup should be used only for overridable members                                       |
+| [Moq1201](docs/rules/Moq1201.md) | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`         |
+| [Moq1300](docs/rules/Moq1300.md) | `Mock.As()` should take interfaces only                                                 |
+| [Moq1400](docs/rules/Moq1400.md) | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
+| [Moq1410](docs/rules/Moq1410.md) | Explicitly set the Strict mocking behavior                                              |
+| [Moq1500](docs/rules/Moq1500.md) | Raise event arguments should match the event delegate signature                        |
 
-See [docs/rules](./docs/rules/README.md) for full documentation.
+See [docs/rules/README.md](docs/rules/README.md) for full documentation.
 
 ## Getting started
 
