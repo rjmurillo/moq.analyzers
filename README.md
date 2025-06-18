@@ -38,7 +38,7 @@ dotnet add package Moq.Analyzers
 ```
 
 > NOTE: You must use a [supported version](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) of
-> the .NET SDK (i.e. 6.0 or later).
+> the .NET SDK (i.e. 8.0 or later).
 
 ### Configuring rules
 
