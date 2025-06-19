@@ -91,4 +91,34 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the field <c>Moq.MockBehavior.Default</c>.
     /// </summary>
     internal IFieldSymbol? MockBehaviorDefault => MockBehavior?.GetMembers("Default").OfType<IFieldSymbol>().SingleOrDefault();
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.IReturns</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IReturns => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IReturns");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.IReturns{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IReturns1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IReturns`1");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.IReturns{TMock, TResult}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IReturns2 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IReturns`2");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.ICallback</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ICallback => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ICallback");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.ICallback{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ICallback1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ICallback`1");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.ICallback{TMock, TResult}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ICallback2 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ICallback`2");
 }

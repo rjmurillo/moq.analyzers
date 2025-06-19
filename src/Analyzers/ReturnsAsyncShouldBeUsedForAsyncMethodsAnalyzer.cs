@@ -36,7 +36,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         // Check if this is a Returns method call with async lambda
-        if (!IsReturnsMethodCallWithAsyncLambda(invocation, context.SemanticModel))
+        if (!IsReturnsMethodCallWithAsyncLambda(invocation, context.SemanticModel, knownSymbols))
         {
             return;
         }
@@ -74,7 +74,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         }
     }
 
-    private static bool IsReturnsMethodCallWithAsyncLambda(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
+    private static bool IsReturnsMethodCallWithAsyncLambda(InvocationExpressionSyntax invocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
     {
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
         {
@@ -88,7 +88,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
             return false;
         }
 
-        if (!method.IsMoqReturnsMethod())
+        if (!method.IsMoqReturnsMethod(knownSymbols))
         {
             return false;
         }

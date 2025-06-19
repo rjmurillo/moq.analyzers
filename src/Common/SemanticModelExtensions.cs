@@ -45,7 +45,7 @@ internal static class SemanticModelExtensions
             : semanticModel.GetAllMatchingSymbols<IMethodSymbol>(mockedMethodInvocation);
     }
 
-    internal static bool IsCallbackOrReturnInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)
+    internal static bool IsCallbackOrReturnInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation, MoqKnownSymbols knownSymbols)
     {
         MemberAccessExpressionSyntax? callbackOrReturnsMethod = callbackOrReturnsInvocation.Expression as MemberAccessExpressionSyntax;
 
@@ -66,8 +66,8 @@ internal static class SemanticModelExtensions
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(callbackOrReturnsMethod);
         return symbolInfo.CandidateReason switch
         {
-            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(IsCallbackOrReturnSymbol),
-            CandidateReason.None => IsCallbackOrReturnSymbol(symbolInfo.Symbol),
+            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(symbol => IsCallbackOrReturnSymbol(symbol, knownSymbols)),
+            CandidateReason.None => IsCallbackOrReturnSymbol(symbolInfo.Symbol, knownSymbols),
             _ => false,
         };
     }
@@ -112,28 +112,13 @@ internal static class SemanticModelExtensions
         return matchingSymbols;
     }
 
-    private static bool IsCallbackOrReturnSymbol(ISymbol? symbol)
+    private static bool IsCallbackOrReturnSymbol(ISymbol? symbol, MoqKnownSymbols knownSymbols)
     {
-        // TODO: Check what is the best way to do such checks
-        if (symbol is not IMethodSymbol methodSymbol)
+        if (symbol is null)
         {
             return false;
         }
 
-        INamedTypeSymbol? containingType = methodSymbol.ContainingType;
-        if (containingType is null)
-        {
-            return false;
-        }
-
-        string containingTypeName = containingType.ToDisplayString();
-
-        bool isCallback = string.Equals(methodSymbol.Name, "Callback", StringComparison.Ordinal)
-                          && containingTypeName.StartsWith("Moq.Language.ICallback", StringComparison.Ordinal);
-
-        bool isReturns = string.Equals(methodSymbol.Name, "Returns", StringComparison.Ordinal)
-                         && containingTypeName.StartsWith("Moq.Language.IReturns", StringComparison.Ordinal);
-
-        return isCallback || isReturns;
+        return symbol.IsMoqCallbackMethod(knownSymbols) || symbol.IsMoqReturnsMethod(knownSymbols);
     }
 }
