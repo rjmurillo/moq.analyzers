@@ -44,6 +44,26 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
         ParenthesizedLambdaExpressionSyntax? callbackLambda = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ParenthesizedLambdaExpressionSyntax;
 
+        // Check if this is a delegate constructor callback (e.g., new SomeDelegate(...))
+        if (callbackLambda == null)
+        {
+            ObjectCreationExpressionSyntax? delegateConstructor = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ObjectCreationExpressionSyntax;
+            if (delegateConstructor?.ArgumentList?.Arguments.Count > 0)
+            {
+                // Extract the lambda from the delegate constructor (support both parenthesized and simple lambdas)
+                LambdaExpressionSyntax? lambdaExpression = delegateConstructor.ArgumentList.Arguments[0]?.Expression as LambdaExpressionSyntax;
+                callbackLambda = lambdaExpression as ParenthesizedLambdaExpressionSyntax;
+
+                // If it's not a parenthesized lambda, it might be a simple lambda - convert for consistency
+                if (callbackLambda == null && lambdaExpression is SimpleLambdaExpressionSyntax)
+                {
+                    // We need to handle simple lambdas differently since they don't have ParameterList.Parameters
+                    // For now, skip simple lambdas in delegate constructors
+                    return;
+                }
+            }
+        }
+
         // Ignoring callbacks without lambda
         if (callbackLambda == null) return;
 
@@ -64,43 +84,101 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         }
         else
         {
-            ValidateParameters(context, mockedMethodArguments, lambdaParameters);
+            // Get the actual mocked method symbols to access parameter information including ref/out/in modifiers
+            IEnumerable<IMethodSymbol> mockedMethodSymbols = context.SemanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupInvocation);
+            ValidateParameters(context, mockedMethodSymbols, lambdaParameters);
         }
     }
 
     private static void ValidateParameters(
         SyntaxNodeAnalysisContext context,
-        SeparatedSyntaxList<ArgumentSyntax> mockedMethodArguments,
+        IEnumerable<IMethodSymbol> mockedMethodSymbols,
         SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
     {
-        for (int argumentIndex = 0; argumentIndex < mockedMethodArguments.Count; argumentIndex++)
+        // Check if the lambda parameters match any of the mocked method overloads
+        foreach (IMethodSymbol mockedMethod in mockedMethodSymbols)
         {
-            TypeSyntax? lambdaParameterTypeSyntax = lambdaParameters[argumentIndex].Type;
-
-            // We're unable to get the type from the Syntax Tree, so abort the type checking because something else
-            // is happening (e.g., we're compiling on partial code) and we need the type to do the additional checks.
-            if (lambdaParameterTypeSyntax is null)
+            if (ParametersMatch(context, mockedMethod, lambdaParameters))
             {
-                continue;
-            }
-
-            TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
-            TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[argumentIndex].Expression, context.CancellationToken);
-
-            ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
-            ITypeSymbol? mockedMethodTypeSymbol = mockedMethodArgumentType.Type;
-
-            if (lambdaParameterTypeSymbol is null || mockedMethodTypeSymbol is null)
-            {
-                continue;
-            }
-
-            if (!HasConversion(context.SemanticModel, mockedMethodTypeSymbol, lambdaParameterTypeSymbol))
-            {
-                Diagnostic diagnostic = lambdaParameters[argumentIndex].CreateDiagnostic(Rule);
-                context.ReportDiagnostic(diagnostic);
+                // Found a matching overload, no diagnostic needed
+                return;
             }
         }
+
+        // No matching overload found, report diagnostic on the first parameter
+        if (lambdaParameters.Count > 0)
+        {
+            Diagnostic diagnostic = lambdaParameters[0].CreateDiagnostic(Rule);
+            context.ReportDiagnostic(diagnostic);
+        }
+    }
+
+    private static bool ParametersMatch(SyntaxNodeAnalysisContext context, IMethodSymbol mockedMethod, SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
+    {
+        if (mockedMethod.Parameters.Length != lambdaParameters.Count)
+        {
+            return false;
+        }
+
+        for (int parameterIndex = 0; parameterIndex < lambdaParameters.Count; parameterIndex++)
+        {
+            IParameterSymbol mockedMethodParameter = mockedMethod.Parameters[parameterIndex];
+            ParameterSyntax lambdaParameter = lambdaParameters[parameterIndex];
+
+            if (!ParameterTypesMatch(context, mockedMethodParameter, lambdaParameter))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ParameterTypesMatch(SyntaxNodeAnalysisContext context, IParameterSymbol mockedParameter, ParameterSyntax lambdaParameter)
+    {
+        TypeSyntax? lambdaParameterTypeSyntax = lambdaParameter.Type;
+        if (lambdaParameterTypeSyntax is null)
+        {
+            return true; // Can't validate, assume ok
+        }
+
+        TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
+        ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
+
+        if (lambdaParameterTypeSymbol is null) return true; // Can't validate, assume ok
+
+        // Get the underlying type for the mocked parameter (without ref/out/in modifiers)
+        ITypeSymbol mockedParameterType = mockedParameter.Type;
+
+        // Check if the basic types match (allowing for conversions)
+        if (!HasConversion(context.SemanticModel, mockedParameterType, lambdaParameterTypeSymbol))
+        {
+            return false;
+        }
+
+        // Check ref/out/in modifiers
+        RefKind mockedRefKind = mockedParameter.RefKind;
+        RefKind lambdaRefKind = GetRefKind(lambdaParameter);
+
+        return mockedRefKind == lambdaRefKind;
+    }
+
+    private static RefKind GetRefKind(ParameterSyntax parameter)
+    {
+        if (parameter.Modifiers.Count == 0)
+        {
+            return RefKind.None;
+        }
+
+        string? firstModifierText = parameter.Modifiers[0].ValueText;
+
+        return firstModifierText switch
+        {
+            "ref" => RefKind.Ref,
+            "out" => RefKind.Out,
+            "in" => RefKind.In,
+            _ => RefKind.None,
+        };
     }
 
     private static bool HasConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
