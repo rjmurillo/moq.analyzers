@@ -11,9 +11,10 @@ internal static class DiagnosticIds
     internal const string PropertySetupUsedForMethod = "Moq1101";
     internal const string SetupOnlyUsedForOverridableMembers = "Moq1200";
     internal const string AsyncUsesReturnsAsyncInsteadOfResult = "Moq1201";
+    internal const string RaiseEventArgumentsShouldMatchEventSignature = "Moq1202";
+    internal const string ReturnsAsyncShouldBeUsedForAsyncMethods = "Moq1203";
     internal const string AsShouldOnlyBeUsedForInterfacesRuleId = "Moq1300";
+    internal const string MockGetShouldNotTakeLiterals = "Moq1301";
     internal const string SetExplicitMockBehavior = "Moq1400";
     internal const string SetStrictMockBehavior = "Moq1410";
-    internal const string RaiseEventArgumentsShouldMatchEventSignature = "Moq1202";
-    internal const string MockGetShouldNotTakeLiterals = "Moq1301";
 }
