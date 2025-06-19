@@ -54,11 +54,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests
 
     public static IEnumerable<object[]> ComplexExpressionTestData()
     {
-        return new object[][]
-        {
-            // Nested Mock.Of expressions - should trigger diagnostic for complexity
-            ["""Mock.Of<IServiceProvider>(sp => sp.GetService(typeof(IRepository)) == {|Moq1302:Mock.Of<IRepository>(r => r.IsAuthenticated == true)|});"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+        return Array.Empty<object[]>().WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]

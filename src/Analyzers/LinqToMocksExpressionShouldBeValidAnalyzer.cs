@@ -90,27 +90,86 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeLambdaExpression(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation)
     {
-        // DEBUG: Report that we found a lambda
-        Diagnostic debugDiagnostic = lambdaOperation.Syntax.GetLocation().CreateDiagnostic(Rule, "LAMBDA_FOUND");
-        context.ReportDiagnostic(debugDiagnostic);
+        // For LINQ to Mocks, we need to handle more complex expressions like: x => x.Property == "value"
+        // The lambda body is often a binary expression where the left operand is the member we want to check
+        AnalyzeLambdaBody(context, lambdaOperation, lambdaOperation.Body);
+    }
 
-        // Use the existing utility to find referenced member symbols
-        ISymbol? referencedMember = lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
-
-        if (referencedMember != null)
+    private static void AnalyzeLambdaBody(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation? body)
+    {
+        if (body == null)
         {
-            // DEBUG: Report that we found a member
-            Diagnostic memberDebugDiagnostic = lambdaOperation.Syntax.GetLocation().CreateDiagnostic(Rule, $"MEMBER_{referencedMember.Name}");
-            context.ReportDiagnostic(memberDebugDiagnostic);
+            return;
+        }
 
-            AnalyzeMemberSymbol(context, referencedMember, lambdaOperation);
-        }
-        else
+        switch (body)
         {
-            // DEBUG: Report that we didn't find a member
-            Diagnostic noMemberDebugDiagnostic = lambdaOperation.Syntax.GetLocation().CreateDiagnostic(Rule, "NO_MEMBER");
-            context.ReportDiagnostic(noMemberDebugDiagnostic);
+            case IBlockOperation blockOp when blockOp.Operations.Length == 1:
+                // Handle block lambdas with return statements
+                AnalyzeLambdaBody(context, lambdaOperation, blockOp.Operations[0]);
+                break;
+
+            case IReturnOperation returnOp:
+                // Handle return statements
+                AnalyzeLambdaBody(context, lambdaOperation, returnOp.ReturnedValue);
+                break;
+
+            case IBinaryOperation binaryOp:
+                // Handle binary expressions like equality comparisons
+                AnalyzeMemberOperations(context, lambdaOperation, binaryOp.LeftOperand);
+                AnalyzeMemberOperations(context, lambdaOperation, binaryOp.RightOperand);
+                break;
+
+            case IPropertyReferenceOperation propertyRef:
+                // Direct property reference
+                AnalyzeMemberSymbol(context, propertyRef.Property, lambdaOperation);
+                break;
+
+            case IInvocationOperation methodOp:
+                // Direct method invocation
+                AnalyzeMemberSymbol(context, methodOp.TargetMethod, lambdaOperation);
+                break;
+
+            case IFieldReferenceOperation fieldRef:
+                // Direct field reference
+                AnalyzeMemberSymbol(context, fieldRef.Field, lambdaOperation);
+                break;
+
+            case IEventReferenceOperation eventRef:
+                // Direct event reference
+                AnalyzeMemberSymbol(context, eventRef.Event, lambdaOperation);
+                break;
+
+            default:
+                // For other complex expressions, try to recursively find member references
+                foreach (IOperation childOperation in body.ChildOperations)
+                {
+                    AnalyzeLambdaBody(context, lambdaOperation, childOperation);
+                }
+
+                break;
         }
+    }
+
+    private static void AnalyzeMemberOperations(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation? operation)
+    {
+        if (operation == null)
+        {
+            return;
+        }
+
+        // Don't recursively analyze nested Mock.Of calls to avoid false positives
+        if (operation is IInvocationOperation invocation)
+        {
+            MoqKnownSymbols knownSymbols = new(context.Operation.SemanticModel!.Compilation);
+            if (IsValidMockOfInvocation(invocation, knownSymbols))
+            {
+                return; // Skip analyzing nested Mock.Of calls
+            }
+        }
+
+        // Recursively analyze the operation to find member references
+        AnalyzeLambdaBody(context, lambdaOperation, operation);
     }
 
     private static void AnalyzeMemberSymbol(OperationAnalysisContext context, ISymbol memberSymbol, IAnonymousFunctionOperation lambdaOperation)

@@ -12,7 +12,7 @@ public class SimpleInvocationAnalyzer : DiagnosticAnalyzer
     private static readonly LocalizableString Message = "Simple invocation detected: {0}";
 
     private static readonly DiagnosticDescriptor Rule = new(
-        "SIMPLE001",
+        DiagnosticIds.SimpleInvocation,
         Title,
         Message,
         DiagnosticCategory.Moq,
@@ -37,13 +37,16 @@ public class SimpleInvocationAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Report any invocation that contains "Mock" or "Of"
-        string methodName = invocation.TargetMethod.Name;
-        string? typeName = invocation.TargetMethod.ContainingType?.Name;
+        MoqKnownSymbols knownSymbols = new(context.Operation.SemanticModel!.Compilation);
 
-        if (methodName.Contains("Of") || (typeName?.Contains("Mock") == true))
+        // Report any invocation that matches Mock.Of
+        IMethodSymbol targetMethod = invocation.TargetMethod;
+
+        if (targetMethod.ContainingType is not null &&
+            targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default) &&
+            string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal))
         {
-            context.ReportDiagnostic(invocation.Syntax.GetLocation().CreateDiagnostic(Rule, $"{typeName}.{methodName}"));
+            context.ReportDiagnostic(invocation.Syntax.GetLocation().CreateDiagnostic(Rule, $"{targetMethod.ContainingType.Name}.{targetMethod.Name}"));
         }
     }
 }
