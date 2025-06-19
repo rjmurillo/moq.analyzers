@@ -157,7 +157,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     private static Location? GetMemberReferenceLocation(IAnonymousFunctionOperation lambdaOperation, string memberName)
     {
         // Walk through the lambda body to find the specific member reference syntax
-        var memberReferenceSyntax = lambdaOperation.Syntax
+        SyntaxNode memberReferenceSyntax = lambdaOperation.Syntax
             .DescendantNodes()
             .FirstOrDefault(node => node.ToString().Contains(memberName));
 
