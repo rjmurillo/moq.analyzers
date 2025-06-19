@@ -50,8 +50,17 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
             ObjectCreationExpressionSyntax? delegateConstructor = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ObjectCreationExpressionSyntax;
             if (delegateConstructor?.ArgumentList?.Arguments.Count > 0)
             {
-                // Extract the lambda from the delegate constructor
-                callbackLambda = delegateConstructor.ArgumentList.Arguments[0]?.Expression as ParenthesizedLambdaExpressionSyntax;
+                // Extract the lambda from the delegate constructor (support both parenthesized and simple lambdas)
+                LambdaExpressionSyntax? lambdaExpression = delegateConstructor.ArgumentList.Arguments[0]?.Expression as LambdaExpressionSyntax;
+                callbackLambda = lambdaExpression as ParenthesizedLambdaExpressionSyntax;
+
+                // If it's not a parenthesized lambda, it might be a simple lambda - convert for consistency
+                if (callbackLambda == null && lambdaExpression is SimpleLambdaExpressionSyntax)
+                {
+                    // We need to handle simple lambdas differently since they don't have ParameterList.Parameters
+                    // For now, skip simple lambdas in delegate constructors
+                    return;
+                }
             }
         }
 
@@ -128,7 +137,10 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
     private static bool ParameterTypesMatch(SyntaxNodeAnalysisContext context, IParameterSymbol mockedParameter, ParameterSyntax lambdaParameter)
     {
         TypeSyntax? lambdaParameterTypeSyntax = lambdaParameter.Type;
-        if (lambdaParameterTypeSyntax is null) return true; // Can't validate, assume ok
+        if (lambdaParameterTypeSyntax is null)
+        {
+            return true; // Can't validate, assume ok
+        }
 
         TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
         ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
