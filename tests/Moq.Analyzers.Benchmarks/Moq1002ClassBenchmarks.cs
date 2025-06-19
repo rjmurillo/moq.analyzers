@@ -8,7 +8,8 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
-public class Moq1101InterfaceBenchmarks
+[BenchmarkCategory("Moq1002")]
+public class Moq1002ClassBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
@@ -26,16 +27,20 @@ public class Moq1101InterfaceBenchmarks
 using System;
 using Moq;
 
-public interface ISample{index}
+public class SampleClass{index}
 {{
+    public SampleClass{index}(int value)
+    {{
+    }}
+    public int Calculate() => 0;
 }}
 
 internal class {name}
 {{
     private void Test()
     {{
-        new Mock<ISample{index}>(42);
-        Mock.Of<ISample{index}>(42);
+        new Mock<SampleClass{index}>();
+        _ = new SampleClass{index}(42).Calculate(); // Add an expression that looks similar but does not match
     }}
 }}
 "));
@@ -49,7 +54,7 @@ internal class {name}
     }
 
     [Benchmark]
-    public async Task<ImmutableArray<Diagnostic>> Moq1201TreatmentWithDiagnostics()
+    public async Task Moq1002WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
@@ -62,12 +67,10 @@ internal class {name}
         {
             throw new InvalidOperationException($"Expected '{Constants.NumberOfCodeFiles:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
         }
-
-        return diagnostics;
     }
 
     [Benchmark(Baseline = true)]
-    public async Task Moq1201Baseline()
+    public async Task Moq1002Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!
