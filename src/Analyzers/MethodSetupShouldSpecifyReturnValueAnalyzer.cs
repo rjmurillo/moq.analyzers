@@ -132,19 +132,29 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     /// <summary>
     /// Checks if the setup invocation is followed by a Returns() or Throws() call.
-    /// This is a simplified check that looks at the immediate parent syntax.
+    /// This uses semantic analysis to verify the method being called.
     /// </summary>
     private static bool HasReturnValueSpecification(IInvocationOperation setupInvocation)
     {
         SyntaxNode setupSyntax = setupInvocation.Syntax;
+        SemanticModel? semanticModel = setupInvocation.SemanticModel;
 
-        return setupSyntax.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax memberAccess
-            && IsReturnValueMethod(memberAccess.Name.Identifier.ValueText);
-    }
+        if (semanticModel == null)
+        {
+            return false;
+        }
 
-    private static bool IsReturnValueMethod(string memberName)
-    {
-        return memberName.StartsWith("Returns", StringComparison.Ordinal) ||
-               memberName.StartsWith("Throws", StringComparison.Ordinal);
+        // Check if the setup call is the target of a member access (method chaining)
+        if (setupSyntax.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax memberAccess)
+        {
+            // Get the symbol information for the method being accessed
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
+
+            // Check if it's a method call and if the method name is Returns or Throws
+            return symbolInfo.Symbol is IMethodSymbol method &&
+                   (string.Equals(method.Name, "Returns", StringComparison.Ordinal) || string.Equals(method.Name, "Throws", StringComparison.Ordinal));
+        }
+
+        return false;
     }
 }
