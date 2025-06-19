@@ -14,6 +14,7 @@
 | [Moq1301](./Moq1301.md) | Usage         | Mock.Get() should not take literals                                                     | [MockGetShouldNotTakeLiteralsAnalyzer.cs](../../src/Analyzers/MockGetShouldNotTakeLiteralsAnalyzer.cs)                             |
 | [Moq1400](./Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior | [SetExplicitMockBehaviorAnalyzer.cs](../../src/Analyzers/SetExplicitMockBehaviorAnalyzer.cs)                                       |
 | [Moq1410](./Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              | [SetStrictMockBehaviorAnalyzer.cs](../../src/Analyzers/SetStrictMockBehaviorAnalyzer.cs)                                           |
+| [Moq1500](./Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                | [MockRepositoryVerifyAnalyzer.cs](../../src/Analyzers/MockRepositoryVerifyAnalyzer.cs)                                             |
 ## Guidance for Future Rules
 
 ### Categories
@@ -29,7 +30,8 @@
 | Moq1200-1299  | Correctness   | Prevents async result setups, checks constructor args       |
 | Moq1300-1399  | Usage         | Restricts use of literals, enforces API usage patterns      |
 | Moq1400-1499  | Best Practice | Encourages explicit/strict mock behavior                    |
-| Moq1500-1999  | Reserved      | Reserved for future rules                                   |
+| Moq1500-1599  | Best Practice | Repository and verification patterns                         |
+| Moq1600-1999  | Reserved      | Reserved for future rules                                   |
 
 - When adding new rules, assign the next available ID in the appropriate category range.
 - Document new rules in this table, including their category, a concise title, and links to both documentation and implementation.
