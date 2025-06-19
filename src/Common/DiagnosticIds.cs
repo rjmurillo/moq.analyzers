@@ -16,4 +16,6 @@ internal static class DiagnosticIds
     internal const string SetStrictMockBehavior = "Moq1410";
     internal const string RaiseEventArgumentsShouldMatchEventSignature = "Moq1202";
     internal const string MockGetShouldNotTakeLiterals = "Moq1301";
+    internal const string LinqToMocksExpressionShouldBeValid = "Moq1302";
+    internal const string SimpleInvocation = "SIMPLE001";
 }
