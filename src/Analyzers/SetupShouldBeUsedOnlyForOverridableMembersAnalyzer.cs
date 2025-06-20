@@ -92,7 +92,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
     /// if the <paramref name="mockedMemberSymbol"/> is overridable.
     /// </summary>
     /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
-    /// <param name="knownSymbols">The known symbols.</param>
+    /// <param name="knownSymbols">A <see cref="MoqKnownSymbols"/> instance for resolving well-known types.</param>
     /// <returns>
     /// Returns <see langword="true"/> when the diagnostic should not be triggered; otherwise <see langword="false" />.
     /// </returns>
