@@ -38,7 +38,7 @@ internal static class AllAnalyzersVerifier
         }
     }
 
-    private static Type[] DiscoverAnalyzerTypes()
+    private static ImmutableArray<Type> DiscoverAnalyzerTypes()
     {
         // Get the assembly containing the analyzers
         Assembly analyzerAssembly = typeof(AsShouldBeUsedOnlyForInterfaceAnalyzer).Assembly;
@@ -50,7 +50,7 @@ internal static class AllAnalyzersVerifier
                 typeof(DiagnosticAnalyzer).IsAssignableFrom(type) &&
                 type.GetCustomAttribute<DiagnosticAnalyzerAttribute>() != null)
             .OrderBy(type => type.Name, StringComparer.Ordinal) // For deterministic ordering
-            .ToArray();
+            .ToImmutableArray();
     }
 
     private static async Task VerifyAnalyzerDynamicallyAsync(Type analyzerType, string source, string referenceAssemblyGroup, string? configFileName, string? configContent)
@@ -77,7 +77,7 @@ internal static class AllAnalyzersVerifier
         }
         else
         {
-            throw new InvalidOperationException($"VerifyAnalyzerAsync did not return a Task for analyzer type {analyzerType.Name}");
+            throw new InvalidOperationException($"{nameof(VerifyAllAnalyzersAsync)} did not return a Task for analyzer type {analyzerType.Name}");
         }
     }
 }
