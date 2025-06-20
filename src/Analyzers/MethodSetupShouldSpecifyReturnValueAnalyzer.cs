@@ -1,8 +1,4 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Moq.Analyzers.Common;
-using Moq.Analyzers.Common.WellKnown;
 
 namespace Moq.Analyzers;
 
