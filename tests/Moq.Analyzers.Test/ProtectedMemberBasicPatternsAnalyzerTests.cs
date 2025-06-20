@@ -1,6 +1,3 @@
-using Moq.Analyzers.Test.Helpers;
-using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoSealedClassMocksAnalyzer>;
-
 namespace Moq.Analyzers.Test;
 
 /// <summary>
@@ -29,7 +26,7 @@ public class ProtectedMemberBasicPatternsAnalyzerTests
         await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(
             $$"""
             [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
-
+            
             {{@namespace}}
 
             public abstract class CommandBase
