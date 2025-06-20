@@ -22,7 +22,7 @@ namespace Moq.Analyzers.Test.Helpers;
 /// </summary>
 internal static class AllAnalyzersVerifier
 {
-    private static readonly Lazy<Type[]> AllAnalyzerTypes = new(DiscoverAnalyzerTypes);
+    private static readonly Lazy<ImmutableArray<Type>> AllAnalyzerTypes = new(DiscoverAnalyzerTypes);
 
     internal static async Task VerifyAllAnalyzersAsync(string source, string referenceAssemblyGroup)
     {
