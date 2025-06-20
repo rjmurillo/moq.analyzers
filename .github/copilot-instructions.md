@@ -35,6 +35,26 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
     - When in doubt, consult the official Moq documentation and changelogs for feature support.
 - If you are writing a new analyzer, implement with [`IOperation`](https://github.com/rjmurillo/moq.analyzers/issues/118) (see issue #118)
 
+### AllAnalyzersVerifier for Comprehensive Testing
+
+When writing tests that verify code patterns don't trigger unwanted diagnostics from **any** Moq analyzer, use the `AllAnalyzersVerifier` helper class:
+
+```csharp
+await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssemblyGroup);
+```
+
+**Key Benefits:**
+- **Automatic Discovery**: Uses reflection to find all `DiagnosticAnalyzer` types in the `Moq.Analyzers` namespace
+- **No Manual Maintenance**: New analyzers are automatically included without code changes
+- **Comprehensive Coverage**: Tests against ALL analyzers simultaneously to ensure no false positives
+
+**Important**: When you add a new analyzer, the `AllAnalyzersVerifier` automatically discovers and includes it. No manual updates to test infrastructure are required.
+
+### Troubleshooting Development FlowAdd commentMore actions
+If you encounter:
+
+- The versioning is causing issues This may show up in your build output as error `MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly.` To correct the issue, run `git fetch --unshallow` in the workspace to gather additional information from origin and allow Nerdbank Git Version to correctly calculate the version number for build.
+
 ---
 
 ## Formatting, Linting, and Bot Feedback

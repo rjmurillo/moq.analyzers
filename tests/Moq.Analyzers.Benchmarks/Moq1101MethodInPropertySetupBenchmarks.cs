@@ -8,6 +8,7 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
+[BenchmarkCategory("Moq1101")]
 public class Moq1101MethodInPropertySetupBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }

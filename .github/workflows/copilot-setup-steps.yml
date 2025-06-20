@@ -18,6 +18,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work
+
+      # the above doesn't work as expected, so pre-empt a workaround to avoid agent getting stuck and ignoring instructions in copilot-instructions.md
+      - name: NBGV workaround
+        run: git fetch --unshallow
         
       - name: Setup .NET
         uses: actions/setup-dotnet@v4

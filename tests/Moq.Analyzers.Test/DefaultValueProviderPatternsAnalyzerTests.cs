@@ -5,6 +5,7 @@ namespace Moq.Analyzers.Test;
 
 /// <summary>
 /// Tests to verify analyzer coverage for custom DefaultValueProvider patterns from the quickstart guide.
+/// These tests ensure that valid patterns don't trigger warnings from ANY analyzer.
 /// This covers Pattern 3 from issue #508: Custom DefaultValueProvider.
 /// </summary>
 public class DefaultValueProviderPatternsAnalyzerTests
@@ -15,12 +16,12 @@ public class DefaultValueProviderPatternsAnalyzerTests
         {
             // Pattern 3a: Custom DefaultValueProvider - should not generate warnings
             ["""
-            var mock = new Mock<IFoo> { DefaultValueProvider = new MyEmptyDefaultValueProvider() };
+            var mock = new Mock<IFoo>(MockBehavior.Strict) { DefaultValueProvider = new MyEmptyDefaultValueProvider() };
             """],
 
             // Pattern 3b: Default value usage - should not generate warnings
             ["""
-            var mock = new Mock<IFoo> { DefaultValue = DefaultValue.Mock };
+            var mock = new Mock<IFoo>(MockBehavior.Strict) { DefaultValue = DefaultValue.Mock };
             """],
 
             // Pattern 3c: MockRepository with DefaultValue - should not generate warnings
@@ -35,7 +36,7 @@ public class DefaultValueProviderPatternsAnalyzerTests
     [MemberData(nameof(TestData))]
     public async Task ShouldNotReportDiagnosticsForValidDefaultValueProviderPatterns(string referenceAssemblyGroup, string @namespace, string testCode)
     {
-        await Verifier.VerifyAnalyzerAsync(
+        await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(
             $$"""
             [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
