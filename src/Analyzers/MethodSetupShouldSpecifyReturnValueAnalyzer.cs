@@ -109,7 +109,13 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Attempts to resolve the symbol representing the method being referenced in the Setup(...) call.
     /// </summary>
-    private static ISymbol? TryGetMockedMethodSymbol(IInvocationOperation moqSetupInvocation)
+    private static ISymbol? TryGetMockedMethodSymbol(IInvocationOperation moqSetupInvocation) =>
+        TryGetSetupArgument(moqSetupInvocation)?.GetReferencedMemberSymbolFromLambda();
+
+    /// <summary>
+    /// Extracts the lambda body operation from the first argument of a Moq Setup invocation.
+    /// </summary>
+    private static IOperation? TryGetSetupArgument(IInvocationOperation moqSetupInvocation)
     {
         if (moqSetupInvocation.Arguments.Length == 0)
         {
@@ -121,13 +127,9 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         // Unwrap conversions (Roslyn often wraps lambdas in IConversionOperation)
         argumentOperation = argumentOperation.WalkDownImplicitConversion();
 
-        if (argumentOperation is IAnonymousFunctionOperation lambdaOperation)
-        {
-            // Use the existing extension method to extract the member symbol
-            return lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
-        }
-
-        return null;
+        return argumentOperation is IAnonymousFunctionOperation lambdaOperation
+            ? lambdaOperation.Body
+            : null;
     }
 
     /// <summary>
