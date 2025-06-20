@@ -26,12 +26,11 @@ public class ProtectedMemberBasicPatternsAnalyzerTests
     [MemberData(nameof(TestData))]
     public async Task ShouldNotReportDiagnosticsForBasicProtectedPatterns(string referenceAssemblyGroup, string @namespace, string testCode)
     {
-        await Verifier.VerifyAnalyzerAsync(
+        await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(
             $$"""
             [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
             {{@namespace}}
-            using Moq.Protected;
 
             public abstract class CommandBase
             {
