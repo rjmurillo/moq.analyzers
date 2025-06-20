@@ -24,12 +24,12 @@ internal static class AllAnalyzersVerifier
 {
     private static readonly Lazy<Type[]> AllAnalyzerTypes = new(DiscoverAnalyzerTypes);
 
-    public static async Task VerifyAllAnalyzersAsync(string source, string referenceAssemblyGroup)
+    internal static async Task VerifyAllAnalyzersAsync(string source, string referenceAssemblyGroup)
     {
         await VerifyAllAnalyzersAsync(source, referenceAssemblyGroup, configFileName: null, configContent: null).ConfigureAwait(false);
     }
 
-    public static async Task VerifyAllAnalyzersAsync(string source, string referenceAssemblyGroup, string? configFileName, string? configContent)
+    internal static async Task VerifyAllAnalyzersAsync(string source, string referenceAssemblyGroup, string? configFileName, string? configContent)
     {
         // Dynamically test each analyzer to ensure none report diagnostics
         foreach (Type analyzerType in AllAnalyzerTypes.Value)
