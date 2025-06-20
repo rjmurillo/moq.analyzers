@@ -19,7 +19,7 @@ public class ProtectedMemberBasicPatternsAnalyzerTests
             var mock = new Mock<CommandBase>(MockBehavior.Strict);
             mock.Protected().Setup<int>("Execute").Returns(5);
             """],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups().Where(x => x[0]?.ToString()?.Contains("NewMoq") == true);
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups(); // Only use newer Moq that supports Protected()
     }
 
     [Theory]
