@@ -16,7 +16,7 @@ public class ProtectedMemberBasicPatternsAnalyzerTests
         {
             // Pattern 2a: Basic protected setup - should not generate warnings
             ["""
-            var mock = new Mock<CommandBase>();
+            var mock = new Mock<CommandBase>(MockBehavior.Strict);
             mock.Protected().Setup<int>("Execute").Returns(5);
             """],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups().Where(x => x[0]?.ToString()?.Contains("NewMoq") == true);
