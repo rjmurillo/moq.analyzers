@@ -87,18 +87,9 @@ public sealed class VerifyOverridableMembersFixer : CodeFixProvider
 
         // For code fix, we only need to handle the simple case (first argument)
         // since the analyzer already validates the more complex scenarios
-        IOperation argumentOperation = moqVerifyInvocation.Arguments[0].Value.WalkDownImplicitConversion();
+        IAnonymousFunctionOperation? lambdaOperation = MoqVerificationHelpers.ExtractLambdaFromArgument(moqVerifyInvocation.Arguments[0].Value);
 
-        // Handle delegate conversions
-        if (argumentOperation is IDelegateCreationOperation delegateCreation &&
-            delegateCreation.Target is IAnonymousFunctionOperation lambdaOp)
-        {
-            argumentOperation = lambdaOp;
-        }
-
-        return argumentOperation is IAnonymousFunctionOperation lambdaOperation
-            ? lambdaOperation.Body.GetReferencedMemberSymbolFromLambda()
-            : null;
+        return lambdaOperation?.Body.GetReferencedMemberSymbolFromLambda();
     }
 
     private static async Task<Solution> MakeMemberVirtualAsync(
