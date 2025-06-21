@@ -57,47 +57,9 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         // Check if this is a Raises method call using symbol-based detection
-        if (!context.SemanticModel.IsRaisesInvocation(invocation))
+        if (!context.SemanticModel.IsRaisesInvocation(invocation) && !invocation.IsRaisesMethodCall())
         {
-            // TODO: The symbol-based detection is not working correctly because the containing type
-            // for the Raises method might be different than expected (e.g., due to Moq's internal
-            // implementation details or version differences). Need to investigate the actual type
-            // hierarchy. For now, fallback to string-based detection to ensure functionality.
-
-            // Fallback: Check if the method being called is named "Raises" or "RaisesAsync"
-            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
-            {
-                return;
-            }
-
-            string methodName = memberAccess.Name.Identifier.ValueText;
-            if (!methodName.Equals("Raises", StringComparison.Ordinal) && !methodName.Equals("RaisesAsync", StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            // Additional validation: ensure it's part of a Moq fluent API chain
-            // by checking if it follows a Setup() call
-            ExpressionSyntax? expression = memberAccess.Expression;
-            bool isPartOfMoqChain = false;
-
-            while (expression is InvocationExpressionSyntax parentInvocation)
-            {
-                if (parentInvocation.Expression is MemberAccessExpressionSyntax parentMemberAccess &&
-                    string.Equals(parentMemberAccess.Name.Identifier.ValueText, "Setup", StringComparison.Ordinal))
-                {
-                    isPartOfMoqChain = true;
-                    break;
-                }
-
-                expression = (parentInvocation.Expression as MemberAccessExpressionSyntax)?.Expression;
-                if (expression == null) break;
-            }
-
-            if (!isPartOfMoqChain)
-            {
-                return;
-            }
+            return;
         }
 
         if (!TryGetRaisesMethodArguments(invocation, context.SemanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
