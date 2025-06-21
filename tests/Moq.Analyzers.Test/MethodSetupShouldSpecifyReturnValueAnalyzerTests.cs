@@ -28,6 +28,10 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             // Property setups should not trigger this analyzer
             ["""new Mock<IFoo>().Setup(x => x.Name);"""],
             ["""new Mock<IFoo>().SetupGet(x => x.Name);"""],
+
+            // Edge cases to ensure all return guards are covered
+            // Non-setup methods should not trigger analyzer
+            ["""new Mock<IFoo>().SetupProperty(x => x.Name);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         return both;
@@ -73,5 +77,139 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    [InlineData("string")]
+    public async Task ShouldNotCrashOnMethodsWithComplexReturnTypes(string returnType)
+    {
+        string source = $$"""
+            using Moq;
+            using System;
+
+            public interface IFoo
+            {
+                {{returnType}} GetValue();
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    {|Moq1203:new Mock<IFoo>().Setup(x => x.GetValue())|};
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldNotTriggerOnMethodsWithoutLambdaExpression()
+    {
+        string source = """
+            using Moq;
+            using System;
+
+            public interface IFoo
+            {
+                string GetValue();
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    // Non-lambda setups should not crash the analyzer
+                    var mock = new Mock<IFoo>();
+                    mock.CallBase = true;
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldHandleGenericMethods()
+    {
+        string source = """
+            using Moq;
+            using System;
+
+            public interface IFoo
+            {
+                T GetValue<T>();
+                void SetValue<T>(T value);
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = new Mock<IFoo>();
+                    {|Moq1203:mock.Setup(x => x.GetValue<string>())|};
+                    mock.Setup(x => x.SetValue<int>(42));
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldNotTriggerWhenChainedWithOtherMethods()
+    {
+        string source = """
+            using Moq;
+            using System;
+
+            public interface IFoo
+            {
+                string GetValue();
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = new Mock<IFoo>();
+                    // Chained with non-Returns/Throws methods should still trigger
+                    {|Moq1203:mock.Setup(x => x.GetValue())|}.Callback(() => { });
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldHandleAsyncMethods()
+    {
+        string source = """
+            using Moq;
+            using System;
+            using System.Threading.Tasks;
+
+            public interface IFoo
+            {
+                Task<string> GetValueAsync();
+                Task DoWorkAsync();
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = new Mock<IFoo>();
+                    {|Moq1203:mock.Setup(x => x.GetValueAsync())|};
+                    {|Moq1203:mock.Setup(x => x.DoWorkAsync())|};
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 }
