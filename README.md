@@ -18,10 +18,11 @@ something is wrong with your Moq configuration.
 | [Moq1001](docs/rules/Moq1001.md) | Usage         | Mocked interfaces cannot have constructor parameters                                    |
 | [Moq1002](docs/rules/Moq1002.md) | Usage         | Parameters provided into mock do not match any existing constructors                    |
 | [Moq1100](docs/rules/Moq1100.md) | Correctness   | Callback signature must match the signature of the mocked method                        |
-| [Moq1101](docs/rules/Moq1101.md) | Usage         | SetupGet/SetupSet should be used for properties, not for methods                        |
+| [Moq1101](docs/rules/Moq1101.md) | Usage         | SetupGet/SetupSet/SetupProperty should be used for properties, not for methods          |
 | [Moq1200](docs/rules/Moq1200.md) | Correctness   | Setup should be used only for overridable members                                       |
 | [Moq1201](docs/rules/Moq1201.md) | Correctness   | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`         |
 | [Moq1202](docs/rules/Moq1202.md) | Correctness   | Raise event arguments should match the event delegate signature                         |
+| [Moq1203](docs/rules/Moq1203.md) | Correctness   | Method setup should specify a return value                                              |
 | [Moq1300](docs/rules/Moq1300.md) | Usage         | `Mock.As()` should take interfaces only                                                 |
 | [Moq1301](docs/rules/Moq1301.md) | Usage         | Mock.Get() should not take literals                                                     |
 | [Moq1400](docs/rules/Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
@@ -38,7 +39,7 @@ dotnet add package Moq.Analyzers
 ```
 
 > NOTE: You must use a [supported version](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) of
-> the .NET SDK (i.e. 6.0 or later).
+> the .NET SDK (i.e. 8.0 or later).
 
 ### Configuring rules
 

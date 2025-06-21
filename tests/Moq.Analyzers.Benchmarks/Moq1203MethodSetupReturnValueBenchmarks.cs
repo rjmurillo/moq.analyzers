@@ -8,8 +8,8 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
-[BenchmarkCategory("Moq1201")]
-public class Moq1201AsyncResultBenchmarks
+[BenchmarkCategory("Moq1203")]
+public class Moq1203MethodSetupReturnValueBenchmarks
 {
     [Params("Net80WithOldMoq", "Net80WithNewMoq")]
     public string MoqKey { get; set; } = "Net80WithOldMoq";
@@ -28,20 +28,23 @@ public class Moq1201AsyncResultBenchmarks
             string name = "TypeName" + index;
             sources.Add((name, @$"
 using System;
-using System.Threading.Tasks;
 using Moq;
 
-public class AsyncClient{index}
+public interface IService{index}
 {{
-    public virtual Task TaskAsync() => Task.CompletedTask;
-    public virtual Task<string> GenericTaskAsync() => Task.FromResult(string.Empty);
+    string GetValue();
+    int Calculate(int x, int y);
+    void DoVoidWork();
 }}
 
 internal class {name}
 {{
     private void Test()
     {{
-        new Mock<AsyncClient{index}>().Setup(c => c.GenericTaskAsync().Result);
+        var mock = new Mock<IService{index}>();
+        mock.Setup(x => x.GetValue()); // Should trigger diagnostic
+        mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>())); // Should trigger diagnostic
+        mock.Setup(x => x.DoVoidWork()); // Should not trigger diagnostic (void method)
         _ = ""sample test""; // Add an expression that looks similar but does not match
     }}
 }}
@@ -51,13 +54,13 @@ internal class {name}
         Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies(MoqKey);
         (BaselineCompilation, TestCompilation) =
             BenchmarkCSharpCompilationFactory
-            .CreateAsync<SetupShouldNotIncludeAsyncResultAnalyzer>(sources.ToArray(), referenceAssemblies)
+            .CreateAsync<MethodSetupShouldSpecifyReturnValueAnalyzer>(sources.ToArray(), referenceAssemblies)
             .GetAwaiter()
             .GetResult();
     }
 
     [Benchmark]
-    public async Task Moq1201WithDiagnostics()
+    public async Task Moq1203WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
@@ -66,24 +69,16 @@ internal class {name}
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 
-        if (string.Equals(MoqKey, "Net80WithNewMoq", StringComparison.Ordinal))
+        // Each file should produce 2 diagnostics (GetValue and Calculate methods, but not DoVoidWork)
+        int expectedDiagnostics = Constants.NumberOfCodeFiles * 2;
+        if (diagnostics.Length != expectedDiagnostics)
         {
-            if (diagnostics.Length != 0)
-            {
-                throw new InvalidOperationException($"Expected no analyzer diagnostics for Moq >= 4.16.0 but found '{diagnostics.Length}'");
-            }
-        }
-        else
-        {
-            if (diagnostics.Length != Constants.NumberOfCodeFiles)
-            {
-                throw new InvalidOperationException($"Expected '{Constants.NumberOfCodeFiles:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
-            }
+            throw new InvalidOperationException($"Expected '{expectedDiagnostics:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
         }
     }
 
     [Benchmark(Baseline = true)]
-    public async Task Moq1201Baseline()
+    public async Task Moq1203Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!

@@ -1,4 +1,3 @@
-using Moq.Analyzers.Test.Helpers;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoMethodsInPropertySetupAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -13,9 +12,13 @@ public class NoMethodsInPropertySetupAnalyzerTests
             ["""new Mock<IFoo>().SetupGet(x => x.Prop2);"""],
             ["""new Mock<IFoo>().SetupSet(x => x.Prop1 = "1");"""],
             ["""new Mock<IFoo>().SetupSet(x => x.Prop3 = "2");"""],
+            ["""new Mock<IFoo>().SetupProperty(x => x.Prop1);"""],
+            ["""new Mock<IFoo>().SetupProperty(x => x.Prop2);"""],
+            ["""new Mock<IFoo>().SetupProperty(x => x.Prop1, "default");"""],
             ["""new Mock<IFoo>().Setup(x => x.Method());"""],
             ["""new Mock<IFoo>().SetupGet(x => {|Moq1101:x.Method()|});"""],
             ["""new Mock<IFoo>().SetupSet(x => {|Moq1101:x.Method()|});"""],
+            ["""new Mock<IFoo>().SetupProperty(x => {|Moq1101:x.Method()|});"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
