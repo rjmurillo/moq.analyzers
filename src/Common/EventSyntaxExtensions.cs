@@ -244,7 +244,7 @@ public static class EventSyntaxExtensions
 
         // First argument should be a lambda that selects the event
         ExpressionSyntax eventSelector = arguments[0].Expression;
-        var (success, eventType) = eventTypeExtractor(semanticModel, eventSelector);
+        (bool success, ITypeSymbol? eventType) = eventTypeExtractor(semanticModel, eventSelector);
         if (!success || eventType == null)
         {
             return false;

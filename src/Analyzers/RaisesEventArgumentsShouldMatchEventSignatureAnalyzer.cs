@@ -3,7 +3,28 @@
 namespace Moq.Analyzers;
 
 /// <summary>
-/// Raises event arguments should match the event delegate signature.
+/// Analyzer for the Setup.Raises() method - validates event arguments match the delegate signature.
+///
+/// IMPORTANT FOR MAINTAINERS:
+/// This analyzer handles the setup-chained event triggering pattern:
+/// mock.Setup(x => x.Method()).Raises(x => x.Event += null, args...)
+///
+/// This is different from RaiseEventArgumentsShouldMatchEventSignatureAnalyzer which handles
+/// the direct pattern: mock.Raise(x => x.Event += null, args...)
+///
+/// Key architectural differences:
+/// 1. This analyzes Raises() method calls that are chained after Setup() calls
+/// 2. Uses simple string matching for method name detection (less robust than symbol analysis)
+/// 3. Implements setup-based event triggering validation (not immediate)
+///
+/// The #pragma warning disable CS0436 above is necessary because this analyzer may encounter
+/// type conflicts with imported types from shared dependencies or other analyzers in the
+/// compilation context. This is a common issue when multiple analyzers reference similar
+/// type definitions.
+///
+/// Both this analyzer and RaiseEventArgumentsShouldMatchEventSignatureAnalyzer are essential
+/// for comprehensive event validation coverage across all Moq event patterns, preventing
+/// subtle runtime failures by catching type mismatches at compile time.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAnalyzer
