@@ -85,16 +85,20 @@ public sealed class VerifyOverridableMembersFixer : CodeFixProvider
             return null;
         }
 
-        IOperation argumentOperation = moqVerifyInvocation.Arguments[0].Value;
+        // For code fix, we only need to handle the simple case (first argument)
+        // since the analyzer already validates the more complex scenarios
+        IOperation argumentOperation = moqVerifyInvocation.Arguments[0].Value.WalkDownImplicitConversion();
 
-        argumentOperation = argumentOperation.WalkDownImplicitConversion();
-
-        if (argumentOperation is IAnonymousFunctionOperation lambdaOperation)
+        // Handle delegate conversions
+        if (argumentOperation is IDelegateCreationOperation delegateCreation &&
+            delegateCreation.Target is IAnonymousFunctionOperation lambdaOp)
         {
-            return lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
+            argumentOperation = lambdaOp;
         }
 
-        return null;
+        return argumentOperation is IAnonymousFunctionOperation lambdaOperation
+            ? lambdaOperation.Body.GetReferencedMemberSymbolFromLambda()
+            : null;
     }
 
     private static async Task<Solution> MakeMemberVirtualAsync(
