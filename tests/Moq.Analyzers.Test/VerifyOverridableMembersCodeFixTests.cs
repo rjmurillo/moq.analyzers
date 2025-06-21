@@ -11,47 +11,15 @@ public class VerifyOverridableMembersCodeFixTests(ITestOutputHelper output)
             new object[] { ReferenceAssemblyCatalog.Net80WithNewMoq },
         };
 
-    [Theory]
-    [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task MakesNonVirtualPropertyVirtual(string referenceAssemblyGroup)
+    public static IEnumerable<object[]> MakesNonVirtualPropertyVirtualData()
     {
-        const string test = """
-        using Moq;
-
-        public class MyClass
+        return new object[][]
         {
-            public string MyProperty { get; set; }
-        }
-
-        public class MyTest
-        {
-            public void Test()
-            {
-                var mock = new Mock<MyClass>();
-                mock.Verify(x => {|Moq1210:x.MyProperty|});
-            }
-        }
-        """;
-
-        const string fixtest = """
-        using Moq;
-
-        public class MyClass
-        {
-            public virtual string MyProperty { get; set; }
-        }
-
-        public class MyTest
-        {
-            public void Test()
-            {
-                var mock = new Mock<MyClass>();
-                mock.Verify(x => x.MyProperty);
-            }
-        }
-        """;
-
-        await Verify.VerifyCodeFixAsync(test, fixtest, referenceAssemblyGroup);
+            [
+                """public int MyProperty { get; set; }""",
+                """public virtual int MyProperty { get; set; }""",
+            ],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     public static IEnumerable<object[]> MakesNonVirtualMethodVirtualData()
@@ -63,6 +31,83 @@ public class VerifyOverridableMembersCodeFixTests(ITestOutputHelper output)
                 """public virtual int MyMethod() => 0;""",
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> PreservesModifiersAttributesAndDocumentationData()
+    {
+        return new object[][]
+        {
+            [
+                """
+                /// <summary>Some documentation.</summary>
+                [Obsolete]
+                protected internal string MyProperty { get; set; }
+                """,
+                """
+                /// <summary>Some documentation.</summary>
+                [Obsolete]
+                protected internal virtual string MyProperty { get; set; }
+                """,
+                "MyProperty",
+            ],
+            [
+                """
+                [Obsolete]
+                public int MyMethod() => 0;
+                """,
+                """
+                [Obsolete]
+                public virtual int MyMethod() => 0;
+                """,
+                "MyMethod()",
+            ],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> NoFixForSealedMembersData()
+    {
+        return new object[][]
+        {
+            [
+                """public sealed override string ToString() => "";""",
+                """public sealed override string ToString() => "";""",
+            ],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    [Theory]
+    [MemberData(nameof(MakesNonVirtualPropertyVirtualData))]
+    public async Task MakesNonVirtualPropertyVirtual(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)
+    {
+        static string Template(string ns, string code) =>
+            $$"""
+              {{ns}}
+
+              public class MyClass
+              {
+                  {{code}}
+              }
+
+              public class MyTest : MyClass
+              {
+                  public void Test()
+                  {
+                      var mock = new Mock<MyClass>();
+                      {|Moq1210:mock.Verify(x => x.MyProperty)|};
+                  }
+              }
+              """;
+
+        string o = Template(@namespace, brokenCode);
+        string f = Template(@namespace, fixedCode);
+
+        output.WriteLine("Original:");
+        output.WriteLine(o);
+        output.WriteLine(string.Empty);
+        output.WriteLine("Fixed:");
+        output.WriteLine(f);
+
+        await Verify.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
     }
 
     [Theory]
@@ -78,7 +123,7 @@ public class VerifyOverridableMembersCodeFixTests(ITestOutputHelper output)
             {{code}}
         }
 
-        public class MyTest
+        public class MyTest : MyClass
         {
             public void Test()
             {
@@ -101,95 +146,73 @@ public class VerifyOverridableMembersCodeFixTests(ITestOutputHelper output)
     }
 
     [Theory]
-    [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task PreservesModifiersAttributesAndDocumentation(string referenceAssemblyGroup)
+    [MemberData(nameof(PreservesModifiersAttributesAndDocumentationData))]
+    public async Task PreservesModifiersAttributesAndDocumentation(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode, string invocation)
     {
-        const string test = """
-        using Moq;
-        using System;
+        static string Template(string ns, string code, string invocation) =>
+            $$"""
+            {{ns}}
 
-        public class MyClass
-        {
-            /// <summary>Some documentation.</summary>
-            [Obsolete]
-            protected internal string MyProperty { get; set; }
-        }
-
-        public class MyTest
-        {
-            public void Test()
+            public class MyClass
             {
-                var mock = new Mock<MyClass>();
-                mock.Verify(x => {|Moq1210:x.MyProperty|});
+                {{code}}
             }
-        }
-        """;
 
-        const string fixtest = """
-        using Moq;
-        using System;
-
-        public class MyClass
-        {
-            /// <summary>Some documentation.</summary>
-            [Obsolete]
-            protected internal virtual string MyProperty { get; set; }
-        }
-
-        public class MyTest
-        {
-            public void Test()
+            public class MyTest : MyClass
             {
-                var mock = new Mock<MyClass>();
-                mock.Verify(x => x.MyProperty);
+                public void Test()
+                {
+                    var mock = new Mock<MyClass>();
+                    {|Moq1210:mock.Verify(x => x.{{invocation}})|};
+                }
             }
-        }
-        """;
+            """;
 
-        await Verify.VerifyCodeFixAsync(test, fixtest, referenceAssemblyGroup);
+        string originalSource = Template(@namespace, brokenCode, invocation);
+        string fixedSource = Template(@namespace, fixedCode, invocation);
+
+        output.WriteLine("Original:");
+        output.WriteLine(originalSource);
+        output.WriteLine(string.Empty);
+        output.WriteLine("Fixed:");
+        output.WriteLine(fixedSource);
+
+        await Verify.VerifyCodeFixAsync(originalSource, fixedSource, referenceAssemblyGroup);
     }
 
     [Theory]
-    [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task NoFixForSealedMembers(string referenceAssemblyGroup)
+    [MemberData(nameof(NoFixForSealedMembersData))]
+    public async Task NoFixForSealedMembers(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)
     {
-        const string test = """
-        using Moq;
+        static string Template(string ns, string code) =>
+            $$"""
+              {{ns}}
 
-        public class MyClass
-        {
-            public sealed override string ToString() => "";
-        }
+              public class MyClass
+              {
+                  {{code}}
+              }
 
-        public class MyTest
-        {
-            public void Test()
-            {
-                var mock = new Mock<MyClass>();
-                mock.Verify(x => {|Moq1210:x.ToString()|});
-            }
-        }
-        """;
+              public class MyTest : MyClass
+              {
+                  public void Test()
+                  {
+                      var mock = new Mock<MyClass>();
+                      {|Moq1210:mock.Verify(x => x.ToString())|};
+                  }
+              }
+              """;
 
-        const string fixtest = """
-        using Moq;
+        string originalSource = Template(@namespace, brokenCode);
+        string fixedSource = Template(@namespace, fixedCode);
 
-        public class MyClass
-        {
-            public sealed override string ToString() => "";
-        }
+        output.WriteLine("Original:");
+        output.WriteLine(originalSource);
+        output.WriteLine(string.Empty);
+        output.WriteLine("Fixed:");
+        output.WriteLine(fixedSource);
 
-        public class MyTest
-        {
-            public void Test()
-            {
-                var mock = new Mock<MyClass>();
-                mock.Verify(x => x.ToString());
-            }
-        }
-        """;
-
-        await Verify.VerifyCodeFixAsync(test, fixtest, referenceAssemblyGroup);
+        await Verify.VerifyCodeFixAsync(originalSource, fixedSource, referenceAssemblyGroup);
     }
 
     [Theory]
