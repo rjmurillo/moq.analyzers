@@ -42,7 +42,9 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             return;
         }
 
-        if (!TryGetRaiseMethodArguments(invocation, context.SemanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
+        KnownSymbols wellKnownSymbols = new(context.SemanticModel.Compilation);
+
+        if (!TryGetRaiseMethodArguments(invocation, context.SemanticModel, wellKnownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
         {
             return;
         }
@@ -50,7 +52,12 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         ValidateArgumentTypes(context, eventArguments, expectedParameterTypes, invocation);
     }
 
-    private static bool TryGetRaiseMethodArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes)
+    private static bool TryGetRaiseMethodArguments(
+        InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
+        KnownSymbols knownSymbols,
+        out ArgumentSyntax[] eventArguments,
+        out ITypeSymbol[] expectedParameterTypes)
     {
         eventArguments = Array.Empty<ArgumentSyntax>();
         expectedParameterTypes = Array.Empty<ITypeSymbol>();
@@ -72,7 +79,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         }
 
         // Get expected parameter types from the event delegate
-        expectedParameterTypes = GetEventParameterTypes(eventType!);
+        expectedParameterTypes = GetEventParameterTypes(eventType!, knownSymbols);
 
         // The remaining arguments should match the event parameter types
 #pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
@@ -130,19 +137,19 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         return knownSymbols.Mock1Raise.Contains(methodSymbol.OriginalDefinition);
     }
 
-    private static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType)
+    private static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType, KnownSymbols knownSymbols)
     {
         // For delegates like Action<T>, we need to get the generic type arguments
         if (eventType is INamedTypeSymbol namedType)
         {
             // Handle Action delegates
-            if (IsActionDelegate(namedType))
+            if (namedType.IsActionDelegate(knownSymbols))
             {
                 return namedType.TypeArguments.ToArray();
             }
 
             // Handle EventHandler<T> - expects single argument of type T (not the sender/args pattern)
-            if (IsEventHandlerDelegate(namedType))
+            if (namedType.IsEventHandlerDelegate(knownSymbols))
             {
                 return [namedType.TypeArguments[0]];
             }
@@ -155,16 +162,6 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             }
         }
 
-        return Array.Empty<ITypeSymbol>();
-    }
-
-    private static bool IsActionDelegate(INamedTypeSymbol namedType)
-    {
-        return string.Equals(namedType.Name, "Action", StringComparison.Ordinal);
-    }
-
-    private static bool IsEventHandlerDelegate(INamedTypeSymbol namedType)
-    {
-        return string.Equals(namedType.Name, "EventHandler", StringComparison.Ordinal) && namedType.TypeArguments.Length == 1;
+        return [];
     }
 }
