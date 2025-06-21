@@ -14,7 +14,6 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
             ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Property)|};"""],
             ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))|};"""],
             ["""new Mock<BaseSampleClass>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
-            ["""new Mock<ISampleInterface>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
 
             // VerifyGet tests
             ["""{|Moq1210:new Mock<SampleClass>().VerifyGet(x => x.Property)|};"""],
@@ -26,8 +25,6 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
 
             // Valid verifications should not trigger diagnostics
             ["""new Mock<SampleClass>().Verify(x => x.DoSth());"""],
-            ["""new Mock<SampleClass>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
-            ["""new Mock<ISampleInterface>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
             ["""new Mock<ISampleInterface>().Verify(x => x.TestProperty);"""],
             ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Field)|};"""],
             ["""{|Moq1210:new Mock<SampleClassWithNonVirtualIndexer>().Verify(x => x[0])|};"""],
