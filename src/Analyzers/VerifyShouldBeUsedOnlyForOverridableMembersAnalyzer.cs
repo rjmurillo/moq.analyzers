@@ -63,9 +63,8 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         }
 
         // 3. Attempt to locate the member reference from the Verify expression argument.
-        //    Typically, Moq verify calls have a single lambda argument like x => x.SomeMember.
-        //    We'll extract that member reference or invocation to see whether it is overridable.
-        ISymbol? mockedMemberSymbol = TryGetMockedMemberSymbol(invocationOperation);
+        //    For VerifySet, we need to extract the property being set from the Action<T> lambda.
+        ISymbol? mockedMemberSymbol = TryGetMockedMemberSymbol(invocationOperation, knownSymbols);
         if (mockedMemberSymbol == null)
         {
             return;
@@ -78,7 +77,7 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         }
 
         // 5. Check if symbol is a property or method, and if it is overridable or is returning a Task (which Moq allows).
-        if (IsPropertyOrMethod(mockedMemberSymbol, knownSymbols))
+        if (IsAllowedMockMember(mockedMemberSymbol, knownSymbols))
         {
             return;
         }
@@ -87,83 +86,109 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         //    So we report the diagnostic.
         //
         // NOTE: The location is on the invocationOperation, which is fairly broad
-        Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule);
+        // For VerifySet, try to report the diagnostic on the property being set for precise span
+        Location diagnosticLocation = mockedMemberSymbol.Locations.FirstOrDefault() ?? invocationOperation.Syntax.GetLocation();
+        if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
+        {
+            // Try to get the property assignment node for precise span
+            Location? propertyAssignmentLocation = TryGetVerifySetPropertyAssignmentLocation(invocationOperation);
+            if (propertyAssignmentLocation != null)
+            {
+                diagnosticLocation = propertyAssignmentLocation;
+            }
+        }
+
+        Diagnostic diagnostic = DiagnosticExtensions.CreateDiagnostic(invocationOperation.Syntax, Rule, diagnosticLocation);
         context.ReportDiagnostic(diagnostic);
     }
 
     /// <summary>
-    /// Determines whether a property or method is either
-    /// <see cref="ValueTask"/>, <see cref="ValueTask{TResult}"/>, <see cref="Task"/>, or <see cref="Task{TResult}"/>
-    /// - OR -
-    /// if the <paramref name="mockedMemberSymbol"/> is overridable.
+    /// Determines whether a member can be mocked.
     /// </summary>
     /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
     /// <param name="knownSymbols">The known symbols.</param>
     /// <returns>
     /// Returns <see langword="true"/> when the diagnostic should not be triggered; otherwise <see langword="false" />.
     /// </returns>
-    private static bool IsPropertyOrMethod(ISymbol mockedMemberSymbol, MoqKnownSymbols knownSymbols)
+    private static bool IsAllowedMockMember(ISymbol mockedMemberSymbol, MoqKnownSymbols knownSymbols)
     {
         switch (mockedMemberSymbol)
         {
             case IPropertySymbol propertySymbol:
-                // Check if the property is Task<T>.Result and skip diagnostic if it is
-                if (propertySymbol.IsTaskOrValueResultProperty(knownSymbols))
-                {
-                    return true;
-                }
-
-                if (propertySymbol.IsOverridable())
-                {
-                    return true;
-                }
-
-                break;
+                return propertySymbol.IsOverridable() || propertySymbol.IsTaskOrValueResultProperty(knownSymbols);
 
             case IMethodSymbol methodSymbol:
-                if (methodSymbol.IsOverridable())
-                {
-                    return true;
-                }
-
-                break;
+                return methodSymbol.IsOverridable();
 
             default:
-                // If it's not a property or method, it's not overridable
+                // If it's not a property or method, it can't be mocked. This includes fields and events.
                 return false;
         }
-
-        return false;
     }
 
     /// <summary>
     /// Attempts to resolve the symbol representing the member (property or method)
-    /// being referenced in the Verify(...) call. Returns null if it cannot be determined.
+    /// being referenced in the Verify(...) or VerifySet(...) call. Returns null if it cannot be determined.
     /// </summary>
-    private static ISymbol? TryGetMockedMemberSymbol(IInvocationOperation moqVerifyInvocation)
+    private static ISymbol? TryGetMockedMemberSymbol(IInvocationOperation moqVerifyInvocation, MoqKnownSymbols knownSymbols)
     {
         // Usually the first argument to a Moq Verify(...) is a lambda expression like x => x.Property
-        // or x => x.Method(...). We can look at moqVerifyInvocation.Arguments[0].Value to see this.
-        //
-        // In almost all Moq verify calls, the first argument is the expression (lambda) to be analyzed.
+        // or x => x.Method(...). For VerifySet, it's an Action<T> lambda: x => { x.Property = ...; }
         if (moqVerifyInvocation.Arguments.Length == 0)
         {
             return null;
         }
 
         IOperation argumentOperation = moqVerifyInvocation.Arguments[0].Value;
-
-        // 1) Unwrap conversions (Roslyn often wraps lambdas in IConversionOperation).
         argumentOperation = argumentOperation.WalkDownImplicitConversion();
 
         if (argumentOperation is IAnonymousFunctionOperation lambdaOperation)
         {
-            // If it's a simple lambda of the form x => x.SomeMember,
-            // the body often ends up as an IPropertyReferenceOperation or IInvocationOperation.
+            // For VerifySet, the lambda body is a block with an assignment statement.
+            if (moqVerifyInvocation.TargetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
+            {
+                // Look for the first assignment in the block and extract the property being set.
+                if (lambdaOperation.Body is IBlockOperation block)
+                {
+                    foreach (IOperation op in block.Operations)
+                    {
+                        if (op is IExpressionStatementOperation exprStmt && exprStmt.Operation is IAssignmentOperation assignOp)
+                        {
+                            // The left side of the assignment should be a property reference
+                            if (assignOp.Target is IPropertyReferenceOperation propRef)
+                            {
+                                return propRef.Property;
+                            }
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            // For Verify/VerifyGet, use the existing logic
             return lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
         }
 
         // Sometimes it might be a delegate creation or something else. Handle other patterns if needed.
+        return null;
+    }
+
+    /// <summary>
+    /// Attempts to get the location of the property assignment in a VerifySet call for precise diagnostic span.
+    /// </summary>
+    private static Location? TryGetVerifySetPropertyAssignmentLocation(IInvocationOperation invocationOperation)
+    {
+        if (invocationOperation.Arguments.Length == 2
+            && invocationOperation.Arguments[1].Value is IDelegateCreationOperation delegateCreation
+            && delegateCreation.Target is IAnonymousFunctionOperation anonymousFunction
+            && anonymousFunction.Body.Operations.Length == 1
+            && anonymousFunction.Body.Operations[0] is IExpressionStatementOperation expressionStatement
+            && expressionStatement.Operation is ISimpleAssignmentOperation assignment)
+        {
+            return assignment.Target.Syntax.GetLocation();
+        }
+
         return null;
     }
 }
