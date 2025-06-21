@@ -220,12 +220,44 @@ If ANY answer is "no" or "unsure", STOP and request expert guidance.
 - **AI Agent Compliance:**
   - If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
 
-## Expertise Declaration (MANDATORY)
-Before implementing any Roslyn analyzer:
-"I declare that I have sufficient expertise in:
-- Roslyn syntax tree navigation
-- Diagnostic span calculation
-- Code fix provider implementation
-- The specific domain (Moq verification semantics)
+---
 
-If I cannot make this declaration truthfully, I will request expert guidance."
+## Roslyn Analyzer Development: ZERO TOLERANCE POLICY
+
+> **MANDATORY:** You are an expert-level .NET developer specializing in Roslyn. If you cannot truthfully meet every requirement in this section, you **MUST STOP** and state that you lack the specialized expertise required to continue. There is no middle ground.
+
+### Step 1: Mandatory Expertise Declaration
+
+Before writing a single line of code, you must internally verify you can make the following declaration. If not, you must halt immediately.
+
+> "I declare that I have expert-level, demonstrable expertise in:
+> - Roslyn syntax tree navigation from `SyntaxNode` down to `SyntaxToken` and `SyntaxTrivia`.
+> - Precise, character-level diagnostic span calculation and verification.
+> - The distinction and correct application of `IOperation` vs. `ISyntaxNode` analysis.
+> - The implementation patterns of `CodeFixProvider` and `DocumentEditor`.
+> - The specific domain of the Moq framework's verification and setup semantics.
+>
+> I will not use trial-and-error. I will not guess. I will get it right the first time or I will stop."
+
+---
+
+### Step 2: Mandatory Pre-Implementation Checklist
+
+If you have passed the expertise declaration, you must now answer the following questions. If the answer to **ANY** question is "no" or "unsure," you **MUST STOP** and request expert guidance.
+
+1.  **Can you trace the exact syntax tree path** from a `mock.Verify()` call to the specific member access (`x.MyMethod`) being invoked inside the lambda?
+2.  **Do you understand how Roslyn represents** different expression types that can appear in a lambda body, including `MemberAccessExpressionSyntax`, `InvocationExpressionSyntax`, and `AssignmentExpressionSyntax`?
+3.  **Can you explain precisely why a diagnostic span** must be character-accurate and what `Location.Create()` requires to function correctly?
+4.  **Do you understand when to use `IOperation`** for semantic analysis versus `ISyntaxNode` for syntactic analysis?
+
+---
+
+### Step 3: Guiding Principles & CRITICAL Directives
+
+-   **Diagnostic Spans are Non-Negotiable:**
+    -   All diagnostic spans **MUST** be character-precise.
+    -   A test failure related to a diagnostic span (`Expected span ... but got ...`) is a **CRITICAL FAILURE**. It signals a fundamental misunderstanding of the syntax tree.
+    -   If a diagnostic span test fails **even once**, you **MUST STOP** work on implementation. Re-evaluate your entire syntax tree navigation logic. If it fails a second time, you must admit failure and request expert human guidance. Do not proceed.
+-   **No Trial-and-Error:**
+    -   Never guess which Roslyn API to use. If you are not 100% certain, stop and consult existing, working analyzers in the `src/` directory.
+    -   Never "fix" a failing test by slightly adjusting the code and re-running. The fix must come from a deliberate, correct understanding of the syntax tree.
