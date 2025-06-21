@@ -1,5 +1,4 @@
 using System.Reflection;
-using Microsoft.CodeAnalysis.Testing;
 
 namespace Moq.Analyzers.Test.Helpers;
 

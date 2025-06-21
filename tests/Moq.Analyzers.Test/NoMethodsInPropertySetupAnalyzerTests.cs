@@ -1,4 +1,3 @@
-using Moq.Analyzers.Test.Helpers;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoMethodsInPropertySetupAnalyzer>;
 
 namespace Moq.Analyzers.Test;
