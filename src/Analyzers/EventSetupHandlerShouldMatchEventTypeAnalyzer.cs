@@ -45,7 +45,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        ValidateHandlerType(context, handlerExpression!, expectedEventType!, invocation);
+        ValidateHandlerType(context, knownSymbols, handlerExpression!, expectedEventType!);
     }
 
     private static bool IsEventSetupMethodCall(SemanticModel semanticModel, InvocationExpressionSyntax invocation, MoqKnownSymbols knownSymbols)
@@ -121,10 +121,10 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         return true;
     }
 
-    private static void ValidateHandlerType(SyntaxNodeAnalysisContext context, ExpressionSyntax handlerExpression, ITypeSymbol expectedEventType)
+    private static void ValidateHandlerType(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ExpressionSyntax handlerExpression, ITypeSymbol expectedEventType)
     {
         // Get the handler type from the expression
-        if (!TryGetHandlerTypeFromExpression(context.SemanticModel, handlerExpression, out ITypeSymbol? handlerType))
+        if (!TryGetHandlerTypeFromExpression(context.SemanticModel, knownSymbols, handlerExpression, out ITypeSymbol? handlerType))
         {
             return;
         }
@@ -138,21 +138,22 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static bool TryGetHandlerTypeFromExpression(SemanticModel semanticModel, ExpressionSyntax handlerExpression, out ITypeSymbol? handlerType)
+    private static bool TryGetHandlerTypeFromExpression(SemanticModel semanticModel, MoqKnownSymbols knownSymbols, ExpressionSyntax handlerExpression, out ITypeSymbol? handlerType)
     {
         handlerType = null;
 
-        // Handle It.IsAny<T>() expressions
+        // Handle It.IsAny<T>() expressions using semantic analysis
         if (handlerExpression is InvocationExpressionSyntax invocation &&
             invocation.Expression is MemberAccessExpressionSyntax memberAccess &&
-            memberAccess.Expression is IdentifierNameSyntax identifier &&
-string.Equals(identifier.Identifier.ValueText, "It", StringComparison.Ordinal) &&
-string.Equals(memberAccess.Name.Identifier.ValueText, "IsAny", StringComparison.Ordinal))
+            memberAccess.Name is GenericNameSyntax genericName &&
+            genericName.TypeArgumentList.Arguments.Count == 1)
         {
-            // For It.IsAny<T>(), get T from the generic type arguments
-            if (memberAccess.Name is GenericNameSyntax genericName &&
-                genericName.TypeArgumentList.Arguments.Count == 1)
+            // Use semantic model to check if this is actually It.IsAny
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+            if (symbolInfo.Symbol is IMethodSymbol methodSymbol &&
+                knownSymbols.ItIsAny.Contains(methodSymbol))
             {
+                // For It.IsAny<T>(), get T from the generic type arguments
                 TypeInfo typeInfo = semanticModel.GetTypeInfo(genericName.TypeArgumentList.Arguments[0]);
                 handlerType = typeInfo.Type;
                 return handlerType != null;
@@ -167,7 +168,6 @@ string.Equals(memberAccess.Name.Identifier.ValueText, "IsAny", StringComparison.
 
     private static bool HasConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
     {
-        Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
-        return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
+        return semanticModel.HasConversion(source, destination);
     }
 }

@@ -34,7 +34,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         // Check if this is a Raises method call
-        if (!IsRaisesMethodCall(context.SemanticModel, invocation))
+        if (!IsRaisesMethodCall(invocation))
         {
             return;
         }
@@ -204,7 +204,6 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
 
     private static bool HasConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
     {
-        Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
-        return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
+        return semanticModel.HasConversion(source, destination);
     }
 }
