@@ -420,3 +420,114 @@ flowchart TD
 - Confirm a clean working tree with `git status` before committing.
 - Summaries in pull requests should mention key line numbers using the repository citation format.
 - Re-run `dotnet format`, build, and tests after resolving feedback or merge conflicts.
+
+---
+
+## Writing Git Commit Messages
+
+Guidelines:
+
+1. Capitalization and Punctuation: Capitalize the first word and do not end in punctuation. If using Conventional Commits, remember to use all lowercase.
+2. Mood: Use imperative mood in the subject line. Example – Add fix for dark mode toggle state. Imperative mood gives the tone you are giving an order or request.
+3. Type of Commit: Specify the type of commit. It is recommended and can be even more beneficial to have a consistent set of words to describe your changes. Example: Bugfix, Update, Refactor, Bump, and so on. See the section on Conventional Commits below for additional information.
+4. Length: The first line should ideally be no longer than 50 characters, and the body should be restricted to 72 characters.
+5. Content: Be direct, try to eliminate filler words and phrases in these sentences (examples: though, maybe, I think, kind of). Think like a journalist.
+
+### How to Find Your Inner Journalist
+
+When writing an article they look to answer who, what, where, when, why and how. For committing purposes, it is most important to answer the what and why for our commit messages.
+
+To come up with thoughtful commits, consider the following:
+
+- Why have I made these changes?
+- What effect have my changes made?
+- Why was the change needed?
+- What are the changes in reference to?
+- Assume the reader does not understand what the commit is addressing. They may not have access to the story addressing the detailed background of the change.
+
+Don't expect the code to be self-explanatory. This is similar to the point above.
+
+It might seem obvious to you, the programmer, if you're updating something like CSS styles since it is visual. You may have intimate knowledge on why these changes were needed at the time, but it's unlikely you will recall why you did that hundreds of pull requests later.
+
+Make it clear why that change was made, and note if it may be crucial for the functionality or not.
+
+See the differences below:
+
+Bad: `git commit -m 'Add margin'`
+Good: `git commit -m 'Add margin to nav items to prevent them from overlapping the logo'`
+
+It is clear which of these would be more useful to future readers.
+
+Pretend you're writing an important newsworthy article. Give the headline that will sum up what happened and what is important. Then, provide further details in the body in an organized fashion.
+
+In filmmaking, it is often quoted "show, don't tell" using visuals as the communication medium compared to a verbal explanation of what is happening.
+
+In our case, "tell, don't [just] show" – though we have some visuals at our disposal such as the browser, most of the specifics come from reading the physical code.
+
+When writing the commit, imagine how useful this could be in troubleshooting a bug or back-tracing changes made. 
+
+Where possible, use **Conventional Commits**
+
+### Conventional Commits
+
+Conventional Commit is a formatting convention that provides a set of rules to formulate a consistent commit message structure like so:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+The commit type can include the following:
+
+- feat – a new feature is introduced with the changes
+- fix – a bug fix has occurred
+- chore – changes that do not relate to a fix or feature and don't modify src or test files (for example updating dependencies)
+- refactor – refactored code that neither fixes a bug nor adds a feature
+- docs – updates to documentation such as a the README or other markdown files
+- style – changes that do not affect the meaning of the code, likely related to code formatting such as white-space, missing semi-colons, and so on.
+- test – including new or correcting previous tests
+- perf – performance improvements
+- ci – continuous integration related
+- build – changes that affect the build system or external dependencies
+- revert – reverts a previous commit
+
+The commit type subject line should be all lowercase with a character limit to encourage succinct descriptions.
+
+The optional commit body should be used to provide further detail that cannot fit within the character limitations of the subject line description.
+
+It is also a good location to utilize `BREAKING CHANGE: <description>` to note the reason for a breaking change within the commit.
+
+The footer is also optional. We use the footer to link the GitHub issue that would be closed with these changes for example: `Closes #42`.
+
+Example:
+
+```
+fix: fix foo to enable bar
+
+This fixes the broken behavior of the component by doing xyz. 
+
+BREAKING CHANGE
+Before this fix foo wasn't enabled at all, behavior changes from <old> to <new>
+
+Closes #12345
+```
+
+#### Commit Message Examples
+
+**Good**
+
+- `feat: improve performance with lazy load implementation for images`
+- `chore: update npm dependency to latest version`
+- `Fix bug preventing users from submitting the subscribe form`
+- `Update incorrect client phone number within footer body per client request`
+
+**Bad**
+
+- `fixed bug on landing page`
+- `Changed style`
+- `oops`
+- `I think I fixed it this time?`
+- *empty commit messages*
