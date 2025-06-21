@@ -145,14 +145,8 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
             return null;
         }
 
-        // For VerifySet, the lambda may be in argument 1 (second argument)
-        int lambdaArgIndex = 0;
-        if (moqVerifyInvocation.TargetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet) && moqVerifyInvocation.Arguments.Length > 1)
-        {
-            lambdaArgIndex = 1;
-        }
-
-        IOperation argumentOperation = moqVerifyInvocation.Arguments[lambdaArgIndex].Value;
+        // The lambda is always at index 0 for all Moq verification methods
+        IOperation argumentOperation = moqVerifyInvocation.Arguments[0].Value;
         argumentOperation = argumentOperation.WalkDownImplicitConversion();
 
         // Handle delegate conversions (e.g., VerifySet(x => { ... }))
