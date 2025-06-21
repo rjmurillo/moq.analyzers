@@ -53,6 +53,28 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
         return true;
     }
 
+    /// <summary>
+    /// Attempts to handle missing MockBehavior parameter by checking for overloads that accept it.
+    /// </summary>
+    /// <param name="context">The operation analysis context.</param>
+    /// <param name="mockParameter">The MockBehavior parameter (should be null to trigger overload check).</param>
+    /// <param name="target">The target method to check for overloads.</param>
+    /// <param name="knownSymbols">The known Moq symbols.</param>
+    /// <param name="rule">The diagnostic rule to report.</param>
+    /// <returns>True if a diagnostic was reported; otherwise, false.</returns>
+    internal bool TryHandleMissingMockBehaviorParameter(
+        OperationAnalysisContext context,
+        IParameterSymbol? mockParameter,
+        IMethodSymbol target,
+        MoqKnownSymbols knownSymbols,
+        DiagnosticDescriptor rule)
+    {
+        // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
+        return mockParameter is null
+            && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out IMethodSymbol? methodMatch, out _, cancellationToken: context.CancellationToken)
+            && TryReportMockBehaviorDiagnostic(context, methodMatch, knownSymbols, rule, DiagnosticEditProperties.EditType.Insert);
+    }
+
     private void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
         MoqKnownSymbols knownSymbols = new(context.Compilation);

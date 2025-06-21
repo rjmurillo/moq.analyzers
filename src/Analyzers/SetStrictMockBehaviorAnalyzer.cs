@@ -32,8 +32,7 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
         IParameterSymbol? mockParameter = target.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
 
         // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
-        if (mockParameter is null && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out IMethodSymbol? methodMatch, out _, cancellationToken: context.CancellationToken)
-            && TryReportMockBehaviorDiagnostic(context, methodMatch, knownSymbols, Rule, DiagnosticEditProperties.EditType.Insert))
+        if (TryHandleMissingMockBehaviorParameter(context, mockParameter, target, knownSymbols, Rule))
         {
             // Using a method that doesn't accept a MockBehavior parameter, however there's an overload that does
             return;
