@@ -132,7 +132,11 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         // Check if the handler type matches the expected event delegate type
         if (!context.SemanticModel.HasConversion(handlerType!, expectedEventType))
         {
-            // Report on the handler expression
+            // NOTE: This diagnostic is reported when the handler type doesn't match the event delegate type.
+            // This code path is difficult to test in unit tests because most type mismatches that would
+            // reach this point also cause compiler errors (CS0029) which prevent the analyzer from running.
+            // The analyzer only runs on syntactically and semantically valid C# code from the compiler's
+            // perspective, but can still detect Moq-specific semantic issues like delegate type mismatches.
             Diagnostic diagnostic = handlerExpression.GetLocation().CreateDiagnostic(Rule);
             context.ReportDiagnostic(diagnostic);
         }
@@ -153,7 +157,11 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol &&
                 knownSymbols.ItIsAny.Contains(methodSymbol))
             {
-                // For It.IsAny<T>(), get T from the generic type arguments
+                // NOTE: This code path extracts the generic type argument T from It.IsAny<T>() expressions.
+                // It's difficult to test directly because most type mismatches that would exercise this
+                // path also cause compiler errors before the analyzer runs. The analyzer is designed to
+                // catch subtle Moq-specific type compatibility issues that pass C# compiler validation
+                // but are semantically incorrect for event handler assignment.
                 TypeInfo typeInfo = semanticModel.GetTypeInfo(genericName.TypeArgumentList.Arguments[0]);
                 handlerType = typeInfo.Type;
                 return handlerType != null;

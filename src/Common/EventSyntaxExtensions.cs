@@ -9,65 +9,6 @@ namespace Moq.Analyzers.Common;
 public static class EventSyntaxExtensions
 {
     /// <summary>
-    /// Attempts to extract the event type from an event selector expression.
-    /// </summary>
-    /// <param name="semanticModel">The semantic model.</param>
-    /// <param name="eventSelector">The event selector expression.</param>
-    /// <param name="eventType">The extracted event type, if found.</param>
-    /// <returns><c>true</c> if the event type was found; otherwise, <c>false</c>.</returns>
-    public static bool TryGetEventTypeFromSelector(
-        SemanticModel semanticModel,
-        ExpressionSyntax eventSelector,
-        out ITypeSymbol? eventType)
-    {
-        eventType = null;
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(eventSelector);
-        if (symbolInfo.Symbol is IEventSymbol eventSymbol)
-        {
-            eventType = eventSymbol.Type;
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Attempts to extract the event symbol and handler type from setup arguments.
-    /// </summary>
-    /// <param name="semanticModel">The semantic model.</param>
-    /// <param name="arguments">The setup arguments.</param>
-    /// <param name="eventSymbol">The extracted event symbol, if found.</param>
-    /// <param name="handlerType">The extracted handler type, if found.</param>
-    /// <returns><c>true</c> if both were found; otherwise, <c>false</c>.</returns>
-    public static bool TryGetEventAndHandlerFromSetup(
-        SemanticModel semanticModel,
-        ArgumentSyntax[] arguments,
-        out IEventSymbol? eventSymbol,
-        out ITypeSymbol? handlerType)
-    {
-        eventSymbol = null;
-        handlerType = null;
-
-        if (arguments.Length < 2)
-        {
-            return false;
-        }
-
-        ExpressionSyntax eventSelector = arguments[0].Expression;
-        ExpressionSyntax handler = arguments[1].Expression;
-
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(eventSelector);
-        if (symbolInfo.Symbol is IEventSymbol evt)
-        {
-            eventSymbol = evt;
-            handlerType = semanticModel.GetTypeInfo(handler).Type;
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Extracts the event type from a lambda selector of the form: x => x.EventName += null.
     /// </summary>
     /// <param name="semanticModel">The semantic model.</param>
