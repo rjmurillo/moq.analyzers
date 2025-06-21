@@ -108,7 +108,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             ITypeSymbol? argumentType = argumentTypeInfo.Type;
             ITypeSymbol expectedType = expectedParameterTypes[i];
 
-            if (argumentType != null && !HasConversion(context.SemanticModel, argumentType, expectedType))
+            if (argumentType != null && !context.SemanticModel.HasConversion(argumentType, expectedType))
             {
                 // Report on the specific argument with the wrong type
                 Diagnostic diagnostic = eventArguments[i].GetLocation().CreateDiagnostic(Rule);
@@ -198,11 +198,5 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
     private static bool IsEventHandlerDelegate(INamedTypeSymbol namedType)
     {
         return string.Equals(namedType.Name, "EventHandler", StringComparison.Ordinal) && namedType.TypeArguments.Length == 1;
-    }
-
-    private static bool HasConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
-    {
-        Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
-        return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
     }
 }
