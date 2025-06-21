@@ -2,7 +2,7 @@ using Verify = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.VerifySh
 
 namespace Moq.Analyzers.Test;
 
-public class VerifyOverridableMembersCodeFixTests
+public class VerifyOverridableMembersCodeFixTests(ITestOutputHelper output)
 {
     public static IEnumerable<object[]> MoqReferenceAssemblyGroups() =>
         new List<object[]>
@@ -54,16 +54,28 @@ public class VerifyOverridableMembersCodeFixTests
         await Verify.VerifyCodeFixAsync(test, fixtest, referenceAssemblyGroup);
     }
 
-    [Theory]
-    [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task MakesNonVirtualMethodVirtual(string referenceAssemblyGroup)
+    public static IEnumerable<object[]> MakesNonVirtualMethodVirtualData()
     {
-        string test = """
-        using Moq;
+        return new object[][]
+        {
+            [
+                """public int MyMethod() => 0;""",
+                """public virtual int MyMethod() => 0;""",
+            ],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    [Theory]
+    [MemberData(nameof(MakesNonVirtualMethodVirtualData))]
+    public async Task MakesNonVirtualMethodVirtual(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)
+    {
+        static string Template(string ns, string code) =>
+        $$"""
+        {{ns}}
 
         public class MyClass
         {
-            public int MyMethod() => 0;
+            {{code}}
         }
 
         public class MyTest
@@ -71,30 +83,21 @@ public class VerifyOverridableMembersCodeFixTests
             public void Test()
             {
                 var mock = new Mock<MyClass>();
-                mock.Verify(x => {|Moq1210:x.MyMethod()|});
+                {|Moq1210:mock.Verify(x => x.MyMethod())|};
             }
         }
         """;
 
-        string fixtest = """
-        using Moq;
+        string o = Template(@namespace, brokenCode);
+        string f = Template(@namespace, fixedCode);
 
-        public class MyClass
-        {
-            public virtual int MyMethod() => 0;
-        }
+        output.WriteLine("Original:");
+        output.WriteLine(o);
+        output.WriteLine(string.Empty);
+        output.WriteLine("Fixed:");
+        output.WriteLine(f);
 
-        public class MyTest
-        {
-            public void Test()
-            {
-                var mock = new Mock<MyClass>();
-                mock.Verify(x => x.MyMethod());
-            }
-        }
-        """;
-
-        await Verify.VerifyCodeFixAsync(test, fixtest, referenceAssemblyGroup);
+        await Verify.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
     }
 
     [Theory]
