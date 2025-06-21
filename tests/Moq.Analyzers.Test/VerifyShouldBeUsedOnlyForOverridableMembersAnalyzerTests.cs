@@ -10,19 +10,15 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
         IEnumerable<object[]> both = new object[][]
         {
             // Valid in both versions, but flagged as error for non-virtual/invalid targets
-            ["""{|Moq1210:new Mock<BaseSampleClass>().Verify(x => x.Calculate())|}"""],
-            ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Property)|}"""],
-            ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))|}"""],
+            ["""{|Moq1210:new Mock<BaseSampleClass>().Verify(x => x.Calculate())|};"""],
+            ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Property)|};"""],
+            ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))|};"""],
             ["""new Mock<BaseSampleClass>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
             ["""new Mock<ISampleInterface>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
 
             // VerifyGet tests
-            ["""{|Moq1210:new Mock<SampleClass>().VerifyGet(x => x.Property)|}"""],
+            ["""{|Moq1210:new Mock<SampleClass>().VerifyGet(x => x.Property)|};"""],
             ["""new Mock<ISampleInterface>().VerifyGet(x => x.TestProperty);"""],
-
-            // VerifySet tests
-            ["""{|Moq1210:new Mock<SampleClass>().VerifySet(x => x.Property = It.IsAny<int>())|}"""],
-            ["""new Mock<ISampleInterface>().VerifySet(x => x.TestProperty = It.IsAny<string>());"""],
 
             // VerifyNoOtherCalls should not trigger any diagnostics
             ["""new Mock<SampleClass>().VerifyNoOtherCalls();"""],
@@ -33,11 +29,19 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
             ["""new Mock<SampleClass>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
             ["""new Mock<ISampleInterface>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
             ["""new Mock<ISampleInterface>().Verify(x => x.TestProperty);"""],
-            ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Field)|}"""],
-            ["""{|Moq1210:new Mock<SampleClassWithNonVirtualIndexer>().Verify(x => x[0])|}"""],
+            ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Field)|};"""],
+            ["""{|Moq1210:new Mock<SampleClassWithNonVirtualIndexer>().Verify(x => x[0])|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
-        return both;
+        IEnumerable<object[]> newMoqOnly = new object[][]
+        {
+            // VerifySet tests - only available in new Moq versions
+            // VerifySet uses Action<T> syntax, not Expression<Func<T, ...>>
+            ["""{|Moq1210:new Mock<SampleClass>().VerifySet(x => { x.Property = It.IsAny<int>(); })|};"""],
+            ["""new Mock<ISampleInterface>().VerifySet(x => { x.TestProperty = It.IsAny<string>(); });"""],
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+
+        return both.Concat(newMoqOnly);
     }
 
     [Theory]
