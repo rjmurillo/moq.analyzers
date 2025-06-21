@@ -20,20 +20,21 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 - If adding an analyzer: also add a code fix, a benchmark, and documentation in `docs/rules`.
 - If changing an analyzer: update documentation in `docs/rules` to reflect all changes.
 - Ask clarifying questions if requirements are unclear.
-- **Moq Version Compatibility:**
-  - When writing or updating analyzer tests, always verify which Moq features are available in each supported version.
-  - **Moq 4.8.2:**
-    - Does _not_ support `SetupAdd`, `SetupRemove`, or `.Protected().Setup`.
-    - Indexer setups are supported only for virtual or interface indexers.
-    - Do _not_ add tests for APIs or patterns that do not exist in this version; such tests will fail at compile time, not at analyzer time.
-  - **Moq 4.18.4+:**
-    - Supports `SetupAdd`, `SetupRemove`, and `.Protected().Setup`.
-    - Allows setups for virtual events and indexers, and explicit interface implementations.
-    - Tests for these features should be placed in the "new" test group and must not be expected to pass in "old" Moq test runs.
-  - **General:**
-    - Never expect analyzer diagnostics for code that cannot compile due to missing APIs or language restrictions.
-    - When in doubt, consult the official Moq documentation and changelogs for feature support.
-- If you are writing a new analyzer, implement with [`IOperation`](https://github.com/rjmurillo/moq.analyzers/issues/118) (see issue #118)
+
+### AllAnalyzersVerifier for Comprehensive Testing
+
+When writing tests that verify code patterns don't trigger unwanted diagnostics from **any** Moq analyzer, use the `AllAnalyzersVerifier` helper class:
+
+```csharp
+await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssemblyGroup);
+```
+
+**Key Benefits:**
+- **Automatic Discovery**: Uses reflection to find all `DiagnosticAnalyzer` types in the `Moq.Analyzers` namespace
+- **No Manual Maintenance**: New analyzers are automatically included without code changes
+- **Comprehensive Coverage**: Tests against ALL analyzers simultaneously to ensure no false positives
+
+**Important**: When you add a new analyzer, the `AllAnalyzersVerifier` automatically discovers and includes it. No manual updates to test infrastructure are required.
 
 ### Troubleshooting Development FlowAdd commentMore actions
 If you encounter:
@@ -121,6 +122,51 @@ If you encounter:
 
 ## Moq-Specific Analyzer and Test Authoring Guidance
 
+## Roslyn Analyzer Development Requirements
+- **MANDATORY:** Roslyn analyzer development requires deep understanding of:
+  - Syntax tree navigation and manipulation
+  - Diagnostic span precision (character-level accuracy)
+  - IOperation vs ISyntaxNode usage patterns
+  - Code fix provider implementation patterns
+- If you lack this expertise, STOP and request guidance before proceeding
+- Never attempt to "figure out" Roslyn patterns through trial and error
+
+## Early Failure Detection
+- If you cannot explain the exact syntax tree structure of the code you're analyzing, STOP
+- If diagnostic span tests fail more than once, STOP and request expert guidance
+- If you're making "educated guesses" about Roslyn APIs, STOP
+- If test failures indicate you don't understand the domain (Moq verification semantics), STOP
+
+## Complexity Assessment (MANDATORY)
+Before starting any analyzer implementation:
+1. Can you trace the exact syntax tree path from Verify() call to member access?
+2. Do you understand how Roslyn represents different expression types (MemberAccess, Invocation, Assignment)?
+3. Can you explain why diagnostic spans must be character-precise?
+4. Do you understand the difference between IOperation and ISyntaxNode analysis?
+
+If ANY answer is "no" or "unsure", STOP and request expert guidance.
+
+## Diagnostic Span Testing (CRITICAL)
+- Diagnostic spans must be character-precise (column X to column Y)
+- Test failures about span mismatches indicate fundamental misunderstanding
+- If span tests fail, DO NOT continue with implementation
+- Request expert guidance on syntax tree navigation
+
+- **Moq Version Compatibility:**
+  - When writing or updating analyzer tests, always verify which Moq features are available in each supported version.
+  - **Moq 4.8.2:**
+    - Does _not_ support `SetupAdd`, `SetupRemove`, or `.Protected().Setup`.
+    - Indexer setups are supported only for virtual or interface indexers.
+    - Do _not_ add tests for APIs or patterns that do not exist in this version; such tests will fail at compile time, not at analyzer time.
+  - **Moq 4.18.4+:**
+    - Supports `SetupAdd`, `SetupRemove`, and `.Protected().Setup`.
+    - Allows setups for virtual events and indexers, and explicit interface implementations.
+    - Tests for these features should be placed in the "new" test group and must not be expected to pass in "old" Moq test runs.
+  - **General:**
+    - Never expect analyzer diagnostics for code that cannot compile due to missing APIs or language restrictions.
+    - When in doubt, consult the official Moq documentation and changelogs for feature support.
+- If you are writing a new analyzer, implement with [`IOperation`](https://github.com/rjmurillo/moq.analyzers/issues/118) (see issue #118)
+
 > **MANDATORY:** The following rules are required for all contributors and AI agents working on Moq analyzers and tests. Do not deviate. If a rule is unclear, stop and request clarification before proceeding.
 
 - **Overridable Members Only:**
@@ -173,3 +219,131 @@ If you encounter:
 
 - **AI Agent Compliance:**
   - If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
+
+### Data-Driven Testing for Code Fixes (MANDATORY PATTERN)
+
+When testing code fixes that modify a class member (method, property, etc.), you **MUST** use the following data-driven pattern. This separates code snippets from boilerplate and enables combinatorial testing.
+
+**1. Create a Data Source Method (`IEnumerable<object[]>`)**
+
+Define a `public static IEnumerable<object[]>` method to provide test cases.
+
+-   **Signature:** `public static IEnumerable<object[]> YourDataSourceMethod()`
+-   **Content:** Return a `new object[][] { ... }`. Each inner `object[]` must contain two strings:
+    1.  The original code snippet that triggers the analyzer (`brokenCode`).
+    2.  The target code snippet after the code fix is applied (`fixedCode`).
+-   **Helpers:** You **MUST** chain `.WithNamespaces().WithMoqReferenceAssemblyGroups()` to the collection to automatically generate test variations.
+
+**Example:**
+```csharp
+public static IEnumerable<object[]> MakesNonVirtualMethodVirtualData()
+{
+    return new object[][]
+    {
+        [
+            """public int MyMethod() => 0;""", // brokenCode
+            """public virtual int MyMethod() => 0;""", // fixedCode
+        ],
+    }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+}
+```
+
+**2. Create the `[Theory]` Test Method**
+
+Create an `async Task` method decorated with `[Theory]` and `[MemberData]`.
+
+-   **Signature:** The signature **MUST** match the data source output: `async Task YourTestMethod(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)`
+
+**Example:**
+```csharp
+[Theory]
+[MemberData(nameof(MakesNonVirtualMethodVirtualData))]
+public async Task MakesNonVirtualMethodVirtual(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)
+{
+    // ... test logic
+}
+```
+
+**3. Define the Code Template (`Template` function)**
+
+Inside the test method, define a `static` local function named `Template` that builds the full source code using a raw string literal.
+
+-   **Placeholders:** The template **MUST** use `{{ns}}` for the namespace and `{{code}}` for the code snippet.
+-   **Context:** The template **MUST** include all necessary `using` statements and class structures to create a valid, compilable test case. Note that `tests\Moq.Analyzers.Test\Helpers\Test.cs` inserts global usings common for tests.
+-   **Diagnostic Marker:** The code that triggers the analyzer **MUST** be wrapped with `{|DIAGNOSTIC_ID: ... |}` (e.g., `{|Moq1210:...|}`). This is non-negotiable for the test verifier to work.
+
+**Example:**
+```csharp
+static string Template(string ns, string code) =>
+$$"""
+{{ns}}
+
+public class MyClass
+{
+    {{code}} // This is where brokenCode/fixedCode will be injected
+}
+
+public class MyTest
+{
+    public void Test()
+    {
+        var mock = new Mock<MyClass>();
+        {|Moq1210:mock.Verify(x => x.MyMethod())|};
+    }
+}
+""";
+```
+
+**4. Verify the Code Fix**
+
+Use the `Template` function to generate the "before" and "after" source files and pass them to `Verify.VerifyCodeFixAsync`.
+
+**Example:**
+```csharp
+string originalSource = Template(@namespace, brokenCode);
+string fixedSource = Template(@namespace, fixedCode);
+
+await Verify.VerifyCodeFixAsync(originalSource, fixedSource, referenceAssemblyGroup);
+```
+
+---
+
+## Roslyn Analyzer Development: ZERO TOLERANCE POLICY
+
+> **MANDATORY:** You are an expert-level .NET developer specializing in Roslyn. If you cannot truthfully meet every requirement in this section, you **MUST STOP** and state that you lack the specialized expertise required to continue. There is no middle ground.
+
+### Step 1: Mandatory Expertise Declaration
+
+Before writing a single line of code, you must internally verify you can make the following declaration. If not, you must halt immediately.
+
+> "I declare that I have expert-level, demonstrable expertise in:
+> - Roslyn syntax tree navigation from `SyntaxNode` down to `SyntaxToken` and `SyntaxTrivia`.
+> - Precise, character-level diagnostic span calculation and verification.
+> - The distinction and correct application of `IOperation` vs. `ISyntaxNode` analysis.
+> - The implementation patterns of `CodeFixProvider` and `DocumentEditor`.
+> - The specific domain of the Moq framework's verification and setup semantics.
+>
+> I will not use trial-and-error. I will not guess. I will get it right the first time or I will stop."
+
+---
+
+### Step 2: Mandatory Pre-Implementation Checklist
+
+If you have passed the expertise declaration, you must now answer the following questions. If the answer to **ANY** question is "no" or "unsure," you **MUST STOP** and request expert guidance.
+
+1.  **Can you trace the exact syntax tree path** from a `mock.Verify()` call to the specific member access (`x.MyMethod`) being invoked inside the lambda?
+2.  **Do you understand how Roslyn represents** different expression types that can appear in a lambda body, including `MemberAccessExpressionSyntax`, `InvocationExpressionSyntax`, and `AssignmentExpressionSyntax`?
+3.  **Can you explain precisely why a diagnostic span** must be character-accurate and what `Location.Create()` requires to function correctly?
+4.  **Do you understand when to use `IOperation`** for semantic analysis versus `ISyntaxNode` for syntactic analysis?
+
+---
+
+### Step 3: Guiding Principles & CRITICAL Directives
+
+-   **Diagnostic Spans are Non-Negotiable:**
+    -   All diagnostic spans **MUST** be character-precise.
+    -   A test failure related to a diagnostic span (`Expected span ... but got ...`) is a **CRITICAL FAILURE**. It signals a fundamental misunderstanding of the syntax tree.
+    -   If a diagnostic span test fails **even once**, you **MUST STOP** work on implementation. Re-evaluate your entire syntax tree navigation logic. If it fails a second time, you must admit failure and request expert human guidance. Do not proceed.
+-   **No Trial-and-Error:**
+    -   Never guess which Roslyn API to use. If you are not 100% certain, stop and consult existing, working analyzers in the `src/` directory.
+    -   Never "fix" a failing test by slightly adjusting the code and re-running. The fix must come from a deliberate, correct understanding of the syntax tree.
