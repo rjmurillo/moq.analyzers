@@ -77,9 +77,22 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         }
 
         // 5. Check if symbol is a property or method, and if it is overridable or is returning a Task (which Moq allows).
-        if (IsAllowedMockMember(mockedMemberSymbol, knownSymbols))
+        // Special handling for VerifySet: must check property overridability for set accessor
+        if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
         {
-            return;
+            if (mockedMemberSymbol is IPropertySymbol propertySymbol && propertySymbol.IsOverridable())
+            {
+                return;
+            }
+
+            // If not overridable, fall through to report diagnostic
+        }
+        else
+        {
+            if (IsAllowedMockMember(mockedMemberSymbol, knownSymbols))
+            {
+                return;
+            }
         }
 
         // 6. If we reach here, the member is neither overridable nor allowed by Moq
@@ -87,16 +100,7 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         //
         // NOTE: The location is on the invocationOperation, which is fairly broad
         // For VerifySet, try to report the diagnostic on the property being set for precise span
-        Location diagnosticLocation = mockedMemberSymbol.Locations.FirstOrDefault() ?? invocationOperation.Syntax.GetLocation();
-        if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
-        {
-            // Try to get the property assignment node for precise span
-            Location? propertyAssignmentLocation = TryGetVerifySetPropertyAssignmentLocation(invocationOperation);
-            if (propertyAssignmentLocation != null)
-            {
-                diagnosticLocation = propertyAssignmentLocation;
-            }
-        }
+        Location diagnosticLocation = invocationOperation.Syntax.GetLocation();
 
         Diagnostic diagnostic = DiagnosticExtensions.CreateDiagnostic(invocationOperation.Syntax, Rule, diagnosticLocation);
         context.ReportDiagnostic(diagnostic);
@@ -132,33 +136,48 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
     /// </summary>
     private static ISymbol? TryGetMockedMemberSymbol(IInvocationOperation moqVerifyInvocation, MoqKnownSymbols knownSymbols)
     {
+#pragma warning disable S125 // Sections of code should not be commented out
         // Usually the first argument to a Moq Verify(...) is a lambda expression like x => x.Property
         // or x => x.Method(...). For VerifySet, it's an Action<T> lambda: x => { x.Property = ...; }
+#pragma warning restore S125 // Sections of code should not be commented out
         if (moqVerifyInvocation.Arguments.Length == 0)
         {
             return null;
         }
 
-        IOperation argumentOperation = moqVerifyInvocation.Arguments[0].Value;
+        // For VerifySet, the lambda may be in argument 1 (second argument)
+        int lambdaArgIndex = 0;
+        if (moqVerifyInvocation.TargetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet) && moqVerifyInvocation.Arguments.Length > 1)
+        {
+            lambdaArgIndex = 1;
+        }
+
+        IOperation argumentOperation = moqVerifyInvocation.Arguments[lambdaArgIndex].Value;
         argumentOperation = argumentOperation.WalkDownImplicitConversion();
+
+        // Handle delegate conversions (e.g., VerifySet(x => { ... }))
+        if (argumentOperation is IDelegateCreationOperation delegateCreation &&
+            delegateCreation.Target is IAnonymousFunctionOperation lambdaOp)
+        {
+            argumentOperation = lambdaOp;
+        }
 
         if (argumentOperation is IAnonymousFunctionOperation lambdaOperation)
         {
             // For VerifySet, the lambda body is a block with an assignment statement.
             if (moqVerifyInvocation.TargetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
             {
-                // Look for the first assignment in the block and extract the property being set.
-                if (lambdaOperation.Body is IBlockOperation block)
+                ImmutableArray<IOperation> bodyOps = lambdaOperation.Body.Operations;
+                foreach (IOperation op in bodyOps)
                 {
-                    foreach (IOperation op in block.Operations)
+                    if (op is IExpressionStatementOperation exprStmt)
                     {
-                        if (op is IExpressionStatementOperation exprStmt && exprStmt.Operation is IAssignmentOperation assignOp)
+                        IAssignmentOperation? assignOp = exprStmt.Operation as IAssignmentOperation
+                            ?? exprStmt.Operation as ISimpleAssignmentOperation;
+
+                        if (assignOp?.Target is IPropertyReferenceOperation propRef)
                         {
-                            // The left side of the assignment should be a property reference
-                            if (assignOp.Target is IPropertyReferenceOperation propRef)
-                            {
-                                return propRef.Property;
-                            }
+                            return propRef.Property;
                         }
                     }
                 }
@@ -171,24 +190,6 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         }
 
         // Sometimes it might be a delegate creation or something else. Handle other patterns if needed.
-        return null;
-    }
-
-    /// <summary>
-    /// Attempts to get the location of the property assignment in a VerifySet call for precise diagnostic span.
-    /// </summary>
-    private static Location? TryGetVerifySetPropertyAssignmentLocation(IInvocationOperation invocationOperation)
-    {
-        if (invocationOperation.Arguments.Length == 2
-            && invocationOperation.Arguments[1].Value is IDelegateCreationOperation delegateCreation
-            && delegateCreation.Target is IAnonymousFunctionOperation anonymousFunction
-            && anonymousFunction.Body.Operations.Length == 1
-            && anonymousFunction.Body.Operations[0] is IExpressionStatementOperation expressionStatement
-            && expressionStatement.Operation is ISimpleAssignmentOperation assignment)
-        {
-            return assignment.Target.Syntax.GetLocation();
-        }
-
         return null;
     }
 }
