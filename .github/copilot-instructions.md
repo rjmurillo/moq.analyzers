@@ -20,20 +20,6 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 - If adding an analyzer: also add a code fix, a benchmark, and documentation in `docs/rules`.
 - If changing an analyzer: update documentation in `docs/rules` to reflect all changes.
 - Ask clarifying questions if requirements are unclear.
-- **Moq Version Compatibility:**
-  - When writing or updating analyzer tests, always verify which Moq features are available in each supported version.
-  - **Moq 4.8.2:**
-    - Does _not_ support `SetupAdd`, `SetupRemove`, or `.Protected().Setup`.
-    - Indexer setups are supported only for virtual or interface indexers.
-    - Do _not_ add tests for APIs or patterns that do not exist in this version; such tests will fail at compile time, not at analyzer time.
-  - **Moq 4.18.4+:**
-    - Supports `SetupAdd`, `SetupRemove`, and `.Protected().Setup`.
-    - Allows setups for virtual events and indexers, and explicit interface implementations.
-    - Tests for these features should be placed in the "new" test group and must not be expected to pass in "old" Moq test runs.
-  - **General:**
-    - Never expect analyzer diagnostics for code that cannot compile due to missing APIs or language restrictions.
-    - When in doubt, consult the official Moq documentation and changelogs for feature support.
-- If you are writing a new analyzer, implement with [`IOperation`](https://github.com/rjmurillo/moq.analyzers/issues/118) (see issue #118)
 
 ### AllAnalyzersVerifier for Comprehensive Testing
 
@@ -136,6 +122,51 @@ If you encounter:
 
 ## Moq-Specific Analyzer and Test Authoring Guidance
 
+## Roslyn Analyzer Development Requirements
+- **MANDATORY:** Roslyn analyzer development requires deep understanding of:
+  - Syntax tree navigation and manipulation
+  - Diagnostic span precision (character-level accuracy)
+  - IOperation vs ISyntaxNode usage patterns
+  - Code fix provider implementation patterns
+- If you lack this expertise, STOP and request guidance before proceeding
+- Never attempt to "figure out" Roslyn patterns through trial and error
+
+## Early Failure Detection
+- If you cannot explain the exact syntax tree structure of the code you're analyzing, STOP
+- If diagnostic span tests fail more than once, STOP and request expert guidance
+- If you're making "educated guesses" about Roslyn APIs, STOP
+- If test failures indicate you don't understand the domain (Moq verification semantics), STOP
+
+## Complexity Assessment (MANDATORY)
+Before starting any analyzer implementation:
+1. Can you trace the exact syntax tree path from Verify() call to member access?
+2. Do you understand how Roslyn represents different expression types (MemberAccess, Invocation, Assignment)?
+3. Can you explain why diagnostic spans must be character-precise?
+4. Do you understand the difference between IOperation and ISyntaxNode analysis?
+
+If ANY answer is "no" or "unsure", STOP and request expert guidance.
+
+## Diagnostic Span Testing (CRITICAL)
+- Diagnostic spans must be character-precise (column X to column Y)
+- Test failures about span mismatches indicate fundamental misunderstanding
+- If span tests fail, DO NOT continue with implementation
+- Request expert guidance on syntax tree navigation
+
+- **Moq Version Compatibility:**
+  - When writing or updating analyzer tests, always verify which Moq features are available in each supported version.
+  - **Moq 4.8.2:**
+    - Does _not_ support `SetupAdd`, `SetupRemove`, or `.Protected().Setup`.
+    - Indexer setups are supported only for virtual or interface indexers.
+    - Do _not_ add tests for APIs or patterns that do not exist in this version; such tests will fail at compile time, not at analyzer time.
+  - **Moq 4.18.4+:**
+    - Supports `SetupAdd`, `SetupRemove`, and `.Protected().Setup`.
+    - Allows setups for virtual events and indexers, and explicit interface implementations.
+    - Tests for these features should be placed in the "new" test group and must not be expected to pass in "old" Moq test runs.
+  - **General:**
+    - Never expect analyzer diagnostics for code that cannot compile due to missing APIs or language restrictions.
+    - When in doubt, consult the official Moq documentation and changelogs for feature support.
+- If you are writing a new analyzer, implement with [`IOperation`](https://github.com/rjmurillo/moq.analyzers/issues/118) (see issue #118)
+
 > **MANDATORY:** The following rules are required for all contributors and AI agents working on Moq analyzers and tests. Do not deviate. If a rule is unclear, stop and request clarification before proceeding.
 
 - **Overridable Members Only:**
@@ -188,3 +219,13 @@ If you encounter:
 
 - **AI Agent Compliance:**
   - If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
+
+## Expertise Declaration (MANDATORY)
+Before implementing any Roslyn analyzer:
+"I declare that I have sufficient expertise in:
+- Roslyn syntax tree navigation
+- Diagnostic span calculation
+- Code fix provider implementation
+- The specific domain (Moq verification semantics)
+
+If I cannot make this declaration truthfully, I will request expert guidance."
