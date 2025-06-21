@@ -85,64 +85,40 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         return true;
     }
 
-    private static bool TryGetEventAndHandlerFromSetup(
-        SemanticModel semanticModel,
-        ExpressionSyntax setupExpression,
-        out ITypeSymbol? eventType,
-        out ExpressionSyntax? handlerExpression)
+    private static bool TryGetEventAndHandlerFromSetup(SemanticModel semanticModel, ExpressionSyntax setupExpression, out ITypeSymbol? eventType, out ExpressionSyntax? handlerExpression)
     {
         eventType = null;
         handlerExpression = null;
-        bool result = true;
 
-        // The setup expression should be a lambda like: x => x.EventName += handler
-        LambdaExpressionSyntax? lambda = setupExpression as LambdaExpressionSyntax;
-        if (lambda == null)
+        if (setupExpression is not LambdaExpressionSyntax lambda)
         {
-            result = false;
-        }
-        else
-        {
-            AssignmentExpressionSyntax? assignment = lambda.Body as AssignmentExpressionSyntax;
-            if (assignment == null)
-            {
-                result = false;
-            }
-            else
-            {
-                bool isAddOrRemove = assignment.OperatorToken.IsKind(SyntaxKind.PlusEqualsToken)
-                                 || assignment.OperatorToken.IsKind(SyntaxKind.MinusEqualsToken);
-
-                if (!isAddOrRemove)
-                {
-                    result = false;
-                }
-                else
-                {
-                    MemberAccessExpressionSyntax? memberAccess = assignment.Left as MemberAccessExpressionSyntax;
-                    if (memberAccess == null)
-                    {
-                        result = false;
-                    }
-                    else
-                    {
-                        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
-                        IEventSymbol? eventSymbol = symbolInfo.Symbol as IEventSymbol;
-                        if (eventSymbol == null)
-                        {
-                            result = false;
-                        }
-                        else
-                        {
-                            eventType = eventSymbol.Type;
-                            handlerExpression = assignment.Right;
-                        }
-                    }
-                }
-            }
+            return false;
         }
 
-        return result;
+        if (lambda.Body is not AssignmentExpressionSyntax assignment)
+        {
+            return false;
+        }
+
+        if (!assignment.OperatorToken.IsKind(SyntaxKind.PlusEqualsToken) && !assignment.OperatorToken.IsKind(SyntaxKind.MinusEqualsToken))
+        {
+            return false;
+        }
+
+        if (assignment.Left is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return false;
+        }
+
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+        if (symbolInfo.Symbol is not IEventSymbol eventSymbol)
+        {
+            return false;
+        }
+
+        eventType = eventSymbol.Type;
+        handlerExpression = assignment.Right;
+        return true;
     }
 
     private static void ValidateHandlerType(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ExpressionSyntax handlerExpression, ITypeSymbol expectedEventType)
@@ -186,7 +162,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
 
         // For other expressions, get the type directly
         TypeInfo expressionTypeInfo = semanticModel.GetTypeInfo(handlerExpression);
-        handlerType = expressionTypeInfo.Type;
+        handlerType = expressionTypeInfo.ConvertedType;
         return handlerType != null;
     }
 }

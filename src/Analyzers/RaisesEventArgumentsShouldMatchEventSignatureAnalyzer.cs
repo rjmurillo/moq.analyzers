@@ -74,7 +74,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
     {
         // Check if the method being called is named "Raises"
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess ||
-!string.Equals(memberAccess.Name.Identifier.ValueText, "Raises", StringComparison.Ordinal))
+            !string.Equals(memberAccess.Name.Identifier.ValueText, "Raises", StringComparison.Ordinal))
         {
             return false;
         }
