@@ -14,7 +14,7 @@ public static class EventSyntaxExtensions
     /// <param name="semanticModel">The semantic model.</param>
     /// <param name="eventSelector">The lambda event selector expression.</param>
     /// <param name="eventType">The extracted event type, if found.</param>
-    /// <returns><c>true</c> if the event type was found; otherwise, <c>false</c>.</returns>
+    /// <returns><see langword="true" /> if the event type was found; otherwise, <see langword="false" />.</returns>
     public static bool TryGetEventTypeFromLambdaSelector(
         SemanticModel semanticModel,
         ExpressionSyntax eventSelector,
@@ -120,7 +120,7 @@ public static class EventSyntaxExtensions
     /// <param name="eventArguments">The extracted event arguments.</param>
     /// <param name="expectedParameterTypes">The expected parameter types.</param>
     /// <param name="eventTypeExtractor">Function to extract event type from the event selector.</param>
-    /// <returns><c>true</c> if arguments were successfully extracted; otherwise, <c>false</c>.</returns>
+    /// <returns><see langword="true" /> if arguments were successfully extracted; otherwise, <see langword="false" />.</returns>
     public static bool TryGetEventMethodArguments(
         InvocationExpressionSyntax invocation,
         SemanticModel semanticModel,
@@ -151,7 +151,7 @@ public static class EventSyntaxExtensions
     /// <param name="expectedParameterTypes">The expected parameter types.</param>
     /// <param name="eventTypeExtractor">Function to extract event type from the event selector.</param>
     /// <param name="knownSymbols">Known symbols for type checking.</param>
-    /// <returns><c>true</c> if arguments were successfully extracted; otherwise, <c>false</c>.</returns>
+    /// <returns><see langword="true" /> if arguments were successfully extracted; otherwise, <see langword="false" />.</returns>
     internal static bool TryGetEventMethodArguments(
         InvocationExpressionSyntax invocation,
         SemanticModel semanticModel,
