@@ -6,7 +6,7 @@ namespace Moq.Analyzers.Common;
 /// <summary>
 /// Provides extension methods for analyzing event syntax.
 /// </summary>
-public static class EventSyntaxExtensions
+internal static class EventSyntaxExtensions
 {
     /// <summary>
     /// Extracts the event type from a lambda selector of the form: x => x.EventName += null.
@@ -15,7 +15,7 @@ public static class EventSyntaxExtensions
     /// <param name="eventSelector">The lambda event selector expression.</param>
     /// <param name="eventType">The extracted event type, if found.</param>
     /// <returns><see langword="true" /> if the event type was found; otherwise, <see langword="false" />.</returns>
-    public static bool TryGetEventTypeFromLambdaSelector(
+    internal static bool TryGetEventTypeFromLambdaSelector(
         SemanticModel semanticModel,
         ExpressionSyntax eventSelector,
         out ITypeSymbol? eventType)
@@ -53,16 +53,6 @@ public static class EventSyntaxExtensions
     }
 
     /// <summary>
-    /// Gets the parameter types for a given event delegate type.
-    /// </summary>
-    /// <param name="eventType">The event delegate type.</param>
-    /// <returns>An array of parameter types expected by the event delegate.</returns>
-    public static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType)
-    {
-        return GetEventParameterTypesInternal(eventType, null);
-    }
-
-    /// <summary>
     /// Validates that event arguments match the expected parameter types.
     /// </summary>
     /// <param name="context">The analysis context.</param>
@@ -70,7 +60,7 @@ public static class EventSyntaxExtensions
     /// <param name="expectedParameterTypes">The expected parameter types.</param>
     /// <param name="invocation">The invocation expression for error reporting.</param>
     /// <param name="rule">The diagnostic rule to report.</param>
-    public static void ValidateEventArgumentTypes(
+    internal static void ValidateEventArgumentTypes(
         SyntaxNodeAnalysisContext context,
         ArgumentSyntax[] eventArguments,
         ITypeSymbol[] expectedParameterTypes,
@@ -113,22 +103,13 @@ public static class EventSyntaxExtensions
     }
 
     /// <summary>
-    /// Extracts arguments from an event method invocation.
+    /// Gets the parameter types for a given event delegate type.
     /// </summary>
-    /// <param name="invocation">The method invocation.</param>
-    /// <param name="semanticModel">The semantic model.</param>
-    /// <param name="eventArguments">The extracted event arguments.</param>
-    /// <param name="expectedParameterTypes">The expected parameter types.</param>
-    /// <param name="eventTypeExtractor">Function to extract event type from the event selector.</param>
-    /// <returns><see langword="true" /> if arguments were successfully extracted; otherwise, <see langword="false" />.</returns>
-    public static bool TryGetEventMethodArguments(
-        InvocationExpressionSyntax invocation,
-        SemanticModel semanticModel,
-        out ArgumentSyntax[] eventArguments,
-        out ITypeSymbol[] expectedParameterTypes,
-        Func<SemanticModel, ExpressionSyntax, (bool Success, ITypeSymbol? EventType)> eventTypeExtractor)
+    /// <param name="eventType">The event delegate type.</param>
+    /// <returns>An array of parameter types expected by the event delegate.</returns>
+    internal static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType)
     {
-        return TryGetEventMethodArgumentsInternal(invocation, semanticModel, out eventArguments, out expectedParameterTypes, eventTypeExtractor, null);
+        return GetEventParameterTypesInternal(eventType, null);
     }
 
     /// <summary>
@@ -140,6 +121,25 @@ public static class EventSyntaxExtensions
     internal static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType, KnownSymbols knownSymbols)
     {
         return GetEventParameterTypesInternal(eventType, knownSymbols);
+    }
+
+    /// <summary>
+    /// Extracts arguments from an event method invocation.
+    /// </summary>
+    /// <param name="invocation">The method invocation.</param>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="eventArguments">The extracted event arguments.</param>
+    /// <param name="expectedParameterTypes">The expected parameter types.</param>
+    /// <param name="eventTypeExtractor">Function to extract event type from the event selector.</param>
+    /// <returns><see langword="true" /> if arguments were successfully extracted; otherwise, <see langword="false" />.</returns>
+    internal static bool TryGetEventMethodArguments(
+        InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
+        out ArgumentSyntax[] eventArguments,
+        out ITypeSymbol[] expectedParameterTypes,
+        Func<SemanticModel, ExpressionSyntax, (bool Success, ITypeSymbol? EventType)> eventTypeExtractor)
+    {
+        return TryGetEventMethodArgumentsInternal(invocation, semanticModel, out eventArguments, out expectedParameterTypes, eventTypeExtractor, null);
     }
 
     /// <summary>

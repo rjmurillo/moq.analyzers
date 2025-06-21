@@ -1,5 +1,3 @@
-#pragma warning disable CS0436 // Type conflicts with imported type
-
 namespace Moq.Analyzers;
 
 /// <summary>
@@ -17,10 +15,6 @@ namespace Moq.Analyzers;
 /// 2. Uses symbol-based detection via SemanticModel.IsRaisesInvocation for robust identification
 /// 3. Implements setup-based event triggering validation (not immediate)
 ///
-/// The #pragma warning disable CS0436 above is necessary because this analyzer may encounter
-/// type conflicts with imported types from shared dependencies or other analyzers in the
-/// compilation context. This is a common issue when multiple analyzers reference similar
-/// type definitions.
 ///
 /// Both this analyzer and RaiseEventArgumentsShouldMatchEventSignatureAnalyzer are essential
 /// for comprehensive event validation coverage across all Moq event patterns, preventing
