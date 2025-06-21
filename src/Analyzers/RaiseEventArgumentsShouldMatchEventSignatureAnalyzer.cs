@@ -66,7 +66,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
 
         // First argument should be a lambda that selects the event
         ExpressionSyntax eventSelector = arguments[0].Expression;
-        if (!Moq.Analyzers.Common.EventSyntaxExtensions.TryGetEventTypeFromLambdaSelector(semanticModel, eventSelector, out ITypeSymbol? eventType))
+        if (!EventSyntaxExtensions.TryGetEventTypeFromLambdaSelector(semanticModel, eventSelector, out ITypeSymbol? eventType))
         {
             return false;
         }
