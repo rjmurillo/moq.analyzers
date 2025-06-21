@@ -32,7 +32,6 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
     }
 
-    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
     private static void AnalyzeInvocation(OperationAnalysisContext context)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
@@ -41,7 +40,6 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         }
 
         SemanticModel? semanticModel = invocationOperation.SemanticModel;
-
         if (semanticModel == null)
         {
             return;
@@ -50,58 +48,56 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
 
-        // 1. Check if the invoked method is a Moq Verification method
+        if (!ShouldAnalyzeMethod(targetMethod, knownSymbols))
+        {
+            return;
+        }
+
+        ISymbol? mockedMemberSymbol = TryGetMockedMemberSymbol(invocationOperation, knownSymbols);
+        if (mockedMemberSymbol == null || IsInterfaceMember(mockedMemberSymbol))
+        {
+            return;
+        }
+
+        if (IsMemberAllowedForVerification(mockedMemberSymbol, targetMethod, knownSymbols))
+        {
+            return;
+        }
+
+        ReportDiagnostic(context, invocationOperation);
+    }
+
+    private static bool ShouldAnalyzeMethod(IMethodSymbol targetMethod, MoqKnownSymbols knownSymbols)
+    {
+        // Check if the invoked method is a Moq Verification method
         if (!targetMethod.IsMoqVerificationMethod(knownSymbols))
         {
-            return;
+            return false;
         }
 
-        // 2. VerifyNoOtherCalls doesn't take a lambda argument, so skip it
-        if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifyNoOtherCalls))
-        {
-            return;
-        }
+        // VerifyNoOtherCalls doesn't take a lambda argument, so skip it
+        return !targetMethod.IsInstanceOf(knownSymbols.Mock1VerifyNoOtherCalls);
+    }
 
-        // 3. Attempt to locate the member reference from the Verify expression argument.
-        //    For VerifySet, we need to extract the property being set from the Action<T> lambda.
-        ISymbol? mockedMemberSymbol = TryGetMockedMemberSymbol(invocationOperation, knownSymbols);
-        if (mockedMemberSymbol == null)
-        {
-            return;
-        }
+    private static bool IsInterfaceMember(ISymbol mockedMemberSymbol)
+    {
+        return mockedMemberSymbol.ContainingType?.TypeKind == TypeKind.Interface;
+    }
 
-        // 4. Skip if the symbol is part of an interface, those are always "overridable".
-        if (mockedMemberSymbol.ContainingType?.TypeKind == TypeKind.Interface)
-        {
-            return;
-        }
-
-        // 5. Check if symbol is a property or method, and if it is overridable or is returning a Task (which Moq allows).
+    private static bool IsMemberAllowedForVerification(ISymbol mockedMemberSymbol, IMethodSymbol targetMethod, MoqKnownSymbols knownSymbols)
+    {
         // Special handling for VerifySet: must check property overridability for set accessor
         if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
         {
-            if (mockedMemberSymbol is IPropertySymbol propertySymbol && propertySymbol.IsOverridable())
-            {
-                return;
-            }
-
-            // If not overridable, fall through to report diagnostic
-        }
-        else
-        {
-            if (IsAllowedMockMember(mockedMemberSymbol, knownSymbols))
-            {
-                return;
-            }
+            return mockedMemberSymbol is IPropertySymbol propertySymbol && propertySymbol.IsOverridable();
         }
 
-        // 6. If we reach here, the member is neither overridable nor allowed by Moq
-        //    So we report the diagnostic.
-        //
-        // NOTE: The location is on the invocationOperation, which is fairly broad
-        // For VerifySet, try to report the diagnostic on the property being set for precise span
+        return IsAllowedMockMember(mockedMemberSymbol, knownSymbols);
+    }
+
+    private static void ReportDiagnostic(OperationAnalysisContext context, IInvocationOperation invocationOperation)
+    {
         Location diagnosticLocation = invocationOperation.Syntax.GetLocation();
-
         Diagnostic diagnostic = DiagnosticExtensions.CreateDiagnostic(invocationOperation.Syntax, Rule, diagnosticLocation);
         context.ReportDiagnostic(diagnostic);
     }
@@ -136,60 +132,19 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
     /// </summary>
     private static ISymbol? TryGetMockedMemberSymbol(IInvocationOperation moqVerifyInvocation, MoqKnownSymbols knownSymbols)
     {
-#pragma warning disable S125 // Sections of code should not be commented out
-        // Usually the first argument to a Moq Verify(...) is a lambda expression like x => x.Property
-        // or x => x.Method(...). For VerifySet, it's an Action<T> lambda: x => { x.Property = ...; }
-#pragma warning restore S125 // Sections of code should not be commented out
         if (moqVerifyInvocation.Arguments.Length == 0)
         {
             return null;
         }
 
-        // For VerifySet, the lambda may be in argument 1 (second argument)
-        int lambdaArgIndex = 0;
-        if (moqVerifyInvocation.TargetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet) && moqVerifyInvocation.Arguments.Length > 1)
+        IAnonymousFunctionOperation? lambdaOperation = MoqVerificationHelpers.ExtractLambdaFromArgument(moqVerifyInvocation.Arguments[0].Value);
+        if (lambdaOperation == null)
         {
-            lambdaArgIndex = 1;
+            return null;
         }
 
-        IOperation argumentOperation = moqVerifyInvocation.Arguments[lambdaArgIndex].Value;
-        argumentOperation = argumentOperation.WalkDownImplicitConversion();
-
-        // Handle delegate conversions (e.g., VerifySet(x => { ... }))
-        if (argumentOperation is IDelegateCreationOperation delegateCreation &&
-            delegateCreation.Target is IAnonymousFunctionOperation lambdaOp)
-        {
-            argumentOperation = lambdaOp;
-        }
-
-        if (argumentOperation is IAnonymousFunctionOperation lambdaOperation)
-        {
-            // For VerifySet, the lambda body is a block with an assignment statement.
-            if (moqVerifyInvocation.TargetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
-            {
-                ImmutableArray<IOperation> bodyOps = lambdaOperation.Body.Operations;
-                foreach (IOperation op in bodyOps)
-                {
-                    if (op is IExpressionStatementOperation exprStmt)
-                    {
-                        IAssignmentOperation? assignOp = exprStmt.Operation as IAssignmentOperation
-                            ?? exprStmt.Operation as ISimpleAssignmentOperation;
-
-                        if (assignOp?.Target is IPropertyReferenceOperation propRef)
-                        {
-                            return propRef.Property;
-                        }
-                    }
-                }
-
-                return null;
-            }
-
-            // For Verify/VerifyGet, use the existing logic
-            return lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
-        }
-
-        // Sometimes it might be a delegate creation or something else. Handle other patterns if needed.
-        return null;
+        return moqVerifyInvocation.TargetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet)
+            ? MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambdaOperation)
+            : lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
     }
 }

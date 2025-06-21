@@ -81,16 +81,11 @@ public sealed class VerifyOverridableMembersFixer : CodeFixProvider
             return null;
         }
 
-        IOperation argumentOperation = moqVerifyInvocation.Arguments[0].Value;
+        // For code fix, we only need to handle the simple case (first argument)
+        // since the analyzer already validates the more complex scenarios
+        IAnonymousFunctionOperation? lambdaOperation = MoqVerificationHelpers.ExtractLambdaFromArgument(moqVerifyInvocation.Arguments[0].Value);
 
-        argumentOperation = argumentOperation.WalkDownImplicitConversion();
-
-        if (argumentOperation is IAnonymousFunctionOperation lambdaOperation)
-        {
-            return lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
-        }
-
-        return null;
+        return lambdaOperation?.Body.GetReferencedMemberSymbolFromLambda();
     }
 
     private static async Task<Solution> MakeMemberVirtualAsync(
