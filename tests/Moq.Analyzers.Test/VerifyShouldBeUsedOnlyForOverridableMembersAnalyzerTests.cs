@@ -36,8 +36,9 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
         IEnumerable<object[]> newMoqOnly = new object[][]
         {
             // VerifySet tests - only available in new Moq versions
-            ["""{|Moq1210:new Mock<SampleClass>().VerifySet(x => x.Property = It.IsAny<int>())|};"""],
-            ["""new Mock<ISampleInterface>().VerifySet(x => x.TestProperty = It.IsAny<string>());"""],
+            // VerifySet uses Action<T> syntax, not Expression<Func<T, ...>>
+            ["""{|Moq1210:new Mock<SampleClass>().VerifySet(x => { x.Property = It.IsAny<int>(); })|};"""],
+            ["""new Mock<ISampleInterface>().VerifySet(x => { x.TestProperty = It.IsAny<string>(); });"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
         return both.Concat(newMoqOnly);

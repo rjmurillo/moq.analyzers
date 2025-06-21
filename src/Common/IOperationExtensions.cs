@@ -58,7 +58,7 @@ internal static class IOperationExtensions
 
     /// <summary>
     /// Extracts a <see cref="ISymbol"/> from an <see cref="IOperation"/>, handling return operations, property references,
-    /// method invocations, events, fields, and assignment operations.
+    /// method invocations, events, fields, assignment operations, and expression statements.
     /// </summary>
     /// <param name="operation">The <see cref="IOperation"/> to analyze.</param>
     /// <returns>The extracted symbol, or <see langword="null" /> if not found or if the <paramref name="operation"/> operation is <see langword="null" />.</returns>
@@ -80,6 +80,7 @@ internal static class IOperationExtensions
             IEventReferenceOperation eventRef => eventRef.Event,
             IFieldReferenceOperation fieldRef => fieldRef.Field,
             IAssignmentOperation assignmentOp => GetSymbolFromOperation(assignmentOp.Target),
+            IExpressionStatementOperation expressionStatement => GetSymbolFromOperation(expressionStatement.Operation),
             _ => null,
         };
     }
