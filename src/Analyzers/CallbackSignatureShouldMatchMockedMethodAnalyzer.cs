@@ -95,36 +95,11 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
                 continue;
             }
 
-            if (!HasConversion(context.SemanticModel, mockedMethodTypeSymbol, lambdaParameterTypeSymbol))
+            if (!context.SemanticModel.HasConversion(mockedMethodTypeSymbol, lambdaParameterTypeSymbol))
             {
                 Diagnostic diagnostic = lambdaParameters[argumentIndex].CreateDiagnostic(Rule);
                 context.ReportDiagnostic(diagnostic);
             }
         }
-    }
-
-    private static bool HasConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
-    {
-        // This condition checks whether a valid type conversion exists between the parameter in the mocked method
-        // and the corresponding parameter in the callback lambda expression.
-        //
-        // - `conversion.Exists` checks if there is any type conversion possible between the two types
-        //
-        // The second part ensures that the conversion is either:
-        // 1. an implicit conversion,
-        // 2. an identity conversion (meaning the types are exactly the same), or
-        // 3. an explicit conversion.
-        //
-        // If the conversion exists, and it is one of these types (implicit, identity, or explicit), the analyzer will
-        // skip the diagnostic check, as the callback parameter type is considered compatible with the mocked method's
-        // parameter type.
-        //
-        // There are circumstances where the syntax tree will present an item with an explicit conversion, but the
-        // ITypeSymbol instance passed in here is reduced to the same type. For example, we have a test that has
-        // an explicit conversion operator from a string to a custom type. That is presented here as two instances
-        // of CustomType, which is an implicit identity conversion, not an explicit
-        Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
-
-        return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
     }
 }

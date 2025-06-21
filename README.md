@@ -23,6 +23,8 @@ something is wrong with your Moq configuration.
 | [Moq1201](docs/rules/Moq1201.md) | Correctness   | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`         |
 | [Moq1202](docs/rules/Moq1202.md) | Correctness   | Raise event arguments should match the event delegate signature                         |
 | [Moq1203](docs/rules/Moq1203.md) | Correctness   | Method setup should specify a return value                                              |
+| [Moq1204](docs/rules/Moq1204.md) | Correctness   | Raises event arguments should match event signature                                     |
+| [Moq1205](docs/rules/Moq1205.md) | Correctness   | Event setup handler type should match event delegate type                               |
 | [Moq1210](docs/rules/Moq1210.md) | Correctness   | Verify should be used only for overridable members                                      |
 | [Moq1300](docs/rules/Moq1300.md) | Usage         | `Mock.As()` should take interfaces only                                                 |
 | [Moq1301](docs/rules/Moq1301.md) | Usage         | Mock.Get() should not take literals                                                     |
