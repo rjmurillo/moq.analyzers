@@ -154,7 +154,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         }
 
         // Check if the handler type matches the expected event delegate type
-        if (!HasConversion(context.SemanticModel, handlerType!, expectedEventType))
+        if (!context.SemanticModel.HasConversion(handlerType!, expectedEventType))
         {
             // Report on the handler expression
             Diagnostic diagnostic = handlerExpression.GetLocation().CreateDiagnostic(Rule);
@@ -188,10 +188,5 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         TypeInfo expressionTypeInfo = semanticModel.GetTypeInfo(handlerExpression);
         handlerType = expressionTypeInfo.Type;
         return handlerType != null;
-    }
-
-    private static bool HasConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
-    {
-        return semanticModel.HasConversion(source, destination);
     }
 }
