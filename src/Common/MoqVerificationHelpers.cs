@@ -49,4 +49,23 @@ internal static class MoqVerificationHelpers
 
         return null;
     }
+
+    /// <summary>
+    /// Extracts the mocked member symbol from a Moq Verify/Setup invocation.
+    /// </summary>
+    /// <param name="moqInvocation">The invocation operation.</param>
+    /// <returns>The mocked member symbol if found, otherwise null.</returns>
+    public static ISymbol? TryGetMockedMemberSymbol(IInvocationOperation moqInvocation)
+    {
+        if (moqInvocation.Arguments.Length == 0)
+        {
+            return null;
+        }
+
+        // For code fix, we only need to handle the simple case (first argument)
+        // since the analyzer already validates the more complex scenarios
+        IAnonymousFunctionOperation? lambdaOperation = ExtractLambdaFromArgument(moqInvocation.Arguments[0].Value);
+
+        return lambdaOperation?.Body.GetReferencedMemberSymbolFromLambda();
+    }
 }

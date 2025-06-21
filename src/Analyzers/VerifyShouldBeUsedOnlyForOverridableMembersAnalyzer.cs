@@ -53,7 +53,12 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
             return;
         }
 
-        ISymbol? mockedMemberSymbol = TryGetMockedMemberSymbol(invocationOperation, knownSymbols);
+        ISymbol? mockedMemberSymbol =
+            targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet)
+                ? MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(
+                    MoqVerificationHelpers.ExtractLambdaFromArgument(invocationOperation.Arguments[0].Value)!)
+                : MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
+
         if (mockedMemberSymbol == null || IsInterfaceMember(mockedMemberSymbol))
         {
             return;
@@ -124,27 +129,5 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
                 // If it's not a property or method, it can't be mocked. This includes fields and events.
                 return false;
         }
-    }
-
-    /// <summary>
-    /// Attempts to resolve the symbol representing the member (property or method)
-    /// being referenced in the Verify(...) or VerifySet(...) call. Returns null if it cannot be determined.
-    /// </summary>
-    private static ISymbol? TryGetMockedMemberSymbol(IInvocationOperation moqVerifyInvocation, MoqKnownSymbols knownSymbols)
-    {
-        if (moqVerifyInvocation.Arguments.Length == 0)
-        {
-            return null;
-        }
-
-        IAnonymousFunctionOperation? lambdaOperation = MoqVerificationHelpers.ExtractLambdaFromArgument(moqVerifyInvocation.Arguments[0].Value);
-        if (lambdaOperation == null)
-        {
-            return null;
-        }
-
-        return moqVerifyInvocation.TargetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet)
-            ? MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambdaOperation)
-            : lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
     }
 }

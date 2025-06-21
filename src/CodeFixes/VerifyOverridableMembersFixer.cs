@@ -54,7 +54,7 @@ public sealed class VerifyOverridableMembersFixer : CodeFixProvider
             return;
         }
 
-        ISymbol? mockedMemberSymbol = TryGetMockedMemberSymbol(invocationOperation);
+        ISymbol? mockedMemberSymbol = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
         if (mockedMemberSymbol == null)
         {
             return;
@@ -72,20 +72,6 @@ public sealed class VerifyOverridableMembersFixer : CodeFixProvider
                 cancellationToken => MakeMemberVirtualAsync(context.Document, mockedMemberSymbol, cancellationToken),
                 nameof(VerifyOverridableMembersFixer)),
             diagnostic);
-    }
-
-    private static ISymbol? TryGetMockedMemberSymbol(IInvocationOperation moqVerifyInvocation)
-    {
-        if (moqVerifyInvocation.Arguments.Length == 0)
-        {
-            return null;
-        }
-
-        // For code fix, we only need to handle the simple case (first argument)
-        // since the analyzer already validates the more complex scenarios
-        IAnonymousFunctionOperation? lambdaOperation = MoqVerificationHelpers.ExtractLambdaFromArgument(moqVerifyInvocation.Arguments[0].Value);
-
-        return lambdaOperation?.Body.GetReferencedMemberSymbolFromLambda();
     }
 
     private static async Task<Solution> MakeMemberVirtualAsync(
