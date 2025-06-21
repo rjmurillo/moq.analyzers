@@ -33,8 +33,8 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzerTests
             $$"""
             {{@namespace}}
 
-            internal class CustomArgs : EventArgs 
-            { 
+            internal class CustomArgs : EventArgs
+            {
                 public string Value { get; set; }
             }
 
