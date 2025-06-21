@@ -16,7 +16,8 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 - All changes must have 100% test coverage.
 - Add or update xUnit tests for every new feature or bug fix. Write the test first to assert the behavior, then add or modify the logic.
 - Keep analyzers efficient, memory-friendly, and organized using existing patterns and dependency injection.
-- Document public APIs and complex logic. **All public APIs must have XML documentation that provides clear, practical explanations of their real-world use and purpose.**
+- Document public and internal APIs and complex logic. **All public and internal APIs must have XML documentation that provides clear, practical explanations of their real-world use and purpose.**
+- In XML documentation, use `<see langword="..."/>` for language keywords like `true`, `false`, and `null`. Do not use `<c>...</c>` for these keywords.
 - If adding an analyzer: also add a code fix, a benchmark, and documentation in `docs/rules`.
 - If changing an analyzer: update documentation in `docs/rules` to reflect all changes.
 - Ask clarifying questions if requirements are unclear.
