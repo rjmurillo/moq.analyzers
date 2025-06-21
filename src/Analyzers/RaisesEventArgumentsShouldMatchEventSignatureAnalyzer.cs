@@ -73,8 +73,13 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
     private static bool IsRaisesMethodCall(InvocationExpressionSyntax invocation)
     {
         // Check if the method being called is named "Raises"
-        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess ||
-            !string.Equals(memberAccess.Name.Identifier.ValueText, "Raises", StringComparison.Ordinal))
+        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return false;
+        }
+
+        string methodName = memberAccess.Name.Identifier.ValueText;
+        if (!methodName.Equals("Raises", StringComparison.Ordinal) && !methodName.Equals("RaisesAsync", StringComparison.Ordinal))
         {
             return false;
         }
