@@ -220,6 +220,92 @@ If ANY answer is "no" or "unsure", STOP and request expert guidance.
 - **AI Agent Compliance:**
   - If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
 
+### Data-Driven Testing for Code Fixes (MANDATORY PATTERN)
+
+When testing code fixes that modify a class member (method, property, etc.), you **MUST** use the following data-driven pattern. This separates code snippets from boilerplate and enables combinatorial testing.
+
+**1. Create a Data Source Method (`IEnumerable<object[]>`)**
+
+Define a `public static IEnumerable<object[]>` method to provide test cases.
+
+-   **Signature:** `public static IEnumerable<object[]> YourDataSourceMethod()`
+-   **Content:** Return a `new object[][] { ... }`. Each inner `object[]` must contain two strings:
+    1.  The original code snippet that triggers the analyzer (`brokenCode`).
+    2.  The target code snippet after the code fix is applied (`fixedCode`).
+-   **Helpers:** You **MUST** chain `.WithNamespaces().WithMoqReferenceAssemblyGroups()` to the collection to automatically generate test variations.
+
+**Example:**
+```csharp
+public static IEnumerable<object[]> MakesNonVirtualMethodVirtualData()
+{
+    return new object[][]
+    {
+        [
+            """public int MyMethod() => 0;""", // brokenCode
+            """public virtual int MyMethod() => 0;""", // fixedCode
+        ],
+    }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+}
+```
+
+**2. Create the `[Theory]` Test Method**
+
+Create an `async Task` method decorated with `[Theory]` and `[MemberData]`.
+
+-   **Signature:** The signature **MUST** match the data source output: `async Task YourTestMethod(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)`
+
+**Example:**
+```csharp
+[Theory]
+[MemberData(nameof(MakesNonVirtualMethodVirtualData))]
+public async Task MakesNonVirtualMethodVirtual(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)
+{
+    // ... test logic
+}
+```
+
+**3. Define the Code Template (`Template` function)**
+
+Inside the test method, define a `static` local function named `Template` that builds the full source code using a raw string literal.
+
+-   **Placeholders:** The template **MUST** use `{{ns}}` for the namespace and `{{code}}` for the code snippet.
+-   **Context:** The template **MUST** include all necessary `using` statements and class structures to create a valid, compilable test case. Note that `tests\Moq.Analyzers.Test\Helpers\Test.cs` inserts global usings common for tests.
+-   **Diagnostic Marker:** The code that triggers the analyzer **MUST** be wrapped with `{|DIAGNOSTIC_ID: ... |}` (e.g., `{|Moq1210:...|}`). This is non-negotiable for the test verifier to work.
+
+**Example:**
+```csharp
+static string Template(string ns, string code) =>
+$$"""
+{{ns}}
+
+public class MyClass
+{
+    {{code}} // This is where brokenCode/fixedCode will be injected
+}
+
+public class MyTest
+{
+    public void Test()
+    {
+        var mock = new Mock<MyClass>();
+        {|Moq1210:mock.Verify(x => x.MyMethod())|};
+    }
+}
+""";
+```
+
+**4. Verify the Code Fix**
+
+Use the `Template` function to generate the "before" and "after" source files and pass them to `Verify.VerifyCodeFixAsync`.
+
+**Example:**
+```csharp
+string originalSource = Template(@namespace, brokenCode);
+string fixedSource = Template(@namespace, fixedCode);
+
+await Verify.VerifyCodeFixAsync(originalSource, fixedSource, referenceAssemblyGroup);
+```
+
 ---
 
 ## Roslyn Analyzer Development: ZERO TOLERANCE POLICY
