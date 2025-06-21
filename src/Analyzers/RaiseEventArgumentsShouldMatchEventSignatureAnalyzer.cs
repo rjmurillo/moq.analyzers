@@ -128,8 +128,6 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         return knownSymbols.Mock1Raise.Contains(methodSymbol.OriginalDefinition);
     }
 
-    
-
     private static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType)
     {
         // For delegates like Action<T>, we need to get the generic type arguments

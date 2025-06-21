@@ -93,8 +93,6 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
         return true;
     }
 
-    
-
     private static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType)
     {
         // For delegates like Action<T>, we need to get the generic type arguments
