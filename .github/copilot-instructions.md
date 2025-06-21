@@ -12,15 +12,25 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 - Build with warnings as errors: `dotnet build /p:PedanticMode=true`.
 - Run all unit tests: `dotnet test --settings ./build/targets/tests/test.runsettings`.
 - (Optional) Run benchmarks as described in `build/scripts/perf/README.md` and include markdown output as evidence if run.
+- Update or add xUnit tests and documentation under `docs/rules/` when analyzers change.
 - Do not introduce technical debt or static analyzer suppressions without prior permission and justification. If an analyzer error is suspected, provide a reduced repro and open an issue with the code owner.
 - All changes must have 100% test coverage.
 - Add or update xUnit tests for every new feature or bug fix. Write the test first to assert the behavior, then add or modify the logic.
+- Use `AllAnalyzersVerifier.VerifyAllAnalyzersAsync` to check for false positives across all analyzers.
 - Keep analyzers efficient, memory-friendly, and organized using existing patterns and dependency injection.
 - Document public and internal APIs and complex logic. **All public and internal APIs must have XML documentation that provides clear, practical explanations of their real-world use and purpose.**
 - In XML documentation, use `<see langword="..."/>` for language keywords like `true`, `false`, and `null`. Do not use `<c>...</c>` for these keywords.
 - If adding an analyzer: also add a code fix, a benchmark, and documentation in `docs/rules`.
 - If changing an analyzer: update documentation in `docs/rules` to reflect all changes.
 - Ask clarifying questions if requirements are unclear.
+- Use the "one idea, one commit" principle where each commit MUST focus on a single, self-contained change. This makes it easier to understand, track, and manage changes. It helps keep the commit history clean and organized, facilitating easier collaboration and debugging.
+- Keep commit messages under 50 characters when possible.
+- Reference affected analyzer rule IDs in PR descriptions.
+- Always check `git status` before committing to ensure a clean tree.
+- Remove any `*.received.*` files created by tests before committing.
+- Cite relevant lines from modified files in PR summaries for clarity.
+
+---
 
 ### AllAnalyzersVerifier for Comprehensive Testing
 
@@ -400,3 +410,13 @@ flowchart TD
 - Always check for and follow any new rules in `.cursor/rules/`, `.editorconfig`, and `.github/copilot-instructions.md` before making changes.
 
 - If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
+
+---
+
+## Workflow Tips
+- Review `docs/rules/` before changing analyzers or code fixes.
+- Follow the layout and DI patterns used in existing files under `src/` and `tests/`.
+- Keep commit messages short and in the imperative mood (e.g., "Add Moq1200 tests").
+- Confirm a clean working tree with `git status` before committing.
+- Summaries in pull requests should mention key line numbers using the repository citation format.
+- Re-run `dotnet format`, build, and tests after resolving feedback or merge conflicts.
