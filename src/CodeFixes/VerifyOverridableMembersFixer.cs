@@ -61,11 +61,7 @@ public sealed class VerifyOverridableMembersFixer : CodeFixProvider
         }
 
         // Check if we should offer a fix.
-        if (mockedMemberSymbol is not IPropertySymbol and not IMethodSymbol ||
-            mockedMemberSymbol.IsSealed ||
-            mockedMemberSymbol.IsAbstract ||
-            mockedMemberSymbol.IsVirtual ||
-            mockedMemberSymbol.ContainingType.TypeKind == TypeKind.Interface)
+        if (!(mockedMemberSymbol is IPropertySymbol or IMethodSymbol) || mockedMemberSymbol.IsOverridable() || mockedMemberSymbol.IsSealed)
         {
             return;
         }
