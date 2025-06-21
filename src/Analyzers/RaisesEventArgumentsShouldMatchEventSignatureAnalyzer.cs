@@ -77,7 +77,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
 
         // First argument should be a lambda that selects the event
         ExpressionSyntax eventSelector = arguments[0].Expression;
-        if (!TryGetEventTypeFromSelector(semanticModel, eventSelector, out ITypeSymbol? eventType))
+        if (!Moq.Analyzers.Common.EventSyntaxExtensions.TryGetEventTypeFromLambdaSelector(semanticModel, eventSelector, out ITypeSymbol? eventType))
         {
             return false;
         }
@@ -93,39 +93,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
         return true;
     }
 
-    private static bool TryGetEventTypeFromSelector(SemanticModel semanticModel, ExpressionSyntax eventSelector, out ITypeSymbol? eventType)
-    {
-        eventType = null;
-
-        // The event selector should be a lambda like: f => f.EventName += null
-        if (eventSelector is not LambdaExpressionSyntax lambda)
-        {
-            return false;
-        }
-
-        // The body should be an assignment expression with += operator
-        if (lambda.Body is not AssignmentExpressionSyntax assignment ||
-            !assignment.OperatorToken.IsKind(SyntaxKind.PlusEqualsToken))
-        {
-            return false;
-        }
-
-        // The left side should be a member access to the event
-        if (assignment.Left is not MemberAccessExpressionSyntax memberAccess)
-        {
-            return false;
-        }
-
-        // Get the symbol for the event
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
-        if (symbolInfo.Symbol is not IEventSymbol eventSymbol)
-        {
-            return false;
-        }
-
-        eventType = eventSymbol.Type;
-        return true;
-    }
+    
 
     private static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType)
     {
