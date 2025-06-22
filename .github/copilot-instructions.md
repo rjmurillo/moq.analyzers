@@ -12,14 +12,25 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 - Build with warnings as errors: `dotnet build /p:PedanticMode=true`.
 - Run all unit tests: `dotnet test --settings ./build/targets/tests/test.runsettings`.
 - (Optional) Run benchmarks as described in `build/scripts/perf/README.md` and include markdown output as evidence if run.
+- Update or add xUnit tests and documentation under `docs/rules/` when analyzers change.
 - Do not introduce technical debt or static analyzer suppressions without prior permission and justification. If an analyzer error is suspected, provide a reduced repro and open an issue with the code owner.
 - All changes must have 100% test coverage.
 - Add or update xUnit tests for every new feature or bug fix. Write the test first to assert the behavior, then add or modify the logic.
+- Use `AllAnalyzersVerifier.VerifyAllAnalyzersAsync` to check for false positives across all analyzers.
 - Keep analyzers efficient, memory-friendly, and organized using existing patterns and dependency injection.
-- Document public APIs and complex logic. **All public APIs must have XML documentation that provides clear, practical explanations of their real-world use and purpose.**
+- Document public and internal APIs and complex logic. **All public and internal APIs must have XML documentation that provides clear, practical explanations of their real-world use and purpose.**
+- In XML documentation, use `<see langword="..."/>` for language keywords like `true`, `false`, and `null`. Do not use `<c>...</c>` for these keywords.
 - If adding an analyzer: also add a code fix, a benchmark, and documentation in `docs/rules`.
 - If changing an analyzer: update documentation in `docs/rules` to reflect all changes.
 - Ask clarifying questions if requirements are unclear.
+- Use the "one idea, one commit" principle where each commit MUST focus on a single, self-contained change. This makes it easier to understand, track, and manage changes. It helps keep the commit history clean and organized, facilitating easier collaboration and debugging.
+- Keep commit messages under 50 characters when possible.
+- Reference affected analyzer rule IDs in PR descriptions.
+- Always check `git status` before committing to ensure a clean tree.
+- Remove any `*.received.*` files created by tests before committing.
+- Cite relevant lines from modified files in PR summaries for clarity.
+
+---
 
 ### AllAnalyzersVerifier for Comprehensive Testing
 
@@ -347,3 +358,176 @@ If you have passed the expertise declaration, you must now answer the following 
 -   **No Trial-and-Error:**
     -   Never guess which Roslyn API to use. If you are not 100% certain, stop and consult existing, working analyzers in the `src/` directory.
     -   Never "fix" a failing test by slightly adjusting the code and re-running. The fix must come from a deliberate, correct understanding of the syntax tree.
+
+---
+
+## AI Assistant Specific Instructions
+
+To ensure the AI assistant aligns with the project's conventions and workflows, it must adhere to the following rules and workflows:
+
+### General Coding and Workflow Rules
+
+- Always check and follow `.editorconfig` and all instructions in `.github/copilot-instructions.md` before editing or creating C# files.
+- Place new analyzers in `src/Analyzers/`, code fixes in `src/CodeFixes/`, and shared logic in `src/Common/`.
+- Update `src/Analyzers/AnalyzerReleases.Unshipped.md` and add or update documentation in `docs/rules/` for each diagnostic.
+- Add or update unit tests in `tests/Moq.Analyzers.Test/` for every analyzer or code fix change.
+- After any file edit, immediately run Codacy analysis for the edited file and resolve all reported issues before proceeding.
+- After any dependency change, run Codacy analysis with `tool: trivy` and resolve vulnerabilities before continuing.
+- Update `README.md` and `docs/rules/README.md` if workflows or rules change.
+- If a Codacy tool returns a 404 for repository/organization, offer to run `codacy_setup_repository`.
+- Ensure all changes are covered by tests and documentation before committing.
+
+### AI Agent Coding Rules
+
+1.  **Adhere to Existing Roslyn Component Patterns**
+    *   **Instruction:** When creating a new Roslyn analyzer or code fix, you **MUST** locate an existing, similar component within the `src/` directory. Replicate its structure, dependency injection, and overall design. Do not introduce novel architectural patterns. Prefer the `IOperation`-based approach where applicable.
+2.  **Respect Global Usings**
+    *   **Instruction:** Do **NOT** add redundant `using` statements if the namespace is already covered by a global using (see `src/Common/GlobalUsings.cs`).
+3.  **Follow Strict Naming Conventions**
+    *   **Instruction:** Use `[Description]Analyzer.cs`, `[Description]Fixer.cs`, `[Description]AnalyzerTests.cs`, `[Description]CodeFixTests.cs` for new components.
+4.  **Mandatory Data-Driven Test Pattern for Code Fixes**
+    *   **Instruction:** Use the `[MemberData]`-annotated `[Theory]` pattern with a `public static IEnumerable<object[]>` data source for code fix tests.
+5.  **Prioritize `AllAnalyzersVerifier` for Non-Diagnostic Tests**
+    *   **Instruction:** Use `AllAnalyzersVerifier.VerifyAllAnalyzersAsync()` for "no diagnostics" tests.
+
+### Cline-Specific Workflow
+
+- Treat these instructions as hard constraints and load them into context automatically.
+- When making changes, follow this workflow:
+
+```mermaid
+flowchart TD
+    A[Edit/Add Code or Test] --> B[Run codacy_cli_analyze]
+    B -->|Issues?| C{Yes}
+    C -->|Fix| A
+    C -->|No| D[Run/Update Tests]
+    D -->|Pass?| E{No}
+    E -->|Fix| A
+    E -->|Yes| F[Update Docs]
+    F --> G[Commit & PR]
+```
+
+- Always check for and follow any new rules in `.cursor/rules/`, `.editorconfig`, and `.github/copilot-instructions.md` before making changes.
+
+- If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
+
+---
+
+## Workflow Tips
+- Review `docs/rules/` before changing analyzers or code fixes.
+- Follow the layout and DI patterns used in existing files under `src/` and `tests/`.
+- Keep commit messages short and in the imperative mood (e.g., "Add Moq1200 tests").
+- Confirm a clean working tree with `git status` before committing.
+- Summaries in pull requests should mention key line numbers using the repository citation format.
+- Re-run `dotnet format`, build, and tests after resolving feedback or merge conflicts.
+
+---
+
+## Writing Git Commit Messages
+
+Guidelines:
+
+1. Capitalization and Punctuation: Capitalize the first word and do not end in punctuation. If using Conventional Commits, remember to use all lowercase.
+2. Mood: Use imperative mood in the subject line. Example – Add fix for dark mode toggle state. Imperative mood gives the tone you are giving an order or request.
+3. Type of Commit: Specify the type of commit. It is recommended and can be even more beneficial to have a consistent set of words to describe your changes. Example: Bugfix, Update, Refactor, Bump, and so on. See the section on Conventional Commits below for additional information.
+4. Length: The first line should ideally be no longer than 50 characters, and the body should be restricted to 72 characters.
+5. Content: Be direct, try to eliminate filler words and phrases in these sentences (examples: though, maybe, I think, kind of). Think like a journalist.
+
+### How to Find Your Inner Journalist
+
+When writing an article they look to answer who, what, where, when, why and how. For committing purposes, it is most important to answer the what and why for our commit messages.
+
+To come up with thoughtful commits, consider the following:
+
+- Why have I made these changes?
+- What effect have my changes made?
+- Why was the change needed?
+- What are the changes in reference to?
+- Assume the reader does not understand what the commit is addressing. They may not have access to the story addressing the detailed background of the change.
+
+Don't expect the code to be self-explanatory. This is similar to the point above.
+
+It might seem obvious to you, the programmer, if you're updating something like CSS styles since it is visual. You may have intimate knowledge on why these changes were needed at the time, but it's unlikely you will recall why you did that hundreds of pull requests later.
+
+Make it clear why that change was made, and note if it may be crucial for the functionality or not.
+
+See the differences below:
+
+Bad: `git commit -m 'Add margin'`
+Good: `git commit -m 'Add margin to nav items to prevent them from overlapping the logo'`
+
+It is clear which of these would be more useful to future readers.
+
+Pretend you're writing an important newsworthy article. Give the headline that will sum up what happened and what is important. Then, provide further details in the body in an organized fashion.
+
+In filmmaking, it is often quoted "show, don't tell" using visuals as the communication medium compared to a verbal explanation of what is happening.
+
+In our case, "tell, don't [just] show" – though we have some visuals at our disposal such as the browser, most of the specifics come from reading the physical code.
+
+When writing the commit, imagine how useful this could be in troubleshooting a bug or back-tracing changes made. 
+
+Where possible, use **Conventional Commits**
+
+### Conventional Commits
+
+Conventional Commit is a formatting convention that provides a set of rules to formulate a consistent commit message structure like so:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+The commit type can include the following:
+
+- feat – a new feature is introduced with the changes
+- fix – a bug fix has occurred
+- chore – changes that do not relate to a fix or feature and don't modify src or test files (for example updating dependencies)
+- refactor – refactored code that neither fixes a bug nor adds a feature
+- docs – updates to documentation such as a the README or other markdown files
+- style – changes that do not affect the meaning of the code, likely related to code formatting such as white-space, missing semi-colons, and so on.
+- test – including new or correcting previous tests
+- perf – performance improvements
+- ci – continuous integration related
+- build – changes that affect the build system or external dependencies
+- revert – reverts a previous commit
+
+The commit type subject line should be all lowercase with a character limit to encourage succinct descriptions.
+
+The optional commit body should be used to provide further detail that cannot fit within the character limitations of the subject line description.
+
+It is also a good location to utilize `BREAKING CHANGE: <description>` to note the reason for a breaking change within the commit.
+
+The footer is also optional. We use the footer to link the GitHub issue that would be closed with these changes for example: `Closes #42`.
+
+Example:
+
+```
+fix: fix foo to enable bar
+
+This fixes the broken behavior of the component by doing xyz. 
+
+BREAKING CHANGE
+Before this fix foo wasn't enabled at all, behavior changes from <old> to <new>
+
+Closes #12345
+```
+
+#### Commit Message Examples
+
+**Good**
+
+- `feat: improve performance with lazy load implementation for images`
+- `chore: update npm dependency to latest version`
+- `Fix bug preventing users from submitting the subscribe form`
+- `Update incorrect client phone number within footer body per client request`
+
+**Bad**
+
+- `fixed bug on landing page`
+- `Changed style`
+- `oops`
+- `I think I fixed it this time?`
+- *empty commit messages*

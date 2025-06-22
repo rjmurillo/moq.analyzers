@@ -51,6 +51,16 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> Mock1Setup => Mock1?.GetMembers("Setup").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.SetupAdd</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1SetupAdd => Mock1?.GetMembers("SetupAdd").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.SetupRemove</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1SetupRemove => Mock1?.GetMembers("SetupRemove").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the methods for <c>Moq.Mock{T}.Raise</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> Mock1Raise => Mock1?.GetMembers("Raise").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
@@ -111,4 +121,14 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the field <c>Moq.MockBehavior.Default</c>.
     /// </summary>
     internal IFieldSymbol? MockBehaviorDefault => MockBehavior?.GetMembers("Default").OfType<IFieldSymbol>().SingleOrDefault();
+
+    /// <summary>
+    /// Gets the class <c>Moq.It</c>.
+    /// </summary>
+    internal INamedTypeSymbol? It => TypeProvider.GetOrCreateTypeByMetadataName("Moq.It");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.It.IsAny</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ItIsAny => It?.GetMembers("IsAny").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 }
