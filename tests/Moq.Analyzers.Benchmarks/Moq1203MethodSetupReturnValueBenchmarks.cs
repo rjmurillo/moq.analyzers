@@ -8,16 +8,19 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
-[BenchmarkCategory("Moq1202")]
-public class Moq1202RaiseEventBenchmarks
+[BenchmarkCategory("Moq1203")]
+public class Moq1203MethodSetupReturnValueBenchmarks
 {
-    private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
+    [Params("Net80WithOldMoq", "Net80WithNewMoq")]
+    public string MoqKey { get; set; } = "Net80WithOldMoq";
 
-    private static CompilationWithAnalyzers? TestCompilation { get; set; }
+    private CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
-    [GlobalSetup]
+    private CompilationWithAnalyzers? TestCompilation { get; set; }
+
+    [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
-    public static void SetupCompilation()
+    public void SetupCompilation()
     {
         List<(string Name, string Content)> sources = [];
         for (int index = 0; index < Constants.NumberOfCodeFiles; index++)
@@ -27,32 +30,37 @@ public class Moq1202RaiseEventBenchmarks
 using System;
 using Moq;
 
-public interface IProvider{index}
+public interface IService{index}
 {{
-    event Action<string> StringOptionsChanged;
+    string GetValue();
+    int Calculate(int x, int y);
+    void DoVoidWork();
 }}
 
 internal class {name}
 {{
     private void Test()
     {{
-        var mockProvider = new Mock<IProvider{index}>();
-        mockProvider.Raise(p => p.StringOptionsChanged += null, 42); // Wrong type: int instead of string
+        var mock = new Mock<IService{index}>();
+        mock.Setup(x => x.GetValue()); // Should trigger diagnostic
+        mock.Setup(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>())); // Should trigger diagnostic
+        mock.Setup(x => x.DoVoidWork()); // Should not trigger diagnostic (void method)
         _ = ""sample test""; // Add an expression that looks similar but does not match
     }}
 }}
 "));
         }
 
-        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq");
+        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies(MoqKey);
         (BaselineCompilation, TestCompilation) =
-            BenchmarkCSharpCompilationFactory.CreateAsync<RaiseEventArgumentsShouldMatchEventSignatureAnalyzer>(sources.ToArray(), referenceAssemblies)
+            BenchmarkCSharpCompilationFactory
+            .CreateAsync<MethodSetupShouldSpecifyReturnValueAnalyzer>(sources.ToArray(), referenceAssemblies)
             .GetAwaiter()
             .GetResult();
     }
 
     [Benchmark]
-    public async Task Moq1202WithDiagnostics()
+    public async Task Moq1203WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
@@ -61,14 +69,16 @@ internal class {name}
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 
-        if (diagnostics.Length != Constants.NumberOfCodeFiles)
+        // Each file should produce 2 diagnostics (GetValue and Calculate methods, but not DoVoidWork)
+        int expectedDiagnostics = Constants.NumberOfCodeFiles * 2;
+        if (diagnostics.Length != expectedDiagnostics)
         {
-            throw new InvalidOperationException($"Expected '{Constants.NumberOfCodeFiles:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
+            throw new InvalidOperationException($"Expected '{expectedDiagnostics:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
         }
     }
 
     [Benchmark(Baseline = true)]
-    public async Task Moq1205Baseline()
+    public async Task Moq1203Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!

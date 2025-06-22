@@ -8,14 +8,13 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
-[BenchmarkCategory("Moq1202")]
-public class Moq1202RaiseEventBenchmarks
+public class Moq1204RaisesEventArgumentsBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
-    [GlobalSetup]
+    [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public static void SetupCompilation()
     {
@@ -27,32 +26,36 @@ public class Moq1202RaiseEventBenchmarks
 using System;
 using Moq;
 
-public interface IProvider{index}
+public interface ISampleInterface{index}
 {{
-    event Action<string> StringOptionsChanged;
+    event Action<string> StringEvent;
+    event EventHandler<EventArgs> StandardEvent;
+    event Action SimpleEvent;
+    void Submit();
 }}
 
 internal class {name}
 {{
     private void Test()
     {{
-        var mockProvider = new Mock<IProvider{index}>();
-        mockProvider.Raise(p => p.StringOptionsChanged += null, 42); // Wrong type: int instead of string
+        var mock = new Mock<ISampleInterface{index}>();
+        // This should trigger Moq1204 - wrong argument type
+        mock.Setup(x => x.Submit()).Raises(x => x.StringEvent += null, 42);
         _ = ""sample test""; // Add an expression that looks similar but does not match
     }}
 }}
 "));
         }
 
-        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq");
+        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithNewMoq");
         (BaselineCompilation, TestCompilation) =
-            BenchmarkCSharpCompilationFactory.CreateAsync<RaiseEventArgumentsShouldMatchEventSignatureAnalyzer>(sources.ToArray(), referenceAssemblies)
+            BenchmarkCSharpCompilationFactory.CreateAsync<RaisesEventArgumentsShouldMatchEventSignatureAnalyzer>(sources.ToArray(), referenceAssemblies)
             .GetAwaiter()
             .GetResult();
     }
 
     [Benchmark]
-    public async Task Moq1202WithDiagnostics()
+    public async Task Moq1204WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
@@ -68,7 +71,7 @@ internal class {name}
     }
 
     [Benchmark(Baseline = true)]
-    public async Task Moq1205Baseline()
+    public async Task Moq1204Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!

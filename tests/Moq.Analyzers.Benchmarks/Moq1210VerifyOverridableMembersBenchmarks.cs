@@ -8,14 +8,14 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
-[BenchmarkCategory("Moq1202")]
-public class Moq1202RaiseEventBenchmarks
+[BenchmarkCategory("Moq1210")]
+public class Moq1210VerifyOverridableMembersBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
-    [GlobalSetup]
+    [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public static void SetupCompilation()
     {
@@ -27,17 +27,18 @@ public class Moq1202RaiseEventBenchmarks
 using System;
 using Moq;
 
-public interface IProvider{index}
+public class SampleClass{index}
 {{
-    event Action<string> StringOptionsChanged;
+    public string Property {{ get; set; }}
+    public int Calculate() => 0; // Non-virtual method
+    public virtual int CalculateVirtual(int a, int b) => 0; // Virtual method
 }}
 
 internal class {name}
 {{
     private void Test()
     {{
-        var mockProvider = new Mock<IProvider{index}>();
-        mockProvider.Raise(p => p.StringOptionsChanged += null, 42); // Wrong type: int instead of string
+        new Mock<SampleClass{index}>().Verify(x => x.Property);
         _ = ""sample test""; // Add an expression that looks similar but does not match
     }}
 }}
@@ -46,13 +47,13 @@ internal class {name}
 
         Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq");
         (BaselineCompilation, TestCompilation) =
-            BenchmarkCSharpCompilationFactory.CreateAsync<RaiseEventArgumentsShouldMatchEventSignatureAnalyzer>(sources.ToArray(), referenceAssemblies)
+            BenchmarkCSharpCompilationFactory.CreateAsync<VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer>(sources.ToArray(), referenceAssemblies)
             .GetAwaiter()
             .GetResult();
     }
 
     [Benchmark]
-    public async Task Moq1202WithDiagnostics()
+    public async Task Moq1210WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
@@ -68,7 +69,7 @@ internal class {name}
     }
 
     [Benchmark(Baseline = true)]
-    public async Task Moq1205Baseline()
+    public async Task Moq1210Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!

@@ -5,6 +5,10 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
-Moq1301 | Moq | Warning | Mock.Get() should not take literals
+Moq1203 | Moq | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer
+Moq1204 | Moq | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer
+Moq1205 | Moq | Warning | EventSetupHandlerShouldMatchEventTypeAnalyzer
+Moq1210 | Moq | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer
+Moq1301 | Moq | Warning    | Mock.Get() should not take literals
 Moq1302 | Moq | Warning | LINQ to Mocks expression should be valid
 SIMPLE001 | Moq | Info | SimpleInvocationAnalyzer
