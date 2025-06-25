@@ -2,7 +2,7 @@ using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.LinqT
 
 namespace Moq.Analyzers.Test;
 
-public class LinqToMocksExpressionShouldBeValidAnalyzerTests
+public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper output)
 {
     public static IEnumerable<object[]> ValidExpressionTestData()
     {
@@ -145,9 +145,9 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests
     [MemberData(nameof(ComplexExpressionTestData))]
     public async Task ShouldReportDiagnosticForComplexLinqToMocksExpressions(string referenceAssemblyGroup, string @namespace, string mockExpression)
     {
-        await Verifier.VerifyAnalyzerAsync(
-              $$"""
-              {{@namespace}}
+        static string Template(string ns, string mock) =>
+            $$"""
+              {{ns}}
               using System;
 
               public class ConcreteClass
@@ -171,11 +171,17 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests
               {
                   private void Test()
                   {
-                      var mock = {{mockExpression}}
+                      var mock = {{mock}}
                   }
               }
-              """,
-              referenceAssemblyGroup);
+              """;
+
+        string o = Template(@namespace, mockExpression);
+
+        output.WriteLine("Original:");
+        output.WriteLine(o);
+
+        await Verifier.VerifyAnalyzerAsync(o, referenceAssemblyGroup);
     }
 
     [Fact]
