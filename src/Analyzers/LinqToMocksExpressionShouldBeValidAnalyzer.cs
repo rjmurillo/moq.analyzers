@@ -134,11 +134,6 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
                 AnalyzeMemberSymbol(context, fieldRef.Field, lambdaOperation);
                 break;
 
-            case IEventReferenceOperation eventRef:
-                // Direct event reference
-                AnalyzeMemberSymbol(context, eventRef.Event, lambdaOperation);
-                break;
-
             default:
                 // For other complex expressions, try to recursively find member references
                 foreach (IOperation childOperation in body.ChildOperations)
@@ -200,15 +195,17 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         {
             case IPropertySymbol propertySymbol:
                 if (!ShouldReportForProperty(propertySymbol))
+                {
                     return;
+                }
+
                 break;
             case IMethodSymbol methodSymbol:
                 if (!ShouldReportForMethod(methodSymbol))
+                {
                     return;
-                break;
-            case IEventSymbol eventSymbol:
-                if (!ShouldReportForEvent(eventSymbol))
-                    return;
+                }
+
                 break;
             case IFieldSymbol:
                 // Always report for fields (fields are never virtual/abstract/override)
@@ -224,20 +221,13 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     private static bool ShouldReportForProperty(IPropertySymbol property)
     {
         // Report diagnostic if property is not virtual, abstract, or override
-        return !property.IsVirtual && !property.IsAbstract && !property.IsOverride;
+        return property is { IsVirtual: false, IsAbstract: false, IsOverride: false };
     }
 
     private static bool ShouldReportForMethod(IMethodSymbol method)
     {
         // Report diagnostic if method is not virtual, abstract, or override
-        return !method.IsVirtual && !method.IsAbstract && !method.IsOverride;
-    }
-
-    private static bool ShouldReportForEvent(IEventSymbol eventSymbol)
-    {
-        // Report diagnostic if event add method is not virtual, abstract, or override
-        IMethodSymbol? addMethod = eventSymbol.AddMethod;
-        return addMethod != null && !addMethod.IsVirtual && !addMethod.IsAbstract && !addMethod.IsOverride;
+        return method is { IsVirtual: false, IsAbstract: false, IsOverride: false };
     }
 
     /// <summary>
@@ -249,18 +239,18 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
 
         // 1. Try InvocationExpressionSyntax (for method calls)
         InvocationExpressionSyntax invocation = syntax.DescendantNodes()
-            .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>()
+            .OfType<InvocationExpressionSyntax>()
             .FirstOrDefault(inv =>
-                inv.Expression is Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax ma &&
+                inv.Expression is MemberAccessExpressionSyntax ma &&
 string.Equals(ma.Name.Identifier.Text, memberName, StringComparison.Ordinal));
         if (invocation != null)
         {
             return Location.Create(syntax.SyntaxTree, invocation.Span);
         }
 
-        // 2. Try MemberAccessExpressionSyntax (for property/field/event access)
+        // 2. Try MemberAccessExpressionSyntax (for property/field access)
         MemberAccessExpressionSyntax memberAccess = syntax.DescendantNodes()
-            .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax>()
+            .OfType<MemberAccessExpressionSyntax>()
             .FirstOrDefault(ma => string.Equals(ma.Name.Identifier.Text, memberName, StringComparison.Ordinal));
         if (memberAccess != null)
         {
@@ -269,7 +259,7 @@ string.Equals(ma.Name.Identifier.Text, memberName, StringComparison.Ordinal));
 
         // 3. Try IdentifierNameSyntax (fallback)
         IdentifierNameSyntax identifier = syntax.DescendantNodes()
-            .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax>()
+            .OfType<IdentifierNameSyntax>()
             .FirstOrDefault(id => string.Equals(id.Identifier.Text, memberName, StringComparison.Ordinal));
         if (identifier != null)
         {
