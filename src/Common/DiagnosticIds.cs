@@ -18,6 +18,7 @@ internal static class DiagnosticIds
     internal const string VerifyOnlyUsedForOverridableMembers = "Moq1210";
     internal const string AsShouldOnlyBeUsedForInterfacesRuleId = "Moq1300";
     internal const string MockGetShouldNotTakeLiterals = "Moq1301";
+    internal const string LinqToMocksExpressionShouldBeValid = "Moq1302";
     internal const string SetExplicitMockBehavior = "Moq1400";
     internal const string SetStrictMockBehavior = "Moq1410";
 }
