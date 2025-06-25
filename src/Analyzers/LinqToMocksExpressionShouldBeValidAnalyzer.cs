@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
@@ -175,30 +173,49 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeMemberSymbol(OperationAnalysisContext context, ISymbol memberSymbol, IAnonymousFunctionOperation lambdaOperation)
     {
-        // Skip if the symbol is part of an interface, those are always mockable
+        // Only report diagnostics if the member is not from an interface
         if (memberSymbol.ContainingType?.TypeKind == TypeKind.Interface)
         {
             return;
         }
 
-        bool shouldReportDiagnostic = memberSymbol switch
+        // Only report diagnostics if the lambda is semantically valid (no compiler errors in the member access span)
+        Location? memberLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol.Name);
+        if (memberLocation == null)
         {
-            IPropertySymbol property => ShouldReportForProperty(property),
-            IMethodSymbol method => ShouldReportForMethod(method),
-            IFieldSymbol => true,
-            IEventSymbol eventSymbol => ShouldReportForEvent(eventSymbol),
-            _ => false,
-        };
-
-        if (shouldReportDiagnostic)
-        {
-            // Try to find the specific syntax location for the member reference
-            Location diagnosticLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol.Name)
-                                        ?? lambdaOperation.Syntax.GetLocation();
-
-            Diagnostic diagnostic = diagnosticLocation.CreateDiagnostic(Rule, memberSymbol.Name);
-            context.ReportDiagnostic(diagnostic);
+            return;
         }
+
+        ImmutableArray<Diagnostic> diagnostics = context.Operation.SemanticModel.GetDiagnostics(memberLocation.SourceSpan, context.CancellationToken);
+        if (diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
+        {
+            return;
+        }
+
+        // Only report diagnostics for non-virtual, non-abstract, non-override members
+        switch (memberSymbol)
+        {
+            case IPropertySymbol propertySymbol:
+                if (!ShouldReportForProperty(propertySymbol))
+                    return;
+                break;
+            case IMethodSymbol methodSymbol:
+                if (!ShouldReportForMethod(methodSymbol))
+                    return;
+                break;
+            case IEventSymbol eventSymbol:
+                if (!ShouldReportForEvent(eventSymbol))
+                    return;
+                break;
+            case IFieldSymbol:
+                // Always report for fields (fields are never virtual/abstract/override)
+                break;
+            default:
+                // For any other symbol types, do not report
+                return;
+        }
+
+        context.ReportDiagnostic(memberLocation.CreateDiagnostic(Rule, memberSymbol.Name));
     }
 
     private static bool ShouldReportForProperty(IPropertySymbol property)
@@ -225,11 +242,37 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static Location? GetMemberReferenceLocation(IAnonymousFunctionOperation lambdaOperation, string memberName)
     {
-        // Walk through the lambda body to find the specific member reference syntax
-        SyntaxNode memberReferenceSyntax = lambdaOperation.Syntax
-            .DescendantNodes()
-            .FirstOrDefault(node => node.ToString().Contains(memberName));
+        SyntaxNode syntax = lambdaOperation.Syntax;
 
-        return memberReferenceSyntax?.GetLocation();
+        // 1. Try InvocationExpressionSyntax (for method calls)
+        InvocationExpressionSyntax invocation = syntax.DescendantNodes()
+            .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>()
+            .FirstOrDefault(inv =>
+                inv.Expression is Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax ma &&
+string.Equals(ma.Name.Identifier.Text, memberName, StringComparison.Ordinal));
+        if (invocation != null)
+        {
+            return Location.Create(syntax.SyntaxTree, invocation.Span);
+        }
+
+        // 2. Try MemberAccessExpressionSyntax (for property/field/event access)
+        MemberAccessExpressionSyntax memberAccess = syntax.DescendantNodes()
+            .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax>()
+            .FirstOrDefault(ma => string.Equals(ma.Name.Identifier.Text, memberName, StringComparison.Ordinal));
+        if (memberAccess != null)
+        {
+            return Location.Create(syntax.SyntaxTree, memberAccess.Span);
+        }
+
+        // 3. Try IdentifierNameSyntax (fallback)
+        IdentifierNameSyntax identifier = syntax.DescendantNodes()
+            .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax>()
+            .FirstOrDefault(id => string.Equals(id.Identifier.Text, memberName, StringComparison.Ordinal));
+        if (identifier != null)
+        {
+            return Location.Create(syntax.SyntaxTree, identifier.Span);
+        }
+
+        return null;
     }
 }
