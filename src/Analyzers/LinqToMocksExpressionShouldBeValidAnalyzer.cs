@@ -186,10 +186,13 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        ImmutableArray<Diagnostic> diagnostics = context.Operation.SemanticModel.GetDiagnostics(memberLocation.SourceSpan, context.CancellationToken);
-        if (diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
+        if (context.Operation.SemanticModel is not null)
         {
-            return;
+            ImmutableArray<Diagnostic> diagnostics = context.Operation.SemanticModel.GetDiagnostics(memberLocation.SourceSpan, context.CancellationToken);
+            if (diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
+            {
+                return;
+            }
         }
 
         // Only report diagnostics for non-virtual, non-abstract, non-override members
