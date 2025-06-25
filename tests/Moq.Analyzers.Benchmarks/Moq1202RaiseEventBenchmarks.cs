@@ -68,7 +68,7 @@ internal class {name}
     }
 
     [Benchmark(Baseline = true)]
-    public async Task Moq1202Baseline()
+    public async Task Moq1205Baseline()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!

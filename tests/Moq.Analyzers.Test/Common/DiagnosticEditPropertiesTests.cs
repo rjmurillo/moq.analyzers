@@ -1,7 +1,3 @@
-using System.Collections.Immutable;
-using Moq.Analyzers.Common;
-using Xunit;
-
 namespace Moq.Analyzers.Test.Common;
 
 public class DiagnosticEditPropertiesTests

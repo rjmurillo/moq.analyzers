@@ -11,14 +11,22 @@
             "id": "CODACY_ACCOUNT_TOKEN",
             "description": "Codacy account token",
             "password": true
+        },
+        {
+            "type":"promptString",
+            "id": "SUPERMEMORY_URL",
+            "description": "Supermemory URL",
+            "password": true
         }
     ],
     "servers": {
-        "memory": {
+        "mcp-supermemory-ai": {
             "command": "npx",
             "args": [
                 "-y",
-                "@modelcontextprotocol/server-memory"
+                "supergateway",
+                "--sse",
+                "${input:SUPERMEMORY_URL}"
             ]
         },
         "sequential-thinking": {
