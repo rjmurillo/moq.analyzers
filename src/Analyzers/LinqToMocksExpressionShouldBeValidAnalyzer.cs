@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis.Operations;
+using Moq.Analyzers.Common;
 
 namespace Moq.Analyzers;
 
@@ -238,31 +239,17 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         SyntaxNode syntax = lambdaOperation.Syntax;
 
         // 1. Try InvocationExpressionSyntax (for method calls)
-        InvocationExpressionSyntax? invocation = syntax.DescendantNodes()
-            .OfType<InvocationExpressionSyntax>()
-            .FirstOrDefault(inv =>
-            {
-                ISymbol? symbol = semanticModel.GetSymbolInfo(inv).Symbol;
-                return SymbolEqualityComparer.Default.Equals(symbol, memberSymbol);
-            });
-
-        if (invocation != null)
+        Location? location = syntax.FindLocation<InvocationExpressionSyntax>(memberSymbol, semanticModel);
+        if (location != null)
         {
-            return Location.Create(syntax.SyntaxTree, invocation.Span);
+            return location;
         }
 
         // 2. Try MemberAccessExpressionSyntax (for property/field access)
-        MemberAccessExpressionSyntax? memberAccess = syntax.DescendantNodes()
-            .OfType<MemberAccessExpressionSyntax>()
-            .FirstOrDefault(ma =>
-            {
-                ISymbol? symbol = semanticModel.GetSymbolInfo(ma).Symbol;
-                return SymbolEqualityComparer.Default.Equals(symbol, memberSymbol);
-            });
-
-        if (memberAccess != null)
+        location = syntax.FindLocation<MemberAccessExpressionSyntax>(memberSymbol, semanticModel);
+        if (location != null)
         {
-            return Location.Create(syntax.SyntaxTree, memberAccess.Span);
+            return location;
         }
 
         // Note for future maintainers:
