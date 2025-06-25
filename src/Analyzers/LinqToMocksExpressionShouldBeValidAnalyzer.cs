@@ -265,20 +265,12 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
             return Location.Create(syntax.SyntaxTree, memberAccess.Span);
         }
 
-        // 3. Try IdentifierNameSyntax (fallback)
-        IdentifierNameSyntax? identifier = syntax.DescendantNodes()
-            .OfType<IdentifierNameSyntax>()
-            .FirstOrDefault(id =>
-            {
-                ISymbol? symbol = semanticModel.GetSymbolInfo(id).Symbol;
-                return SymbolEqualityComparer.Default.Equals(symbol, memberSymbol);
-            });
-
-        if (identifier != null)
-        {
-            return Location.Create(syntax.SyntaxTree, identifier.Span);
-        }
-
+        // Note for future maintainers:
+        // The fallback to IdentifierNameSyntax is intentionally omitted. In the context of Moq LINQ-to-Mocks expressions,
+        // member references are always accessed via the lambda parameter (e.g., x => x.Property or x => x.Method()),
+        // which are represented as MemberAccessExpressionSyntax or InvocationExpressionSyntax. A bare identifier (IdentifierNameSyntax)
+        // would only occur for static members or locals, which are not relevant for this analyzer and cannot be mocked.
+        // No valid or invalid Moq usage can reach this code path, so it is not implemented and this is not an invalid omission.
         return null;
     }
 }
