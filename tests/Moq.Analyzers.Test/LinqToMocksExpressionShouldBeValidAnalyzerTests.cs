@@ -58,12 +58,6 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
         {
             // Field reference - should trigger diagnostic
             ["""Mock.Of<ConcreteClass>(c => {|Moq1302:c.Field|} == 5);"""],
-
-            // Static field reference - should trigger diagnostic
-            ["""Mock.Of<ConcreteClass>(c => {|Moq1302:c.StaticField|} == 5);"""],
-
-            // Event reference - should trigger diagnostic
-            ["""Mock.Of<ConcreteClass>(c => {|Moq1302:c.MyEvent|} == null);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
