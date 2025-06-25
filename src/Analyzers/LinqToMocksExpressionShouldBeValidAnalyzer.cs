@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
@@ -184,6 +185,8 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         {
             IPropertySymbol property => ShouldReportForProperty(property),
             IMethodSymbol method => ShouldReportForMethod(method),
+            IFieldSymbol => true,
+            IEventSymbol eventSymbol => ShouldReportForEvent(eventSymbol),
             _ => false,
         };
 
@@ -208,6 +211,13 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     {
         // Report diagnostic if method is not virtual, abstract, or override
         return !method.IsVirtual && !method.IsAbstract && !method.IsOverride;
+    }
+
+    private static bool ShouldReportForEvent(IEventSymbol eventSymbol)
+    {
+        // Report diagnostic if event add method is not virtual, abstract, or override
+        IMethodSymbol? addMethod = eventSymbol.AddMethod;
+        return addMethod != null && !addMethod.IsVirtual && !addMethod.IsAbstract && !addMethod.IsOverride;
     }
 
     /// <summary>

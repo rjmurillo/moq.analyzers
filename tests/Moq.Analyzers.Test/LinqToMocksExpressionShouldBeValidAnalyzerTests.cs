@@ -54,7 +54,17 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests
 
     public static IEnumerable<object[]> ComplexExpressionTestData()
     {
-        return Array.Empty<object[]>().WithNamespaces().WithMoqReferenceAssemblyGroups();
+        return new object[][]
+        {
+            // Field reference - should trigger diagnostic
+            ["""Mock.Of<ConcreteClass>(c => {|Moq1302:c.Field|} == 5);"""],
+
+            // Static field reference - should trigger diagnostic
+            ["""Mock.Of<ConcreteClass>(c => {|Moq1302:c.StaticField|} == 5);"""],
+
+            // Event reference - should trigger diagnostic
+            ["""Mock.Of<ConcreteClass>(c => {|Moq1302:c.MyEvent|} == null);"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]
@@ -136,9 +146,16 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests
     public async Task ShouldReportDiagnosticForComplexLinqToMocksExpressions(string referenceAssemblyGroup, string @namespace, string mockExpression)
     {
         await Verifier.VerifyAnalyzerAsync(
-            $$"""
+              $$"""
               {{@namespace}}
               using System;
+
+              public class ConcreteClass
+              {
+                  public int Field;
+                  public static int StaticField;
+                  public event EventHandler MyEvent;
+              }
 
               public interface IRepository
               {
@@ -158,7 +175,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests
                   }
               }
               """,
-            referenceAssemblyGroup);
+              referenceAssemblyGroup);
     }
 
     [Fact]
@@ -166,8 +183,6 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
             """
-            using Moq;
-
             public interface IRepository
             {
                 bool IsAuthenticated { get; set; }
