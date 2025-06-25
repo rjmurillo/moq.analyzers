@@ -176,7 +176,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         }
 
         // Only report diagnostics if the lambda is semantically valid (no compiler errors in the member access span)
-        Location? memberLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol, context.Operation.SemanticModel!);
+        Location? memberLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol, context.Operation.SemanticModel);
         if (memberLocation == null)
         {
             return;
@@ -234,7 +234,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Attempts to find the specific syntax location of the member reference within the lambda using symbol-based matching.
     /// </summary>
-    private static Location? GetMemberReferenceLocation(IAnonymousFunctionOperation lambdaOperation, ISymbol memberSymbol, SemanticModel semanticModel)
+    private static Location? GetMemberReferenceLocation(IAnonymousFunctionOperation lambdaOperation, ISymbol memberSymbol, SemanticModel? semanticModel)
     {
         SyntaxNode syntax = lambdaOperation.Syntax;
 
