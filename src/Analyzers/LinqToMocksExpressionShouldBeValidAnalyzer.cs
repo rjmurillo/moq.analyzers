@@ -175,7 +175,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         }
 
         // Only report diagnostics if the lambda is semantically valid (no compiler errors in the member access span)
-        Location? memberLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol.Name);
+        Location? memberLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol, context.Operation.SemanticModel!);
         if (memberLocation == null)
         {
             return;
@@ -231,36 +231,49 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Attempts to find the specific syntax location of the member reference within the lambda.
+    /// Attempts to find the specific syntax location of the member reference within the lambda using symbol-based matching.
     /// </summary>
-    private static Location? GetMemberReferenceLocation(IAnonymousFunctionOperation lambdaOperation, string memberName)
+    private static Location? GetMemberReferenceLocation(IAnonymousFunctionOperation lambdaOperation, ISymbol memberSymbol, SemanticModel semanticModel)
     {
         SyntaxNode syntax = lambdaOperation.Syntax;
 
         // 1. Try InvocationExpressionSyntax (for method calls)
-        InvocationExpressionSyntax invocation = syntax.DescendantNodes()
+        InvocationExpressionSyntax? invocation = syntax.DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
             .FirstOrDefault(inv =>
-                inv.Expression is MemberAccessExpressionSyntax ma &&
-string.Equals(ma.Name.Identifier.Text, memberName, StringComparison.Ordinal));
+            {
+                ISymbol? symbol = semanticModel.GetSymbolInfo(inv).Symbol;
+                return SymbolEqualityComparer.Default.Equals(symbol, memberSymbol);
+            });
+
         if (invocation != null)
         {
             return Location.Create(syntax.SyntaxTree, invocation.Span);
         }
 
         // 2. Try MemberAccessExpressionSyntax (for property/field access)
-        MemberAccessExpressionSyntax memberAccess = syntax.DescendantNodes()
+        MemberAccessExpressionSyntax? memberAccess = syntax.DescendantNodes()
             .OfType<MemberAccessExpressionSyntax>()
-            .FirstOrDefault(ma => string.Equals(ma.Name.Identifier.Text, memberName, StringComparison.Ordinal));
+            .FirstOrDefault(ma =>
+            {
+                ISymbol? symbol = semanticModel.GetSymbolInfo(ma).Symbol;
+                return SymbolEqualityComparer.Default.Equals(symbol, memberSymbol);
+            });
+
         if (memberAccess != null)
         {
             return Location.Create(syntax.SyntaxTree, memberAccess.Span);
         }
 
         // 3. Try IdentifierNameSyntax (fallback)
-        IdentifierNameSyntax identifier = syntax.DescendantNodes()
+        IdentifierNameSyntax? identifier = syntax.DescendantNodes()
             .OfType<IdentifierNameSyntax>()
-            .FirstOrDefault(id => string.Equals(id.Identifier.Text, memberName, StringComparison.Ordinal));
+            .FirstOrDefault(id =>
+            {
+                ISymbol? symbol = semanticModel.GetSymbolInfo(id).Symbol;
+                return SymbolEqualityComparer.Default.Equals(symbol, memberSymbol);
+            });
+
         if (identifier != null)
         {
             return Location.Create(syntax.SyntaxTree, identifier.Span);
