@@ -57,8 +57,9 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
                 // If it's not a parenthesized lambda, it might be a simple lambda - convert for consistency
                 if (callbackLambda == null && lambdaExpression is SimpleLambdaExpressionSyntax)
                 {
-                    // We need to handle simple lambdas differently since they don't have ParameterList.Parameters
-                    // For now, skip simple lambdas in delegate constructors
+                    // We need to handle simple lambdas differently since they don't have ParameterList.Parameters.
+                    // Simple lambdas are currently skipped to avoid handling edge cases and maintain simplicity.
+                    // TODO: Implement support for SimpleLambdaExpressionSyntax in delegate constructors.
                     return;
                 }
             }
