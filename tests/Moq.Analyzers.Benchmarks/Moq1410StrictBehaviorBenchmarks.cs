@@ -8,6 +8,7 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
+[BenchmarkCategory("Moq1410")]
 public class Moq1410StrictBehaviorBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }

@@ -51,7 +51,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
 
         // 1. Check if the invoked method is a Moq Setup method
-        if (!targetMethod.IsMoqSetupMethod(knownSymbols))
+        if (!targetMethod.IsMoqSetupMethod(knownSymbols) && !targetMethod.IsMoqEventSetupMethod(knownSymbols))
         {
             return;
         }
@@ -59,7 +59,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         // 2. Attempt to locate the member reference from the Setup expression argument.
         //    Typically, Moq setup calls have a single lambda argument like x => x.SomeMember.
         //    We'll extract that member reference or invocation to see whether it is overridable.
-        ISymbol? mockedMemberSymbol = TryGetMockedMemberSymbol(invocationOperation);
+        ISymbol? mockedMemberSymbol = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
         if (mockedMemberSymbol == null)
         {
             return;
@@ -92,7 +92,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
     /// if the <paramref name="mockedMemberSymbol"/> is overridable.
     /// </summary>
     /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
-    /// <param name="knownSymbols">The known symbols.</param>
+    /// <param name="knownSymbols">A <see cref="MoqKnownSymbols"/> instance for resolving well-known types.</param>
     /// <returns>
     /// Returns <see langword="true"/> when the diagnostic should not be triggered; otherwise <see langword="false" />.
     /// </returns>
@@ -128,36 +128,5 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Attempts to resolve the symbol representing the member (property or method)
-    /// being referenced in the Setup(...) call. Returns null if it cannot be determined.
-    /// </summary>
-    private static ISymbol? TryGetMockedMemberSymbol(IInvocationOperation moqSetupInvocation)
-    {
-        // Usually the first argument to a Moq Setup(...) is a lambda expression like x => x.Property
-        // or x => x.Method(...). We can look at moqSetupInvocation.Arguments[0].Value to see this.
-        //
-        // In almost all Moq setups, the first argument is the expression (lambda) to be analyzed.
-        if (moqSetupInvocation.Arguments.Length == 0)
-        {
-            return null;
-        }
-
-        IOperation argumentOperation = moqSetupInvocation.Arguments[0].Value;
-
-        // 1) Unwrap conversions (Roslyn often wraps lambdas in IConversionOperation).
-        argumentOperation = argumentOperation.WalkDownImplicitConversion();
-
-        if (argumentOperation is IAnonymousFunctionOperation lambdaOperation)
-        {
-            // If it's a simple lambda of the form x => x.SomeMember,
-            // the body often ends up as an IPropertyReferenceOperation or IInvocationOperation.
-            return lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
-        }
-
-        // Sometimes it might be a delegate creation or something else. Handle other patterns if needed.
-        return null;
     }
 }

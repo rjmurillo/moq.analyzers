@@ -1,4 +1,3 @@
-using Moq.Analyzers.Test.Helpers;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -24,6 +23,17 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
             ["""new Mock<IValueTaskMethods>().Setup(x => x.GetNumberAsync()).Returns(ValueTask.FromResult(42));"""],
             ["""{|Moq1200:new Mock<SampleClass>().Setup(x => x.Field)|};"""],
             ["""{|Moq1200:new Mock<SampleClassWithNonVirtualIndexer>().Setup(x => x[0])|};"""],
+
+            // Additional argument matcher patterns - It.Is with predicates (supported in both versions)
+            ["""new Mock<ISampleInterface>().Setup(x => x.Calculate(It.Is<int>(i => i > 0), It.IsAny<int>()));"""],
+            ["""new Mock<ISampleInterface>().Setup(x => x.Calculate(It.Is<int>(i => i % 2 == 0), It.Is<int>(j => j < 100)));"""],
+
+            // It.IsRegex for string matching (supported in both versions)
+            ["""new Mock<ISampleInterface>().Setup(x => x.GetString(It.IsRegex(@"\d+")));"""],
+            ["""new Mock<ISampleInterface>().Setup(x => x.GetString(It.IsRegex("[a-zA-Z]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)));"""],
+
+            // It.IsInRange for numeric matching (supported in both versions, using qualified name to avoid ambiguity)
+            ["""new Mock<ISampleInterface>().Setup(x => x.Calculate(It.IsInRange(1, 10, Moq.Range.Inclusive), It.IsAny<int>()));"""],
         }.WithNamespaces().WithOldMoqReferenceAssemblyGroups();
 
         IEnumerable<object[]> @new = new object[][]
@@ -41,6 +51,9 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
 
             // Explicit interface implementation (should NOT be flagged in new)
             ["""new Mock<IExplicitInterface>().Setup(x => ((IExplicitInterface)x).ExplicitMethod());"""],
+
+            // It.Ref<T>.IsAny for ref parameters (requires Moq 4.8+, should work in newer versions)
+            ["""new Mock<ISampleInterface>().Setup(x => x.ProcessRef(ref It.Ref<int>.IsAny)).Returns(true);"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
         return both.Concat(@new);
@@ -57,6 +70,8 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
                                 {
                                     int Calculate(int a, int b);
                                     int TestProperty { get; set; }
+                                    string GetString(string input);
+                                    bool ProcessRef(ref int value);
                                 }
 
                                 public interface IAsyncMethods

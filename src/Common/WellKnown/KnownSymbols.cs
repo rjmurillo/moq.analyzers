@@ -38,9 +38,24 @@ internal class KnownSymbols
     public INamedTypeSymbol? ValueTask => TypeProvider.GetOrCreateTypeByMetadataName("System.Threading.Tasks.ValueTask");
 
     /// <summary>
+    /// Gets the class <see cref="System.EventHandler{TEventArgs}"/>.
+    /// </summary>
+    public INamedTypeSymbol? EventHandler1 => TypeProvider.GetOrCreateTypeByMetadataName("System.EventHandler`1");
+
+    /// <summary>
     /// Gets the class <see cref="System.Threading.Tasks.ValueTask{T}"/>.
     /// </summary>
     public INamedTypeSymbol? ValueTask1 => TypeProvider.GetOrCreateTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+
+    /// <summary>
+    /// Gets the class <see cref="System.Action"/>.
+    /// </summary>
+    public INamedTypeSymbol? Action0 => TypeProvider.GetOrCreateTypeByMetadataName("System.Action");
+
+    /// <summary>
+    /// Gets the class <see cref="System.Action{T}"/>.
+    /// </summary>
+    public INamedTypeSymbol? Action1 => TypeProvider.GetOrCreateTypeByMetadataName("System.Action`1");
 
     protected WellKnownTypeProvider TypeProvider { get; }
 }

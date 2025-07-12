@@ -8,6 +8,7 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
+[BenchmarkCategory("Moq1201")]
 public class Moq1201AsyncResultBenchmarks
 {
     [Params("Net80WithOldMoq", "Net80WithNewMoq")]
