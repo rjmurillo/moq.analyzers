@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
-public class Moq1204ReturnsAsyncBenchmarks
+public class Moq1206ReturnsAsyncBenchmarks
 {
     [Params("Net80WithOldMoq", "Net80WithNewMoq")]
     public string MoqKey { get; set; } = "Net80WithOldMoq";
@@ -58,7 +58,7 @@ internal class {name}
     }
 
     [Benchmark]
-    public async Task Moq1204WithDiagnostics()
+    public async Task Moq1206WithDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await TestCompilation!
@@ -75,7 +75,7 @@ internal class {name}
     }
 
     [Benchmark]
-    public async Task Moq1204WithoutDiagnostics()
+    public async Task Moq1206WithoutDiagnostics()
     {
         ImmutableArray<Diagnostic> diagnostics =
             (await BaselineCompilation!

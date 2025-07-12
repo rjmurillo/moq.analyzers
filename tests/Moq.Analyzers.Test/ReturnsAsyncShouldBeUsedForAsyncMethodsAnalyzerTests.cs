@@ -32,16 +32,16 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzerTests(ITestOutputHel
         IEnumerable<object[]> invalid = new object[][]
         {
             // Async lambda in Returns for Task<T> method
-            ["""new Mock<AsyncClient>().Setup(c => c.GetAsync()).{|Moq1204:Returns(async () => "value")|};"""],
+            ["""new Mock<AsyncClient>().Setup(c => c.GetAsync()).{|Moq1206:Returns(async () => "value")|};"""],
 
             // Async lambda in Returns for Task method
-            ["""new Mock<AsyncClient>().Setup(c => c.DoAsync()).{|Moq1204:Returns(async () => { })|};"""],
+            ["""new Mock<AsyncClient>().Setup(c => c.DoAsync()).{|Moq1206:Returns(async () => { })|};"""],
 
             // Async lambda in Returns for ValueTask<T> method
-            ["""new Mock<AsyncClient>().Setup(c => c.GetValueTaskAsync()).{|Moq1204:Returns(async () => "value")|};"""],
+            ["""new Mock<AsyncClient>().Setup(c => c.GetValueTaskAsync()).{|Moq1206:Returns(async () => "value")|};"""],
 
             // Async lambda in Returns for ValueTask method
-            ["""new Mock<AsyncClient>().Setup(c => c.DoValueTaskAsync()).{|Moq1204:Returns(async () => { })|};"""],
+            ["""new Mock<AsyncClient>().Setup(c => c.DoValueTaskAsync()).{|Moq1206:Returns(async () => { })|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         return valid.Concat(invalid);
