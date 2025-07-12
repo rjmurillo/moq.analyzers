@@ -20,8 +20,8 @@ public class RefOutCallbackTests
             // Valid in parameter callback
             ["in", "DateTime", "Handle", "in DateTime timestamp", "in DateTime timestamp", false],
 
-            // Invalid ref parameter mismatch - currently fails, requires analyzer fix
-            ["ref", "string", "Submit", "ref string data", "string data", false] // Changed to false since analyzer doesn't work yet
+            // Invalid ref parameter mismatch - should detect the mismatch
+            ["ref", "string", "Submit", "ref string data", "string data", true]
         ];
 #pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
 

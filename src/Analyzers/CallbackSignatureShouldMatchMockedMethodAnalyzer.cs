@@ -140,22 +140,13 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         TypeSyntax? lambdaParameterTypeSyntax = lambdaParameter.Type;
         if (lambdaParameterTypeSyntax is null)
         {
-            // Parameter uses type inference (e.g., x => x.Value instead of (int x) => x.Value).
-            // The compiler handles type validation in these cases, and any actual type mismatches
-            // would result in compilation errors. No diagnostic needed.
-            return true;
+            return true; // Can't validate, assume ok
         }
 
         TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
         ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
 
-        if (lambdaParameterTypeSymbol is null)
-        {
-            // Type symbol could not be resolved from semantic model. This can occur with
-            // complex generic scenarios or when type information is incomplete.
-            // Avoid false positives by not reporting a diagnostic.
-            return true;
-        }
+        if (lambdaParameterTypeSymbol is null) return true; // Can't validate, assume ok
 
         // Get the underlying type for the mocked parameter (without ref/out/in modifiers)
         ITypeSymbol mockedParameterType = mockedParameter.Type;
