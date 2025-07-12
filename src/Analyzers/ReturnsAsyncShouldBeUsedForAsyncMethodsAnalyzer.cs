@@ -55,23 +55,17 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         }
 
         // Report diagnostic on just the Returns(...) method call
-        if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
-        {
-            // Create a span from the Returns identifier through the end of the invocation
-            int startPos = memberAccess.Name.SpanStart;
-            int endPos = invocation.Span.End;
-            Microsoft.CodeAnalysis.Text.TextSpan span = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(startPos, endPos);
-            Location location = Location.Create(invocation.SyntaxTree, span);
+        // We can safely cast here because IsReturnsMethodCallWithAsyncLambda already verified this is a MemberAccessExpressionSyntax
+        MemberAccessExpressionSyntax memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
 
-            Diagnostic diagnostic = location.CreateDiagnostic(Rule);
-            context.ReportDiagnostic(diagnostic);
-        }
-        else
-        {
-            // Fallback to entire invocation if we can't parse the structure
-            Diagnostic diagnostic = invocation.CreateDiagnostic(Rule);
-            context.ReportDiagnostic(diagnostic);
-        }
+        // Create a span from the Returns identifier through the end of the invocation
+        int startPos = memberAccess.Name.SpanStart;
+        int endPos = invocation.Span.End;
+        Microsoft.CodeAnalysis.Text.TextSpan span = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(startPos, endPos);
+        Location location = Location.Create(invocation.SyntaxTree, span);
+
+        Diagnostic diagnostic = location.CreateDiagnostic(Rule);
+        context.ReportDiagnostic(diagnostic);
     }
 
     private static bool IsReturnsMethodCallWithAsyncLambda(InvocationExpressionSyntax invocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
