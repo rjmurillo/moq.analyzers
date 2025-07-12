@@ -121,4 +121,34 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the interface <c>Moq.Language.ICallback{TMock, TResult}</c>.
     /// </summary>
     internal INamedTypeSymbol? ICallback2 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ICallback`2");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IReturns.Returns</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IReturnsReturns => IReturns?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IReturns{T}.Returns</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IReturns1Returns => IReturns1?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IReturns{TMock, TResult}.Returns</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IReturns2Returns => IReturns2?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ICallback.Callback</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ICallbackCallback => ICallback?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ICallback{T}.Callback</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ICallback1Callback => ICallback1?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ICallback{TMock, TResult}.Callback</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ICallback2Callback => ICallback2?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 }

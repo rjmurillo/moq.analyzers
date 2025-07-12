@@ -154,26 +154,10 @@ internal static class ISymbolExtensions
     /// <returns>True if the symbol is a Returns method from Moq.Language.IReturns; otherwise false.</returns>
     internal static bool IsMoqReturnsMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        if (symbol is not IMethodSymbol methodSymbol)
-        {
-            return false;
-        }
-
-        if (!string.Equals(methodSymbol.Name, "Returns", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        INamedTypeSymbol? containingType = methodSymbol.ContainingType;
-        if (containingType is null)
-        {
-            return false;
-        }
-
-        // Check if the containing type is one of the IReturns interfaces
-        return containingType.IsInstanceOf(knownSymbols.IReturns) ||
-               containingType.IsInstanceOf(knownSymbols.IReturns1) ||
-               containingType.IsInstanceOf(knownSymbols.IReturns2);
+        // Check if this method symbol matches any of the known Returns methods
+        return symbol.IsInstanceOf(knownSymbols.IReturnsReturns) ||
+               symbol.IsInstanceOf(knownSymbols.IReturns1Returns) ||
+               symbol.IsInstanceOf(knownSymbols.IReturns2Returns);
     }
 
     /// <summary>
@@ -184,26 +168,10 @@ internal static class ISymbolExtensions
     /// <returns>True if the symbol is a Callback method from Moq.Language.ICallback; otherwise false.</returns>
     internal static bool IsMoqCallbackMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        if (symbol is not IMethodSymbol methodSymbol)
-        {
-            return false;
-        }
-
-        if (!string.Equals(methodSymbol.Name, "Callback", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        INamedTypeSymbol? containingType = methodSymbol.ContainingType;
-        if (containingType is null)
-        {
-            return false;
-        }
-
-        // Check if the containing type is one of the ICallback interfaces
-        return containingType.IsInstanceOf(knownSymbols.ICallback) ||
-               containingType.IsInstanceOf(knownSymbols.ICallback1) ||
-               containingType.IsInstanceOf(knownSymbols.ICallback2);
+        // Check if this method symbol matches any of the known Callback methods
+        return symbol.IsInstanceOf(knownSymbols.ICallbackCallback) ||
+               symbol.IsInstanceOf(knownSymbols.ICallback1Callback) ||
+               symbol.IsInstanceOf(knownSymbols.ICallback2Callback);
     }
 
     /// <summary>
