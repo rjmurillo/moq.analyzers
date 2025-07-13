@@ -119,6 +119,28 @@ internal static class ISymbolExtensions
         return false;
     }
 
+    /// <summary>
+    /// Determines whether a type symbol represents a Task or ValueTask type.
+    /// </summary>
+    /// <param name="typeSymbol">The type symbol to check.</param>
+    /// <param name="knownSymbols">The known symbols from the compilation.</param>
+    /// <returns>True if the type is Task, Task&lt;T&gt;, ValueTask, or ValueTask&lt;T&gt;; otherwise false.</returns>
+    public static bool IsTaskOrValueTaskType(this ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
+    {
+        if (typeSymbol is not INamedTypeSymbol namedType)
+        {
+            return false;
+        }
+
+        // Check for Task, Task<T>, ValueTask, or ValueTask<T>
+        INamedTypeSymbol originalDefinition = namedType.OriginalDefinition;
+
+        return SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.Task) ||
+               SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.Task1) ||
+               SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.ValueTask) ||
+               SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.ValueTask1);
+    }
+
     internal static bool IsMoqSetupMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
         return symbol.IsInstanceOf(knownSymbols.Mock1Setup) && symbol is IMethodSymbol { IsGenericMethod: true };
@@ -145,6 +167,34 @@ internal static class ISymbolExtensions
                symbol.IsInstanceOf(knownSymbols.Mock1VerifyGet) ||
                symbol.IsInstanceOf(knownSymbols.Mock1VerifySet) ||
                symbol.IsInstanceOf(knownSymbols.Mock1VerifyNoOtherCalls);
+    }
+
+    /// <summary>
+    /// Determines whether a symbol is a Moq Returns method.
+    /// </summary>
+    /// <param name="symbol">The symbol to check.</param>
+    /// <param name="knownSymbols">The known symbols for type checking.</param>
+    /// <returns>True if the symbol is a Returns method from Moq.Language.IReturns; otherwise false.</returns>
+    internal static bool IsMoqReturnsMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        // Check if this method symbol matches any of the known Returns methods
+        return symbol.IsInstanceOf(knownSymbols.IReturnsReturns) ||
+               symbol.IsInstanceOf(knownSymbols.IReturns1Returns) ||
+               symbol.IsInstanceOf(knownSymbols.IReturns2Returns);
+    }
+
+    /// <summary>
+    /// Determines whether a symbol is a Moq Callback method.
+    /// </summary>
+    /// <param name="symbol">The symbol to check.</param>
+    /// <param name="knownSymbols">The known symbols for type checking.</param>
+    /// <returns>True if the symbol is a Callback method from Moq.Language.ICallback; otherwise false.</returns>
+    internal static bool IsMoqCallbackMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        // Check if this method symbol matches any of the known Callback methods
+        return symbol.IsInstanceOf(knownSymbols.ICallbackCallback) ||
+               symbol.IsInstanceOf(knownSymbols.ICallback1Callback) ||
+               symbol.IsInstanceOf(knownSymbols.ICallback2Callback);
     }
 
     /// <summary>

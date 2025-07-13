@@ -40,7 +40,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         // Ignoring Callback() and Return() calls without lambda arguments
         if (callbackOrReturnsMethodArguments.Count == 0) return;
 
-        if (!context.SemanticModel.IsCallbackOrReturnInvocation(callbackOrReturnsInvocation)) return;
+        if (!context.SemanticModel.IsCallbackOrReturnInvocation(callbackOrReturnsInvocation, knownSymbols)) return;
 
         ParenthesizedLambdaExpressionSyntax? callbackLambda = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ParenthesizedLambdaExpressionSyntax;
 
