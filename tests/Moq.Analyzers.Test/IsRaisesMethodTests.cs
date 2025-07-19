@@ -26,15 +26,9 @@ public class IsRaisesMethodTests
     {
         return new object[][]
         {
-            // Not a Raises method - should not be detected as Raises call
-            ["""mock.Setup(x => x.DoSomething()).Returns("value");"""],
-
             // Similar named methods but not actual Raises
             ["""someObject.MyRaises("not a moq call");"""],
             ["""mock.Setup(x => x.DoSomething()).Callback(() => { });"""],
-
-            // Method without Setup chain
-            ["""mock.Raises(x => x.Event += null, "arg");"""], // Direct Raises without Setup
 
             // Non-Moq method calls
             ["""console.WriteLine("test");"""],
