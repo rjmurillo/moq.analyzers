@@ -157,4 +157,3 @@ jobs:
         name: Performance files (${{ matrix.os }})
         path: |
           ./artifacts/performance/**
-          ./artifacts/performance/perfResults/perfTest/SummaryGithub.md
