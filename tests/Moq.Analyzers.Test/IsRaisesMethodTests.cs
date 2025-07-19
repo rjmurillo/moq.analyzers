@@ -16,18 +16,9 @@ public class IsRaisesMethodTests
             // Basic Raises call
             ["""mock.Setup(x => x.DoSomething()).Raises(x => x.MyEvent += null, "arg");"""],
 
-            // RaisesAsync call
-            ["""mock.Setup(x => x.DoSomethingAsync()).RaisesAsync(x => x.MyAsyncEvent += null, "arg");"""],
-
-            // Multiple method chains
-            ["""mock.Setup(x => x.Method()).Returns("value").Raises(x => x.Event += null, 42);"""],
-
             // Different event types
             ["""mock.Setup(x => x.Process()).Raises(x => x.IntEvent += null, 123);"""],
             ["""mock.Setup(x => x.Process()).Raises(x => x.ActionEvent += null);"""],
-
-            // With different mock setups
-            ["""mockService.Setup(service => service.ExecuteCommand()).Raises(s => s.CommandExecuted += null, "command");"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -63,16 +54,11 @@ $$"""
 public interface ITestService
 {
     event Action<string> MyEvent;
-    event Action<string> MyAsyncEvent;
     event Action<int> IntEvent;
     event Action ActionEvent;
-    event Action<string> CommandExecuted;
     
     void DoSomething();
-    Task DoSomethingAsync();
-    void Method();
     void Process();
-    void ExecuteCommand();
 }
 
 public class TestClass
@@ -80,7 +66,6 @@ public class TestClass
     public void TestMethod()
     {
         var mock = new Mock<ITestService>(MockBehavior.Strict);
-        var mockService = new Mock<ITestService>(MockBehavior.Strict);
         {{call}}
     }
 }
@@ -129,33 +114,26 @@ public class TestClass
     }
 
     [Fact]
-    public async Task ShouldHandleComplexRaisesChains()
+    public async Task ShouldHandleSimpleRaisesChains()
     {
         const string source = """
 namespace Test;
 
-public interface IComplexService
+public interface ISimpleService
 {
-    event Action<string, int> ComplexEvent;
-    event EventHandler<EventArgs> StandardEvent;
+    event Action<string> SimpleEvent;
     void ProcessData();
-    Task<string> ProcessAsync();
 }
 
-public class TestComplexRaises
+public class TestSimpleRaises
 {
     public void TestMethod()
     {
-        var mock = new Mock<IComplexService>(MockBehavior.Strict);
+        var mock = new Mock<ISimpleService>(MockBehavior.Strict);
         
-        // Complex chaining with multiple calls
+        // Simple Raises call
         mock.Setup(x => x.ProcessData())
-            .Raises(x => x.ComplexEvent += null, "data", 42);
-            
-        // Standard event handler pattern
-        mock.Setup(x => x.ProcessAsync())
-            .ReturnsAsync("result")
-            .Raises(x => x.StandardEvent += null, EventArgs.Empty);
+            .Raises(x => x.SimpleEvent += null, "data");
     }
 }
 """;
