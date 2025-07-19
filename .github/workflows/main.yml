@@ -8,6 +8,11 @@ on:
         required: false
         default: false
         type: boolean
+      force_baseline:
+        description: 'Force running baseline benchmarks even if cached (true/false)'
+        required: false
+        default: false
+        type: boolean
   pull_request:
     branches:
       - main
@@ -126,6 +131,9 @@ jobs:
         os: [windows-11-arm, ubuntu-24.04-arm, ubuntu-latest, windows-latest, macos-latest]
 
     runs-on: ${{ matrix.os }}
+
+    env:
+      FORCE_BASELINE: ${{ github.event.inputs.force_baseline }}
 
     steps:
     - uses: actions/checkout@v4

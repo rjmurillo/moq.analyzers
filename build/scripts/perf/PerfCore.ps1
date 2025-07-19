@@ -55,6 +55,8 @@ try {
     $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
     $output = Join-Path $RepoRoot "artifacts\performance\perfResults"
      
+    $forceBaseline = $env:FORCE_BASELINE -eq 'true'
+
     #  Diff two different SHAs
     if ($diff) {
         $DiffPerfToBaseLine = Join-Path $RepoRoot "build\scripts\perf\DiffPerfToBaseline.ps1"
@@ -62,7 +64,7 @@ try {
         $baselineSHA = $baselinejson.sha
 
         $baselineResultsDir = Join-Path $output "baseline"
-        if (Test-Path $baselineResultsDir) {
+        if ((Test-Path $baselineResultsDir) -and -not $forceBaseline) {
             Write-Host "Warning: Using cached baseline results for SHA '$baselineSHA'. No new baseline benchmarks will be run."
         } else {
             Write-Host "Running performance comparison against baseline: '$baselineSHA'"
