@@ -198,6 +198,19 @@ internal static class ISymbolExtensions
     }
 
     /// <summary>
+    /// Determines whether a symbol is a Moq Raises method.
+    /// </summary>
+    /// <param name="symbol">The symbol to check.</param>
+    /// <param name="knownSymbols">The known symbols for type checking.</param>
+    /// <returns>True if the symbol is a Raises or RaisesAsync method from Moq.Language.IRaiseable or IRaiseableAsync; otherwise false.</returns>
+    internal static bool IsMoqRaisesMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        // Check if this method symbol matches any of the known Raises methods
+        return symbol.IsInstanceOf(knownSymbols.IRaiseableRaises) ||
+               symbol.IsInstanceOf(knownSymbols.IRaiseableAsyncRaisesAsync);
+    }
+
+    /// <summary>
     /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/> or <see cref="ValueTask{TResult}"/>.
     /// </summary>
     private static bool IsGenericResultProperty(this ISymbol symbol, INamedTypeSymbol? genericType)

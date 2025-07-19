@@ -49,9 +49,10 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
+        MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
 
         // Check if this is a Raises method call using symbol-based detection
-        if (!context.SemanticModel.IsRaisesInvocation(invocation) && !invocation.IsRaisesMethodCall())
+        if (!context.SemanticModel.IsRaisesInvocation(invocation, knownSymbols) && !invocation.IsRaisesMethodCall(context.SemanticModel, knownSymbols))
         {
             return;
         }

@@ -203,4 +203,24 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.It.IsAny</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> ItIsAny => It?.GetMembers("IsAny").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.IRaiseable</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IRaiseable => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IRaiseable");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.IRaiseableAsync</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IRaiseableAsync => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IRaiseableAsync");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IRaiseable.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IRaiseableRaises => IRaiseable?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IRaiseableAsync.RaisesAsync</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IRaiseableAsyncRaisesAsync => IRaiseableAsync?.GetMembers("RaisesAsync").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 }

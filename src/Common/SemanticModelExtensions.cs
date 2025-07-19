@@ -72,7 +72,7 @@ internal static class SemanticModelExtensions
         };
     }
 
-    internal static bool IsRaisesInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax raisesInvocation)
+    internal static bool IsRaisesInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax raisesInvocation, MoqKnownSymbols knownSymbols)
     {
         MemberAccessExpressionSyntax? raisesMethod = raisesInvocation.Expression as MemberAccessExpressionSyntax;
 
@@ -93,8 +93,8 @@ internal static class SemanticModelExtensions
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(raisesMethod);
         return symbolInfo.CandidateReason switch
         {
-            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(IsRaisesSymbol),
-            CandidateReason.None => IsRaisesSymbol(symbolInfo.Symbol),
+            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(symbol => symbol.IsMoqRaisesMethod(knownSymbols)),
+            CandidateReason.None => IsRaisesSymbol(symbolInfo.Symbol, knownSymbols),
             _ => false,
         };
     }
@@ -162,9 +162,15 @@ internal static class SemanticModelExtensions
         return symbol.IsMoqCallbackMethod(knownSymbols) || symbol.IsMoqReturnsMethod(knownSymbols);
     }
 
-    private static bool IsRaisesSymbol(ISymbol? symbol)
+    private static bool IsRaisesSymbol(ISymbol? symbol, MoqKnownSymbols knownSymbols)
     {
-        // TODO: Check what is the best way to do such checks
+        // First try symbol-based detection
+        if (symbol?.IsMoqRaisesMethod(knownSymbols) == true)
+        {
+            return true;
+        }
+
+        // Fallback to string-based detection until symbol resolution is fully debugged
         if (symbol is not IMethodSymbol methodSymbol)
         {
             return false;
@@ -178,8 +184,7 @@ internal static class SemanticModelExtensions
 
         string containingTypeName = containingType.ToDisplayString();
 
-        // TODO: Debug why this is not matching. The containing type might be different than expected.
-        // Need to investigate the actual type hierarchy in Moq for the Raises method.
+        // Check for IRaiseable and IRaiseableAsync interfaces
         bool isRaises = string.Equals(methodSymbol.Name, "Raises", StringComparison.Ordinal)
                          && containingTypeName.StartsWith("Moq.Language.IRaiseable", StringComparison.Ordinal);
 
