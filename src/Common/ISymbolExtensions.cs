@@ -205,9 +205,35 @@ internal static class ISymbolExtensions
     /// <returns>True if the symbol is a Raises or RaisesAsync method from Moq.Language.IRaiseable or IRaiseableAsync; otherwise false.</returns>
     internal static bool IsMoqRaisesMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
+        if (symbol is not IMethodSymbol methodSymbol)
+        {
+            return false;
+        }
+
         // Check if this method symbol matches any of the known Raises methods
-        return symbol.IsInstanceOf(knownSymbols.IRaiseableRaises) ||
-               symbol.IsInstanceOf(knownSymbols.IRaiseableAsyncRaisesAsync);
+        // Try the ICallback and IReturns interfaces which are more likely to contain Raises
+        bool symbolBasedResult = symbol.IsInstanceOf(knownSymbols.ICallbackRaises) ||
+                                symbol.IsInstanceOf(knownSymbols.ICallback1Raises) ||
+                                symbol.IsInstanceOf(knownSymbols.ICallback2Raises) ||
+                                symbol.IsInstanceOf(knownSymbols.IReturnsRaises) ||
+                                symbol.IsInstanceOf(knownSymbols.IReturns1Raises) ||
+                                symbol.IsInstanceOf(knownSymbols.IReturns2Raises) ||
+                                symbol.IsInstanceOf(knownSymbols.IRaiseableRaises) ||
+                                symbol.IsInstanceOf(knownSymbols.IRaiseableAsyncRaisesAsync);
+
+        if (symbolBasedResult)
+        {
+            return true;
+        }
+
+        // Fallback: Check if it's a Raises/RaisesAsync method on any Moq.Language interface
+        // This provides compatibility until the correct interface names are identified
+        string? containingTypeName = methodSymbol.ContainingType?.ToDisplayString();
+        string methodName = methodSymbol.Name;
+
+        return (string.Equals(methodName, "Raises", StringComparison.Ordinal) ||
+                string.Equals(methodName, "RaisesAsync", StringComparison.Ordinal)) &&
+               containingTypeName?.Contains("Moq.Language", StringComparison.Ordinal) == true;
     }
 
     /// <summary>

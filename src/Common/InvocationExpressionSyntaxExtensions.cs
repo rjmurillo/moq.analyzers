@@ -18,8 +18,8 @@ internal static class InvocationExpressionSyntaxExtensions
     }
 
     /// <summary>
-    /// Determines if an invocation is a Raises method call in a Moq fluent API chain.
-    /// This method uses symbol-based detection to verify the method belongs to IRaiseable or IRaiseableAsync.
+    /// Determines if an invocation is a Raises method call using symbol-based detection.
+    /// This method verifies the method belongs to IRaiseable or IRaiseableAsync.
     /// </summary>
     /// <param name="invocation">The invocation expression to check.</param>
     /// <param name="semanticModel">The semantic model for symbol resolution.</param>
@@ -27,14 +27,7 @@ internal static class InvocationExpressionSyntaxExtensions
     /// <returns><see langword="true"/> if the invocation is a Raises method call; otherwise, <see langword="false"/>.</returns>
     internal static bool IsRaisesMethodCall(this InvocationExpressionSyntax invocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
     {
-        // Check if the method being called is named "Raises" or "RaisesAsync"
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
-        {
-            return false;
-        }
-
-        string methodName = memberAccess.Name.Identifier.ValueText;
-        if (!methodName.Equals("Raises", StringComparison.Ordinal) && !methodName.Equals("RaisesAsync", StringComparison.Ordinal))
         {
             return false;
         }
@@ -53,27 +46,6 @@ internal static class InvocationExpressionSyntaxExtensions
             return true;
         }
 
-        // Fallback: Additional validation to ensure it's part of a Moq fluent API chain
-        // by checking if it follows a Setup() call (original logic as fallback)
-        ExpressionSyntax? expression = memberAccess.Expression;
-        bool isPartOfMoqChain = false;
-
-        while (expression is InvocationExpressionSyntax parentInvocation)
-        {
-            if (parentInvocation.Expression is MemberAccessExpressionSyntax parentMemberAccess &&
-                string.Equals(parentMemberAccess.Name.Identifier.ValueText, "Setup", StringComparison.Ordinal))
-            {
-                isPartOfMoqChain = true;
-                break;
-            }
-
-            expression = (parentInvocation.Expression as MemberAccessExpressionSyntax)?.Expression;
-            if (expression == null)
-            {
-                break;
-            }
-        }
-
-        return isPartOfMoqChain;
+        return false;
     }
 }

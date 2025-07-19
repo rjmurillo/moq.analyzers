@@ -74,18 +74,7 @@ internal static class SemanticModelExtensions
 
     internal static bool IsRaisesInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax raisesInvocation, MoqKnownSymbols knownSymbols)
     {
-        MemberAccessExpressionSyntax? raisesMethod = raisesInvocation.Expression as MemberAccessExpressionSyntax;
-
-        if (raisesMethod == null)
-        {
-            return false;
-        }
-
-        string methodName = raisesMethod.Name.ToString();
-
-        // First fast check before walking semantic model
-        if (!string.Equals(methodName, "Raises", StringComparison.Ordinal)
-            && !string.Equals(methodName, "RaisesAsync", StringComparison.Ordinal))
+        if (raisesInvocation.Expression is not MemberAccessExpressionSyntax raisesMethod)
         {
             return false;
         }
@@ -164,33 +153,6 @@ internal static class SemanticModelExtensions
 
     private static bool IsRaisesSymbol(ISymbol? symbol, MoqKnownSymbols knownSymbols)
     {
-        // First try symbol-based detection
-        if (symbol?.IsMoqRaisesMethod(knownSymbols) == true)
-        {
-            return true;
-        }
-
-        // Fallback to string-based detection until symbol resolution is fully debugged
-        if (symbol is not IMethodSymbol methodSymbol)
-        {
-            return false;
-        }
-
-        INamedTypeSymbol? containingType = methodSymbol.ContainingType;
-        if (containingType is null)
-        {
-            return false;
-        }
-
-        string containingTypeName = containingType.ToDisplayString();
-
-        // Check for IRaiseable and IRaiseableAsync interfaces
-        bool isRaises = string.Equals(methodSymbol.Name, "Raises", StringComparison.Ordinal)
-                         && containingTypeName.StartsWith("Moq.Language.IRaiseable", StringComparison.Ordinal);
-
-        bool isRaisesAsync = string.Equals(methodSymbol.Name, "RaisesAsync", StringComparison.Ordinal)
-                         && containingTypeName.StartsWith("Moq.Language.IRaiseableAsync", StringComparison.Ordinal);
-
-        return isRaises || isRaisesAsync;
+        return symbol?.IsMoqRaisesMethod(knownSymbols) == true;
     }
 }
