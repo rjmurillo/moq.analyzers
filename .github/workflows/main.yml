@@ -132,6 +132,22 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Get baseline SHA
+      id: get-baseline-sha
+      run: |
+        $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
+        echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
+      shell: pwsh
+
+    - name: Download baseline performance cache
+      id: baseline-cache
+      uses: actions/cache@v4
+      with:
+        path: ./artifacts/performance/perfResults/baseline
+        key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
+        restore-keys: |
+          baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
+
     - name: Setup, Restore, and Build Solution
       uses: ./.github/actions/setup-restore-build
 
@@ -178,3 +194,10 @@ jobs:
         name: performance-(${{ matrix.os }})
         path: |
           ./artifacts/performance/**
+
+    - name: Upload baseline performance cache
+      if: success()
+      uses: actions/cache@v4
+      with:
+        path: ./artifacts/performance/perfResults/baseline
+        key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}

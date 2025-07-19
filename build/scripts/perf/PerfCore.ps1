@@ -60,17 +60,23 @@ try {
         $DiffPerfToBaseLine = Join-Path $RepoRoot "build\scripts\perf\DiffPerfToBaseline.ps1"
         $baselinejson = Get-Content -Raw -Path (Join-Path $RepoRoot "build\perf\baseline.json") | ConvertFrom-Json
         $baselineSHA = $baselinejson.sha
-        Write-Host "Running performance comparison against baseline: '$baselineSHA'"
-        $commandArguments = @{
-            baselineSHA = $baselineSHA
-            projects = $projects
-            output = $output
-            filter = $filter
-        }
-        if ($etl) { $commandArguments.etl = $True }
-        if ($ci) { $commandArguments.ci =  $True}
-        & $DiffPerfToBaseLine @commandArguments
-        exit
+
+        $baselineResultsDir = Join-Path $output "baseline"
+        if (Test-Path $baselineResultsDir) {
+            Write-Host "Warning: Using cached baseline results for SHA '$baselineSHA'. No new baseline benchmarks will be run."
+        } else {
+            Write-Host "Running performance comparison against baseline: '$baselineSHA'"
+            $commandArguments = @{
+                baselineSHA = $baselineSHA
+                projects = $projects
+                output = $output
+                filter = $filter
+            }
+            if ($etl) { $commandArguments.etl = $True }
+            if ($ci) { $commandArguments.ci =  $True}
+            & $DiffPerfToBaseLine @commandArguments
+            exit
+        }        
     }
 
     $commandArguments = @{
