@@ -23,7 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.11.0-beta1.25123.3" />
-    <PackageVersion Include="BenchmarkDotNet" Version="0.13.12" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.2" />
     <PackageVersion Include="GetPackFromProject" Version="1.0.10" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta1.21216.1" />
