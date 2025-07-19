@@ -1,7 +1,13 @@
 name: Main build
 
 on:
-  workflow_dispatch: # Allow running the workflow manually from the GitHub UI
+  workflow_dispatch:
+    inputs:
+      run_performance:
+        description: 'Run performance job? (true/false)'
+        required: false
+        default: false
+        type: boolean
   pull_request:
     branches:
       - main
@@ -118,7 +124,12 @@ jobs:
         if-no-files-found: error
 
   performance:
-    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main'
+    # Run if manually dispatched (with input), on schedule, or if explicitly requested
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true') ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'push'
     strategy:
       fail-fast: false
       matrix:
