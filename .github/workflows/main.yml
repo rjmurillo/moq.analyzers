@@ -132,14 +132,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Cache baseline performance results
-      uses: actions/cache@v4
-      with:
-        path: ./artifacts/performance/baseline.json
-        key: baseline-performance-${{ runner.os }}-${{ github.ref }}
-        restore-keys: |
-          baseline-performance-${{ runner.os }}
-
     - name: Setup, Restore, and Build Solution
       uses: ./.github/actions/setup-restore-build
 
