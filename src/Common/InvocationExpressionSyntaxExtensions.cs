@@ -18,50 +18,34 @@ internal static class InvocationExpressionSyntaxExtensions
     }
 
     /// <summary>
-    /// Determines if an invocation is a Raises method call in a Moq fluent API chain.
-    /// This method uses string-based detection with validation that the call is part of a Setup() chain.
+    /// Determines if an invocation is a Raises method call using symbol-based detection.
+    /// This method verifies the method belongs to IRaiseable or IRaiseableAsync.
     /// </summary>
     /// <param name="invocation">The invocation expression to check.</param>
+    /// <param name="semanticModel">The semantic model for symbol resolution.</param>
+    /// <param name="knownSymbols">The known Moq symbols for type checking.</param>
     /// <returns><see langword="true"/> if the invocation is a Raises method call; otherwise, <see langword="false"/>.</returns>
-    internal static bool IsRaisesMethodCall(this InvocationExpressionSyntax invocation)
+    internal static bool IsRaisesMethodCall(this InvocationExpressionSyntax invocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
     {
-        // Check if the method being called is named "Raises" or "RaisesAsync"
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
         {
             return false;
         }
 
-        // TODO: The symbol-based detection is not working correctly because the containing type
-        // for the Raises method might be different than expected (e.g., due to Moq's internal
-        // implementation details or version differences). Need to investigate the actual type
-        // hierarchy. For now, fallback to string-based detection to ensure functionality.
-        string methodName = memberAccess.Name.Identifier.ValueText;
-        if (!methodName.Equals("Raises", StringComparison.Ordinal) && !methodName.Equals("RaisesAsync", StringComparison.Ordinal))
+        // Use symbol-based detection to verify this is a proper Moq Raises method
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+        if (symbolInfo.Symbol?.IsMoqRaisesMethod(knownSymbols) == true)
         {
-            return false;
+            return true;
         }
 
-        // Additional validation: ensure it's part of a Moq fluent API chain
-        // by checking if it follows a Setup() call
-        ExpressionSyntax? expression = memberAccess.Expression;
-        bool isPartOfMoqChain = false;
-
-        while (expression is InvocationExpressionSyntax parentInvocation)
+        // Check candidate symbols in case of overload resolution failure
+        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure &&
+            symbolInfo.CandidateSymbols.Any(symbol => symbol.IsMoqRaisesMethod(knownSymbols)))
         {
-            if (parentInvocation.Expression is MemberAccessExpressionSyntax parentMemberAccess &&
-                string.Equals(parentMemberAccess.Name.Identifier.ValueText, "Setup", StringComparison.Ordinal))
-            {
-                isPartOfMoqChain = true;
-                break;
-            }
-
-            expression = (parentInvocation.Expression as MemberAccessExpressionSyntax)?.Expression;
-            if (expression == null)
-            {
-                break;
-            }
+            return true;
         }
 
-        return isPartOfMoqChain;
+        return false;
     }
 }

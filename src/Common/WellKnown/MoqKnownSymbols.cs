@@ -195,6 +195,36 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> ICallback2Callback => ICallback2?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the methods for <c>Moq.Language.ICallback.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ICallbackRaises => ICallback?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ICallback{T}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ICallback1Raises => ICallback1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ICallback{TMock, TResult}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ICallback2Raises => ICallback2?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IReturns.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IReturnsRaises => IReturns?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IReturns{T}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IReturns1Raises => IReturns1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IReturns{TMock, TResult}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IReturns2Raises => IReturns2?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the class <c>Moq.It</c>.
     /// </summary>
     internal INamedTypeSymbol? It => TypeProvider.GetOrCreateTypeByMetadataName("Moq.It");
@@ -203,4 +233,24 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.It.IsAny</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> ItIsAny => It?.GetMembers("IsAny").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.IRaiseable</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IRaiseable => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IRaiseable");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.IRaiseableAsync</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IRaiseableAsync => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IRaiseableAsync");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IRaiseable.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IRaiseableRaises => IRaiseable?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IRaiseableAsync.RaisesAsync</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IRaiseableAsyncRaisesAsync => IRaiseableAsync?.GetMembers("RaisesAsync").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 }

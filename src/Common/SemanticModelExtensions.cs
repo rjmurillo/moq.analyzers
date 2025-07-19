@@ -72,20 +72,9 @@ internal static class SemanticModelExtensions
         };
     }
 
-    internal static bool IsRaisesInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax raisesInvocation)
+    internal static bool IsRaisesInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax raisesInvocation, MoqKnownSymbols knownSymbols)
     {
-        MemberAccessExpressionSyntax? raisesMethod = raisesInvocation.Expression as MemberAccessExpressionSyntax;
-
-        if (raisesMethod == null)
-        {
-            return false;
-        }
-
-        string methodName = raisesMethod.Name.ToString();
-
-        // First fast check before walking semantic model
-        if (!string.Equals(methodName, "Raises", StringComparison.Ordinal)
-            && !string.Equals(methodName, "RaisesAsync", StringComparison.Ordinal))
+        if (raisesInvocation.Expression is not MemberAccessExpressionSyntax raisesMethod)
         {
             return false;
         }
@@ -93,8 +82,8 @@ internal static class SemanticModelExtensions
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(raisesMethod);
         return symbolInfo.CandidateReason switch
         {
-            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(IsRaisesSymbol),
-            CandidateReason.None => IsRaisesSymbol(symbolInfo.Symbol),
+            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(symbol => symbol.IsMoqRaisesMethod(knownSymbols)),
+            CandidateReason.None => IsRaisesSymbol(symbolInfo.Symbol, knownSymbols),
             _ => false,
         };
     }
@@ -162,30 +151,8 @@ internal static class SemanticModelExtensions
         return symbol.IsMoqCallbackMethod(knownSymbols) || symbol.IsMoqReturnsMethod(knownSymbols);
     }
 
-    private static bool IsRaisesSymbol(ISymbol? symbol)
+    private static bool IsRaisesSymbol(ISymbol? symbol, MoqKnownSymbols knownSymbols)
     {
-        // TODO: Check what is the best way to do such checks
-        if (symbol is not IMethodSymbol methodSymbol)
-        {
-            return false;
-        }
-
-        INamedTypeSymbol? containingType = methodSymbol.ContainingType;
-        if (containingType is null)
-        {
-            return false;
-        }
-
-        string containingTypeName = containingType.ToDisplayString();
-
-        // TODO: Debug why this is not matching. The containing type might be different than expected.
-        // Need to investigate the actual type hierarchy in Moq for the Raises method.
-        bool isRaises = string.Equals(methodSymbol.Name, "Raises", StringComparison.Ordinal)
-                         && containingTypeName.StartsWith("Moq.Language.IRaiseable", StringComparison.Ordinal);
-
-        bool isRaisesAsync = string.Equals(methodSymbol.Name, "RaisesAsync", StringComparison.Ordinal)
-                         && containingTypeName.StartsWith("Moq.Language.IRaiseableAsync", StringComparison.Ordinal);
-
-        return isRaises || isRaisesAsync;
+        return symbol?.IsMoqRaisesMethod(knownSymbols) == true;
     }
 }
