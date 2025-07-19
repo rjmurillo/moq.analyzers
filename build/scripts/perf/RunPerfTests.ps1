@@ -22,7 +22,7 @@ try {
         $projectFullPath = Join-Path $perftestRootFolder $project
         & dotnet restore $projectFullPath -verbosity detailed
         & dotnet build -c Release --no-incremental $projectFullPath
-        $comandArguments = "run -c Release --no-build --project $projectFullPath -- --warmupCount  2 --invocationCount 1 --runOncePerIteration --memory --exporters JSON --artifacts $output"
+        $comandArguments = "run -c Release --no-build --project $projectFullPath -- --warmupCount 2 --invocationCount 15 --runOncePerIteration --memory --exporters JSON --artifacts $output"
         if ($ci) {
             $comandArguments = "$comandArguments --stopOnFirstError --keepFiles"
         }
