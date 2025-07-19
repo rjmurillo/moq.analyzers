@@ -16,3 +16,7 @@ This helper automatically discovers and tests against ALL Moq analyzers using re
 
 **Note:** If you add a new analyzer, the `AllAnalyzersVerifier` will automatically discover and include it in testing. No manual updates are required to maintain comprehensive test coverage.
 
+## CI Performance Benchmarking and Baseline Caching
+
+This repository supports automated performance benchmarking in CI, with baseline result caching and manual override capabilities. Baseline results are cached per OS and SHA, and can be force-refreshed via workflow inputs. For details on usage, manual runs, and force options, see [docs/ci-performance.md](docs/ci-performance.md).
+
