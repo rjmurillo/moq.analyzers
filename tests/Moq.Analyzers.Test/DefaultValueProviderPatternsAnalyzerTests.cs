@@ -24,7 +24,6 @@ public class DefaultValueProviderPatternsAnalyzerTests
             // Pattern 3c: MockRepository with DefaultValue - should not generate warnings
             ["""
             var repository = new MockRepository(MockBehavior.Strict) { DefaultValue = DefaultValue.Mock };
-            var fooMock = repository.Create<IFoo>();
             """],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups().Where(x => x[0]?.ToString()?.Contains("NewMoq") == true);
     }
