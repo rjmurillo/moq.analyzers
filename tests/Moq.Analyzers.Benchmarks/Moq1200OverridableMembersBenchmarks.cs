@@ -8,6 +8,7 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
+[BenchmarkCategory("Moq1200")]
 public class Moq1200OverridableMembersBenchmarks
 {
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }

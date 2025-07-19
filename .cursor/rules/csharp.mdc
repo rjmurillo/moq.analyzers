@@ -1,6 +1,6 @@
 ---
 description: 
-globs: 
+globs: *.cs,*.csproj,*.sln
 alwaysApply: false
 ---
 Always read and apply the instructions in [copilot-instructions.md](mdc:.github/copilot-instructions.md) when working on C# source or project files

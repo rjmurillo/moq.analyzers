@@ -32,41 +32,18 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
         IParameterSymbol? mockParameter = target.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
 
         // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
-        if (mockParameter is null && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out IMethodSymbol? methodMatch, out _, cancellationToken: context.CancellationToken))
+        if (TryHandleMissingMockBehaviorParameter(context, mockParameter, target, knownSymbols, Rule))
         {
-            if (!methodMatch.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
-            {
-                return;
-            }
-
-            ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
-            {
-                TypeOfEdit = DiagnosticEditProperties.EditType.Insert,
-                EditPosition = parameterMatch.Ordinal,
-            }.ToImmutableDictionary();
-
             // Using a method that doesn't accept a MockBehavior parameter, however there's an overload that does
-            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
             return;
         }
 
         IArgumentOperation? mockArgument = arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
 
         // Is the behavior set via a default value?
-        if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue && mockArgument.Value.WalkDownConversion().ConstantValue.Value == knownSymbols.MockBehaviorDefault?.ConstantValue)
+        if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue && mockArgument.Value.WalkDownConversion().ConstantValue.Value == knownSymbols.MockBehaviorDefault?.ConstantValue
+            && TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Insert))
         {
-            if (!target.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
-            {
-                return;
-            }
-
-            ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
-            {
-                TypeOfEdit = DiagnosticEditProperties.EditType.Insert,
-                EditPosition = parameterMatch.Ordinal,
-            }.ToImmutableDictionary();
-
-            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
             return;
         }
 
@@ -76,18 +53,7 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
         if (mockArgument?.Value.WalkDownConversion().ConstantValue.Value != knownSymbols.MockBehaviorStrict?.ConstantValue
             && mockArgument?.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorStrict)) != true)
         {
-            if (!target.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
-            {
-                return;
-            }
-
-            ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
-            {
-                TypeOfEdit = DiagnosticEditProperties.EditType.Replace,
-                EditPosition = parameterMatch.Ordinal,
-            }.ToImmutableDictionary();
-
-            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties));
+            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Replace);
         }
     }
 }

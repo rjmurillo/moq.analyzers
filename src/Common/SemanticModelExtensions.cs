@@ -45,7 +45,7 @@ internal static class SemanticModelExtensions
             : semanticModel.GetAllMatchingSymbols<IMethodSymbol>(mockedMethodInvocation);
     }
 
-    internal static bool IsCallbackOrReturnInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation)
+    internal static bool IsCallbackOrReturnInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation, MoqKnownSymbols knownSymbols)
     {
         MemberAccessExpressionSyntax? callbackOrReturnsMethod = callbackOrReturnsInvocation.Expression as MemberAccessExpressionSyntax;
 
@@ -66,10 +66,50 @@ internal static class SemanticModelExtensions
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(callbackOrReturnsMethod);
         return symbolInfo.CandidateReason switch
         {
-            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(IsCallbackOrReturnSymbol),
-            CandidateReason.None => IsCallbackOrReturnSymbol(symbolInfo.Symbol),
+            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(symbol => IsCallbackOrReturnSymbol(symbol, knownSymbols)),
+            CandidateReason.None => IsCallbackOrReturnSymbol(symbolInfo.Symbol, knownSymbols),
             _ => false,
         };
+    }
+
+    internal static bool IsRaisesInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax raisesInvocation)
+    {
+        MemberAccessExpressionSyntax? raisesMethod = raisesInvocation.Expression as MemberAccessExpressionSyntax;
+
+        if (raisesMethod == null)
+        {
+            return false;
+        }
+
+        string methodName = raisesMethod.Name.ToString();
+
+        // First fast check before walking semantic model
+        if (!string.Equals(methodName, "Raises", StringComparison.Ordinal)
+            && !string.Equals(methodName, "RaisesAsync", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(raisesMethod);
+        return symbolInfo.CandidateReason switch
+        {
+            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(IsRaisesSymbol),
+            CandidateReason.None => IsRaisesSymbol(symbolInfo.Symbol),
+            _ => false,
+        };
+    }
+
+    /// <summary>
+    /// Determines if a conversion exists between two types (implicit, explicit, or identity).
+    /// </summary>
+    /// <param name="semanticModel">The semantic model to use for classification.</param>
+    /// <param name="source">The source type symbol.</param>
+    /// <param name="destination">The destination type symbol.</param>
+    /// <returns><see langword="true"/> if a conversion exists; otherwise, <see langword="false"/>.</returns>
+    internal static bool HasConversion(this SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
+    {
+        Microsoft.CodeAnalysis.CSharp.Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
+        return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
     }
 
     private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
@@ -112,7 +152,17 @@ internal static class SemanticModelExtensions
         return matchingSymbols;
     }
 
-    private static bool IsCallbackOrReturnSymbol(ISymbol? symbol)
+    private static bool IsCallbackOrReturnSymbol(ISymbol? symbol, MoqKnownSymbols knownSymbols)
+    {
+        if (symbol is null)
+        {
+            return false;
+        }
+
+        return symbol.IsMoqCallbackMethod(knownSymbols) || symbol.IsMoqReturnsMethod(knownSymbols);
+    }
+
+    private static bool IsRaisesSymbol(ISymbol? symbol)
     {
         // TODO: Check what is the best way to do such checks
         if (symbol is not IMethodSymbol methodSymbol)
@@ -128,12 +178,14 @@ internal static class SemanticModelExtensions
 
         string containingTypeName = containingType.ToDisplayString();
 
-        bool isCallback = string.Equals(methodSymbol.Name, "Callback", StringComparison.Ordinal)
-                          && containingTypeName.StartsWith("Moq.Language.ICallback", StringComparison.Ordinal);
+        // TODO: Debug why this is not matching. The containing type might be different than expected.
+        // Need to investigate the actual type hierarchy in Moq for the Raises method.
+        bool isRaises = string.Equals(methodSymbol.Name, "Raises", StringComparison.Ordinal)
+                         && containingTypeName.StartsWith("Moq.Language.IRaiseable", StringComparison.Ordinal);
 
-        bool isReturns = string.Equals(methodSymbol.Name, "Returns", StringComparison.Ordinal)
-                         && containingTypeName.StartsWith("Moq.Language.IReturns", StringComparison.Ordinal);
+        bool isRaisesAsync = string.Equals(methodSymbol.Name, "RaisesAsync", StringComparison.Ordinal)
+                         && containingTypeName.StartsWith("Moq.Language.IRaiseableAsync", StringComparison.Ordinal);
 
-        return isCallback || isReturns;
+        return isRaises || isRaisesAsync;
     }
 }

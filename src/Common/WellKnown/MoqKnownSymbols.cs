@@ -51,9 +51,39 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> Mock1Setup => Mock1?.GetMembers("Setup").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.SetupAdd</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1SetupAdd => Mock1?.GetMembers("SetupAdd").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.SetupRemove</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1SetupRemove => Mock1?.GetMembers("SetupRemove").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the methods for <c>Moq.Mock{T}.Raise</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> Mock1Raise => Mock1?.GetMembers("Raise").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.Verify</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1Verify => Mock1?.GetMembers("Verify").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.VerifyGet</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1VerifyGet => Mock1?.GetMembers("VerifyGet").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.VerifySet</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1VerifySet => Mock1?.GetMembers("VerifySet").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.VerifyNoOtherCalls</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1VerifyNoOtherCalls => Mock1?.GetMembers("VerifyNoOtherCalls").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
     /// Gets the class <c>Moq.MockRepository</c>.
@@ -71,6 +101,18 @@ internal class MoqKnownSymbols : KnownSymbols
     /// </remarks>
     [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Minor perf issues. Should revisit later.")]
     internal ImmutableArray<IMethodSymbol> MockRepositoryCreate => MockRepository?.GetBaseTypesAndThis().SelectMany(type => type.GetMembers("Create")).OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.MockRepository.Verify</c>.
+    /// </summary>
+    /// <remarks>
+    /// <c>MockRepository</c> is a subclass of <c>MockFactory</c>.
+    /// However, MockFactory is marked as obsolete. To avoid coupling
+    /// ourselves to this implementation detail, we walk base types
+    /// when looking for members.
+    /// </remarks>
+    [SuppressMessage("Performance", "ECS0900:Minimize boxing and unboxing", Justification = "Minor perf issues. Should revisit later.")]
+    internal ImmutableArray<IMethodSymbol> MockRepositoryVerify => MockRepository?.GetBaseTypesAndThis().SelectMany(type => type.GetMembers("Verify")).OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
     /// Gets the enum <c>Moq.MockBehavior</c>.
@@ -91,4 +133,74 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the field <c>Moq.MockBehavior.Default</c>.
     /// </summary>
     internal IFieldSymbol? MockBehaviorDefault => MockBehavior?.GetMembers("Default").OfType<IFieldSymbol>().SingleOrDefault();
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.IReturns</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IReturns => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IReturns");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.IReturns{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IReturns1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IReturns`1");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.IReturns{TMock, TResult}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IReturns2 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IReturns`2");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.ICallback</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ICallback => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ICallback");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.ICallback{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ICallback1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ICallback`1");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.ICallback{TMock, TResult}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ICallback2 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ICallback`2");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IReturns.Returns</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IReturnsReturns => IReturns?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IReturns{T}.Returns</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IReturns1Returns => IReturns1?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IReturns{TMock, TResult}.Returns</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IReturns2Returns => IReturns2?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ICallback.Callback</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ICallbackCallback => ICallback?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ICallback{T}.Callback</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ICallback1Callback => ICallback1?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ICallback{TMock, TResult}.Callback</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ICallback2Callback => ICallback2?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the class <c>Moq.It</c>.
+    /// </summary>
+    internal INamedTypeSymbol? It => TypeProvider.GetOrCreateTypeByMetadataName("Moq.It");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.It.IsAny</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ItIsAny => It?.GetMembers("IsAny").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 }

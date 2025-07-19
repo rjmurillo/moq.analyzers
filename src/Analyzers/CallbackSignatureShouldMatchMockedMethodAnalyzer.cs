@@ -40,7 +40,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         // Ignoring Callback() and Return() calls without lambda arguments
         if (callbackOrReturnsMethodArguments.Count == 0) return;
 
-        if (!context.SemanticModel.IsCallbackOrReturnInvocation(callbackOrReturnsInvocation)) return;
+        if (!context.SemanticModel.IsCallbackOrReturnInvocation(callbackOrReturnsInvocation, knownSymbols)) return;
 
         ParenthesizedLambdaExpressionSyntax? callbackLambda = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ParenthesizedLambdaExpressionSyntax;
 
@@ -88,6 +88,41 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
             // Get the actual mocked method symbols to access parameter information including ref/out/in modifiers
             IEnumerable<IMethodSymbol> mockedMethodSymbols = context.SemanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupInvocation);
             ValidateParameters(context, mockedMethodSymbols, lambdaParameters);
+        }
+    }
+
+    private static void ValidateParameters(
+        SyntaxNodeAnalysisContext context,
+        SeparatedSyntaxList<ArgumentSyntax> mockedMethodArguments,
+        SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
+    {
+        for (int argumentIndex = 0; argumentIndex < mockedMethodArguments.Count; argumentIndex++)
+        {
+            TypeSyntax? lambdaParameterTypeSyntax = lambdaParameters[argumentIndex].Type;
+
+            // We're unable to get the type from the Syntax Tree, so abort the type checking because something else
+            // is happening (e.g., we're compiling on partial code) and we need the type to do the additional checks.
+            if (lambdaParameterTypeSyntax is null)
+            {
+                continue;
+            }
+
+            TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
+            TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[argumentIndex].Expression, context.CancellationToken);
+
+            ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
+            ITypeSymbol? mockedMethodTypeSymbol = mockedMethodArgumentType.Type;
+
+            if (lambdaParameterTypeSymbol is null || mockedMethodTypeSymbol is null)
+            {
+                continue;
+            }
+
+            if (!context.SemanticModel.HasConversion(mockedMethodTypeSymbol, lambdaParameterTypeSymbol))
+            {
+                Diagnostic diagnostic = lambdaParameters[argumentIndex].CreateDiagnostic(Rule);
+                context.ReportDiagnostic(diagnostic);
+            }
         }
     }
 
