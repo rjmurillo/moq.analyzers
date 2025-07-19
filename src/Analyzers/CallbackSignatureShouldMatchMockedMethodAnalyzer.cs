@@ -93,41 +93,6 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
     private static void ValidateParameters(
         SyntaxNodeAnalysisContext context,
-        SeparatedSyntaxList<ArgumentSyntax> mockedMethodArguments,
-        SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
-    {
-        for (int argumentIndex = 0; argumentIndex < mockedMethodArguments.Count; argumentIndex++)
-        {
-            TypeSyntax? lambdaParameterTypeSyntax = lambdaParameters[argumentIndex].Type;
-
-            // We're unable to get the type from the Syntax Tree, so abort the type checking because something else
-            // is happening (e.g., we're compiling on partial code) and we need the type to do the additional checks.
-            if (lambdaParameterTypeSyntax is null)
-            {
-                continue;
-            }
-
-            TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
-            TypeInfo mockedMethodArgumentType = context.SemanticModel.GetTypeInfo(mockedMethodArguments[argumentIndex].Expression, context.CancellationToken);
-
-            ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
-            ITypeSymbol? mockedMethodTypeSymbol = mockedMethodArgumentType.Type;
-
-            if (lambdaParameterTypeSymbol is null || mockedMethodTypeSymbol is null)
-            {
-                continue;
-            }
-
-            if (!context.SemanticModel.HasConversion(mockedMethodTypeSymbol, lambdaParameterTypeSymbol))
-            {
-                Diagnostic diagnostic = lambdaParameters[argumentIndex].CreateDiagnostic(Rule);
-                context.ReportDiagnostic(diagnostic);
-            }
-        }
-    }
-
-    private static void ValidateParameters(
-        SyntaxNodeAnalysisContext context,
         IEnumerable<IMethodSymbol> mockedMethodSymbols,
         SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
     {
