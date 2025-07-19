@@ -11,10 +11,9 @@ on:
   merge_group:
     branches:
       - main
-    
   workflow_call: # Allow to be called from the release workflow
   schedule:
-    - cron: '31 15 * * 0' # Run periodically to keep CodeQL database updated
+    - cron: '0 3 * * *' # Nightly run for performance validation
 
 permissions:
   security-events: write  # required for CodeQL
@@ -25,7 +24,7 @@ permissions:
 jobs:
   build:
     strategy:
-      fail-fast: false # Run all OSes, even if one fails, to help narrow down issues that only impact some platforms
+      fail-fast: false
       matrix:
         os: [windows-11-arm, ubuntu-24.04-arm]
 
@@ -38,18 +37,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # avoid shallow clone so nbgv can do its work
+        fetch-depth: 0
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        global-json-file: ./global.json
-
-    - name: NuGet Restore
-      run: dotnet restore
-
-    - name: Build
-      run: dotnet build --no-restore --configuration Release /p:Deterministic=true /p:UseSharedCompilation=false /p:BuildInParallel=false /nodeReuse:false /bl:./artifacts/logs/release/build.release.binlog
+    - name: Setup, Restore, and Build Solution
+      uses: ./.github/actions/setup-restore-build
 
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
@@ -96,7 +87,7 @@ jobs:
       run: cat artifacts/TestResults/coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
       shell: bash
 
-    - name: Upload coverage data to Codacy      
+    - name: Upload coverage data to Codacy
       if: ${{ runner.os == 'Linux' && env.IS_CODACY_COVERAGE_ALLOWED == 'true' }}
       uses: codacy/codacy-coverage-reporter-action@v1.3.0
       with:
@@ -118,10 +109,29 @@ jobs:
           ./artifacts/package
         if-no-files-found: error
 
+  performance:
+    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-11-arm, ubuntu-24.04-arm, ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup, Restore, and Build Solution
+      uses: ./.github/actions/setup-restore-build
+
     - name: Validate performance
       shell: pwsh
-      # Runs on both Linux and Windows, with ETL disabled on non-Windows
-      if: ${{ runner.os == 'Linux' || runner.os == 'Windows' }} 
+      # BenchmarkDotNet settings:
+      #   --warmupCount 2: Two warmup iterations to allow JIT and runtime optimizations to stabilize before measurement.
+      #   --invocationCount 15: Fifteen measured iterations for statistically meaningful results and to reduce noise.
+      # These values balance CI cost and reliability, as recommended in issue #553.
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
 
     - name: Upload performance files
