@@ -143,10 +143,13 @@ jobs:
     - name: Get baseline SHA
       id: get-baseline-sha
       run: |
+        if (-not (Test-Path build/perf/baseline.json)) {
+          Write-Error "baseline.json not found – aborting performance job."
+          exit 1
+        }
         $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
         echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
       shell: pwsh
-
     - name: Download baseline performance cache
       id: restore-baseline-cache
       uses: actions/cache/restore@v4
