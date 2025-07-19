@@ -118,10 +118,8 @@ jobs:
   performance:
     # Run if manually dispatched (with input), on schedule, or if explicitly requested
     if: |
-      github.event_name == 'schedule' ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true') ||
-      github.event_name == 'pull_request' ||
-      github.event_name == 'push'
+      (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true')
     strategy:
       fail-fast: false
       matrix:
