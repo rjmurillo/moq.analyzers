@@ -138,7 +138,7 @@ jobs:
         path: ./artifacts/performance/baseline.json
         key: baseline-performance-${{ runner.os }}-${{ github.ref }}
         restore-keys: |
-          baseline-performance-${{ runner.os }}-
+          baseline-performance-${{ runner.os }}
 
     - name: Setup, Restore, and Build Solution
       uses: ./.github/actions/setup-restore-build
@@ -151,16 +151,32 @@ jobs:
       # These values balance CI cost and reliability, as recommended in issue #553.
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
 
+    - name: Publish baseline performance summaries to GitHub
+      if: success() || failure()
+      shell: pwsh
+      run: |
+        $resultsDir = "artifacts/performance/perfResults/baseline/results"
+        if (Test-Path $resultsDir) {
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Baseline Performance Results"
+          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
+          foreach ($file in $files) {
+            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
+        }
+
     - name: Publish performance summaries to GitHub
       if: success() || failure()
       shell: pwsh
       run: |
         $resultsDir = "artifacts/performance/perfResults/perfTest/results"
         if (Test-Path $resultsDir) {
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Current Performance Results"
           $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
           foreach ($file in $files) {
             Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
           }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
         }
 
     - name: Upload performance files
