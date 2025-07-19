@@ -8,6 +8,14 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'build/scripts/perf/**'
+      - 'tests/Moq.Analyzers.Benchmarks/**'
+      - 'src/tools/PerfDiff/**'
+      - 'Directory.Packages.props'
+      - 'Directory.Build.props'
+      - 'global.json'
+      - '.github/workflows/main.yml'
   merge_group:
     branches:
       - main
