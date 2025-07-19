@@ -151,13 +151,17 @@ jobs:
       # These values balance CI cost and reliability, as recommended in issue #553.
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
 
-    - name: Publish performance summary to GitHub
+    - name: Publish performance summaries to GitHub
       if: success() || failure()
-      run: |
-        if (Test-Path artifacts/performance/perfResults/perfTest/SummaryGithub.md) {
-          Get-Content artifacts/performance/perfResults/perfTest/SummaryGithub.md | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
-        }
       shell: pwsh
+      run: |
+        $resultsDir = "artifacts/performance/perfResults/perfTest/results"
+        if (Test-Path $resultsDir) {
+          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
+          foreach ($file in $files) {
+            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          }
+        }
 
     - name: Upload performance files
       uses: actions/upload-artifact@v4
