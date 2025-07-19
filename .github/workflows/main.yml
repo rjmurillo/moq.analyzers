@@ -36,7 +36,7 @@ jobs:
 
     steps:
     - name: Setup, Restore, and Build Solution
-      uses: ../.github/actions/setup-restore-build
+      uses: ./.github/actions/setup-restore-build
 
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
