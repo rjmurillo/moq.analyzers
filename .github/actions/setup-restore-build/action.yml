@@ -3,9 +3,6 @@ description: 'Checks out code, sets up .NET, restores NuGet packages, and builds
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:

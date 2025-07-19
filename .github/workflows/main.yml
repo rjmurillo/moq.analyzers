@@ -35,6 +35,10 @@ jobs:
       IS_QLTY_COVERAGE_ALLOWED: ${{ secrets.QLTY_COVERAGE_TOKEN != '' }}
 
     steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
     - name: Setup, Restore, and Build Solution
       uses: ./.github/actions/setup-restore-build
 
@@ -115,6 +119,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
     - name: Setup, Restore, and Build Solution
       uses: ./.github/actions/setup-restore-build
 
