@@ -35,8 +35,8 @@ jobs:
       IS_QLTY_COVERAGE_ALLOWED: ${{ secrets.QLTY_COVERAGE_TOKEN != '' }}
 
     steps:
-    - name: Common build steps
-      uses: ./.github/actions/common-steps
+    - name: Setup, Restore, and Build Solution
+      uses: ./.github/actions/setup-restore-build
 
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
@@ -115,8 +115,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Common build steps
-      uses: ./.github/actions/common-steps
+    - name: Setup, Restore, and Build Solution
+      uses: ./.github/actions/setup-restore-build
 
     - name: Validate performance
       shell: pwsh
