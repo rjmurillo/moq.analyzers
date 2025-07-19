@@ -36,7 +36,7 @@ jobs:
 
     steps:
     - name: Setup, Restore, and Build Solution
-      uses: .github/actions/setup-restore-build@latest
+      uses: ./.github/actions/setup-restore-build/action.yml
 
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
@@ -116,7 +116,7 @@ jobs:
 
     steps:
     - name: Setup, Restore, and Build Solution
-      uses: .github/actions/setup-restore-build@latest
+      uses: ./.github/actions/setup-restore-build/action.yml
 
     - name: Validate performance
       shell: pwsh
