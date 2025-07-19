@@ -7,7 +7,11 @@ runs:
       uses: actions/setup-dotnet@v4
       with:
         global-json-file: ./global.json
+
     - name: NuGet Restore
+      shell: pwsh
       run: dotnet restore
+
     - name: Build
+      shell: pwsh
       run: dotnet build --no-restore --configuration Release /p:Deterministic=true /p:UseSharedCompilation=false /p:BuildInParallel=false /nodeReuse:false /bl:./artifacts/logs/release/build.release.binlog
