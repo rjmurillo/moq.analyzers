@@ -1,0 +1,16 @@
+name: 'Common Steps'
+description: 'Shared steps for build and performance jobs'
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        global-json-file: ./global.json
+    - name: NuGet Restore
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore --configuration Release /p:Deterministic=true /p:UseSharedCompilation=false /p:BuildInParallel=false /nodeReuse:false /bl:./artifacts/logs/release/build.release.binlog

@@ -35,20 +35,8 @@ jobs:
       IS_QLTY_COVERAGE_ALLOWED: ${{ secrets.QLTY_COVERAGE_TOKEN != '' }}
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        global-json-file: ./global.json
-
-    - name: NuGet Restore
-      run: dotnet restore
-
-    - name: Build
-      run: dotnet build --no-restore --configuration Release /p:Deterministic=true /p:UseSharedCompilation=false /p:BuildInParallel=false /nodeReuse:false /bl:./artifacts/logs/release/build.release.binlog
+    - name: Common build steps
+      uses: ./.github/actions/common-steps
 
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
@@ -127,20 +115,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        global-json-file: ./global.json
-
-    - name: NuGet Restore
-      run: dotnet restore
-
-    - name: Build
-      run: dotnet build --no-restore --configuration Release /p:Deterministic=true /p:UseSharedCompilation=false /p:BuildInParallel=false /nodeReuse:false /bl:./artifacts/logs/release/build.release.binlog
+    - name: Common build steps
+      uses: ./.github/actions/common-steps
 
     - name: Validate performance
       shell: pwsh
