@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-11-arm]
+        os: [windows-11-arm, ubuntu-24.04-arm]
 
     runs-on: ${{ matrix.os }}
 
@@ -119,7 +119,13 @@ jobs:
 
   performance:
     if: github.event_name == 'schedule' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-11-arm, ubuntu-24.04-arm]
+
+    runs-on: ${{ matrix.os }}
+
     steps:
     - uses: actions/checkout@v4
       with:
@@ -138,6 +144,10 @@ jobs:
 
     - name: Validate performance
       shell: pwsh
+      # BenchmarkDotNet settings:
+      #   --warmupCount 2: Two warmup iterations to allow JIT and runtime optimizations to stabilize before measurement.
+      #   --invocationCount 15: Fifteen measured iterations for statistically meaningful results and to reduce noise.
+      # These values balance CI cost and reliability, as recommended in issue #553.
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
 
     - name: Upload performance files
