@@ -70,11 +70,14 @@ try {
             Write-Host "Running performance comparison against baseline: '$baselineSHA'"
         }
 
+        $useCachedBaseline = (Test-Path $baselineResultsDir) -and -not $forceBaseline
+
         $commandArguments = @{
             baselineSHA = $baselineSHA
             projects = $projects
             output = $output
             filter = $filter
+            useCachedBaseline = $useCachedBaseline
         }
         if ($etl) { $commandArguments.etl = $True }
         if ($ci) { $commandArguments.ci =  $True}
