@@ -123,6 +123,14 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Cache baseline performance results
+      uses: actions/cache@v4
+      with:
+        path: ./artifacts/performance/baseline.json
+        key: baseline-performance-${{ runner.os }}-${{ github.ref }}
+        restore-keys: |
+          baseline-performance-${{ runner.os }}-
+
     - name: Setup, Restore, and Build Solution
       uses: ./.github/actions/setup-restore-build
 
@@ -134,9 +142,19 @@ jobs:
       # These values balance CI cost and reliability, as recommended in issue #553.
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
 
+    - name: Publish performance summary to GitHub
+      if: success() || failure()
+      run: |
+        if (Test-Path artifacts/performance/perfResults/perfTest/SummaryGithub.md) {
+          Get-Content artifacts/performance/perfResults/perfTest/SummaryGithub.md | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+        }
+      shell: pwsh
+
     - name: Upload performance files
       uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: Performance files (${{ matrix.os }})
-        path: "./artifacts/performance/**"
+        path: |
+          ./artifacts/performance/**
+          ./artifacts/performance/perfResults/perfTest/SummaryGithub.md
