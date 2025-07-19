@@ -77,10 +77,23 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
             parameterSymbol =>
             {
                 TypeSyntax type = SyntaxFactory.ParseTypeName(parameterSymbol.Type.ToMinimalDisplayString(semanticModel, oldParameters.SpanStart));
-                return SyntaxFactory.Parameter(default, SyntaxFactory.TokenList(), type, SyntaxFactory.Identifier(parameterSymbol.Name), null);
+                SyntaxTokenList modifiers = GetParameterModifiers(parameterSymbol.RefKind);
+                return SyntaxFactory.Parameter(default, modifiers, type, SyntaxFactory.Identifier(parameterSymbol.Name), null);
             })));
 
         SyntaxNode newRoot = root.ReplaceNode(oldParameters, newParameters);
         return document.WithSyntaxRoot(newRoot);
+    }
+
+    private static SyntaxTokenList GetParameterModifiers(RefKind refKind)
+    {
+        return refKind switch
+        {
+            RefKind.Ref => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword)),
+            RefKind.Out => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword)),
+            RefKind.In => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
+            RefKind.None => SyntaxFactory.TokenList(),
+            _ => SyntaxFactory.TokenList(),
+        };
     }
 }
