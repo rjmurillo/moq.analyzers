@@ -6,6 +6,38 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 
 ---
 
+## PR Checks & CI Requirements
+
+**Every pull request must pass these checks before review:**
+
+- **Formatting:**  
+  Run `dotnet format` and commit all changes. PRs with formatting issues will be rejected.
+- **Build:**  
+  Build with `dotnet build /p:PedanticMode=true`. All warnings must be treated as errors. PRs that do not build cleanly will be closed.
+- **Tests:**  
+  Run all unit tests:  
+  `dotnet test --settings ./build/targets/tests/test.runsettings`  
+  All tests must pass. PRs with failing tests will be closed.
+- **Codacy Analysis:**  
+  Run Codacy CLI analysis on all changed files. Fix all reported issues before submitting the PR.
+- **Evidence Required:**  
+  PR description must include console output or screenshots for:
+  - `dotnet format`
+  - `dotnet build`
+  - `dotnet test`
+  - Codacy analysis (if issues were found and fixed)
+- **No Received Files:**  
+  Remove any `*.received.*` files before committing.
+- **Moq Version Awareness:**  
+  If tests are added/changed, specify which Moq versions are targeted and how test data is grouped.
+
+**CI Pipeline:**  
+- All PRs are validated by GitHub Actions.  
+- PRs that fail CI (format, build, test, or Codacy) will be closed without review.
+
+**Summary:**  
+If your PR does not pass all checks locally and in CI, it will not be reviewed. Always verify and document your results before submitting.
+
 ## Strict Workflow & Enforcement
 - Always look for `AGENTS.md`, `.github/copilot-instructions.md`, and `CONTRIBUTING.md` files and follow all instructions found.
 - Run `dotnet format` before building or testing. Style settings come from `.editorconfig`.
