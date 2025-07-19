@@ -130,5 +130,5 @@ jobs:
       uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
-        name: Performance files
+        name: Performance files (${{ matrix.os }})
         path: "./artifacts/performance/**"
