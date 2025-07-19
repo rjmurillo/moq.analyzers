@@ -1,11 +1,12 @@
 [CmdletBinding(PositionalBinding=$false)]
 Param(
-    [String] $baselineSHA, # git SHA to use as the baseline for performance
-    [String] $output,      # common folder to write the benchmark results to
-    [string] $projects,    # semicolon separated list of relative paths to benchmark projects to run
-    [string] $filter,      # filter for tests to run (supports wildcards)
-    [bool] $etl = $false,  # capture etl traces for performance tests
-    [bool] $ci = $false    # run in ci mode (fail fast an keep all partial artifacts)
+    [String] $baselineSHA,              # git SHA to use as the baseline for performance
+    [String] $output,                   # common folder to write the benchmark results to
+    [string] $projects,                 # semicolon separated list of relative paths to benchmark projects to run
+    [string] $filter,                   # filter for tests to run (supports wildcards)
+    [bool] $etl = $false,               # capture etl traces for performance tests
+    [bool] $ci = $false,                # run in ci mode (fail fast an keep all partial artifacts)
+    [bool] $useCachedBaseline = $false  # use cached baseline results if available
   )
 
 function EnsureFolder {
@@ -22,7 +23,7 @@ function EnsureFolder {
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
 $RunPerfTests = Join-Path $PSScriptRoot "RunPerfTests.ps1"
 $ComparePerfResults = Join-Path $PSScriptRoot "ComparePerfResults.ps1"
-$Temp = Join-Path $RepoRoot "temp"
+$Temp = Join-Path $RepoRoot "artifacts"
 
 try {  
     # Get baseline results
@@ -32,20 +33,24 @@ try {
     EnsureFolder Join-Path $output "baseline"
     $resultsOutput = Join-Path $output "baseline"
     
-    # Checkout SHA
-    $baselineFolder = Join-Path $Temp "perfBaseline"
-    Invoke-Expression "git worktree add $baselineFolder $baselineSHA"
+    if ($useCachedBaseline -and (Test-Path $resultsOutput)) {
+        Write-Host "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
+    } else {
+        # Checkout SHA
+        $baselineFolder = Join-Path $Temp "perfBaseline"
+        Invoke-Expression "git worktree add $baselineFolder $baselineSHA"
     
-    $baselineCommandArgs = @{
-        perftestRootFolder = $baselineFolder
-        projects = $projects
-        output = $resultsOutput
-        filter = $filter
+        $baselineCommandArgs = @{
+            perftestRootFolder = $baselineFolder
+            projects = $projects
+            output = $resultsOutput
+            filter = $filter
+        }
+        if ($etl) { $baselineCommandArgs.etl = $True }
+        if ($ci) { $baselineCommandArgs.ci =  $True}
+    
+        & $RunPerfTests @baselineCommandArgs
     }
-    if ($etl) { $baselineCommandArgs.etl = $True }
-    if ($ci) { $baselineCommandArgs.ci =  $True}
-    
-    & $RunPerfTests @baselineCommandArgs
 
     Write-Host "Done with baseline run"    
     

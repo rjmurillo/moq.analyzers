@@ -22,18 +22,18 @@ try {
         $projectFullPath = Join-Path $perftestRootFolder $project
         & dotnet restore $projectFullPath -verbosity detailed
         & dotnet build -c Release --no-incremental $projectFullPath
-        $comandArguments = "run -c Release --no-build --project $projectFullPath -- --warmupCount 2 --invocationCount 15 --runOncePerIteration --memory --exporters JSON --artifacts $output"
+        $commandArguments = "run -c Release --no-build --project $projectFullPath -- --warmupCount 2 --invocationCount 15 --runOncePerIteration --memory --exporters JSON --artifacts $output"
         if ($ci) {
-            $comandArguments = "$comandArguments --stopOnFirstError --keepFiles"
+            $commandArguments = "$commandArguments --stopOnFirstError --keepFiles"
         }
         if ($etl) {
             Write-Host "Running tests in project '$projectFullPath'"
-            Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList "$comandArguments --profiler ETW --filter $filter"
+            Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList "$commandArguments --profiler ETW --filter $filter"
         }
         else {
             Write-Host "Running tests in project '$projectFullPath'"
-            Write-Host "dotnet $comandArguments --filter $filter"
-            Invoke-Expression "dotnet $comandArguments --filter $filter"
+            Write-Host "dotnet $commandArguments --filter $filter"
+            Invoke-Expression "dotnet $commandArguments --filter $filter"
         }
     }
 }

@@ -1,7 +1,18 @@
 name: Main build
 
 on:
-  workflow_dispatch: # Allow running the workflow manually from the GitHub UI
+  workflow_dispatch:
+    inputs:
+      run_performance:
+        description: 'Run performance job? (true/false)'
+        required: false
+        default: false
+        type: boolean
+      force_baseline:
+        description: 'Force running baseline benchmarks even if cached (true/false)'
+        required: false
+        default: false
+        type: boolean
   pull_request:
     branches:
       - main
@@ -110,7 +121,10 @@ jobs:
         if-no-files-found: error
 
   performance:
-    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main'
+    # Run if manually dispatched (with input), on schedule, or if explicitly requested
+    if: |
+      (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true')
     strategy:
       fail-fast: false
       matrix:
@@ -118,10 +132,30 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    env:
+      FORCE_BASELINE: ${{ github.event.inputs.force_baseline }}
+
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+
+    - name: Get baseline SHA
+      id: get-baseline-sha
+      run: |
+        if (-not (Test-Path build/perf/baseline.json)) {
+          Write-Error "baseline.json not found – aborting performance job."
+          exit 1
+        }
+        $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
+        echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
+      shell: pwsh
+    - name: Download baseline performance cache
+      id: restore-baseline-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ./artifacts/performance/perfResults/baseline
+        key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
 
     - name: Setup, Restore, and Build Solution
       uses: ./.github/actions/setup-restore-build
@@ -134,9 +168,45 @@ jobs:
       # These values balance CI cost and reliability, as recommended in issue #553.
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
 
+    - name: Publish baseline performance summaries to GitHub
+      if: success() || failure()
+      shell: pwsh
+      run: |
+        $resultsDir = "artifacts/performance/perfResults/baseline/results"
+        if (Test-Path $resultsDir) {
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Baseline Performance Results"
+          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
+          foreach ($file in $files) {
+            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
+        }
+
+    - name: Publish performance summaries to GitHub
+      if: success() || failure()
+      shell: pwsh
+      run: |
+        $resultsDir = "artifacts/performance/perfResults/perfTest/results"
+        if (Test-Path $resultsDir) {
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Current Performance Results"
+          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
+          foreach ($file in $files) {
+            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
+        }
+
     - name: Upload performance files
       uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
-        name: Performance files (${{ matrix.os }})
-        path: "./artifacts/performance/**"
+        name: performance-${{ matrix.os }}
+        path: |
+          ./artifacts/performance/**
+
+    - name: Upload baseline performance cache
+      if: success() && (steps.restore-baseline-cache.outputs.cache-hit != 'true' || env.FORCE_BASELINE == 'true')
+      uses: actions/cache/save@v4
+      with:
+        path: ./artifacts/performance/perfResults/baseline
+        key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
