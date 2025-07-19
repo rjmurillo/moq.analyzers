@@ -148,13 +148,11 @@ jobs:
       shell: pwsh
 
     - name: Download baseline performance cache
-      id: baseline-cache
-      uses: actions/cache@v4
+      id: restore-baseline-cache
+      uses: actions/cache/restore@v4
       with:
         path: ./artifacts/performance/perfResults/baseline
         key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
-        restore-keys: |
-          baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
 
     - name: Setup, Restore, and Build Solution
       uses: ./.github/actions/setup-restore-build
@@ -204,8 +202,8 @@ jobs:
           ./artifacts/performance/**
 
     - name: Upload baseline performance cache
-      if: success()
-      uses: actions/cache@v4
+      if: steps.restore-baseline-cache.outputs.cache-hit != 'true' || env.FORCE_BASELINE == 'true'
+      uses: actions/cache/save@v4
       with:
         path: ./artifacts/performance/perfResults/baseline
         key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
