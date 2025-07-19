@@ -202,7 +202,7 @@ jobs:
           ./artifacts/performance/**
 
     - name: Upload baseline performance cache
-      if: steps.restore-baseline-cache.outputs.cache-hit != 'true' || env.FORCE_BASELINE == 'true'
+      if: success() && (steps.restore-baseline-cache.outputs.cache-hit != 'true' || env.FORCE_BASELINE == 'true')
       uses: actions/cache/save@v4
       with:
         path: ./artifacts/performance/perfResults/baseline
