@@ -22,7 +22,7 @@ function EnsureFolder {
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
 $RunPerfTests = Join-Path $PSScriptRoot "RunPerfTests.ps1"
 $ComparePerfResults = Join-Path $PSScriptRoot "ComparePerfResults.ps1"
-$Temp = Join-Path $RepoRoot "temp"
+$Temp = Join-Path $RepoRoot "artifacts"
 
 try {  
     # Get baseline results
