@@ -7,7 +7,7 @@ namespace PerfDiff.BDN.Regression;
 /// <summary>
 /// Detects regressions based on mean (average) wall clock execution time thresholds.
 /// </summary>
-public class MeanWallClockRegressionStrategy : IBenchmarkRegressionStrategy
+public sealed class MeanWallClockRegressionStrategy : IBenchmarkRegressionStrategy
 {
     /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)

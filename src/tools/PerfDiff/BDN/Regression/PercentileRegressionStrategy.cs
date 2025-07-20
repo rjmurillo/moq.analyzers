@@ -7,7 +7,7 @@ namespace PerfDiff.BDN.Regression;
 /// <summary>
 /// Detects regressions based on percentile (P95) execution time thresholds.
 /// </summary>
-public class PercentileRegressionStrategy : IBenchmarkRegressionStrategy
+public sealed class PercentileRegressionStrategy : IBenchmarkRegressionStrategy
 {
     /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)

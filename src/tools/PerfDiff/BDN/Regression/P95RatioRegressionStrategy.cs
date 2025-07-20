@@ -4,7 +4,7 @@ using Perfolizer.Mathematics.Thresholds;
 
 namespace PerfDiff.BDN.Regression;
 
-public class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
+public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
 {
     /// <inheritdoc />
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)

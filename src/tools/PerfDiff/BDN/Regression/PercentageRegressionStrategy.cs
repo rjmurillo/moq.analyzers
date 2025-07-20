@@ -7,7 +7,7 @@ namespace PerfDiff.BDN.Regression;
 /// <summary>
 /// Detects regressions based on percentage thresholds between benchmark results.
 /// </summary>
-public class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
+public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
 {
     /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
