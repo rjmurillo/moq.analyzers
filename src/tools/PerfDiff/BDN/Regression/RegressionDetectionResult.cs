@@ -7,6 +7,9 @@ namespace PerfDiff.BDN.Regression;
 /// </summary>
 public sealed class RegressionDetectionResult(string metricName, Threshold threshold)
 {
+    /// <summary>
+    /// Gets the name of the metric used for regression detection.
+    /// </summary>
     public string MetricName { get; } = metricName;
 
     /// <summary>
