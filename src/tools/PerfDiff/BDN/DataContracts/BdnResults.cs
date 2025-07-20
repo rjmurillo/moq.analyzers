@@ -1,6 +1,4 @@
-﻿using DataTransferContracts;
-
-namespace PerfDiff.BDN.DataContracts;
+﻿namespace PerfDiff.BDN.DataContracts;
 
 public class BdnResults(bool success, BdnResult?[] results)
 {

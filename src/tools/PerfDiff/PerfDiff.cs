@@ -2,7 +2,9 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
+using PerfDiff.BDN;
 using PerfDiff.BDN.DataContracts;
+using PerfDiff.ETL;
 
 namespace PerfDiff;
 

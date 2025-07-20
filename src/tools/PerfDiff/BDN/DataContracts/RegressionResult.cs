@@ -1,4 +1,3 @@
-using DataTransferContracts;
 using Perfolizer.Mathematics.SignificanceTesting;
 
 namespace PerfDiff.BDN.DataContracts;

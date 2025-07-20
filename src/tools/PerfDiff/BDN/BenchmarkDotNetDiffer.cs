@@ -1,13 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Diagnostics.CodeAnalysis;
-using DataTransferContracts;
 using Microsoft.Extensions.Logging;
-using PerfDiff.BDN;
 using PerfDiff.BDN.DataContracts;
 using Perfolizer.Mathematics.SignificanceTesting;
 
-namespace PerfDiff;
+namespace PerfDiff.BDN;
 
 public static class BenchmarkDotNetDiffer
 {

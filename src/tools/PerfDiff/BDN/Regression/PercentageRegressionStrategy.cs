@@ -1,4 +1,3 @@
-using DataTransferContracts;
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
 using Perfolizer.Mathematics.Thresholds;

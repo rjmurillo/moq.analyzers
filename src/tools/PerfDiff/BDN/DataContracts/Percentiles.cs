@@ -1,4 +1,4 @@
-namespace DataTransferContracts;
+namespace PerfDiff.BDN.DataContracts;
 
 public class Percentiles
 {
