@@ -11,7 +11,8 @@ namespace Moq.Analyzers.Benchmarks;
 [BenchmarkCategory("Moq1300")]
 public class Moq1300Benchmarks
 {
-    [Params(1, 10, 100, 1_000)] public int FileCount { get; set; }
+    [Params(1, 10, 100, 1_000)]
+    public int FileCount { get; set; }
 
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
