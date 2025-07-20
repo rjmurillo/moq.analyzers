@@ -1,0 +1,12 @@
+{
+    "chat.mcp.serverSampling": {
+        "moq.analyzers/.vscode/mcp.json: codacy": {
+            "allowedModels": [
+                "github.copilot-chat/gpt-4.1",
+                "github.copilot-chat/claude-3.5-sonnet",
+                "github.copilot-chat/claude-3.7-sonnet",
+                "github.copilot-chat/gpt-4o"
+            ]
+        }
+    }
+}
