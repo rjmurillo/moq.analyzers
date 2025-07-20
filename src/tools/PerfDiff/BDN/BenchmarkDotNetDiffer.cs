@@ -110,7 +110,14 @@ public static class BenchmarkDotNetDiffer
         => GetRatio(item.Conclusion, item.BaseResult, item.DiffResult);
 
     public static double GetRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
-        => conclusion == EquivalenceTestConclusion.Faster
+    {
+        if (baseResult.Statistics == null || diffResult.Statistics == null)
+        {
+            return double.NaN;
+        }
+
+        return conclusion == EquivalenceTestConclusion.Faster
             ? baseResult.Statistics.Median / diffResult.Statistics.Median
             : diffResult.Statistics.Median / baseResult.Statistics.Median;
+    }
 }
