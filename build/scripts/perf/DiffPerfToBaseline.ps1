@@ -58,7 +58,7 @@ try {
                         Select-Object -First 1
 
         if (-not $exists) {
-            Write-Warning "WARNING: No baseline results found in '$resultsOutput'."
+            Write-Warning "No baseline results found in '$resultsOutput'."
             
             if (-not ($filter -eq "*")) {
                 Write-Warning "The filter '$filter' may not match any benchmarks. We're going to try again with a generic filter."

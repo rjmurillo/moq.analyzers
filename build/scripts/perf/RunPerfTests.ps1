@@ -13,7 +13,7 @@ try {
     # Check if running on Windows and warn about ETL on non-Windows platforms
     $isWindowsPlatform = $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
     if ($etl -and -not $isWindowsPlatform) {
-        Write-Host "Warning: ETL tracing is only supported on Windows. Disabling ETL for this run." -ForegroundColor Yellow
+        Write-Warning "ETL tracing is only supported on Windows. Disabling ETL for this run." -ForegroundColor Yellow
         $etl = $false
     }
 
