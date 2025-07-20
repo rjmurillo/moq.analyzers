@@ -11,7 +11,9 @@ namespace Moq.Analyzers.Benchmarks;
 [BenchmarkCategory("Moq1201")]
 public class Moq1201AsyncResultBenchmarks
 {
+#pragma warning disable ECS0900
     [Params(1, 10, 100, 1_000)]
+#pragma warning restore ECS0900
     public int FileCount { get; set; }
 
     [Params("Net80WithOldMoq", "Net80WithNewMoq")]

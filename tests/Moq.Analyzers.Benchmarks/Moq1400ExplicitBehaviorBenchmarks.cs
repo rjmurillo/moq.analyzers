@@ -11,7 +11,9 @@ namespace Moq.Analyzers.Benchmarks;
 [BenchmarkCategory("Moq1400")]
 public class Moq1400ExplicitBehaviorBenchmarks
 {
+#pragma warning disable ECS0900
     [Params(1, 10, 100, 1_000)]
+#pragma warning restore ECS0900
     public int FileCount { get; set; }
 
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
@@ -25,7 +27,7 @@ public class Moq1400ExplicitBehaviorBenchmarks
         List<(string Name, string Content)> sources = [];
         for (int index = 0; index < FileCount; index++)
         {
-            string name = $"TypeName{index}";
+            string name = "TypeName" + index;
             sources.Add((name, @$"
 using System;
 using Moq;

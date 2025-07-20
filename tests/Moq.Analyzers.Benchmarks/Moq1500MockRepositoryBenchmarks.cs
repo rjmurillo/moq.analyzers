@@ -11,7 +11,9 @@ namespace Moq.Analyzers.Benchmarks;
 [BenchmarkCategory("Moq1500")]
 public class Moq1500MockRepositoryBenchmarks
 {
+#pragma warning disable ECS0900
     [Params(1, 10, 100, 1_000)]
+#pragma warning restore ECS0900
     public int FileCount { get; set; }
 
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
@@ -25,7 +27,7 @@ public class Moq1500MockRepositoryBenchmarks
         (string Name, string Content)[] sources = new (string, string)[FileCount];
         for (int index = 0; index < FileCount; index++)
         {
-            string name = string.Format(System.Globalization.CultureInfo.InvariantCulture, "TypeName{0}", index);
+            string name = "TypeName" + index;
             sources[index] = (name, @$"
 using System;
 using Moq;

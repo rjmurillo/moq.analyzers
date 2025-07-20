@@ -11,7 +11,9 @@ namespace Moq.Analyzers.Benchmarks;
 [BenchmarkCategory("Moq1202")]
 public class Moq1202RaiseEventBenchmarks
 {
+#pragma warning disable ECS0900
     [Params(1, 10, 100, 1_000)]
+#pragma warning restore ECS0900
     public int FileCount { get; set; }
 
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
