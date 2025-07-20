@@ -6,5 +6,5 @@ public class BdnResult
 
     public HostEnvironmentInfo? HostEnvironmentInfo { get; set; }
 
-    public List<Benchmark>? Benchmarks { get; set; }
+    public IEnumerable<Benchmark>? Benchmarks { get; set; }
 }
