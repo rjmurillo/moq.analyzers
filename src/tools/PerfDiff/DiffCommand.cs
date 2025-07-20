@@ -40,7 +40,7 @@ internal static class DiffCommand
         RootCommand rootCommand = new RootCommand
         {
             new Option<string?>("--baseline", () => null, "folder that contains the baseline performance run data").LegalFilePathsOnly(),
-            new Option<string?>("--results", () => null, "folder that contains the performance restults").LegalFilePathsOnly(),
+            new Option<string?>("--results", () => null, "folder that contains the performance results").LegalFilePathsOnly(),
             new Option<string>(["--verbosity", "-v"], "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]").FromAmong(VerbosityLevels),
             new Option<bool>(["--failOnRegression"], "Should return non-zero exit code if regression detected"),
         };
