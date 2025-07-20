@@ -15,7 +15,7 @@ public static class BenchmarkDotNetDiffer
 
     public static async Task<BenchmarkComparisonResult> TryCompareBenchmarkDotNetResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
     {
-        BenchmarkComparisonService service = new BenchmarkComparisonService(logger);
+        BenchmarkComparisonService service = new(logger);
         return await service.CompareAsync(baselineFolder, resultsFolder).ConfigureAwait(false);
     }
 
