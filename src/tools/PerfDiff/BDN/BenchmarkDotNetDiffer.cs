@@ -51,13 +51,13 @@ public static class BenchmarkDotNetDiffer
             return null;
         }
 
-        Dictionary<string?, Benchmark> benchmarkIdToDiffResults = diffResults
-            .SelectMany(result => result.Benchmarks)
-            .ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult);
+        Dictionary<string, Benchmark> benchmarkIdToDiffResults = diffResults
+            .SelectMany(result => result.Benchmarks ?? Enumerable.Empty<Benchmark>())
+            .ToDictionary(benchmarkResult => benchmarkResult.FullName ?? $"Unknown-{Guid.NewGuid():N}", benchmarkResult => benchmarkResult);
 
-        Dictionary<string?, Benchmark> benchmarkIdToBaseResults = baseResults
-            .SelectMany(result => result.Benchmarks)
-            .ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult);
+        Dictionary<string, Benchmark> benchmarkIdToBaseResults = baseResults
+            .SelectMany(result => result.Benchmarks ?? Enumerable.Empty<Benchmark>())
+            .ToDictionary(benchmarkResult => benchmarkResult.FullName ?? $"Unknown-{Guid.NewGuid():N}", benchmarkResult => benchmarkResult);
 
         return benchmarkIdToBaseResults
             .Where(baseResult => benchmarkIdToDiffResults.ContainsKey(baseResult.Key))
