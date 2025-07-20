@@ -39,13 +39,13 @@ public static class BenchmarkDotNetDiffer
             return null;
         }
 
-        (bool baseResultsSuccess, BdnResult[] baseResults) = await BDN.BenchmarkFileReader.TryGetBdnResultAsync(baseFiles, logger).ConfigureAwait(false);
+        (bool baseResultsSuccess, BdnResult[] baseResults) = await BenchmarkFileReader.TryGetBdnResultAsync(baseFiles, logger).ConfigureAwait(false);
         if (!baseResultsSuccess)
         {
             return null;
         }
 
-        (bool resultsSuccess, BdnResult[] diffResults) = await BDN.BenchmarkFileReader.TryGetBdnResultAsync(resultsFiles, logger).ConfigureAwait(false);
+        (bool resultsSuccess, BdnResult[] diffResults) = await BenchmarkFileReader.TryGetBdnResultAsync(resultsFiles, logger).ConfigureAwait(false);
         if (!resultsSuccess)
         {
             return null;
