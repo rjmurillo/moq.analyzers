@@ -43,7 +43,7 @@ public static class RegressionStrategyHelper
             }
         }
 
-        details = new RegressionDetectionResult { Threshold = testThreshold };
+        details = new RegressionDetectionResult(testThreshold);
         return worseCount > 0;
     }
 
