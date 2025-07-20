@@ -8,54 +8,55 @@ When running benchmarks, use the `PerfCore.ps1` script located in `build/scripts
 ## Cross-Platform Support
 
 The performance tools now support running on:
-- **Windows**: Use `Perf.cmd` or run `PerfCore.ps1` directly with PowerShell
-- **Linux/macOS**: Use `Perf.sh` (requires PowerShell Core to be installed)
 
-ETL tracing is only available on Windows and requires admin permissions. On Linux/macOS, ETL will be automatically disabled with a warning message.
+- **Windows**: Use `Perf.cmd` in the repo root or `build\scripts\perf\CIPerf.cmd` to run like the CI
+- **Linux/macOS**: Use `Perf.sh` in the repo root or `build/scripts/perf/CIPerf.sh`
+
+The batch and shell files call out to PowerShell, which can run on Windows, Linux, and macOS. [Installation Instructions](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.5).
 
 ## Using PerfCore.ps1
 
-The recommended way to run benchmarks is:
+The recommended way to run benchmarks is to use PowerShell.
 
-**Windows:**
 ```powershell
 ./build/scripts/perf/PerfCore.ps1 -projects "<relative-path-to-project>" [-filter "<test-filter>"] [-etl] [-ci] [-diff] [-v <verbosity>]
 ```
-or
-```cmd
-Perf.cmd -projects "<relative-path-to-project>" [-filter "<test-filter>"] [-etl] [-ci] [-diff] [-v <verbosity>]
-```
 
-**Linux/macOS:**
-```bash
-./Perf.sh -projects "<relative-path-to-project>" [-filter "<test-filter>"] [-ci] [-diff] [-v <verbosity>]
-```
+> NOTE: ETL tracing is only available on Windows and requires admin permissions. On Linux/macOS, ETL will be automatically disabled with a warning message.
+
+Each benchmark is written out to a results folder:
+
+- for the baseline: `artifacts/performance/perfResults/baseline/results`
+- for current: `artifacts/performance/perfResults/perfTest/results`
+
+The files are overwritten on subsequent runs for your current branch. Baseline is not overwritten unless the environment variable is set.
+
+In each folder, there are four files generated for each benchmark with a prefix of the fully qualified type containing the benchmark (e.g., `Moq.Analyzers.Benchmarks.Moq1000SealedClassBenchmarks`) with the following suffixes:
+
+1. `-report-github.md` containing a Markdown table shown on the console.
+1. `-report.html` containing an HTML version of the Markdown report.
+1. `-report.csv` containing the summarized data shown in BenchmarkDotNet output with all columns.
+1. `-full-compressed.json` containing the raw measurement data.
+
+The JSON data is what is used by the performance comparison tools to determine if a regression exists for an analyzer.
 
 ### Parameters
 
-- `-projects`: Required. Semi-colon delimited list of relative paths to benchmark projects.
-- `-filter`: Optional. Filter for tests to run (supports wildcards).
-- `-etl`: Optional. Capture ETL traces of performance tests (Windows only, requires admin permissions).
-- `-ci`: Optional. Run in CI mode (fail fast and keep all partial artifacts).
-- `-diff`: Optional. Compare to baseline perf results.
+**Common Settings:**
+
 - `-v` or `-verbosity`: Optional. Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], or diag[nostic].
+- `-help`: Optional. Print help and exit
+- `-ci`: Optional. Run in CI mode (fail fast and keep all partial artifacts).
 
-## Alternative Approach
+**Actions:**
 
-If `PerfCore.ps1` cannot be used, you can use `RunPerfTests.ps1` with the following parameters:
+- `-diff`: Optional. Compare to baseline perf results.
 
-```powershell
-./build/scripts/perf/RunPerfTests.ps1 -projects "<relative-path-to-project>" -filter "<test-filter>" -perftestRootFolder "<root-folder>" -output "<output-folder>" [-etl] [-ci]
-```
+**Advanced settings:**
 
-### Parameters
-
-- `-projects`: Semicolon separated list of relative paths to benchmark projects to run.
-- `-filter`: Filter for tests to run (supports wildcards).
-- `-perftestRootFolder`: Root folder all benchmark projects share.
-- `-output`: Folder to write benchmark results to.
-- `-etl`: Optional. Capture ETL traces for performance tests.
-- `-ci`: Optional. Run in CI mode.
+- `-etl`: Optional. Capture ETL traces of performance tests (Windows only, requires admin permissions).
+- `-filter`: Optional. Filter for tests to run (supports wildcards).
+- `-projects`: Required. Semi-colon delimited list of relative paths to benchmark projects.
 
 ## Notes
 
@@ -66,23 +67,12 @@ If `PerfCore.ps1` cannot be used, you can use `RunPerfTests.ps1` with the follow
 
 ## Example Usage
 
-**Windows:**
+You can run a quick pass of the benchmarks (about 20 minutes with baseline, then the baseline is reused)
+
 ```powershell
-# Basic usage with PerfCore.ps1
-./build/scripts/perf/PerfCore.ps1 -projects "tests/Moq.Analyzers.Performance.Tests" -filter "*Benchmark*" -v detailed
-
-# Using Perf.cmd wrapper
-Perf.cmd -projects "tests/Moq.Analyzers.Performance.Tests" -filter "*Benchmark*" -v detailed
-
-# Using RunPerfTests.ps1 when PerfCore.ps1 is not available
-./build/scripts/perf/RunPerfTests.ps1 -projects "tests/Moq.Analyzers.Performance.Tests" -filter "*Benchmark*" -perftestRootFolder ".." -output "artifacts/perf-results" -ci
+./build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter '*(FileCount: 1)'
 ```
 
-**Linux/macOS:**
-```bash
-# Basic usage with Perf.sh wrapper
-./Perf.sh -projects "tests/Moq.Analyzers.Performance.Tests" -filter "*Benchmark*" -v detailed
+This is similar to what is run in the [main action](../../../.github/workflows/main.yml) when you raise a PR. To run the full suite, use `-filter '*'` or omit the parameter.
 
-# Direct PowerShell usage (requires pwsh to be installed)
-pwsh -ExecutionPolicy ByPass -NoProfile -command "& \"./build/scripts/perf/PerfCore.ps1\" -projects \"tests/Moq.Analyzers.Performance.Tests\" -filter \"*Benchmark*\" -v detailed"
-```
+> NOTE: If you _always_ want to run the baseline, you can set the environment variable `FORCE_PERF_BASELINE=true`
