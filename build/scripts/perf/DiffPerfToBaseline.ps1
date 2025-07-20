@@ -68,7 +68,7 @@ try {
         }
     }
 
-    Write-Host "Done with baseline run (Exiting with code $LASTEXITCODE)"    
+    Write-Host "Done with baseline run"    
     
     # Ensure output directory has been created
     EnsureFolder Join-Path $output "perfTest"
@@ -86,7 +86,7 @@ try {
     # Get perf results
     Write-Host "Running performance tests"
     & $RunPerfTests @commandArgs
-    Write-Host "Done with performance run (Exiting with code $LASTEXITCODE)"    
+    Write-Host "Done with performance run"    
     
     # Diff perf results
     if ($ci) {
