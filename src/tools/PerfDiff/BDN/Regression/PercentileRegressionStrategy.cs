@@ -12,20 +12,18 @@ public class PercentileRegressionStrategy : IBenchmarkRegressionStrategy
 
         foreach (BdnComparisonResult result in comparison)
         {
-            if (result.DiffResult.Statistics == null)
+            if (result.DiffResult.Statistics?.Percentiles == null)
             {
+                logger.LogWarning("test: '{Id}' diff result does not have any statistics! Unable to perform comparison.", result.Id);
                 continue;
             }
 
             // Convert nanoseconds to milliseconds
-            // See: https://benchmarkdotnet.org/articles/statistics.html ("All time values are reported in nanoseconds by default.")
-            // See: https://github.com/dotnet/BenchmarkDotNet/blob/main/src/BenchmarkDotNet/Reports/Measurement.cs (Measurement.Nanoseconds)
-            // See: https://github.com/dotnet/BenchmarkDotNet/blob/main/src/BenchmarkDotNet/Statistics/Statistics.cs (Statistics aggregates nanosecond values)
             double p95Ms = result.DiffResult.Statistics.Percentiles.P95 / 1_000_000.0;
             if (p95Ms > thresholdMs)
             {
-                logger.LogInformation("test: '{Id}' P99 execution time {P99Ms:F2}ms exceeds threshold {D}ms", result.Id, p95Ms, thresholdMs);
-                violations.Add($"Analyzer '{result.Id}' P99 execution time {p95Ms:F2}ms exceeds threshold {thresholdMs}ms.");
+                logger.LogInformation("test: '{Id}' P95 execution time {P95Ms:F2}ms exceeds threshold {D}ms", result.Id, p95Ms, thresholdMs);
+                violations.Add($"Analyzer '{result.Id}' P95 execution time {p95Ms:F2}ms exceeds threshold {thresholdMs}ms.");
             }
         }
 
