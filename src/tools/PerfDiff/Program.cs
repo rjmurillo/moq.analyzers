@@ -1,10 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-
-using PerfDiff.Logging;
-
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -12,6 +7,9 @@ using System.CommandLine.Parsing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using PerfDiff.Logging;
 
 namespace PerfDiff
 {
