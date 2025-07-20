@@ -39,12 +39,10 @@ public class BenchmarkComparisonService(ILogger logger)
                 switch (strategy)
                 {
                     case AverageRegressionStrategy:
+                        logger.LogError("Average-based regression detected (threshold: {AverageThreshold}).", details.Threshold);
+                        break;
                     case PercentileRegressionStrategy:
-                        if (details.Violations is not null)
-                        {
-                            foreach (string msg in details.Violations)
-                                logger.LogError(msg);
-                        }
+                        logger.LogError("Percentile-based regression detected (P99 threshold: {PercentThreshold}).", details.Threshold);
                         break;
                     case PercentageRegressionStrategy:
                         logger.LogError("Percentage-based regression detected (threshold: {PercentThreshold}).", details.Threshold);
