@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-namespace PerfDiff;
+namespace PerfDiff.BDN.DataContracts;
 
 public readonly record struct BenchmarkComparisonResult(bool CompareSucceeded, bool RegressionDetected)
 {

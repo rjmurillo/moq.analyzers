@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using DataTransferContracts;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using PerfDiff.BDN.DataContracts;
 using Perfolizer.Mathematics.SignificanceTesting;
 using Perfolizer.Mathematics.Thresholds;
 
