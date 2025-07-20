@@ -4,6 +4,10 @@ using Perfolizer.Mathematics.Thresholds;
 
 namespace PerfDiff.BDN.Regression;
 
+/// <summary>
+/// Detects regressions based on mean performance ratio thresholds, requiring both
+/// a relative threshold (5% ratio) and absolute threshold (0.5ms) to be exceeded.
+/// </summary>
 public class MeanPercentageRegressionStrategy : IBenchmarkRegressionStrategy
 {
     /// <inheritdoc />
