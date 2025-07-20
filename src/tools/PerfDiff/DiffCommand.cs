@@ -1,14 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.CommandLine;
-using System.Threading.Tasks;
 
 namespace PerfDiff;
 
+/// <summary>
+/// Provides command-line options and handler for the diff command.
+/// </summary>
 internal static class DiffCommand
 {
-    // This delegate should be kept in Sync with the FormatCommand options and argument names
-    // so that values bind correctly.
+    /// <summary>
+    /// Delegate for handling the diff command.
+    /// </summary>
+    /// <param name="baseline">Baseline results folder.</param>
+    /// <param name="results">Results folder.</param>
+    /// <param name="verbosity">Verbosity level.</param>
+    /// <param name="failOnRegression">Whether to fail on regression.</param>
+    /// <param name="console">Console for output.</param>
+    /// <returns>Exit code.</returns>
     internal delegate Task<int> Handler(
         string baseline,
         string results,
@@ -16,12 +25,18 @@ internal static class DiffCommand
         bool failOnRegression,
         IConsole console);
 
-    internal static string[] VerbosityLevels => ["q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic"
-    ];
+    /// <summary>
+    /// Gets the allowed verbosity levels for the command.
+    /// </summary>
+    private static string[] VerbosityLevels => ["q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic"];
 
+    /// <summary>
+    /// Creates the root command with options for the diff command.
+    /// </summary>
+    /// <returns>The configured <see cref="RootCommand"/>.</returns>
     internal static RootCommand CreateCommandLineOptions()
     {
-        // Sync changes to option and argument names with the FormatCommant.Handler above.
+        // Sync changes to option and argument names with the FormatCommand.Handler above.
         RootCommand rootCommand = new RootCommand
         {
             new Option<string?>("--baseline", () => null, "folder that contains the baseline performance run data").LegalFilePathsOnly(),

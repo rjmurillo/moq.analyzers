@@ -4,8 +4,12 @@ using Perfolizer.Mathematics.Thresholds;
 
 namespace PerfDiff.BDN.Regression;
 
+/// <summary>
+/// Detects regressions based on percentage thresholds between benchmark results.
+/// </summary>
 public class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
 {
+    /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out object details)
     {
         _ = Threshold.TryParse("35%", out Threshold? testThreshold);

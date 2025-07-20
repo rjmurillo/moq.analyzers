@@ -7,16 +7,33 @@ using Perfolizer.Mathematics.SignificanceTesting;
 
 namespace PerfDiff.BDN;
 
+/// <summary>
+/// Provides methods for comparing BenchmarkDotNet results and detecting regressions.
+/// </summary>
 public static class BenchmarkDotNetDiffer
 {
     private const string FullBdnJsonFileExtension = "full-compressed.json";
 
+    /// <summary>
+    /// Compares two sets of BenchmarkDotNet results asynchronously.
+    /// </summary>
+    /// <param name="baselineFolder">The folder containing baseline results.</param>
+    /// <param name="resultsFolder">The folder containing new results.</param>
+    /// <param name="logger">Logger for reporting errors.</param>
+    /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating comparison success and regression detection.</returns>
     public static async Task<BenchmarkComparisonResult> TryCompareBenchmarkDotNetResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
     {
         BenchmarkComparisonService service = new(logger);
         return await service.CompareAsync(baselineFolder, resultsFolder).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Attempts to load and match benchmark results from baseline and results folders.
+    /// </summary>
+    /// <param name="baselineFolder">The folder containing baseline results.</param>
+    /// <param name="resultsFolder">The folder containing new results.</param>
+    /// <param name="logger">Logger for reporting errors.</param>
+    /// <returns>An array of <see cref="BdnComparisonResult"/> if successful; otherwise, <see langword="null"/>.</returns>
     internal static async Task<BdnComparisonResult[]?> TryGetBdnResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
     {
         if (!TryGetFilesToParse(baselineFolder, out string[]? baseFiles))
@@ -81,7 +98,12 @@ public static class BenchmarkDotNetDiffer
         return false;
     }
 
-    // Helper methods for regression strategies
+    /// <summary>
+    /// Finds regressions between two sets of benchmark results using the specified threshold.
+    /// </summary>
+    /// <param name="comparison">Array of comparison results.</param>
+    /// <param name="testThreshold">Threshold for regression detection.</param>
+    /// <returns>An array of <see cref="RegressionResult"/> representing detected regressions.</returns>
     public static RegressionResult[] FindRegressions(BdnComparisonResult[] comparison, Perfolizer.Mathematics.Thresholds.Threshold testThreshold)
     {
         List<RegressionResult> results = [];
@@ -104,9 +126,21 @@ public static class BenchmarkDotNetDiffer
         return results.ToArray();
     }
 
+    /// <summary>
+    /// Gets the ratio of median values for a regression result.
+    /// </summary>
+    /// <param name="item">The regression result.</param>
+    /// <returns>The ratio of median values.</returns>
     public static double GetRatio(RegressionResult item)
         => GetRatio(item.Conclusion, item.BaseResult, item.DiffResult);
 
+    /// <summary>
+    /// Gets the ratio of median values for the specified benchmarks and conclusion.
+    /// </summary>
+    /// <param name="conclusion">The equivalence test conclusion.</param>
+    /// <param name="baseResult">The baseline benchmark.</param>
+    /// <param name="diffResult">The diff benchmark.</param>
+    /// <returns>The ratio of median values.</returns>
     public static double GetRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
     {
         if (baseResult.Statistics == null || diffResult.Statistics == null)

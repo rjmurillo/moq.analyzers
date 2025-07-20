@@ -7,6 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace PerfDiff.Logging;
 
+/// <summary>
+/// Provides a simple console logger for structured logging output.
+/// </summary>
 internal sealed class SimpleConsoleLogger : ILogger
 {
     private readonly Lock _gate = new();
@@ -27,6 +30,12 @@ internal sealed class SimpleConsoleLogger : ILogger
         [LogLevel.None] = ConsoleColor.White,
     }.ToImmutableDictionary();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SimpleConsoleLogger"/> class.
+    /// </summary>
+    /// <param name="console">The console to write output to.</param>
+    /// <param name="minimalLogLevel">The minimal log level for output.</param>
+    /// <param name="minimalErrorLevel">The minimal log level for error output.</param>
     public SimpleConsoleLogger(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
     {
         _terminal = console.GetTerminal();
@@ -35,6 +44,7 @@ internal sealed class SimpleConsoleLogger : ILogger
         _minimalErrorLevel = minimalErrorLevel;
     }
 
+    /// <inheritdoc/>
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
         if (!IsEnabled(logLevel))
@@ -57,11 +67,13 @@ internal sealed class SimpleConsoleLogger : ILogger
         }
     }
 
+    /// <inheritdoc/>
     public bool IsEnabled(LogLevel logLevel)
     {
         return (int)logLevel >= (int)_minimalLogLevel;
     }
 
+    /// <inheritdoc/>
     public IDisposable BeginScope<TState>(TState state)
         where TState : notnull
     {

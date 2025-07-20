@@ -3,6 +3,9 @@ using PerfDiff.BDN.DataContracts;
 
 namespace PerfDiff.BDN.Regression;
 
+/// <summary>
+/// Defines a strategy for detecting regressions in benchmark results.
+/// </summary>
 public interface IBenchmarkRegressionStrategy
 {
     /// <summary>
@@ -10,7 +13,7 @@ public interface IBenchmarkRegressionStrategy
     /// </summary>
     /// <param name="comparison">Array of benchmark comparison results.</param>
     /// <param name="logger">Logger for reporting.</param>
-    /// <param name="details"></param>
-    /// <returns>True if regression detected, false otherwise.</returns>
+    /// <param name="details">Details about the regression, if detected.</param>
+    /// <returns><see langword="true"/> if regression detected; otherwise, <see langword="false"/>.</returns>
     bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out object details);
 }

@@ -4,6 +4,9 @@ using PerfDiff.BDN.Regression;
 
 namespace PerfDiff.BDN;
 
+/// <summary>
+/// Provides comparison services for benchmark results using multiple regression strategies.
+/// </summary>
 public class BenchmarkComparisonService(ILogger logger)
 {
     private readonly List<IBenchmarkRegressionStrategy> _strategies =
@@ -13,6 +16,12 @@ public class BenchmarkComparisonService(ILogger logger)
         new PercentileRegressionStrategy()
     ];
 
+    /// <summary>
+    /// Compares two sets of benchmark results and detects regressions.
+    /// </summary>
+    /// <param name="baselineFolder">The folder containing baseline results.</param>
+    /// <param name="resultsFolder">The folder containing new results.</param>
+    /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating comparison success and regression detection.</returns>
     public async Task<BenchmarkComparisonResult> CompareAsync(string baselineFolder, string resultsFolder)
     {
         BdnComparisonResult[]? comparison = await BenchmarkDotNetDiffer.TryGetBdnResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);

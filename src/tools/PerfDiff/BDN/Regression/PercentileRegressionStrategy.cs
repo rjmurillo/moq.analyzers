@@ -3,8 +3,12 @@ using PerfDiff.BDN.DataContracts;
 
 namespace PerfDiff.BDN.Regression;
 
+/// <summary>
+/// Detects regressions based on percentile (P95) execution time thresholds.
+/// </summary>
 public class PercentileRegressionStrategy : IBenchmarkRegressionStrategy
 {
+    /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out object details)
     {
         const double thresholdMs = 250.0;

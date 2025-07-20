@@ -4,8 +4,12 @@ using PerfDiff.BDN.DataContracts;
 
 namespace PerfDiff.BDN.Regression;
 
+/// <summary>
+/// Detects regressions based on average execution time thresholds.
+/// </summary>
 public class AverageRegressionStrategy : IBenchmarkRegressionStrategy
 {
+    /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out object details)
     {
         const double analyzerAvgThresholdMs = 100.0;
