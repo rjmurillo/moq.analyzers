@@ -5,89 +5,88 @@ using System.CommandLine;
 using System.CommandLine.Rendering;
 using Microsoft.Extensions.Logging;
 
-namespace PerfDiff.Logging
+namespace PerfDiff.Logging;
+
+internal sealed class SimpleConsoleLogger : ILogger
 {
-    internal sealed class SimpleConsoleLogger : ILogger
+    private readonly Lock _gate = new();
+
+    private readonly IConsole _console;
+    private readonly ITerminal _terminal;
+    private readonly LogLevel _minimalLogLevel;
+    private readonly LogLevel _minimalErrorLevel;
+
+    private static ImmutableDictionary<LogLevel, ConsoleColor> LogLevelColorMap => new Dictionary<LogLevel, ConsoleColor>
     {
-        private readonly Lock _gate = new();
+        [LogLevel.Critical] = ConsoleColor.Red,
+        [LogLevel.Error] = ConsoleColor.Red,
+        [LogLevel.Warning] = ConsoleColor.Yellow,
+        [LogLevel.Information] = ConsoleColor.White,
+        [LogLevel.Debug] = ConsoleColor.Gray,
+        [LogLevel.Trace] = ConsoleColor.Gray,
+        [LogLevel.None] = ConsoleColor.White,
+    }.ToImmutableDictionary();
 
-        private readonly IConsole _console;
-        private readonly ITerminal _terminal;
-        private readonly LogLevel _minimalLogLevel;
-        private readonly LogLevel _minimalErrorLevel;
+    public SimpleConsoleLogger(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
+    {
+        _terminal = console.GetTerminal();
+        _console = console;
+        _minimalLogLevel = minimalLogLevel;
+        _minimalErrorLevel = minimalErrorLevel;
+    }
 
-        private static ImmutableDictionary<LogLevel, ConsoleColor> LogLevelColorMap => new Dictionary<LogLevel, ConsoleColor>
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        if (!IsEnabled(logLevel))
         {
-            [LogLevel.Critical] = ConsoleColor.Red,
-            [LogLevel.Error] = ConsoleColor.Red,
-            [LogLevel.Warning] = ConsoleColor.Yellow,
-            [LogLevel.Information] = ConsoleColor.White,
-            [LogLevel.Debug] = ConsoleColor.Gray,
-            [LogLevel.Trace] = ConsoleColor.Gray,
-            [LogLevel.None] = ConsoleColor.White,
-        }.ToImmutableDictionary();
-
-        public SimpleConsoleLogger(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
-        {
-            _terminal = console.GetTerminal();
-            _console = console;
-            _minimalLogLevel = minimalLogLevel;
-            _minimalErrorLevel = minimalErrorLevel;
+            return;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        lock (_gate)
         {
-            if (!IsEnabled(logLevel))
+            var message = formatter(state, exception);
+            var logToErrorStream = logLevel >= _minimalErrorLevel;
+            if (_terminal is null)
             {
-                return;
-            }
-
-            lock (_gate)
-            {
-                var message = formatter(state, exception);
-                var logToErrorStream = logLevel >= _minimalErrorLevel;
-                if (_terminal is null)
-                {
-                    LogToConsole(_console, message, logToErrorStream);
-                }
-                else
-                {
-                    LogToTerminal(message, logLevel, logToErrorStream);
-                }
-            }
-        }
-
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return (int)logLevel >= (int)_minimalLogLevel;
-        }
-
-        public IDisposable BeginScope<TState>(TState state)
-            where TState : notnull
-        {
-            return NullScope.Instance;
-        }
-
-        private void LogToTerminal(string message, LogLevel logLevel, bool logToErrorStream)
-        {
-            var messageColor = LogLevelColorMap[logLevel];
-            _terminal.ForegroundColor = messageColor;
-
-            LogToConsole(_terminal, message, logToErrorStream);
-
-            _terminal.ResetColor();
-        }
-
-        private static void LogToConsole(IConsole console, string message, bool logToErrorStream)
-        {
-            if (logToErrorStream)
-            {
-                console.Error.Write($"{message}{Environment.NewLine}");
+                LogToConsole(_console, message, logToErrorStream);
             }
             else
             {
-                console.Out.Write($"  {message}{Environment.NewLine}");
+                LogToTerminal(message, logLevel, logToErrorStream);
             }
+        }
+    }
+
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return (int)logLevel >= (int)_minimalLogLevel;
+    }
+
+    public IDisposable BeginScope<TState>(TState state)
+        where TState : notnull
+    {
+        return NullScope.Instance;
+    }
+
+    private void LogToTerminal(string message, LogLevel logLevel, bool logToErrorStream)
+    {
+        var messageColor = LogLevelColorMap[logLevel];
+        _terminal.ForegroundColor = messageColor;
+
+        LogToConsole(_terminal, message, logToErrorStream);
+
+        _terminal.ResetColor();
+    }
+
+    private static void LogToConsole(IConsole console, string message, bool logToErrorStream)
+    {
+        if (logToErrorStream)
+        {
+            console.Error.Write($"{message}{Environment.NewLine}");
+        }
+        else
+        {
+            console.Out.Write($"  {message}{Environment.NewLine}");
         }
     }
 }

@@ -2,18 +2,17 @@
 
 using System;
 
-namespace PerfDiff.Logging
+namespace PerfDiff.Logging;
+
+internal sealed class NullScope : IDisposable
 {
-    internal sealed class NullScope : IDisposable
+    public static NullScope Instance { get; } = new NullScope();
+
+    private NullScope()
     {
-        public static NullScope Instance { get; } = new NullScope();
+    }
 
-        private NullScope()
-        {
-        }
-
-        public void Dispose()
-        {
-        }
+    public void Dispose()
+    {
     }
 }
