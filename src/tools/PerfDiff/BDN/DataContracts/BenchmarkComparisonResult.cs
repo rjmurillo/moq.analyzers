@@ -5,7 +5,6 @@ namespace PerfDiff.BDN.DataContracts;
 /// <summary>
 /// Represents the result of comparing two benchmarks, including success and regression detection flags.
 /// </summary>
-[StructLayout(LayoutKind.Auto)]
 public readonly record struct BenchmarkComparisonResult(bool CompareSucceeded, bool RegressionDetected)
 {    
 }
