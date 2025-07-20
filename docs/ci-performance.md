@@ -38,16 +38,16 @@ The CI workflow for this repository supports automated performance benchmarking 
 
 ## Regression Detection Thresholds
 
-
 ### Benchmark Size and Statistical Significance
 
-Performance benchmarks are run with 1,000 lines of code (LOC) by default, unless explicitly overridden. This ensures that analyzer performance is measured on realistic, statistically significant workloads. The number of code files can be changed by setting the `MOQBENCH_FILES` environment variable, but CI and baseline runs should use the default value for consistency.
+Performance benchmarks are run with 1 file by default in PR actions. This ensures that analyzer performance is measured quickly, to avoid any obvious regressions. Nightly, the full suite is run with baseline (no analyzers) and analyzers enabled on the one file and on 1,000 files. This provides a more realistic, statistically significant workload. The number of code files is controlled by each benchmark through a parameter, allowing BenchmarkDotNet to control the number of iterations required to provide stable and statistically significant results for comparison.
 
 Performance regressions are detected using the following thresholds in the PerfDiff tool:
 
-- **Mean (Average) Regression:** Fails if the mean execution time increases by more than 100 ms compared to baseline.
-- **95th Percentile Regression:** Fails if the 95th percentile execution time increases by more than 250 ms compared to baseline.
-- **Percentage Regression:** Fails if the mean execution time increases by more than 35% compared to baseline.
+- **Mean (Average) absolute regression:** Fails if the mean execution time increases by more than 100 ms.
+- **Mean based on performance ratio threshold:** requiring a 5% relative threshold and absolute threshold of 0.5ms to be exceeded over baseline.
+- **95th Percentile Regression:** Fails if the 95th percentile execution time exceeds 250 ms.
+- **Percentage Regression:** Fails if the median execution time increases by more than 35% compared to baseline.
 - **Statistical Significance:** Uses the Mann-Whitney test to detect statistically significant regressions, with a user-supplied threshold.
 
 These thresholds are hardcoded in the PerfDiff tool and are used during CI runs to automatically detect and fail on performance regressions. For more details on running benchmarks locally, see [build/scripts/perf/README.md](../build/scripts/perf/README.md).
