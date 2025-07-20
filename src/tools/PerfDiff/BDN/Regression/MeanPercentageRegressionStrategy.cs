@@ -66,7 +66,7 @@ public class MeanPercentageRegressionStrategy : IBenchmarkRegressionStrategy
                 double mean = BenchmarkDotNetDiffer.GetMeanRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
                 double delta = BenchmarkDotNetDiffer.GetMeanDelta(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
 
-                if (delta >= absoluteThresholdValue)
+                if (delta <= absoluteThresholdValue)
                 {
                     continue;
                 }
