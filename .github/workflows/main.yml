@@ -45,7 +45,7 @@ jobs:
       IS_CODACY_COVERAGE_ALLOWED: ${{ secrets.CODACY_PROJECT_TOKEN != '' }}
       IS_QLTY_COVERAGE_ALLOWED: ${{ secrets.QLTY_COVERAGE_TOKEN != '' }}
       RUN_FULL_PERF: ${{ (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true') }}
-      FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }}
+      FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }} # This is also used in PerfCore.ps1 to determine if the baseline should be forced
 
     steps:
     - uses: actions/checkout@v4
@@ -143,14 +143,6 @@ jobs:
         }
       shell: pwsh
 
-    - name: Download baseline performance cache
-      id: restore-baseline-cache
-      uses: actions/cache/restore@v4
-      if: success() && (env.FORCE_PERF_BASELINE == '' || env.FORCE_PERF_BASELINE == 'false') && (env.RUN_FULL_PERF == 'false')
-      with:
-        path: ./artifacts/performance/perfResults/baseline
-        key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
-
     - name: Validate performance
       shell: pwsh
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter ${{ steps.get-perf-filter.outputs.filter }}
@@ -190,10 +182,3 @@ jobs:
         name: performance-${{ matrix.os }}
         path: |
           ./artifacts/performance/**
-
-    - name: Upload baseline performance cache
-      if: success() && (steps.restore-baseline-cache.outputs.cache-hit != 'true' || env.FORCE_PERF_BASELINE == 'true')
-      uses: actions/cache/save@v4
-      with:
-        path: ./artifacts/performance/perfResults/baseline
-        key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
