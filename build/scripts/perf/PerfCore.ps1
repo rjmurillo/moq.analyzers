@@ -49,13 +49,13 @@ try {
     }
 
     if ([string]::IsNullOrWhiteSpace($filter)) {
-        $filter = "'*'"
+        $filter = "*"
     }
 
     $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
     $output = Join-Path $RepoRoot "artifacts\performance\perfResults"
      
-    $forceBaseline = $env:FORCE_BASELINE -eq 'true'
+    $forceBaseline = $env:FORCE_PERF_BASELINE -eq 'true'
 
     #  Diff two different SHAs
     if ($diff) {
