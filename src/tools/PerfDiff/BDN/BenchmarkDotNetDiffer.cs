@@ -9,6 +9,8 @@ using Perfolizer.Mathematics.Thresholds;
 
 namespace PerfDiff;
 
+public record BdnComparisonResult(string Id, Benchmark BaseResult, Benchmark DiffResult);
+
 public static class BenchmarkDotNetDiffer
 {
     private const string FullBdnJsonFileExtension = "full-compressed.json";
@@ -16,7 +18,7 @@ public static class BenchmarkDotNetDiffer
     public static async Task<BenchmarkComparisonResult> TryCompareBenchmarkDotNetResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
     {
         // search folder for benchmark dotnet results
-        (string id, Benchmark baseResult, Benchmark diffResult)[]? comparison = await TryGetBdnResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
+        BdnComparisonResult[]? comparison = await TryGetBdnResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
         if (comparison is null)
         {
             return new BenchmarkComparisonResult(false, false);
@@ -56,20 +58,20 @@ public static class BenchmarkDotNetDiffer
         return new BenchmarkComparisonResult(true, true);
     }
 
-    private static (string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] FindRegressions((string id, Benchmark baseResult, Benchmark diffResult)[] comparison, Threshold testThreshold)
+    private static (string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] FindRegressions(BdnComparisonResult[] comparison, Threshold testThreshold)
     {
         List<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> results = [];
-        foreach ((string id, Benchmark baseResult, Benchmark diffResult) in comparison
-            .Where(result => result.baseResult.Statistics != null && result.diffResult.Statistics != null)) // failures
+        foreach (var result in comparison
+            .Where(result => result.BaseResult.Statistics != null && result.DiffResult.Statistics != null)) // failures
         {
-            double[]? baseValues = baseResult.GetOriginalValues();
-            double[]? diffValues = diffResult.GetOriginalValues();
+            double[]? baseValues = result.BaseResult.GetOriginalValues();
+            double[]? diffValues = result.DiffResult.GetOriginalValues();
 
             TostResult<MannWhitneyResult>? userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, testThreshold);
             if (userTresholdResult.Conclusion == EquivalenceTestConclusion.Same)
                 continue;
 
-            results.Add((id, baseResult, diffResult, conclusion: userTresholdResult.Conclusion));
+            results.Add((result.Id, result.BaseResult, result.DiffResult, conclusion: userTresholdResult.Conclusion));
         }
 
         return results.ToArray();
@@ -83,53 +85,53 @@ public static class BenchmarkDotNetDiffer
             ? baseResult.Statistics.Median / diffResult.Statistics.Median
             : diffResult.Statistics.Median / baseResult.Statistics.Median;
 
-    private static bool HasAvgRegression((string id, Benchmark baseResult, Benchmark diffResult)[] comparison, ILogger logger, out List<string> violations)
+    private static bool HasAvgRegression(BdnComparisonResult[] comparison, ILogger logger, out List<string> violations)
     {
         const double analyzerAvgThresholdMs = 100.0;
         violations = [];
 
-        foreach ((string id, Benchmark _, Benchmark diffResult) in comparison)
+        foreach (var result in comparison)
         {
-            if (diffResult.Statistics == null)
+            if (result.DiffResult.Statistics == null)
             {
                 continue;
             }
 
-            double avgMs = diffResult.Statistics.Mean;
+            double avgMs = result.DiffResult.Statistics.Mean;
             if (avgMs > analyzerAvgThresholdMs)
             {
-                logger.LogInformation("test: '{Id}' average execution time {AvgMs:F2}ms exceeds threshold {D}ms", id, avgMs, analyzerAvgThresholdMs);
-                violations.Add($"Analyzer '{id}' average execution time {avgMs:F2}ms exceeds threshold {analyzerAvgThresholdMs}ms.");
+                logger.LogInformation("test: '{Id}' average execution time {AvgMs:F2}ms exceeds threshold {D}ms", result.Id, avgMs, analyzerAvgThresholdMs);
+                violations.Add($"Analyzer '{result.Id}' average execution time {avgMs:F2}ms exceeds threshold {analyzerAvgThresholdMs}ms.");
             }
         }
 
         return violations.Count > 0;
     }
 
-    private static bool HasP99Regression((string id, Benchmark baseResult, Benchmark diffResult)[] comparison, ILogger logger, out List<string> violations)
+    private static bool HasP99Regression(BdnComparisonResult[] comparison, ILogger logger, out List<string> violations)
     {
         const double analyzerP99ThresholdMs = 250.0;
         violations = [];
 
-        foreach ((string id, Benchmark _, Benchmark diffResult) in comparison)
+        foreach (var result in comparison)
         {
-            if (diffResult.Statistics == null)
+            if (result.DiffResult.Statistics == null)
             {
                 continue;
             }
 
-            double p95Ms = diffResult.Statistics.Percentiles.P95;
+            double p95Ms = result.DiffResult.Statistics.Percentiles.P95;
             if (p95Ms > analyzerP99ThresholdMs)
             {
-                logger.LogInformation("test: '{Id}' P99 execution time {P99Ms:F2}ms exceeds threshold {D}ms", id, p95Ms, analyzerP99ThresholdMs);
-                violations.Add($"Analyzer '{id}' P99 execution time {p95Ms:F2}ms exceeds threshold {analyzerP99ThresholdMs}ms.");
+                logger.LogInformation("test: '{Id}' P99 execution time {P99Ms:F2}ms exceeds threshold {D}ms", result.Id, p95Ms, analyzerP99ThresholdMs);
+                violations.Add($"Analyzer '{result.Id}' P99 execution time {p95Ms:F2}ms exceeds threshold {analyzerP99ThresholdMs}ms.");
             }
         }
 
         return violations.Count > 0;
     }
 
-    private static bool HasPercentageRegression((string id, Benchmark baseResult, Benchmark diffResult)[] comparison, ILogger logger, out Threshold testThreshold)
+    private static bool HasPercentageRegression(BdnComparisonResult[] comparison, ILogger logger, out Threshold testThreshold)
     {
         _ = Threshold.TryParse("35%", out testThreshold);
         (string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame = FindRegressions(comparison, testThreshold);
@@ -191,7 +193,7 @@ public static class BenchmarkDotNetDiffer
         return new BdnResults(!results.Any(x => x is null), results);
     }
 
-    private static async Task<(string id, Benchmark baseResult, Benchmark diffResult)[]?> TryGetBdnResultsAsync(
+    private static async Task<BdnComparisonResult[]?> TryGetBdnResultsAsync(
                 string baselineFolder,
                 string resultsFolder,
                 ILogger logger)
@@ -246,7 +248,7 @@ public static class BenchmarkDotNetDiffer
 
         return benchmarkIdToBaseResults
             .Where(baseResult => benchmarkIdToDiffResults.ContainsKey(baseResult.Key))
-            .Select(baseResult => (id: baseResult.Key, baseResult: baseResult.Value, diffResult: benchmarkIdToDiffResults[baseResult.Key]))
+            .Select(baseResult => new BdnComparisonResult(baseResult.Key, baseResult.Value, benchmarkIdToDiffResults[baseResult.Key]))
             .ToArray();
     }
 
