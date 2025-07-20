@@ -9,7 +9,7 @@ public class BenchmarkComparisonService(ILogger logger)
     private readonly List<IBenchmarkRegressionStrategy> _strategies =
     [
         new PercentageRegressionStrategy(),
-        new AvgRegressionStrategy(),
+        new AverageRegressionStrategy(),
         new P99RegressionStrategy()
     ];
 
@@ -29,7 +29,7 @@ public class BenchmarkComparisonService(ILogger logger)
                 regressionDetected = true;
                 switch (strategy)
                 {
-                    case AvgRegressionStrategy:
+                    case AverageRegressionStrategy:
                         foreach (string msg in (List<string>)details)
                             logger.LogError(msg);
                         break;

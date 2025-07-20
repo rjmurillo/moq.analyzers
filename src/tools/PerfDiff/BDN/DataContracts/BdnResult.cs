@@ -1,12 +1,10 @@
-﻿
-namespace DataTransferContracts
+﻿namespace DataTransferContracts;
+
+public class BdnResult
 {
-    public class BdnResult
-    {
-        public string Title { get; set; }
+    public string? Title { get; set; }
 
-        public HostEnvironmentInfo HostEnvironmentInfo { get; set; }
+    public HostEnvironmentInfo? HostEnvironmentInfo { get; set; }
 
-        public List<Benchmark> Benchmarks { get; set; }
-    }
+    public List<Benchmark>? Benchmarks { get; set; }
 }
