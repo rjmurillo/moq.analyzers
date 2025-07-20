@@ -139,7 +139,7 @@ jobs:
         if ('${{ env.RUN_FULL_PERF }}' -eq 'true') {
           echo "filter='*'" >> $env:GITHUB_OUTPUT
         } else {
-          echo "filter='*Baseline'" >> $env:GITHUB_OUTPUT
+          echo "filter='*(FilterCount: 1)'" >> $env:GITHUB_OUTPUT
         }
       shell: pwsh
 
