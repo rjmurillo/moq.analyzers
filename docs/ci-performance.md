@@ -38,6 +38,11 @@ The CI workflow for this repository supports automated performance benchmarking 
 
 ## Regression Detection Thresholds
 
+
+### Benchmark Size and Statistical Significance
+
+Performance benchmarks are run with 1,000 lines of code (LOC) by default, unless explicitly overridden. This ensures that analyzer performance is measured on realistic, statistically significant workloads. The number of code files can be changed by setting the `MOQBENCH_FILES` environment variable, but CI and baseline runs should use the default value for consistency.
+
 Performance regressions are detected using the following thresholds in the PerfDiff tool:
 
 - **Mean (Average) Regression:** Fails if the mean execution time increases by more than 100 ms compared to baseline.
