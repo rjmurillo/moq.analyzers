@@ -12,7 +12,7 @@ public static partial class PerfDiff
     {
         token.ThrowIfCancellationRequested();
 
-        var (compareSucceeded, regressionDetected) = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
+        (bool compareSucceeded, bool regressionDetected) = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
 
         if (!compareSucceeded)
         {
@@ -30,7 +30,7 @@ public static partial class PerfDiff
             return 0;
         }
 
-        var (etlCompareSucceeded, etlRegressionDetected) = CheckEltTraces(baselineFolder, resultsFolder, failOnRegression);
+        (bool etlCompareSucceeded, bool etlRegressionDetected) = CheckEltTraces(baselineFolder, resultsFolder, failOnRegression);
         if (!etlCompareSucceeded)
         {
 #pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogTrace(ILogger, string?, params object?[])'
@@ -55,15 +55,15 @@ public static partial class PerfDiff
 
     private static (bool compareSucceeded, bool regressionDetected) CheckEltTraces(string baselineFolder, string resultsFolder, bool failOnRegression)
     {
-        var regressionDetected = false;
+        bool regressionDetected = false;
 
         // try look for ETL traces
-        if (!TryGetETLPaths(baselineFolder, out var baselineEtlPath))
+        if (!TryGetETLPaths(baselineFolder, out string? baselineEtlPath))
         {
             return (false, regressionDetected);
         }
 
-        if (!TryGetETLPaths(resultsFolder, out var resultsEtlPath))
+        if (!TryGetETLPaths(resultsFolder, out string? resultsEtlPath))
         {
             return (false, regressionDetected);
         }
@@ -88,7 +88,7 @@ public static partial class PerfDiff
     {
         if (Directory.Exists(path))
         {
-            var files = Directory.GetFiles(path, $"*{ETLFileExtension}", SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(path, $"*{ETLFileExtension}", SearchOption.AllDirectories);
             etlPath = files.SingleOrDefault();
             if (etlPath is null)
             {

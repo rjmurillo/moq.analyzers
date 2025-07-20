@@ -22,7 +22,7 @@ internal static class DiffCommand
     internal static RootCommand CreateCommandLineOptions()
     {
         // Sync changes to option and argument names with the FormatCommant.Handler above.
-        var rootCommand = new RootCommand
+        RootCommand rootCommand = new RootCommand
         {
             new Option<string?>("--baseline", () => null, "folder that contains the baseline performance run data").LegalFilePathsOnly(),
             new Option<string?>("--results", () => null, "folder that contains the performance restults").LegalFilePathsOnly(),

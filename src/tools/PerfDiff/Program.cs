@@ -20,7 +20,7 @@ internal sealed class Program
 
     private static async Task<int> Main(string[] args)
     {
-        var rootCommand = DiffCommand.CreateCommandLineOptions();
+        RootCommand rootCommand = DiffCommand.CreateCommandLineOptions();
         rootCommand.Handler = CommandHandler.Create(new DiffCommand.Handler(RunAsync));
 
         // Parse the incoming args so we can give warnings when deprecated options are used.
@@ -42,22 +42,22 @@ internal sealed class Program
         }
 
         // Setup logging.
-        var logLevel = GetLogLevel(verbosity);
-        var logger = SetupLogging(console, minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
+        LogLevel logLevel = GetLogLevel(verbosity);
+        ILogger<Program> logger = SetupLogging(console, minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
 
         // Hook so we can cancel and exit when ctrl+c is pressed.
-        var cancellationTokenSource = new CancellationTokenSource();
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         Console.CancelKeyPress += (sender, e) =>
         {
             e.Cancel = true;
             cancellationTokenSource.Cancel();
         };
 
-        var currentDirectory = string.Empty;
+        string currentDirectory = string.Empty;
 
         try
         {
-            var exitCode = await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationTokenSource.Token).ConfigureAwait(false);
+            int exitCode = await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationTokenSource.Token).ConfigureAwait(false);
             return exitCode;
         }
         catch (FileNotFoundException fex)
@@ -83,12 +83,12 @@ internal sealed class Program
 
         static ILogger<Program> SetupLogging(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
-            var serviceCollection = new ServiceCollection();
+            ServiceCollection serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(new LoggerFactory().AddSimpleConsole(console, minimalLogLevel, minimalErrorLevel));
             serviceCollection.AddLogging();
 
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            var logger = serviceProvider.GetService<ILogger<Program>>();
+            ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+            ILogger<Program>? logger = serviceProvider.GetService<ILogger<Program>>();
 
             return logger!;
         }

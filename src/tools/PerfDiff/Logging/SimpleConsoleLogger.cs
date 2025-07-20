@@ -44,8 +44,8 @@ internal sealed class SimpleConsoleLogger : ILogger
 
         lock (_gate)
         {
-            var message = formatter(state, exception);
-            var logToErrorStream = logLevel >= _minimalErrorLevel;
+            string message = formatter(state, exception);
+            bool logToErrorStream = logLevel >= _minimalErrorLevel;
             if (_terminal is null)
             {
                 LogToConsole(_console, message, logToErrorStream);
@@ -70,7 +70,7 @@ internal sealed class SimpleConsoleLogger : ILogger
 
     private void LogToTerminal(string message, LogLevel logLevel, bool logToErrorStream)
     {
-        var messageColor = LogLevelColorMap[logLevel];
+        ConsoleColor messageColor = LogLevelColorMap[logLevel];
         _terminal.ForegroundColor = messageColor;
 
         LogToConsole(_terminal, message, logToErrorStream);

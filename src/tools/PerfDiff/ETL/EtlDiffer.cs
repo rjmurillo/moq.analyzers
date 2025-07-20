@@ -20,7 +20,7 @@ internal static class EtlDiffer
         regression = false;
         CallTree sourceCallTree = GetCallTree(sourceEtlPath);
         CallTree baselineCallTree = GetCallTree(baselineEtlPath);
-        var report = GenerateOverweightReport(sourceCallTree, baselineCallTree);
+        ImmutableArray<OverWeightResult> report = GenerateOverweightReport(sourceCallTree, baselineCallTree);
 
         // print results
         Console.WriteLine(string.Join(Environment.NewLine, report.Take(10)));
@@ -29,31 +29,31 @@ internal static class EtlDiffer
 
     private static CallTree GetCallTree(string eltPath)
     {
-        var traceProcess = GetTraceProcessFromETLFile(eltPath);
-        var stackSource = CreateStackSourceFromTraceProcess(traceProcess);
+        TraceProcess traceProcess = GetTraceProcessFromETLFile(eltPath);
+        StackSource stackSource = CreateStackSourceFromTraceProcess(traceProcess);
         return CreateCallTreeFromStackSource(stackSource);
     }
 
     public static TraceProcess GetTraceProcessFromETLFile(string eltPath)
     {
-        var traceLog = TraceLog.OpenOrConvert(eltPath);
+        TraceLog? traceLog = TraceLog.OpenOrConvert(eltPath);
         return traceLog.Processes
             .First(p => p.Name.Equals("dotnet", StringComparison.OrdinalIgnoreCase));
     }
 
     public static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
     {
-        var events = process.EventsInProcess;
-        var start = Math.Max(events.StartTimeRelativeMSec, process.StartTimeRelativeMsec);
-        var end = Math.Min(events.EndTimeRelativeMSec, process.EndTimeRelativeMsec);
+        TraceEvents? events = process.EventsInProcess;
+        double start = Math.Max(events.StartTimeRelativeMSec, process.StartTimeRelativeMsec);
+        double end = Math.Min(events.EndTimeRelativeMSec, process.EndTimeRelativeMsec);
         events = events.FilterByTime(start, end);
         events = events.Filter(x => x is SampledProfileTraceData && x.ProcessID == process.ProcessID);
 
-        using var symbolReader = new SymbolReader(new StringWriter(), @"SRV*https://msdl.microsoft.com/download/symbols");
+        using SymbolReader symbolReader = new SymbolReader(new StringWriter(), @"SRV*https://msdl.microsoft.com/download/symbols");
         symbolReader.SecurityCheck = path => true;
 
-        var traceLog = process.Log;
-        foreach (var module in process.LoadedModules)
+        TraceLog? traceLog = process.Log;
+        foreach (TraceLoadedModule? module in process.LoadedModules)
         {
             traceLog.CodeAddresses.LookupSymbolsForModule(symbolReader, module.ModuleFile);
         }
@@ -63,15 +63,15 @@ internal static class EtlDiffer
 
     public static CallTree CreateCallTreeFromStackSource(StackSource stackSource)
     {
-        var calltree = new CallTree(ScalingPolicyKind.ScaleToData);
+        CallTree calltree = new CallTree(ScalingPolicyKind.ScaleToData);
         calltree.StackSource = stackSource;
         return calltree;
     }
 
     public static ImmutableArray<OverWeightResult> GenerateOverweightReport(CallTree source, CallTree baseline)
     {
-        var sourceTotal = LoadTrace(source, out var sourceData);
-        var baselineTotal = LoadTrace(baseline, out var baselineData);
+        float sourceTotal = LoadTrace(source, out Dictionary<string, float> sourceData);
+        float baselineTotal = LoadTrace(baseline, out Dictionary<string, float> baselineData);
 
         if (sourceTotal != baselineTotal)
         {
@@ -84,7 +84,7 @@ internal static class EtlDiffer
         {
             data = new Dictionary<string, float>();
             float total = 0;
-            foreach (var node in callTree.ByID)
+            foreach (CallTreeNodeBase? node in callTree.ByID)
             {
                 if (node.InclusiveMetric == 0)
                 {
@@ -92,7 +92,7 @@ internal static class EtlDiffer
                 }
 
                 string key = node.Name;
-                data.TryGetValue(key, out var weight);
+                data.TryGetValue(key, out float weight);
                 data[key] = weight + node.InclusiveMetric;
 
                 total += node.ExclusiveMetric;
@@ -103,10 +103,10 @@ internal static class EtlDiffer
 
         static ImmutableArray<OverWeightResult> ComputeOverweights(float sourceTotal, Dictionary<string, float> sourceData, float baselineTotal, Dictionary<string, float> baselineData)
         {
-            var totalDelta = sourceTotal - baselineTotal;
-            var growth = sourceTotal / baselineTotal;
-            var results = ImmutableArray.CreateBuilder<OverWeightResult>();
-            foreach (var key in baselineData.Keys)
+            float totalDelta = sourceTotal - baselineTotal;
+            float growth = sourceTotal / baselineTotal;
+            ImmutableArray<OverWeightResult>.Builder results = ImmutableArray.CreateBuilder<OverWeightResult>();
+            foreach (string key in baselineData.Keys)
             {
                 // skip symbols that are not in both traces
                 if (!sourceData.ContainsKey(key))
@@ -114,14 +114,14 @@ internal static class EtlDiffer
                     continue;
                 }
 
-                var baselineValue = baselineData[key];
-                var sourceValue = sourceData[key];
-                var expectedDelta = baselineValue * (growth - 1);
-                var delta = sourceValue - baselineValue;
-                var overweight = delta / expectedDelta * 100;
-                var percent = delta / totalDelta;
+                float baselineValue = baselineData[key];
+                float sourceValue = sourceData[key];
+                float expectedDelta = baselineValue * (growth - 1);
+                float delta = sourceValue - baselineValue;
+                float overweight = delta / expectedDelta * 100;
+                float percent = delta / totalDelta;
                 // Calculate interest level
-                var interest = Math.Abs(overweight) > 110 ? 1 : 0;
+                int interest = Math.Abs(overweight) > 110 ? 1 : 0;
                 interest += Math.Abs(percent) > 5 ? 1 : 0;
                 interest += Math.Abs(percent) > 20 ? 1 : 0;
                 interest += Math.Abs(percent) > 100 ? 1 : 0;
