@@ -27,7 +27,7 @@ public class BenchmarkComparisonService(ILogger logger)
         BdnComparisonResult[]? comparison = await BenchmarkDotNetDiffer.TryGetBdnResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
         if (comparison is null)
         {
-            return new BenchmarkComparisonResult(false, false);
+            return new BenchmarkComparisonResult(CompareSucceeded: false, RegressionDetected: false);
         }
 
         bool regressionDetected = false;
@@ -42,7 +42,7 @@ public class BenchmarkComparisonService(ILogger logger)
                         logger.LogError("Average-based regression detected (threshold: {AverageThreshold}).", details.Threshold);
                         break;
                     case PercentileRegressionStrategy:
-                        logger.LogError("Percentile-based regression detected (P99 threshold: {PercentThreshold}).", details.Threshold);
+                        logger.LogError("Percentile-based regression detected (P95 threshold: {PercentThreshold}).", details.Threshold);
                         break;
                     case PercentageRegressionStrategy:
                         logger.LogError("Percentage-based regression detected (threshold: {PercentThreshold}).", details.Threshold);
@@ -53,9 +53,9 @@ public class BenchmarkComparisonService(ILogger logger)
 
         if (!regressionDetected)
         {
-            logger.LogInformation("All analyzers are within the average, P99, and percentage-based thresholds. No regressions detected.");
+            logger.LogInformation("All analyzers are within the average, P95, and percentage-based thresholds. No regressions detected.");
         }
 
-        return new BenchmarkComparisonResult(true, regressionDetected);
+        return new BenchmarkComparisonResult(CompareSucceeded: true, regressionDetected);
     }
 }
