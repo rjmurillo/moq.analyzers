@@ -2,6 +2,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
+using PerfDiff.BDN.DataContracts;
 
 namespace PerfDiff;
 
@@ -12,7 +13,7 @@ public static class PerfDiff
     {
         token.ThrowIfCancellationRequested();
 
-        var bdnResult = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
+        BenchmarkComparisonResult bdnResult = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
         bool compareSucceeded = bdnResult.CompareSucceeded;
         bool regressionDetected = bdnResult.RegressionDetected;
 

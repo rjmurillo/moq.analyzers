@@ -3,9 +3,8 @@
 using System.Diagnostics.CodeAnalysis;
 using DataTransferContracts;
 using Microsoft.Extensions.Logging;
-using PerfDiff.BDN.DataContracts;
 using PerfDiff.BDN;
-using PerfDiff.BDN.Regression;
+using PerfDiff.BDN.DataContracts;
 using Perfolizer.Mathematics.SignificanceTesting;
 
 namespace PerfDiff;
@@ -16,7 +15,7 @@ public static class BenchmarkDotNetDiffer
 
     public static async Task<BenchmarkComparisonResult> TryCompareBenchmarkDotNetResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
     {
-        var service = new BenchmarkComparisonService(logger);
+        BenchmarkComparisonService service = new BenchmarkComparisonService(logger);
         return await service.CompareAsync(baselineFolder, resultsFolder).ConfigureAwait(false);
     }
 
