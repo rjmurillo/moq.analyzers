@@ -101,7 +101,7 @@ public static class PerfDiff
 
             return true;
         }
-        else if (File.Exists(path) || !path.EndsWith(ETLFileExtension, StringComparison.OrdinalIgnoreCase))
+        else if (File.Exists(path) && path.EndsWith(ETLFileExtension, StringComparison.OrdinalIgnoreCase))
         {
             etlPath = path;
             return true;
