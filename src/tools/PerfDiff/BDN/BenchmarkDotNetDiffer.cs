@@ -88,7 +88,7 @@ public static class BenchmarkDotNetDiffer
             return true;
         }
 
-        if (File.Exists(path) || !path.EndsWith(FullBdnJsonFileExtension, StringComparison.OrdinalIgnoreCase))
+        if (File.Exists(path) && path.EndsWith(FullBdnJsonFileExtension, StringComparison.OrdinalIgnoreCase))
         {
             files = [path];
             return true;
