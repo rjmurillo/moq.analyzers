@@ -20,7 +20,7 @@ try {
     $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
     $perfDiff = Join-Path $RepoRoot "src\tools\PerfDiff\PerfDiff.csproj"
     & dotnet build $perfDiff -c Release
-    & dotnet run -c Release --project $perfDiff -- --baseline $baselineFolder --results $resultsFolder --failOnRegression --verbosity diag
+    & dotnet run -c Release --project $perfDiff -- --baseline $baselineFolder --results $resultsFolder --failOnRegression --verbosity diagnostic
     $host.SetShouldExit($LASTEXITCODE)
     exit
 }
