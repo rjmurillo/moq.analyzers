@@ -12,8 +12,10 @@ public class BenchmarkComparisonService(ILogger logger)
     private readonly List<IBenchmarkRegressionStrategy> _strategies =
     [
         new PercentageRegressionStrategy(),
-        new AverageRegressionStrategy(),
-        new PercentileRegressionStrategy()
+        new P95RatioRegressionStrategy(),
+        new PercentileRegressionStrategy(),
+        new MeanWallClockRegressionStrategy(),
+        new MeanPercentageRegressionStrategy(),
     ];
 
     /// <summary>
@@ -33,27 +35,18 @@ public class BenchmarkComparisonService(ILogger logger)
         bool regressionDetected = false;
         foreach (IBenchmarkRegressionStrategy strategy in _strategies)
         {
-            if (strategy.HasRegression(comparison, logger, out RegressionDetectionResult details))
+            if (!strategy.HasRegression(comparison, logger, out RegressionDetectionResult details))
             {
-                regressionDetected = true;
-                switch (strategy)
-                {
-                    case AverageRegressionStrategy:
-                        logger.LogError("Average-based regression detected (threshold: {AverageThreshold}).", details.Threshold);
-                        break;
-                    case PercentileRegressionStrategy:
-                        logger.LogError("Percentile-based regression detected (P95 threshold: {PercentThreshold}).", details.Threshold);
-                        break;
-                    case PercentageRegressionStrategy:
-                        logger.LogError("Percentage-based regression detected (threshold: {PercentThreshold}).", details.Threshold);
-                        break;
-                }
+                continue;
             }
+
+            regressionDetected = true;
+            logger.LogError("========== {MetricName} regression detected (threshold: {PercentThreshold}) -- {StrategyName} ==========", details.MetricName, details.Threshold, strategy.GetType().Name);
         }
 
         if (!regressionDetected)
         {
-            logger.LogInformation("All analyzers are within the average, P95, and percentage-based thresholds. No regressions detected.");
+            logger.LogInformation("========== No regressions detected. ==========");
         }
 
         return new BenchmarkComparisonResult(CompareSucceeded: true, regressionDetected);

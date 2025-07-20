@@ -5,9 +5,9 @@ using Perfolizer.Mathematics.Thresholds;
 namespace PerfDiff.BDN.Regression;
 
 /// <summary>
-/// Detects regressions based on average execution time thresholds.
+/// Detects regressions based on mean (average) wall clock execution time thresholds.
 /// </summary>
-public class AverageRegressionStrategy : IBenchmarkRegressionStrategy
+public class MeanWallClockRegressionStrategy : IBenchmarkRegressionStrategy
 {
     /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)

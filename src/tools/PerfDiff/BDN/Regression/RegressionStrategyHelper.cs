@@ -6,7 +6,7 @@ using Perfolizer.Mathematics.Thresholds;
 namespace PerfDiff.BDN.Regression;
 
 /// <summary>
-/// Provides shared logic for regression strategies.
+/// Provides shared logic for regression strategies using <see cref="Threshold" />.
 /// </summary>
 public static class RegressionStrategyHelper
 {
@@ -32,6 +32,9 @@ public static class RegressionStrategyHelper
                 double value = displayValueSelector(betterResult);
                 logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; better than the threshold {Threshold}", betterResult.Id, metricName, value, testThreshold);
             }
+
+            double betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(better[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / betterCount);
+            logger.LogInformation("========== {MetricName} {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", metricName, betterCount, betterGeoMean);
         }
 
         if (worseCount > 0)
@@ -41,9 +44,12 @@ public static class RegressionStrategyHelper
                 double value = displayValueSelector(worseResult);
                 logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; worse than the threshold {Threshold}", worseResult.Id, metricName, value, testThreshold);
             }
+
+            double worseGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(better[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / betterCount);
+            logger.LogInformation("========== {MetricName} {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", metricName, worseCount, worseGeoMean);
         }
 
-        details = new RegressionDetectionResult(testThreshold);
+        details = new RegressionDetectionResult(metricName, testThreshold);
         return worseCount > 0;
     }
 

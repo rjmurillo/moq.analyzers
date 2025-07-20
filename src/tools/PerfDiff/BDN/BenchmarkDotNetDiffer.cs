@@ -131,8 +131,8 @@ public static class BenchmarkDotNetDiffer
     /// </summary>
     /// <param name="item">The regression result.</param>
     /// <returns>The ratio of median values.</returns>
-    public static double GetRatio(RegressionResult item)
-        => GetRatio(item.Conclusion, item.BaseResult, item.DiffResult);
+    public static double GetMedianRatio(RegressionResult item)
+        => GetMedianRatio(item.Conclusion, item.BaseResult, item.DiffResult);
 
     /// <summary>
     /// Gets the ratio of median values for the specified benchmarks and conclusion.
@@ -141,7 +141,7 @@ public static class BenchmarkDotNetDiffer
     /// <param name="baseResult">The baseline benchmark.</param>
     /// <param name="diffResult">The diff benchmark.</param>
     /// <returns>The ratio of median values.</returns>
-    public static double GetRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
+    public static double GetMedianRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
     {
         if (baseResult.Statistics == null || diffResult.Statistics == null)
         {
@@ -151,5 +151,63 @@ public static class BenchmarkDotNetDiffer
         return conclusion == EquivalenceTestConclusion.Faster
             ? baseResult.Statistics.Median / diffResult.Statistics.Median
             : diffResult.Statistics.Median / baseResult.Statistics.Median;
+    }
+
+    /// <summary>
+    /// Gets the ratio of mean values for the specified benchmarks and conclusion.
+    /// </summary>
+    /// <param name="conclusion">The equivalence test conclusion.</param>
+    /// <param name="baseResult">The baseline benchmark.</param>
+    /// <param name="diffResult">The diff benchmark.</param>
+    /// <returns>The ratio of mean values.</returns>
+    public static double GetMeanRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
+    {
+        if (baseResult.Statistics == null || diffResult.Statistics == null)
+        {
+            return double.NaN;
+        }
+
+        return conclusion == EquivalenceTestConclusion.Faster
+            ? baseResult.Statistics.Mean / diffResult.Statistics.Mean
+            : diffResult.Statistics.Mean / baseResult.Statistics.Mean;
+    }
+
+    /// <summary>
+    /// Gets the delta of mean values for the specified benchmarks and conclusion.
+    /// </summary>
+    /// <param name="conclusion">The equivalence test conclusion.</param>
+    /// <param name="baseResult">The baseline benchmark.</param>
+    /// <param name="diffResult">The diff benchmark.</param>
+    /// <returns>The delta of mean values.</returns>
+    public static double GetMeanDelta(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
+    {
+        if (baseResult.Statistics == null || diffResult.Statistics == null)
+        {
+            return double.NaN;
+        }
+
+        return conclusion == EquivalenceTestConclusion.Faster
+            ? baseResult.Statistics.Mean - diffResult.Statistics.Mean
+            : diffResult.Statistics.Mean - baseResult.Statistics.Mean;
+    }
+
+    /// <summary>
+    /// Gets the delta of P95 values for the specified benchmarks and conclusion.
+    /// </summary>
+    /// <param name="conclusion">The equivalence test conclusion.</param>
+    /// <param name="baseResult">The baseline benchmark.</param>
+    /// <param name="diffResult">The diff benchmark.</param>
+    /// <returns>The delta of P95 values.</returns>
+    public static double GetP95Delta(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
+    {
+        if (baseResult.Statistics == null || diffResult.Statistics == null
+            || baseResult.Statistics.Percentiles == null || diffResult.Statistics.Percentiles == null)
+        {
+            return double.NaN;
+        }
+
+        return conclusion == EquivalenceTestConclusion.Faster
+            ? baseResult.Statistics.Percentiles.P95 - diffResult.Statistics.Percentiles.P95
+            : diffResult.Statistics.Percentiles.P95 - baseResult.Statistics.Percentiles.P95;
     }
 }
