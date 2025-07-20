@@ -11,7 +11,7 @@ namespace Moq.Analyzers.Benchmarks;
 public class Moq1204RaisesEventArgumentsBenchmarks
 {
 #pragma warning disable ECS0900
-    [Params(1, 10, 100, 1_000)]
+    [Params(1, 1_000)]
 #pragma warning restore ECS0900
     public int FileCount { get; set; }
 
