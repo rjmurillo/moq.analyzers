@@ -63,7 +63,7 @@ public class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
         {
             foreach (RegressionResult worseResult in worse)
             {
-                double mean = BenchmarkDotNetDiffer.GetMeanRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
+                double mean = BenchmarkDotNetDiffer.GetMedianRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
                 double delta = BenchmarkDotNetDiffer.GetP95Delta(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
 
                 if (delta <= absoluteThresholdValue)
