@@ -10,8 +10,6 @@ using Perfolizer.Mathematics.Thresholds;
 
 namespace PerfDiff;
 
-public record BdnComparisonResult(string Id, Benchmark BaseResult, Benchmark DiffResult);
-
 public static class BenchmarkDotNetDiffer
 {
     private const string FullBdnJsonFileExtension = "full-compressed.json";
@@ -59,9 +57,9 @@ public static class BenchmarkDotNetDiffer
         return new BenchmarkComparisonResult(true, true);
     }
 
-    private static (string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] FindRegressions(BdnComparisonResult[] comparison, Threshold testThreshold)
+    private static RegressionResult[] FindRegressions(BdnComparisonResult[] comparison, Threshold testThreshold)
     {
-        List<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> results = [];
+        List<RegressionResult> results = [];
         foreach (var result in comparison
             .Where(result => result.BaseResult.Statistics != null && result.DiffResult.Statistics != null)) // failures
         {
@@ -72,14 +70,14 @@ public static class BenchmarkDotNetDiffer
             if (userTresholdResult.Conclusion == EquivalenceTestConclusion.Same)
                 continue;
 
-            results.Add((result.Id, result.BaseResult, result.DiffResult, conclusion: userTresholdResult.Conclusion));
+            results.Add(new RegressionResult(result.Id, result.BaseResult, result.DiffResult, userTresholdResult.Conclusion));
         }
 
         return results.ToArray();
     }
 
-    private static double GetRatio((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion) item)
-        => GetRatio(item.conclusion, item.baseResult, item.diffResult);
+    private static double GetRatio(RegressionResult item)
+        => GetRatio(item.Conclusion, item.BaseResult, item.DiffResult);
 
     private static double GetRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
         => conclusion == EquivalenceTestConclusion.Faster
@@ -135,10 +133,10 @@ public static class BenchmarkDotNetDiffer
     private static bool HasPercentageRegression(BdnComparisonResult[] comparison, ILogger logger, out Threshold testThreshold)
     {
         _ = Threshold.TryParse("35%", out testThreshold);
-        (string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame = FindRegressions(comparison, testThreshold);
+        RegressionResult[] notSame = FindRegressions(comparison, testThreshold);
 
-        List<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> better = notSame.Where(result => result.conclusion == EquivalenceTestConclusion.Faster).ToList();
-        List<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> worse = notSame.Where(result => result.conclusion == EquivalenceTestConclusion.Slower).ToList();
+        List<RegressionResult> better = notSame.Where(result => result.Conclusion == EquivalenceTestConclusion.Faster).ToList();
+        List<RegressionResult> worse = notSame.Where(result => result.Conclusion == EquivalenceTestConclusion.Slower).ToList();
         int betterCount = better.Count;
         int worseCount = worse.Count;
 
@@ -150,10 +148,10 @@ public static class BenchmarkDotNetDiffer
         {
             double betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(GetRatio(better[0])), (x, y) => x + Math.Log10(GetRatio(y))) / betterCount);
             logger.LogInformation("better: {BetterCount}, geomean: {BetterGeoMean:F3}%", betterCount, betterGeoMean);
-            foreach ((string betterId, Benchmark betterBaseResult, Benchmark betterDiffResult, EquivalenceTestConclusion conclusion) in better)
+            foreach (var betterResult in better)
             {
-                double mean = GetRatio(conclusion, betterBaseResult, betterDiffResult);
-                logger.LogInformation("test: '{BetterId}' tool '{Mean:F3}' times less", betterId, mean);
+                double mean = GetRatio(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
+                logger.LogInformation("test: '{BetterId}' tool '{Mean:F3}' times less", betterResult.Id, mean);
             }
         }
 
@@ -161,10 +159,10 @@ public static class BenchmarkDotNetDiffer
         {
             double worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(GetRatio(worse[0])), (x, y) => x + Math.Log10(GetRatio(y))) / worseCount);
             logger.LogInformation("worse: {WorseCount}, geomean: {WorseGeoMean:F3}%", worseCount, worseGeoMean);
-            foreach ((string worseId, Benchmark worseBaseResult, Benchmark worseDiffResult, EquivalenceTestConclusion conclusion) in worse)
+            foreach (var worseResult in worse)
             {
-                double mean = GetRatio(conclusion, worseBaseResult, worseDiffResult);
-                logger.LogInformation("test: '{WorseId}' took '{Mean:F3}' times longer", worseId, mean);
+                double mean = GetRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
+                logger.LogInformation("test: '{WorseId}' took '{Mean:F3}' times longer", worseResult.Id, mean);
             }
         }
 
