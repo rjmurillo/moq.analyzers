@@ -5,16 +5,16 @@ using Microsoft.Extensions.Logging;
 
 namespace PerfDiff;
 
-public static partial class PerfDiff
+public static class PerfDiff
 {
     public static async Task<int> CompareAsync(
         string baselineFolder, string resultsFolder, bool failOnRegression, ILogger logger, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
 
-    var bdnResult = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
-    bool compareSucceeded = bdnResult.CompareSucceeded;
-    bool regressionDetected = bdnResult.RegressionDetected;
+        var bdnResult = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
+        bool compareSucceeded = bdnResult.CompareSucceeded;
+        bool regressionDetected = bdnResult.RegressionDetected;
 
         if (!compareSucceeded)
         {

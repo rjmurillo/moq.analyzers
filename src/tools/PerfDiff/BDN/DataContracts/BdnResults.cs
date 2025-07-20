@@ -1,12 +1,19 @@
-﻿using DataTransferContracts;
+﻿using System.Linq;
+using DataTransferContracts;
 
-namespace PerfDiff;
+namespace PerfDiff.BDN.DataContracts;
 
-internal class BdnResults(bool success, BdnResult?[] results)
+public class BdnResults
 {
-    public bool Success { get; } = success;
+    public bool Success { get; }
 
-    public BdnResult[] Results { get; } = results;
+    public BdnResult[] Results { get; }
+
+    public BdnResults(bool success, BdnResult?[] results)
+    {
+        Success = success;
+        Results = results?.Where(r => r != null).ToArray() ?? Array.Empty<BdnResult>();
+    }
 
     public void Deconstruct(out bool success, out BdnResult[] results)
     {
