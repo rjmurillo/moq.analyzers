@@ -12,7 +12,9 @@ public static partial class PerfDiff
     {
         token.ThrowIfCancellationRequested();
 
-        (bool compareSucceeded, bool regressionDetected) = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
+    var bdnResult = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
+    bool compareSucceeded = bdnResult.CompareSucceeded;
+    bool regressionDetected = bdnResult.RegressionDetected;
 
         if (!compareSucceeded)
         {

@@ -13,13 +13,13 @@ public static class BenchmarkDotNetDiffer
 {
     private const string FullBdnJsonFileExtension = "full-compressed.json";
 
-    public static async Task<(bool compareSucceeded, bool regressionDetected)> TryCompareBenchmarkDotNetResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
+    public static async Task<BenchmarkComparisonResult> TryCompareBenchmarkDotNetResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
     {
         // search folder for benchmark dotnet results
         (string id, Benchmark baseResult, Benchmark diffResult)[]? comparison = await TryGetBdnResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
         if (comparison is null)
         {
-            return (false, false);
+            return new BenchmarkComparisonResult(false, false);
         }
 
         bool percentRegression = HasPercentageRegression(comparison, logger, out Threshold percentThreshold);
@@ -29,7 +29,7 @@ public static class BenchmarkDotNetDiffer
         if (!percentRegression && !avgRegression && !p99Regression)
         {
             logger.LogInformation("All analyzers are within the average, P99, and percentage-based thresholds. No regressions detected.");
-            return (true, false);
+            return new BenchmarkComparisonResult(true, false);
         }
 
         if (avgRegression)
@@ -53,7 +53,7 @@ public static class BenchmarkDotNetDiffer
             logger.LogError("Percentage-based regression detected (threshold: {PercentThreshold}).", percentThreshold);
         }
 
-        return (true, true);
+        return new BenchmarkComparisonResult(true, true);
     }
 
     private static (string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] FindRegressions((string id, Benchmark baseResult, Benchmark diffResult)[] comparison, Threshold testThreshold)
