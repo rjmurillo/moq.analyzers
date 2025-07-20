@@ -58,17 +58,17 @@ public class Statistics
     /// <summary>
     /// Gets or sets the list of lower outlier values.
     /// </summary>
-    public List<double>? LowerOutliers { get; set; }
+    public IList<double>? LowerOutliers { get; set; }
 
     /// <summary>
     /// Gets or sets the list of upper outlier values.
     /// </summary>
-    public List<double>? UpperOutliers { get; set; }
+    public IList<double>? UpperOutliers { get; set; }
 
     /// <summary>
     /// Gets or sets the list of all outlier values.
     /// </summary>
-    public List<double>? AllOutliers { get; set; }
+    public IList<double>? AllOutliers { get; set; }
 
     /// <summary>
     /// Gets or sets the standard error of the mean.

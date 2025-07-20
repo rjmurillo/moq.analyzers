@@ -1,5 +1,5 @@
-using Perfolizer.Mathematics.Thresholds;
 using System.Collections.Generic;
+using Perfolizer.Mathematics.Thresholds;
 
 namespace PerfDiff.BDN.Regression;
 
