@@ -1,6 +1,6 @@
-﻿using BenchmarkDotNet.Configs;
+﻿using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
-using BenchmarkDotNet.Columns;
 
 namespace Moq.Analyzers.Benchmarks;
 
