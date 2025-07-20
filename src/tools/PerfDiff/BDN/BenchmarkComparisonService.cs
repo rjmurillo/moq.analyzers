@@ -10,7 +10,7 @@ public class BenchmarkComparisonService(ILogger logger)
     [
         new PercentageRegressionStrategy(),
         new AverageRegressionStrategy(),
-        new P99RegressionStrategy()
+        new PercentileRegressionStrategy()
     ];
 
     public async Task<BenchmarkComparisonResult> CompareAsync(string baselineFolder, string resultsFolder)
@@ -33,7 +33,7 @@ public class BenchmarkComparisonService(ILogger logger)
                         foreach (string msg in (List<string>)details)
                             logger.LogError(msg);
                         break;
-                    case P99RegressionStrategy:
+                    case PercentileRegressionStrategy:
                         foreach (string msg in (List<string>)details)
                             logger.LogError(msg);
                         break;
