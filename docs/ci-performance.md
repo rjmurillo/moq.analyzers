@@ -36,7 +36,19 @@ The CI workflow for this repository supports automated performance benchmarking 
 4. Set `run_performance` to `true`.
 5. Set `force_baseline` to `true` if you want to re-run baseline benchmarks.
 
-## Notes
+## Regression Detection Thresholds
 
-- This mechanism ensures efficient CI runs and gives maintainers control over when to refresh baseline results for performance validation.
-- For more details on running benchmarks locally, see [build/scripts/perf/README.md](../build/scripts/perf/README.md).
+Performance regressions are detected using the following thresholds in the PerfDiff tool:
+
+- **Mean (Average) Regression:** Fails if the mean execution time increases by more than 100 ms compared to baseline.
+- **95th Percentile Regression:** Fails if the 95th percentile execution time increases by more than 250 ms compared to baseline.
+- **Percentage Regression:** Fails if the mean execution time increases by more than 35% compared to baseline.
+- **Statistical Significance:** Uses the Mann-Whitney test to detect statistically significant regressions, with a user-supplied threshold.
+
+These thresholds are hardcoded in the PerfDiff tool and are used during CI runs to automatically detect and fail on performance regressions. For more details on running benchmarks locally, see [build/scripts/perf/README.md](../build/scripts/perf/README.md).
+
+## Future Direction: Practical Performance Budgets
+
+As discussed in [issue #563](https://github.com/rjmurillo/moq.analyzers/issues/563), the project intends to move CI performance validation toward practical, user-facing performance budgets (e.g., "total analysis time < 500 ms for 1kLOC solution") and memory usage limits. This will ensure CI failures are actionable and relevant to real-world usage, reducing noise and improving developer feedback.
+
+Currently, CI gating is based on microbenchmark regression thresholds (see above). Once benchmarks are updated to measure higher-level metrics, regression gates will be updated to fail only when these practical budgets are exceeded. The chosen budgets and rationale will be documented here when implemented.
