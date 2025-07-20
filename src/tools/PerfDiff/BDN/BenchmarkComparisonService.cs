@@ -30,9 +30,6 @@ public class BenchmarkComparisonService(ILogger logger)
                 switch (strategy)
                 {
                     case AverageRegressionStrategy:
-                        foreach (string msg in (List<string>)details)
-                            logger.LogError(msg);
-                        break;
                     case PercentileRegressionStrategy:
                         foreach (string msg in (List<string>)details)
                             logger.LogError(msg);

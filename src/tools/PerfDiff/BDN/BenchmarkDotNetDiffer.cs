@@ -39,24 +39,24 @@ public static class BenchmarkDotNetDiffer
             return null;
         }
 
-        (bool baseResultsSuccess, BdnResult[] baseResults) = await BenchmarkFileReader.TryGetBdnResultAsync(baseFiles, logger).ConfigureAwait(false);
+        (bool baseResultsSuccess, BdnResult?[] baseResults) = await BenchmarkFileReader.TryGetBdnResultAsync(baseFiles, logger).ConfigureAwait(false);
         if (!baseResultsSuccess)
         {
             return null;
         }
 
-        (bool resultsSuccess, BdnResult[] diffResults) = await BenchmarkFileReader.TryGetBdnResultAsync(resultsFiles, logger).ConfigureAwait(false);
+        (bool resultsSuccess, BdnResult?[] diffResults) = await BenchmarkFileReader.TryGetBdnResultAsync(resultsFiles, logger).ConfigureAwait(false);
         if (!resultsSuccess)
         {
             return null;
         }
 
         Dictionary<string, Benchmark> benchmarkIdToDiffResults = diffResults
-            .SelectMany(result => result.Benchmarks ?? Enumerable.Empty<Benchmark>())
+            .SelectMany(result => result?.Benchmarks ?? Enumerable.Empty<Benchmark>())
             .ToDictionary(benchmarkResult => benchmarkResult.FullName ?? $"Unknown-{Guid.NewGuid():N}", benchmarkResult => benchmarkResult);
 
         Dictionary<string, Benchmark> benchmarkIdToBaseResults = baseResults
-            .SelectMany(result => result.Benchmarks ?? Enumerable.Empty<Benchmark>())
+            .SelectMany(result => result?.Benchmarks ?? Enumerable.Empty<Benchmark>())
             .ToDictionary(benchmarkResult => benchmarkResult.FullName ?? $"Unknown-{Guid.NewGuid():N}", benchmarkResult => benchmarkResult);
 
         return benchmarkIdToBaseResults
