@@ -32,7 +32,7 @@ public class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
             foreach (RegressionResult betterResult in better)
             {
                 double mean = BenchmarkDotNetDiffer.GetMedianRatio(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
-                logger.LogInformation("test: '{BetterId}' tool '{Mean:F3}' times less", betterResult.Id, mean);
+                logger.LogInformation("test: '{BetterId}' took '{Mean:F3}' times less", betterResult.Id, mean);
             }
 
             double betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(better[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / betterCount);
