@@ -16,7 +16,8 @@ internal static class DiffCommand
         bool failOnRegression,
         IConsole console);
 
-    internal static string[] VerbosityLevels => new[] { "q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic" };
+    internal static string[] VerbosityLevels => ["q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic"
+    ];
 
     internal static RootCommand CreateCommandLineOptions()
     {
@@ -25,8 +26,8 @@ internal static class DiffCommand
         {
             new Option<string?>("--baseline", () => null, "folder that contains the baseline performance run data").LegalFilePathsOnly(),
             new Option<string?>("--results", () => null, "folder that contains the performance restults").LegalFilePathsOnly(),
-            new Option<string>(new[] { "--verbosity", "-v" }, "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]").FromAmong(VerbosityLevels),
-            new Option<bool>(new[] { "--failOnRegression" }, "Should return non-zero exit code if regression detected"),
+            new Option<string>(["--verbosity", "-v"], "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]").FromAmong(VerbosityLevels),
+            new Option<bool>(["--failOnRegression"], "Should return non-zero exit code if regression detected"),
         };
 
         rootCommand.Description = "diff two sets of performance results";
