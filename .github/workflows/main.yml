@@ -146,7 +146,7 @@ jobs:
     - name: Download baseline performance cache
       id: restore-baseline-cache
       uses: actions/cache/restore@v4
-      if: ${{ env.FORCE_PERF_BASELINE == '' || env.FORCE_PERF_BASELINE == 'false' }}
+      if: success() && (env.FORCE_PERF_BASELINE == '' || env.FORCE_PERF_BASELINE == 'false') && (env.RUN_FULL_PERF == 'false')
       with:
         path: ./artifacts/performance/perfResults/baseline
         key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
@@ -192,7 +192,7 @@ jobs:
           ./artifacts/performance/**
 
     - name: Upload baseline performance cache
-      if: success() && (steps.restore-baseline-cache.outputs.cache-hit != 'true' || env.FORCE_BASELINE == 'true')
+      if: success() && (steps.restore-baseline-cache.outputs.cache-hit != 'true' || env.FORCE_PERF_BASELINE == 'true')
       uses: actions/cache/save@v4
       with:
         path: ./artifacts/performance/perfResults/baseline
