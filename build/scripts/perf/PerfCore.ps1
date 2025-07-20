@@ -59,7 +59,8 @@ try {
     if ($diff) {
         $forceBaseline = $env:FORCE_PERF_BASELINE -eq 'true'
         $DiffPerfToBaseLine = Join-Path $RepoRoot "build\scripts\perf\DiffPerfToBaseline.ps1"
-        $baselinejson = Get-Content -Raw -Path (Join-Path $RepoRoot "build\perf\baseline.json") | ConvertFrom-Json
+        $baselineJsonPath = Resolve-Path (Join-Path $RepoRoot "build\perf\baseline.json")
+        $baselinejson = Get-Content -Raw -Path $baselineJsonPath | ConvertFrom-Json
         $baselineSHA = $baselinejson.sha
         $baselineResultsDir = Join-Path $output "baseline"
         $baselineFolder = Join-Path $baselineResultsDir "results"
@@ -75,13 +76,13 @@ try {
                         Select-Object -First 1
 
             if ($exists) {
-                Write-Host "Using cached baseline results from: '$baselineFolder'."
+                Write-Warning "Using cached baseline results from: '$baselineFolder'."
                 $useCachedBaseline = $true
             }
         }
         
         if (-not $useCachedBaseline) {
-            Write-Host "No cached baseline results found. Will run performance tests to generate new baseline."            
+            Write-Warning "No cached baseline results found. Will run performance tests to generate new baseline."
         }        
 
         $commandArguments = @{

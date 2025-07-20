@@ -34,7 +34,7 @@ try {
     $resultsOutput = Join-Path $output "baseline"
     
     if ($useCachedBaseline -and (Test-Path $resultsOutput)) {
-        Write-Host "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
+        Write-Warning "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
     } else {
         # Checkout SHA
         $baselineFolder = Join-Path $Temp "perfBaseline"
