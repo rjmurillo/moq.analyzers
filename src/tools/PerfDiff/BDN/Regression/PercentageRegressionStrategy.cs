@@ -19,12 +19,13 @@ public class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
 
         List<RegressionResult> better = notSame.Where(result => result.Conclusion == Perfolizer.Mathematics.SignificanceTesting.EquivalenceTestConclusion.Faster).ToList();
         List<RegressionResult> worse = notSame.Where(result => result.Conclusion == Perfolizer.Mathematics.SignificanceTesting.EquivalenceTestConclusion.Slower).ToList();
-        int betterCount = better.Count;
-        int worseCount = worse.Count;
 
         // Exclude Infinity ratios
         better = better.Where(x => !double.IsPositiveInfinity(BenchmarkDotNetDiffer.GetMedianRatio(x))).ToList();
         worse = worse.Where(x => !double.IsPositiveInfinity(BenchmarkDotNetDiffer.GetMedianRatio(x))).ToList();
+
+        int betterCount = better.Count;
+        int worseCount = worse.Count;
 
         if (betterCount > 0)
         {
