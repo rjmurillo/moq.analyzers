@@ -27,7 +27,7 @@ public class Benchmark
     /// </summary>
     /// <returns>an array of the actual workload results (not warmup, not pilot).</returns>
     internal double[] GetOriginalValues()
-        => Measurements
+        => (Measurements ?? Enumerable.Empty<Measurement>())
             .Where(measurement => string.Equals(measurement.IterationStage, "Result", StringComparison.Ordinal))
             .Select(measurement => measurement.Nanoseconds / measurement.Operations)
             .ToArray();
