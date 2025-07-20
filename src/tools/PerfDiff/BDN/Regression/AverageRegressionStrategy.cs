@@ -1,6 +1,7 @@
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
+using Perfolizer.Mathematics.SignificanceTesting;
+using Perfolizer.Mathematics.Thresholds;
 
 namespace PerfDiff.BDN.Regression;
 
@@ -10,36 +11,67 @@ namespace PerfDiff.BDN.Regression;
 public class AverageRegressionStrategy : IBenchmarkRegressionStrategy
 {
     /// <inheritdoc/>
-    public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out object details)
+    public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
     {
-        const double analyzerAvgThresholdMs = 100.0;
-        List<string> violations = new();
+        Threshold testThreshold = Threshold.Create(ThresholdUnit.Milliseconds, 100D);
+        RegressionResult[] notSame = FindMeanRegressions(comparison, testThreshold);
+        List<RegressionResult> better = notSame.Where(result => result.Conclusion == EquivalenceTestConclusion.Faster).ToList();
+        List<RegressionResult> worse = notSame.Where(result => result.Conclusion == EquivalenceTestConclusion.Slower).ToList();
+        int betterCount = better.Count;
+        int worseCount = worse.Count;
 
-        foreach (BdnComparisonResult result in comparison)
+        if (betterCount > 0)
         {
-            if (result.DiffResult.Statistics == null)
+            foreach (RegressionResult betterResult in better)
             {
-                continue;
-            }
-
-            // Convert nanoseconds to milliseconds
-            // See: https://benchmarkdotnet.org/articles/statistics.html ("All time values are reported in nanoseconds by default.")
-            // See: https://github.com/dotnet/BenchmarkDotNet/blob/main/src/BenchmarkDotNet/Reports/Measurement.cs (Measurement.Nanoseconds)
-            // See: https://github.com/dotnet/BenchmarkDotNet/blob/main/src/BenchmarkDotNet/Statistics/Statistics.cs (Statistics aggregates nanosecond values)
-            double avgMs = result.DiffResult.Statistics.Mean / 1_000_000.0;
-            if (avgMs > analyzerAvgThresholdMs)
-            {
-                if (!Debugger.IsAttached)
-                {
-                    Debugger.Launch();
-                }
-
-                logger.LogInformation("test: '{Id}' average execution time {AvgMs:F2}ms exceeds threshold {D}ms", result.Id, avgMs, analyzerAvgThresholdMs);
-                violations.Add($"Analyzer '{result.Id}' average execution time {avgMs:F2}ms exceeds threshold {analyzerAvgThresholdMs}ms.");
+                double mean = betterResult.DiffResult.Statistics!.Mean / 1_000_000D;
+                logger.LogInformation("test: '{TestId}' took {Mean:F3} ms; better than the threshold {Threshold}", betterResult.Id, mean, testThreshold);
             }
         }
 
-        details = violations;
-        return violations.Count > 0;
+        if (worseCount > 0)
+        {
+            foreach (RegressionResult worseResult in worse)
+            {
+                double mean = worseResult.DiffResult.Statistics!.Mean / 1_000_000D;
+                logger.LogInformation("test: '{TestId}' took {Mean:F3} ms; worse than the threshold {Threshold}", worseResult.Id, mean, testThreshold);
+            }
+        }
+
+        details = new RegressionDetectionResult { Threshold = testThreshold };
+        return worseCount > 0;
+    }
+
+    private static RegressionResult[] FindMeanRegressions(BdnComparisonResult[] comparison, Threshold testThreshold)
+    {
+        List<RegressionResult> results = [];
+        foreach (BdnComparisonResult result in comparison
+                     .Where(result => result.BaseResult.Statistics != null && result.DiffResult.Statistics != null))
+        {
+            double diffAvgMs = result.DiffResult.Statistics!.Mean;
+            double thresholdValue = testThreshold.GetValue([diffAvgMs]);
+
+            EquivalenceTestConclusion conclusion;
+            if (diffAvgMs > thresholdValue)
+            {
+                conclusion = EquivalenceTestConclusion.Slower;
+            }
+            else if (diffAvgMs < thresholdValue)
+            {
+                conclusion = EquivalenceTestConclusion.Faster;
+            }
+            else if (Math.Abs(diffAvgMs - thresholdValue) < 0.1D)
+            {
+                conclusion = EquivalenceTestConclusion.Same;
+            }
+            else
+            {
+                conclusion = EquivalenceTestConclusion.Unknown;
+            }
+
+            results.Add(new RegressionResult(result.Id, result.BaseResult, result.DiffResult, conclusion));
+        }
+
+        return results.ToArray();
     }
 }

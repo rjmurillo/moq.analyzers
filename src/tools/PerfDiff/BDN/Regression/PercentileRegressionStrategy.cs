@@ -9,7 +9,7 @@ namespace PerfDiff.BDN.Regression;
 public class PercentileRegressionStrategy : IBenchmarkRegressionStrategy
 {
     /// <inheritdoc/>
-    public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out object details)
+    public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
     {
         const double thresholdMs = 250.0;
         List<string> violations = new();
@@ -31,7 +31,7 @@ public class PercentileRegressionStrategy : IBenchmarkRegressionStrategy
             }
         }
 
-        details = violations;
+        details = new RegressionDetectionResult { Violations = violations };
         return violations.Count > 0;
     }
 }

@@ -33,18 +33,21 @@ public class BenchmarkComparisonService(ILogger logger)
         bool regressionDetected = false;
         foreach (IBenchmarkRegressionStrategy strategy in _strategies)
         {
-            if (strategy.HasRegression(comparison, logger, out object details))
+            if (strategy.HasRegression(comparison, logger, out RegressionDetectionResult details))
             {
                 regressionDetected = true;
                 switch (strategy)
                 {
                     case AverageRegressionStrategy:
                     case PercentileRegressionStrategy:
-                        foreach (string msg in (List<string>)details)
-                            logger.LogError(msg);
+                        if (details.Violations is not null)
+                        {
+                            foreach (string msg in details.Violations)
+                                logger.LogError(msg);
+                        }
                         break;
                     case PercentageRegressionStrategy:
-                        logger.LogError("Percentage-based regression detected (threshold: {PercentThreshold}).", details);
+                        logger.LogError("Percentage-based regression detected (threshold: {PercentThreshold}).", details.Threshold);
                         break;
                 }
             }

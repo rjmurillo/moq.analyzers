@@ -10,7 +10,7 @@ namespace PerfDiff.BDN.Regression;
 public class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
 {
     /// <inheritdoc/>
-    public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out object details)
+    public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
     {
         _ = Threshold.TryParse("35%", out Threshold? testThreshold);
         RegressionResult[] notSame = BenchmarkDotNetDiffer.FindRegressions(comparison, testThreshold);
@@ -46,7 +46,7 @@ public class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
             }
         }
 
-        details = testThreshold;
+        details = new RegressionDetectionResult { Threshold = testThreshold };
         return worseCount > 0;
     }
 }

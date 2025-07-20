@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
+using Perfolizer.Mathematics.Thresholds;
 
 namespace PerfDiff.BDN.Regression;
 
@@ -15,5 +16,5 @@ public interface IBenchmarkRegressionStrategy
     /// <param name="logger">Logger for reporting.</param>
     /// <param name="details">Details about the regression, if detected.</param>
     /// <returns><see langword="true"/> if regression detected; otherwise, <see langword="false"/>.</returns>
-    bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out object details);
+    bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details);
 }
