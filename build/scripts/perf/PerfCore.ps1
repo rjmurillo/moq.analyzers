@@ -63,14 +63,27 @@ try {
         $baselinejson = Get-Content -Raw -Path (Join-Path $RepoRoot "build\perf\baseline.json") | ConvertFrom-Json
         $baselineSHA = $baselinejson.sha
         $baselineResultsDir = Join-Path $output "baseline"
+        $baselineFolder = Join-Path $baselineResultsDir "results"
 
-        if ((Test-Path $baselineResultsDir) -and -not $forceBaseline) {
-            Write-Host "Warning: Using cached baseline results for SHA '$baselineSHA'."
-        } else {
-            Write-Host "Running performance comparison against baseline: '$baselineSHA'"
+        $useCachedBaseline = $false
+
+        if ($forceBaseline) {
+            Write-Host "Warning: Forcing baseline results to be regenerated."
+            $useCachedBaseline = $false
+        } elseif (Test-Path $baselineFolder) {
+            $exists = Get-ChildItem -Path $baselineFolder -Recurse -File |
+                        Where-Object { $_.Name -like "*report-full-compressed.json" } |
+                        Select-Object -First 1
+
+            if ($exists) {
+                Write-Host "Using cached baseline results from: '$baselineFolder'."
+                $useCachedBaseline = $true
+            }
         }
-
-        $useCachedBaseline = (Test-Path $baselineResultsDir) -and -not $forceBaseline
+        
+        if (-not $useCachedBaseline) {
+            Write-Host "No cached baseline results found. Will run performance tests to generate new baseline."            
+        }        
 
         $commandArguments = @{
             baselineSHA = $baselineSHA

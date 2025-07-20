@@ -50,9 +50,25 @@ try {
         if ($ci) { $baselineCommandArgs.ci =  $True}
     
         & $RunPerfTests @baselineCommandArgs
+
+        # There can be issues with things mismatching between the baseline and the branch we're on
+        # so we need to ensure that the baseline results are in the expected location
+        $exists = Get-ChildItem -Path $resultsOutput -Recurse -File |
+                        Where-Object { $_.Name -like "*report-full-compressed.json" } |
+                        Select-Object -First 1
+
+        if (-not $exists) {
+            Write-Warning "WARNING: No baseline results found in '$resultsOutput'."
+            
+            if (-not ($filter -eq "*")) {
+                Write-Warning "The filter '$filter' may not match any benchmarks. We're going to try again with a generic filter."
+                $baselineCommandArgs.filter = "*"
+                & $RunPerfTests @baselineCommandArgs
+            }
+        }
     }
 
-    Write-Host "Done with baseline run"    
+    Write-Host "Done with baseline run (Exiting with code $LASTEXITCODE)"    
     
     # Ensure output directory has been created
     EnsureFolder Join-Path $output "perfTest"
@@ -70,7 +86,7 @@ try {
     # Get perf results
     Write-Host "Running performance tests"
     & $RunPerfTests @commandArgs
-    Write-Host "Done with performance run"    
+    Write-Host "Done with performance run (Exiting with code $LASTEXITCODE)"    
     
     # Diff perf results
     if ($ci) {
