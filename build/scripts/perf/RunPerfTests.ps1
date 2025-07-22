@@ -38,7 +38,14 @@ try {
         # Note: Using Start-Process with -Verb RunAs to ensure it runs with elevated permissions for 
         # 1. ETL, if it's enabled
         # 2. To allow BenchmarkDotNet to set the power profile for the CPU
-        Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList "$commandArguments"
+
+        if ($IsWindows) {
+            # The `-Verg Runas` is only supported on Windows
+            Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList "$commandArguments"
+        } else {
+            # On non-Windows platforms, we can run without elevation
+            & dotnet $commandArguments
+        }
     }
 }
 catch {
