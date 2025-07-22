@@ -18,7 +18,31 @@ function EnsureFolder {
         New-Item -ItemType Directory -Force -Path $path
     }
 }
- 
+
+function Show-Invocation {
+    param(
+        [string]$ScriptPath,
+        [hashtable]$Arguments
+    )
+    $parts = @($ScriptPath)
+    foreach ($key in $Arguments.Keys) {
+        $value = $Arguments[$key]
+        if ($null -eq $value) { continue }
+
+        if ($value -eq $true) {
+            $parts += "-$key"
+        }
+        elseif ($value -is [string] -and $value -match '\s') {
+            $parts += "-$key `"$value`""
+        }
+        else {
+            $parts += "-$key $value"
+        }
+    }
+    Write-Host "Invoking: $($parts -join ' ')"
+}
+
+
 # Setup paths
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
 $RunPerfTests = Join-Path $PSScriptRoot "RunPerfTests.ps1"
@@ -38,7 +62,7 @@ try {
     } else {
         # Checkout SHA
         $baselineFolder = Join-Path $Temp "perfBaseline"
-        Invoke-Expression "git worktree add $baselineFolder $baselineSHA"
+        Invoke-Expression "git worktree add $baselineFolder $baselineSHA -f"
     
         $baselineCommandArgs = @{
             perftestRootFolder = $baselineFolder
@@ -48,7 +72,8 @@ try {
         }
         if ($etl) { $baselineCommandArgs.etl = $True }
         if ($ci) { $baselineCommandArgs.ci =  $True}
-    
+
+        Show-Invocation -ScriptPath $RunPerfTests -Arguments $baselineCommandArgs
         & $RunPerfTests @baselineCommandArgs
 
         $needRerun = $false
@@ -74,7 +99,15 @@ try {
             if (-not ($filter -eq "*")) {
                 Write-Warning "The filter '$filter' may not match any benchmarks. We're going to try again with a generic filter."
                 $baselineCommandArgs.filter = "*"
+
+                Show-Invocation -ScriptPath $RunPerfTests -Arguments $baselineCommandArgs
                 & $RunPerfTests @baselineCommandArgs
+
+                if (-not (Test-Path $resultsOutput)) {  
+                    Write-Error "Results directory '$resultsOutput' does not exist after running baseline tests."
+                    $host.SetShouldExit(1)
+                    exit 1
+                }
             }
         }
     }
@@ -94,18 +127,23 @@ try {
     if ($etl) { $commandArgs.etl = $True }
     if ($ci) { $commandArgs.ci =  $True}
     
+    Show-Invocation -ScriptPath $RunPerfTests -Arguments $commandArgs
+
     # Get perf results
     Write-Host "Running performance tests"
     & $RunPerfTests @commandArgs
     Write-Host "Done with performance run"    
     
     # Diff perf results
-    if ($ci) {
-        & $ComparePerfResults -baseline $resultsOutput -results $testOutput -ci
+    $ComparePrefResultsArgs = @{
+            baseline = $resultsOutput
+            results = $testOutput            
     }
-    else {
-        & $ComparePerfResults -baseline $resultsOutput -results $testOutput
-    }
+    if ($ci) { $ComparePerfResultsArgs.ci = $True }
+
+    Show-Invocation -ScriptPath $ComparePerfResults -Arguments $ComparePrefResultsArgs
+    & $ComparePerfResults @ComparePrefResultsArgs
+    
 }
 catch {
     Write-Host $_
