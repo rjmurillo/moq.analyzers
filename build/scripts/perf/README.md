@@ -14,7 +14,7 @@ The performance tools now support running on:
 
 The batch and shell files call out to PowerShell, which can run on Windows, Linux, and macOS. [Installation Instructions](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.5).
 
-> NOTE: If you are on Windows, the PowerShell will automatically elevate to allow your Power Plan to be set.
+> NOTE: When you run performance tests, it is highly recommended to use `sudo`. If you are on Windows, you can enable [Sudo for Windows](https://learn.microsoft.com/en-us/windows/advanced-settings/sudo)
 
 ## Using PerfCore.ps1
 
@@ -24,7 +24,7 @@ The recommended way to run benchmarks is to use PowerShell.
 ./build/scripts/perf/PerfCore.ps1 -projects "<relative-path-to-project>" [-filter "<test-filter>"] [-etl] [-ci] [-diff] [-v <verbosity>]
 ```
 
-> NOTE: ETL tracing is only available on Windows and requires admin permissions. On Linux/macOS, ETL will be automatically disabled with a warning message.
+> NOTE: ETL tracing is only available on Windows and requires admin permissions. If you have not run elavated (from Admin terminal or with `sudo`) the test process will automatically be elevated. On Linux/macOS, ETL will be automatically disabled with a warning message.
 
 Each benchmark is written out to a results folder:
 
