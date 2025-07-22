@@ -78,8 +78,8 @@ try {
 
         $needRerun = $false
 
-        # Ensure the results directory exists before checking for files  
-        if (-not (Test-Path $resultsOutput)) {  
+        # Ensure the results directory exists before checking for files
+        if (-not (Test-Path $resultsOutput)) {
             Write-Warning "Results directory '$resultsOutput' does not exist after running baseline tests."            
             $needRerun = $true
         } else {
@@ -103,7 +103,7 @@ try {
                 Show-Invocation -ScriptPath $RunPerfTests -Arguments $baselineCommandArgs
                 & $RunPerfTests @baselineCommandArgs
 
-                if (-not (Test-Path $resultsOutput)) {  
+                if (-not (Test-Path $resultsOutput)) {
                     Write-Error "Results directory '$resultsOutput' does not exist after running baseline tests."
                     $host.SetShouldExit(1)
                     exit 1
@@ -112,12 +112,12 @@ try {
         }
     }
 
-    Write-Host "Done with baseline run"    
-    
+    Write-Host "Done with baseline run"
+
     # Ensure output directory has been created
     EnsureFolder Join-Path $output "perfTest"
     $testOutput = Join-Path $output "perfTest"
-    
+
     $commandArgs = @{
         perftestRootFolder = $RepoRoot
         projects = $projects
@@ -126,24 +126,23 @@ try {
     }
     if ($etl) { $commandArgs.etl = $True }
     if ($ci) { $commandArgs.ci =  $True}
-    
+
     Show-Invocation -ScriptPath $RunPerfTests -Arguments $commandArgs
 
     # Get perf results
     Write-Host "Running performance tests"
     & $RunPerfTests @commandArgs
-    Write-Host "Done with performance run"    
-    
+    Write-Host "Done with performance run"
+
     # Diff perf results
     $ComparePrefResultsArgs = @{
             baseline = $resultsOutput
-            results = $testOutput            
+            results = $testOutput
     }
     if ($ci) { $ComparePerfResultsArgs.ci = $True }
 
     Show-Invocation -ScriptPath $ComparePerfResults -Arguments $ComparePrefResultsArgs
     & $ComparePerfResults @ComparePrefResultsArgs
-    
 }
 catch {
     Write-Host $_
