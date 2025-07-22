@@ -54,7 +54,6 @@ Param(
     Write-Host "Invoking: $($parts -join ' ')"
 }
 
-  
 try {
     # Check if running on Windows and warn about ETL on non-Windows platforms
     $isWindowsPlatform = $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
@@ -77,7 +76,7 @@ try {
     }
 
     $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
-    $output = Join-Path $RepoRoot "artifacts\performance\perfResults"    
+    $output = Join-Path $RepoRoot "artifacts\performance\perfResults"
 
     #  Diff two different SHAs
     if ($diff) {
@@ -106,10 +105,10 @@ try {
                 $useCachedBaseline = $true
             }
         }
-        
+
         if (-not $useCachedBaseline) {
             Write-Warning "No cached baseline results found. Will run performance tests to generate new baseline."
-        }        
+        }
 
         $commandArguments = @{
             baselineSHA = $baselineSHA
@@ -123,7 +122,7 @@ try {
 
         Show-Invocation -ScriptPath $DiffPerfToBaseLine -Arguments $commandArguments
         & $DiffPerfToBaseLine @commandArguments
-        exit                
+        exit
     }
 
     $commandArguments = @{
@@ -134,7 +133,7 @@ try {
     }
     if ($etl) { $commandArguments.etl = $True }
     if ($ci) { $commandArguments.ci =  $True}
-    
+
     $RunPerfTests = Join-Path $RepoRoot "build\scripts\perf\RunPerfTests.ps1"
 
     Show-Invocation -ScriptPath $RunPerfTests -Arguments $commandArguments
