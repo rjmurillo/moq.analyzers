@@ -44,7 +44,7 @@ try {
             Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList "$commandArguments"
         } else {
             # On non-Windows platforms, we can run without elevation
-            Invoke-Expression "dotnet $commandArguments --filter ""$filter"""
+            Invoke-Expression "dotnet $commandArguments"
         }
     }
 }
