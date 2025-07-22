@@ -34,21 +34,21 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
         {
             foreach (RegressionResult betterResult in better)
             {
-                double mean = BenchmarkDotNetDiffer.GetMedianRatio(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
-                double delta = BenchmarkDotNetDiffer.GetP95Delta(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
+                double medianRatio = BenchmarkDotNetDiffer.GetMedianRatio(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
+                double p95Delta = BenchmarkDotNetDiffer.GetP95Delta(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
 
-                if (delta <= absoluteThresholdValue)
+                if (p95Delta <= absoluteThresholdValue)
                 {
                     continue;
                 }
 
                 betterCountExceedingThreshold++;
-                double deltaMs = delta / 1_000_000;
+                double deltaMs = p95Delta / 1_000_000;
 
                 logger.LogInformation(
                     "test: '{BetterId}' took {Mean:F3} times ({Delta:F2} ms) less",
                     betterResult.Id,
-                    mean,
+                    medianRatio,
                     deltaMs);
             }
 
@@ -63,21 +63,21 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
         {
             foreach (RegressionResult worseResult in worse)
             {
-                double mean = BenchmarkDotNetDiffer.GetMedianRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
-                double delta = BenchmarkDotNetDiffer.GetP95Delta(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
+                double medianRatio = BenchmarkDotNetDiffer.GetMedianRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
+                double p95Delta = BenchmarkDotNetDiffer.GetP95Delta(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
 
-                if (delta <= absoluteThresholdValue)
+                if (p95Delta <= absoluteThresholdValue)
                 {
                     continue;
                 }
 
                 worseCountExceedingThreshold++;
-                double deltaMs = delta / 1_000_000;
+                double deltaMs = p95Delta / 1_000_000;
 
                 logger.LogInformation(
                     "test: '{WorseId}' took {Mean:F3} times ({Delta:F2} ms) more",
                     worseResult.Id,
-                    mean,
+                    medianRatio,
                     deltaMs);
             }
 

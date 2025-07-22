@@ -31,8 +31,8 @@ public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
         {
             foreach (RegressionResult betterResult in better)
             {
-                double mean = BenchmarkDotNetDiffer.GetMedianRatio(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
-                logger.LogInformation("test: '{BetterId}' took '{Mean:F3}' times less", betterResult.Id, mean);
+                double medianRatio = BenchmarkDotNetDiffer.GetMedianRatio(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
+                logger.LogInformation("test: '{BetterId}' took '{Median:F3}' times less", betterResult.Id, medianRatio);
             }
 
             double betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(better[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / betterCount);
@@ -43,8 +43,8 @@ public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
         {
             foreach (RegressionResult worseResult in worse)
             {
-                double mean = BenchmarkDotNetDiffer.GetMedianRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
-                logger.LogInformation("test: '{WorseId}' took '{Mean:F3}' times longer", worseResult.Id, mean);
+                double medianRatio = BenchmarkDotNetDiffer.GetMedianRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
+                logger.LogInformation("test: '{WorseId}' took '{Median:F3}' times longer", worseResult.Id, medianRatio);
             }
 
             double worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(worse[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / worseCount);

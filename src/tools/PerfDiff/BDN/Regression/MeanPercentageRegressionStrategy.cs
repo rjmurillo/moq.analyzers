@@ -38,21 +38,21 @@ public sealed class MeanPercentageRegressionStrategy : IBenchmarkRegressionStrat
         {
             foreach (RegressionResult betterResult in better)
             {
-                double mean = BenchmarkDotNetDiffer.GetMeanRatio(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
-                double delta = BenchmarkDotNetDiffer.GetMeanDelta(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
+                double meanRatio = BenchmarkDotNetDiffer.GetMeanRatio(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
+                double meanDelta = BenchmarkDotNetDiffer.GetMeanDelta(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
 
-                if (delta <= absoluteThresholdValue)
+                if (meanDelta <= absoluteThresholdValue)
                 {
                     continue;
                 }
 
                 betterCountExceedingThreshold++;
-                double deltaMs = delta / 1_000_000;
+                double deltaMs = meanDelta / 1_000_000;
 
                 logger.LogInformation(
                     "test: '{BetterId}' took {Mean:F3} times ({Delta:F2} ms) less",
                     betterResult.Id,
-                    mean,
+                    meanRatio,
                     deltaMs);
             }
 
@@ -67,21 +67,21 @@ public sealed class MeanPercentageRegressionStrategy : IBenchmarkRegressionStrat
         {
             foreach (RegressionResult worseResult in worse)
             {
-                double mean = BenchmarkDotNetDiffer.GetMeanRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
-                double delta = BenchmarkDotNetDiffer.GetMeanDelta(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
+                double meanRatio = BenchmarkDotNetDiffer.GetMeanRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
+                double meanDelta = BenchmarkDotNetDiffer.GetMeanDelta(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
 
-                if (delta <= absoluteThresholdValue)
+                if (meanDelta <= absoluteThresholdValue)
                 {
                     continue;
                 }
 
                 worseCountExceedingThreshold++;
-                double deltaMs = delta / 1_000_000;
+                double deltaMs = meanDelta / 1_000_000;
 
                 logger.LogInformation(
                     "test: '{WorseId}' took {Mean:F3} times ({Delta:F2} ms) more",
                     worseResult.Id,
-                    mean,
+                    meanRatio,
                     deltaMs);
             }
 
