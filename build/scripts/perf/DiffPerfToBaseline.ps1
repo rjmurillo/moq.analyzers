@@ -49,21 +49,21 @@ $RunPerfTests = Join-Path $PSScriptRoot "RunPerfTests.ps1"
 $ComparePerfResults = Join-Path $PSScriptRoot "ComparePerfResults.ps1"
 $Temp = Join-Path $RepoRoot "artifacts"
 
-try {  
+try {
     # Get baseline results
     Write-Host "Running Baseline Tests"
-    
+
     # Ensure output directory has been created
     EnsureFolder Join-Path $output "baseline"
     $resultsOutput = Join-Path $output "baseline"
-    
+
     if ($useCachedBaseline -and (Test-Path $resultsOutput)) {
         Write-Warning "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
     } else {
         # Checkout SHA
         $baselineFolder = Join-Path $Temp "perfBaseline"
         Invoke-Expression "git worktree add $baselineFolder $baselineSHA -f"
-    
+
         $baselineCommandArgs = @{
             perftestRootFolder = $baselineFolder
             projects = $projects
