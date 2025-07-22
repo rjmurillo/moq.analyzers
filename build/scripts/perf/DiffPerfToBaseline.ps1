@@ -95,10 +95,10 @@ try {
             } 
         }
 
-        if ($needRerun) {
-            if (-not ($filter -eq "*")) {
-                Write-Warning "The filter '$filter' may not match any benchmarks. We're going to try again with a generic filter."
-                $baselineCommandArgs.filter = "*"
+        if ($true) {
+            if (-not ($filter -eq "*" -or $filter -eq "'*'")) {
+                Write-Warning "The filter '$filter' may not match any benchmarks. We're going to try again without a filter."
+                $baselineCommandArgs.filter = $null
 
                 Show-Invocation -ScriptPath $RunPerfTests -Arguments $baselineCommandArgs
                 & $RunPerfTests @baselineCommandArgs

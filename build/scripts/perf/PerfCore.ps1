@@ -73,7 +73,7 @@ try {
     }
 
     if ([string]::IsNullOrWhiteSpace($filter)) {
-        $filter = "*"
+        $filter = "'*'"
     }
 
     $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
