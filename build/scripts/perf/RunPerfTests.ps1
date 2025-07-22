@@ -20,7 +20,7 @@ try {
     }
 
     $projectsList = $projects -split ";"
-    foreach ($project in $projectsList){
+    foreach ($project in $projectsList) {
         $projectFullPath = Join-Path $perftestRootFolder $project
         & dotnet restore $projectFullPath
         & dotnet build -c Release --no-incremental $projectFullPath
