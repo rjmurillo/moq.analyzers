@@ -32,7 +32,7 @@ try {
             $commandArguments = "$commandArguments --profiler ETW"
         }
 
-        if (-neq [string]::IsNullOrWhiteSpace($filter)) {
+        if (-not [string]::IsNullOrWhiteSpace($filter)) {
             $commandArguments = "$commandArguments --filter '$filter'"
         }
 
