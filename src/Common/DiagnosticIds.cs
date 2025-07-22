@@ -24,4 +24,5 @@ internal static class DiagnosticIds
     internal const string SetStrictMockBehavior = "Moq1410";
     internal const string RedundantTimesSpecification = "Moq1420";
     internal const string MockRepositoryVerifyNotCalled = "Moq1500";
+    internal const string SetupSequenceOnlyUsedForOverridableMembers = "Moq1800";
 }
