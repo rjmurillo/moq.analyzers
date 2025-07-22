@@ -14,7 +14,7 @@ The performance tools now support running on:
 
 The batch and shell files call out to PowerShell, which can run on Windows, Linux, and macOS. [Installation Instructions](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.5).
 
-> NOTE: When you run performance tests, it is highly recommended to use `sudo`. If you are on Windows, you can enable [Sudo for Windows](https://learn.microsoft.com/en-us/windows/advanced-settings/sudo)
+> NOTE: When you run performance tests, it is highly recommended to use `sudo`. If you are on Windows, you can enable [Sudo for Windows](https://learn.microsoft.com/en-us/windows/advanced-settings/sudo).
 
 ## Using PerfCore.ps1
 
