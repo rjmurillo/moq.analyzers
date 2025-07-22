@@ -30,7 +30,30 @@ Param(
     Write-Host "Command line arguments not listed above are passed thru to msbuild."
     Write-Host "The above arguments can be shortened as much as to be unambiguous (e.g. -co for configuration, -t for test, etc.)."
   }
-  
+
+  function Show-Invocation {
+    param(
+        [string]$ScriptPath,
+        [hashtable]$Arguments
+    )
+    $parts = @($ScriptPath)
+    foreach ($key in $Arguments.Keys) {
+        $value = $Arguments[$key]
+        if ($null -eq $value) { continue }
+
+        if ($value -eq $true) {
+            $parts += "-$key"
+        }
+        elseif ($value -is [string] -and $value -match '\s') {
+            $parts += "-$key `"$value`""
+        }
+        else {
+            $parts += "-$key $value"
+        }
+    }
+    Write-Host "Invoking: $($parts -join ' ')"
+}
+
 try {
     # Check if running on Windows and warn about ETL on non-Windows platforms
     $isWindowsPlatform = $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
@@ -49,11 +72,11 @@ try {
     }
 
     if ([string]::IsNullOrWhiteSpace($filter)) {
-        $filter = "*"
+        $filter = "'*'"
     }
 
     $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
-    $output = Join-Path $RepoRoot "artifacts\performance\perfResults"    
+    $output = Join-Path $RepoRoot "artifacts\performance\perfResults"
 
     #  Diff two different SHAs
     if ($diff) {
@@ -64,6 +87,8 @@ try {
         $baselineSHA = $baselinejson.sha
         $baselineResultsDir = Join-Path $output "baseline"
         $baselineFolder = Join-Path $baselineResultsDir "results"
+
+        Write-Host "Using baseline SHA: '$baselineSHA'."
 
         $useCachedBaseline = $false
 
@@ -80,10 +105,10 @@ try {
                 $useCachedBaseline = $true
             }
         }
-        
+
         if (-not $useCachedBaseline) {
             Write-Warning "No cached baseline results found. Will run performance tests to generate new baseline."
-        }        
+        }
 
         $commandArguments = @{
             baselineSHA = $baselineSHA
@@ -94,8 +119,10 @@ try {
         }
         if ($etl) { $commandArguments.etl = $True }
         if ($ci) { $commandArguments.ci =  $True}
+
+        Show-Invocation -ScriptPath $DiffPerfToBaseLine -Arguments $commandArguments
         & $DiffPerfToBaseLine @commandArguments
-        exit                
+        exit
     }
 
     $commandArguments = @{
@@ -106,8 +133,10 @@ try {
     }
     if ($etl) { $commandArguments.etl = $True }
     if ($ci) { $commandArguments.ci =  $True}
-    
+
     $RunPerfTests = Join-Path $RepoRoot "build\scripts\perf\RunPerfTests.ps1"
+
+    Show-Invocation -ScriptPath $RunPerfTests -Arguments $commandArguments
     & $RunPerfTests @commandArguments
     exit
 }

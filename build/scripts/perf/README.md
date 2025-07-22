@@ -3,7 +3,7 @@
 > **CI Performance Benchmarking and Baseline Caching:**
 > This repository supports automated performance benchmarking in CI, with baseline result caching and manual override capabilities. Baseline results are cached per OS and SHA, and can be force-refreshed via workflow inputs. For details on usage, manual runs, and force options, see [docs/ci-performance.md](../../../docs/ci-performance.md).
 
-When running benchmarks, use the `PerfCore.ps1` script located in `build/scripts/perf/` whenever possible. This script provides a more streamlined and consistent experience for running performance tests.
+When running benchmarks, use the `PerfCore.ps1` script located in `build/scripts/perf/` whenever possible. This script provides a more streamlined and consistent experience for running performance tests. To allow [BenchmarkDotNet to set power plans](https://mawosoft.github.io/BenchmarkDotNet/articles/configs/powerplans.html) the script will automatically elevate.
 
 ## Cross-Platform Support
 
@@ -14,6 +14,8 @@ The performance tools now support running on:
 
 The batch and shell files call out to PowerShell, which can run on Windows, Linux, and macOS. [Installation Instructions](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.5).
 
+> NOTE: When you run performance tests, it is highly recommended to use `sudo`. If you are on Windows, you can enable [Sudo for Windows](https://learn.microsoft.com/en-us/windows/advanced-settings/sudo).
+
 ## Using PerfCore.ps1
 
 The recommended way to run benchmarks is to use PowerShell.
@@ -22,7 +24,7 @@ The recommended way to run benchmarks is to use PowerShell.
 ./build/scripts/perf/PerfCore.ps1 -projects "<relative-path-to-project>" [-filter "<test-filter>"] [-etl] [-ci] [-diff] [-v <verbosity>]
 ```
 
-> NOTE: ETL tracing is only available on Windows and requires admin permissions. On Linux/macOS, ETL will be automatically disabled with a warning message.
+> NOTE: ETL tracing is only available on Windows and requires admin permissions. If you have not run elevated (from Admin terminal or with `sudo`) the test process will automatically be elevated. On Linux/macOS, ETL will be automatically disabled with a warning message.
 
 Each benchmark is written out to a results folder:
 
