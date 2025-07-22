@@ -43,7 +43,7 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
                 }
 
                 betterCountExceedingThreshold++;
-                double deltaMs = p95Delta / 1_000_000;
+                double deltaMs = p95Delta / TimeUnitConstants.NanoSecondsToMilliseconds;
 
                 logger.LogInformation(
                     "test: '{BetterId}' took {Mean:F3} times ({Delta:F2} ms) less",

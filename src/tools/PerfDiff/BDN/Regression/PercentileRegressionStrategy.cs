@@ -18,7 +18,7 @@ public sealed class PercentileRegressionStrategy : IBenchmarkRegressionStrategy
             logger,
             testThreshold,
             b => b.Statistics?.Percentiles?.P95,
-            r => r.DiffResult.Statistics!.Percentiles!.P95 / 1_000_000D,
+            r => r.DiffResult.Statistics!.Percentiles!.P95 / TimeUnitConstants.NanoSecondsToMilliseconds,
             "P95",
             out details);
     }

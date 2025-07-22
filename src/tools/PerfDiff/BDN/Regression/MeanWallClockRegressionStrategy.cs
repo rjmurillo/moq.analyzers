@@ -18,7 +18,7 @@ public sealed class MeanWallClockRegressionStrategy : IBenchmarkRegressionStrate
             logger,
             testThreshold,
             b => b.Statistics?.Mean,
-            r => r.DiffResult.Statistics!.Mean / 1_000_000D,
+            r => r.DiffResult.Statistics!.Mean / TimeUnitConstants.NanoSecondsToMilliseconds,
             "Mean",
             out details);
     }
