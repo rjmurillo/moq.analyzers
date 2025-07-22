@@ -41,6 +41,8 @@ try {
             # 1. ETL, if it's enabled
             # 2. To allow BenchmarkDotNet to set the power profile for the CPU
             # The `-Verb RunAs` is only supported on Windows
+            Write-Warning "Running with elevated permissions will no longer capture stdout"
+
             Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList "$commandArguments"
         } else {
             # On non-Windows platforms, we can run without elevation
