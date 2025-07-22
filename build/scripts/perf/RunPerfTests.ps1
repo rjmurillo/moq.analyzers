@@ -32,9 +32,7 @@ try {
             $commandArguments = "$commandArguments --profiler ETW"
         }
 
-        if (-not [string]::IsNullOrWhiteSpace($filter)) {
-            $commandArguments = "$commandArguments --filter '$filter'"
-        }
+        $commandArguments = "$commandArguments --filter '$filter'"
 
         Write-Host "Invoking: dotnet $commandArguments"
 
