@@ -24,7 +24,7 @@ The recommended way to run benchmarks is to use PowerShell.
 ./build/scripts/perf/PerfCore.ps1 -projects "<relative-path-to-project>" [-filter "<test-filter>"] [-etl] [-ci] [-diff] [-v <verbosity>]
 ```
 
-> NOTE: ETL tracing is only available on Windows and requires admin permissions. If you have not run elavated (from Admin terminal or with `sudo`) the test process will automatically be elevated. On Linux/macOS, ETL will be automatically disabled with a warning message.
+> NOTE: ETL tracing is only available on Windows and requires admin permissions. If you have not run elevated (from Admin terminal or with `sudo`) the test process will automatically be elevated. On Linux/macOS, ETL will be automatically disabled with a warning message.
 
 Each benchmark is written out to a results folder:
 
