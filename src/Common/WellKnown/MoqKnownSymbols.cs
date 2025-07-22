@@ -253,4 +253,29 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.Language.IRaiseableAsync.RaisesAsync</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> IRaiseableAsyncRaisesAsync => IRaiseableAsync?.GetMembers("RaisesAsync").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the struct <c>Moq.Times</c>.
+    /// </summary>
+    internal INamedTypeSymbol? Times => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Times");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Times.AtLeastOnce</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> TimesAtLeastOnce => Times?.GetMembers("AtLeastOnce").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Times.Never</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> TimesNever => Times?.GetMembers("Never").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Times.Once</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> TimesOnce => Times?.GetMembers("Once").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Times.Exactly</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> TimesExactly => Times?.GetMembers("Exactly").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 }
