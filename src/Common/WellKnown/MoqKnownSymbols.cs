@@ -61,6 +61,11 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> Mock1SetupRemove => Mock1?.GetMembers("SetupRemove").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.SetupSequence</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1SetupSequence => Mock1?.GetMembers("SetupSequence").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the methods for <c>Moq.Mock{T}.Raise</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> Mock1Raise => Mock1?.GetMembers("Raise").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
