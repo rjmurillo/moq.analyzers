@@ -76,7 +76,7 @@ public sealed class MeanPercentageRegressionStrategy : IBenchmarkRegressionStrat
                 }
 
                 worseCountExceedingThreshold++;
-                double deltaMs = meanDelta / 1_000_000;
+                double deltaMs = meanDelta / TimeUnitConstants.NanoSecondsToMilliseconds;
 
                 logger.LogInformation(
                     "test: '{WorseId}' took {Mean:F3} times ({Delta:F2} ms) more",
