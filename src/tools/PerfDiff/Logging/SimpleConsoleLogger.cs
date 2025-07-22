@@ -5,89 +5,100 @@ using System.CommandLine;
 using System.CommandLine.Rendering;
 using Microsoft.Extensions.Logging;
 
-namespace PerfDiff.Logging
+namespace PerfDiff.Logging;
+
+/// <summary>
+/// Provides a simple console logger for structured logging output.
+/// </summary>
+internal sealed class SimpleConsoleLogger : ILogger
 {
-    internal sealed class SimpleConsoleLogger : ILogger
+    private readonly Lock _gate = new();
+
+    private readonly IConsole _console;
+    private readonly ITerminal _terminal;
+    private readonly LogLevel _minimalLogLevel;
+    private readonly LogLevel _minimalErrorLevel;
+
+    private static ImmutableDictionary<LogLevel, ConsoleColor> LogLevelColorMap => new Dictionary<LogLevel, ConsoleColor>
     {
-        private readonly Lock _gate = new();
+        [LogLevel.Critical] = ConsoleColor.Red,
+        [LogLevel.Error] = ConsoleColor.Red,
+        [LogLevel.Warning] = ConsoleColor.Yellow,
+        [LogLevel.Information] = ConsoleColor.White,
+        [LogLevel.Debug] = ConsoleColor.Gray,
+        [LogLevel.Trace] = ConsoleColor.Gray,
+        [LogLevel.None] = ConsoleColor.White,
+    }.ToImmutableDictionary();
 
-        private readonly IConsole _console;
-        private readonly ITerminal _terminal;
-        private readonly LogLevel _minimalLogLevel;
-        private readonly LogLevel _minimalErrorLevel;
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SimpleConsoleLogger"/> class.
+    /// </summary>
+    /// <param name="console">The console to write output to.</param>
+    /// <param name="minimalLogLevel">The minimal log level for output.</param>
+    /// <param name="minimalErrorLevel">The minimal log level for error output.</param>
+    public SimpleConsoleLogger(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
+    {
+        _terminal = console.GetTerminal();
+        _console = console;
+        _minimalLogLevel = minimalLogLevel;
+        _minimalErrorLevel = minimalErrorLevel;
+    }
 
-        private static ImmutableDictionary<LogLevel, ConsoleColor> LogLevelColorMap => new Dictionary<LogLevel, ConsoleColor>
+    /// <inheritdoc/>
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        if (!IsEnabled(logLevel))
         {
-            [LogLevel.Critical] = ConsoleColor.Red,
-            [LogLevel.Error] = ConsoleColor.Red,
-            [LogLevel.Warning] = ConsoleColor.Yellow,
-            [LogLevel.Information] = ConsoleColor.White,
-            [LogLevel.Debug] = ConsoleColor.Gray,
-            [LogLevel.Trace] = ConsoleColor.Gray,
-            [LogLevel.None] = ConsoleColor.White,
-        }.ToImmutableDictionary();
-
-        public SimpleConsoleLogger(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
-        {
-            _terminal = console.GetTerminal();
-            _console = console;
-            _minimalLogLevel = minimalLogLevel;
-            _minimalErrorLevel = minimalErrorLevel;
+            return;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        lock (_gate)
         {
-            if (!IsEnabled(logLevel))
+            string message = formatter(state, exception);
+            bool logToErrorStream = logLevel >= _minimalErrorLevel;
+            if (_terminal is null)
             {
-                return;
-            }
-
-            lock (_gate)
-            {
-                var message = formatter(state, exception);
-                var logToErrorStream = logLevel >= _minimalErrorLevel;
-                if (_terminal is null)
-                {
-                    LogToConsole(_console, message, logToErrorStream);
-                }
-                else
-                {
-                    LogToTerminal(message, logLevel, logToErrorStream);
-                }
-            }
-        }
-
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return (int)logLevel >= (int)_minimalLogLevel;
-        }
-
-        public IDisposable BeginScope<TState>(TState state)
-            where TState : notnull
-        {
-            return NullScope.Instance;
-        }
-
-        private void LogToTerminal(string message, LogLevel logLevel, bool logToErrorStream)
-        {
-            var messageColor = LogLevelColorMap[logLevel];
-            _terminal.ForegroundColor = messageColor;
-
-            LogToConsole(_terminal, message, logToErrorStream);
-
-            _terminal.ResetColor();
-        }
-
-        private static void LogToConsole(IConsole console, string message, bool logToErrorStream)
-        {
-            if (logToErrorStream)
-            {
-                console.Error.Write($"{message}{Environment.NewLine}");
+                LogToConsole(_console, message, logToErrorStream);
             }
             else
             {
-                console.Out.Write($"  {message}{Environment.NewLine}");
+                LogToTerminal(message, logLevel, logToErrorStream);
             }
+        }
+    }
+
+    /// <inheritdoc/>
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return (int)logLevel >= (int)_minimalLogLevel;
+    }
+
+    /// <inheritdoc/>
+    public IDisposable BeginScope<TState>(TState state)
+        where TState : notnull
+    {
+        return NullScope.Instance;
+    }
+
+    private void LogToTerminal(string message, LogLevel logLevel, bool logToErrorStream)
+    {
+        ConsoleColor messageColor = LogLevelColorMap[logLevel];
+        _terminal.ForegroundColor = messageColor;
+
+        LogToConsole(_terminal, message, logToErrorStream);
+
+        _terminal.ResetColor();
+    }
+
+    private static void LogToConsole(IConsole console, string message, bool logToErrorStream)
+    {
+        if (logToErrorStream)
+        {
+            console.Error.Write($"{message}{Environment.NewLine}");
+        }
+        else
+        {
+            console.Out.Write($"  {message}{Environment.NewLine}");
         }
     }
 }

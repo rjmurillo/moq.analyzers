@@ -44,6 +44,8 @@ jobs:
     env:
       IS_CODACY_COVERAGE_ALLOWED: ${{ secrets.CODACY_PROJECT_TOKEN != '' }}
       IS_QLTY_COVERAGE_ALLOWED: ${{ secrets.QLTY_COVERAGE_TOKEN != '' }}
+      RUN_FULL_PERF: ${{ (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true') }}
+      FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }} # This is also used in PerfCore.ps1 to determine if the baseline should be forced
 
     steps:
     - uses: actions/checkout@v4
@@ -120,26 +122,6 @@ jobs:
           ./artifacts/package
         if-no-files-found: error
 
-  performance:
-    # Run if manually dispatched (with input), on schedule, or if explicitly requested
-    if: |
-      (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true')
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-11-arm, ubuntu-24.04-arm, ubuntu-latest, windows-latest, macos-latest]
-
-    runs-on: ${{ matrix.os }}
-
-    env:
-      FORCE_BASELINE: ${{ github.event.inputs.force_baseline }}
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
     - name: Get baseline SHA
       id: get-baseline-sha
       run: |
@@ -150,23 +132,20 @@ jobs:
         $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
         echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
       shell: pwsh
-    - name: Download baseline performance cache
-      id: restore-baseline-cache
-      uses: actions/cache/restore@v4
-      with:
-        path: ./artifacts/performance/perfResults/baseline
-        key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}
 
-    - name: Setup, Restore, and Build Solution
-      uses: ./.github/actions/setup-restore-build
+    - name: Get performance test filter
+      id: get-perf-filter
+      run: |
+        if ('${{ env.RUN_FULL_PERF }}' -eq 'true') {
+          echo "filter='*'" >> $env:GITHUB_OUTPUT
+        } else {
+          echo "filter='*(FileCount: 1)'" >> $env:GITHUB_OUTPUT
+        }
+      shell: pwsh
 
     - name: Validate performance
       shell: pwsh
-      # BenchmarkDotNet settings:
-      #   --warmupCount 2: Two warmup iterations to allow JIT and runtime optimizations to stabilize before measurement.
-      #   --invocationCount 15: Fifteen measured iterations for statistically meaningful results and to reduce noise.
-      # These values balance CI cost and reliability, as recommended in issue #553.
-      run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci
+      run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter ${{ steps.get-perf-filter.outputs.filter }}
 
     - name: Publish baseline performance summaries to GitHub
       if: success() || failure()
@@ -203,10 +182,3 @@ jobs:
         name: performance-${{ matrix.os }}
         path: |
           ./artifacts/performance/**
-
-    - name: Upload baseline performance cache
-      if: success() && (steps.restore-baseline-cache.outputs.cache-hit != 'true' || env.FORCE_BASELINE == 'true')
-      uses: actions/cache/save@v4
-      with:
-        path: ./artifacts/performance/perfResults/baseline
-        key: baseline-performance-${{ matrix.os }}-${{ steps.get-baseline-sha.outputs.sha }}

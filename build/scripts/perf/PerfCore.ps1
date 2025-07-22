@@ -35,7 +35,7 @@ try {
     # Check if running on Windows and warn about ETL on non-Windows platforms
     $isWindowsPlatform = $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
     if ($etl -and -not $isWindowsPlatform) {
-        Write-Host "Warning: ETL tracing is only supported on Windows. Disabling ETL for this run." -ForegroundColor Yellow
+        Write-Warning "ETL tracing is only supported on Windows. Disabling ETL for this run."
         $etl = $false
     }
 
@@ -49,28 +49,41 @@ try {
     }
 
     if ([string]::IsNullOrWhiteSpace($filter)) {
-        $filter = "'*'"
+        $filter = "*"
     }
 
     $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
-    $output = Join-Path $RepoRoot "artifacts\performance\perfResults"
-     
-    $forceBaseline = $env:FORCE_BASELINE -eq 'true'
+    $output = Join-Path $RepoRoot "artifacts\performance\perfResults"    
 
     #  Diff two different SHAs
     if ($diff) {
+        $forceBaseline = $env:FORCE_PERF_BASELINE -eq 'true'
         $DiffPerfToBaseLine = Join-Path $RepoRoot "build\scripts\perf\DiffPerfToBaseline.ps1"
-        $baselinejson = Get-Content -Raw -Path (Join-Path $RepoRoot "build\perf\baseline.json") | ConvertFrom-Json
+        $baselineJsonPath = Resolve-Path (Join-Path $RepoRoot "build\perf\baseline.json")
+        $baselinejson = Get-Content -Raw -Path $baselineJsonPath | ConvertFrom-Json
         $baselineSHA = $baselinejson.sha
         $baselineResultsDir = Join-Path $output "baseline"
+        $baselineFolder = Join-Path $baselineResultsDir "results"
 
-        if ((Test-Path $baselineResultsDir) -and -not $forceBaseline) {
-            Write-Host "Warning: Using cached baseline results for SHA '$baselineSHA'."
-        } else {
-            Write-Host "Running performance comparison against baseline: '$baselineSHA'"
+        $useCachedBaseline = $false
+
+        if ($forceBaseline) {
+            Write-Warning "Forcing baseline results to be regenerated."
+            $useCachedBaseline = $false
+        } elseif (Test-Path $baselineFolder) {
+            $exists = Get-ChildItem -Path $baselineFolder -Recurse -File |
+                        Where-Object { $_.Name -like "*report-full-compressed.json" } |
+                        Select-Object -First 1
+
+            if ($exists) {
+                Write-Warning "Using cached baseline results from: '$baselineFolder'."
+                $useCachedBaseline = $true
+            }
         }
-
-        $useCachedBaseline = (Test-Path $baselineResultsDir) -and -not $forceBaseline
+        
+        if (-not $useCachedBaseline) {
+            Write-Warning "No cached baseline results found. Will run performance tests to generate new baseline."
+        }        
 
         $commandArguments = @{
             baselineSHA = $baselineSHA

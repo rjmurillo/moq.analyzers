@@ -34,7 +34,7 @@ try {
     $resultsOutput = Join-Path $output "baseline"
     
     if ($useCachedBaseline -and (Test-Path $resultsOutput)) {
-        Write-Host "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
+        Write-Warning "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
     } else {
         # Checkout SHA
         $baselineFolder = Join-Path $Temp "perfBaseline"
@@ -50,6 +50,33 @@ try {
         if ($ci) { $baselineCommandArgs.ci =  $True}
     
         & $RunPerfTests @baselineCommandArgs
+
+        $needRerun = $false
+
+        # Ensure the results directory exists before checking for files  
+        if (-not (Test-Path $resultsOutput)) {  
+            Write-Warning "Results directory '$resultsOutput' does not exist after running baseline tests."            
+            $needRerun = $true
+        } else {
+            # There can be issues with things mismatching between the baseline and the branch we're on
+            # so we need to ensure that the baseline results are in the expected location
+            $exists = Get-ChildItem -Path $resultsOutput -Recurse -File |
+                        Where-Object { $_.Name -like "*report-full-compressed.json" } |
+                        Select-Object -First 1
+
+            if (-not $exists) {
+                Write-Warning "No baseline results found in '$resultsOutput'."
+                $needRerun = $true
+            } 
+        }
+
+        if ($needRerun) {
+            if (-not ($filter -eq "*")) {
+                Write-Warning "The filter '$filter' may not match any benchmarks. We're going to try again with a generic filter."
+                $baselineCommandArgs.filter = "*"
+                & $RunPerfTests @baselineCommandArgs
+            }
+        }
     }
 
     Write-Host "Done with baseline run"    

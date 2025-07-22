@@ -13,16 +13,16 @@ try {
     # Check if running on Windows and warn about ETL on non-Windows platforms
     $isWindowsPlatform = $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
     if ($etl -and -not $isWindowsPlatform) {
-        Write-Host "Warning: ETL tracing is only supported on Windows. Disabling ETL for this run." -ForegroundColor Yellow
+        Write-Warning "ETL tracing is only supported on Windows. Disabling ETL for this run." -ForegroundColor Yellow
         $etl = $false
     }
 
     $projectsList = $projects -split ";"
     foreach ($project in $projectsList){
         $projectFullPath = Join-Path $perftestRootFolder $project
-        & dotnet restore $projectFullPath -verbosity detailed
+        & dotnet restore $projectFullPath -verbosity:detailed
         & dotnet build -c Release --no-incremental $projectFullPath
-        $commandArguments = "run -c Release --no-build --project $projectFullPath -- --warmupCount 2 --invocationCount 15 --runOncePerIteration --memory --exporters JSON --artifacts $output"
+        $commandArguments = "run -c Release --no-build --project $projectFullPath -- --outliers DontRemove --memory --threading --exceptions --exporters JSON --artifacts $output"
         if ($ci) {
             $commandArguments = "$commandArguments --stopOnFirstError --keepFiles"
         }
@@ -32,8 +32,8 @@ try {
         }
         else {
             Write-Host "Running tests in project '$projectFullPath'"
-            Write-Host "dotnet $commandArguments --filter $filter"
-            Invoke-Expression "dotnet $commandArguments --filter $filter"
+            Write-Debug "dotnet $commandArguments --filter ""$filter"""
+            Invoke-Expression "dotnet $commandArguments --filter ""$filter"""
         }
     }
 }

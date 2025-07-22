@@ -11,6 +11,11 @@ namespace Moq.Analyzers.Benchmarks;
 [BenchmarkCategory("Moq1203")]
 public class Moq1203MethodSetupReturnValueBenchmarks
 {
+#pragma warning disable ECS0900
+    [Params(1, 1_000)]
+#pragma warning restore ECS0900
+    public int FileCount { get; set; }
+
     [Params("Net80WithOldMoq", "Net80WithNewMoq")]
     public string MoqKey { get; set; } = "Net80WithOldMoq";
 
@@ -23,7 +28,7 @@ public class Moq1203MethodSetupReturnValueBenchmarks
     public void SetupCompilation()
     {
         List<(string Name, string Content)> sources = [];
-        for (int index = 0; index < Constants.NumberOfCodeFiles; index++)
+        for (int index = 0; index < FileCount; index++)
         {
             string name = "TypeName" + index;
             sources.Add((name, @$"
@@ -70,7 +75,7 @@ internal class {name}
             .GetAllDiagnostics();
 
         // Each file should produce 2 diagnostics (GetValue and Calculate methods, but not DoVoidWork)
-        int expectedDiagnostics = Constants.NumberOfCodeFiles * 2;
+        int expectedDiagnostics = FileCount * 2;
         if (diagnostics.Length != expectedDiagnostics)
         {
             throw new InvalidOperationException($"Expected '{expectedDiagnostics:N0}' analyzer diagnostics but found '{diagnostics.Length}'");

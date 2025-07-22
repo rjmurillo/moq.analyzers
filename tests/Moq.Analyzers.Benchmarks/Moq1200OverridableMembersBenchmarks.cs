@@ -11,16 +11,21 @@ namespace Moq.Analyzers.Benchmarks;
 [BenchmarkCategory("Moq1200")]
 public class Moq1200OverridableMembersBenchmarks
 {
+#pragma warning disable ECS0900
+    [Params(1, 1_000)]
+#pragma warning restore ECS0900
+    public int FileCount { get; set; }
+
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
-    public static void SetupCompilation()
+    public void SetupCompilation()
     {
         List<(string Name, string Content)> sources = [];
-        for (int index = 0; index < Constants.NumberOfCodeFiles; index++)
+        for (int index = 0; index < FileCount; index++)
         {
             string name = "TypeName" + index;
             sources.Add((name, @$"
@@ -62,9 +67,9 @@ internal class {name}
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 
-        if (diagnostics.Length != Constants.NumberOfCodeFiles)
+        if (diagnostics.Length != FileCount)
         {
-            throw new InvalidOperationException($"Expected '{Constants.NumberOfCodeFiles:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
+            throw new InvalidOperationException($"Expected '{FileCount:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
         }
     }
 

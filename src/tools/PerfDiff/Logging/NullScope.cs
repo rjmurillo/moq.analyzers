@@ -2,18 +2,26 @@
 
 using System;
 
-namespace PerfDiff.Logging
+namespace PerfDiff.Logging;
+
+/// <summary>
+/// Provides a no-op scope for logging operations.
+/// </summary>
+internal sealed class NullScope : IDisposable
 {
-    internal sealed class NullScope : IDisposable
+    /// <summary>
+    /// Gets the singleton instance of <see cref="NullScope"/>.
+    /// </summary>
+    public static NullScope Instance { get; } = new NullScope();
+
+    private NullScope()
     {
-        public static NullScope Instance { get; } = new NullScope();
+    }
 
-        private NullScope()
-        {
-        }
-
-        public void Dispose()
-        {
-        }
+    /// <summary>
+    /// Disposes the scope. No operation performed.
+    /// </summary>
+    public void Dispose()
+    {
     }
 }

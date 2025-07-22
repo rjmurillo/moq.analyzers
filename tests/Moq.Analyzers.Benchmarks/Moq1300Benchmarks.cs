@@ -11,19 +11,24 @@ namespace Moq.Analyzers.Benchmarks;
 [BenchmarkCategory("Moq1300")]
 public class Moq1300Benchmarks
 {
+#pragma warning disable ECS0900
+    [Params(1, 1_000)]
+#pragma warning restore ECS0900
+    public int FileCount { get; set; }
+
     private static CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
-    public static void SetupCompilation()
+    public void SetupCompilation()
     {
-        List<(string Name, string Content)> sources = [];
-        for (int index = 0; index < Constants.NumberOfCodeFiles; index++)
+        (string Name, string Content)[] sources = new (string, string)[FileCount];
+        for (int index = 0; index < FileCount; index++)
         {
             string name = "TypeName" + index;
-            sources.Add((name, @$"
+            sources[index] = (name, @$"
 using System;
 using Moq;
 
@@ -41,12 +46,12 @@ internal class {name}
         _ = new SampleClass{index}().Calculate(); // Add an expression that looks similar but does not match
     }}
 }}
-"));
+");
         }
 
         Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq");
         (BaselineCompilation, TestCompilation) =
-            BenchmarkCSharpCompilationFactory.CreateAsync<AsShouldBeUsedOnlyForInterfaceAnalyzer>(sources.ToArray(), referenceAssemblies)
+            BenchmarkCSharpCompilationFactory.CreateAsync<AsShouldBeUsedOnlyForInterfaceAnalyzer>(sources, referenceAssemblies)
             .GetAwaiter()
             .GetResult();
     }
@@ -61,9 +66,9 @@ internal class {name}
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 
-        if (diagnostics.Length != Constants.NumberOfCodeFiles)
+        if (diagnostics.Length != FileCount)
         {
-            throw new InvalidOperationException($"Expected '{Constants.NumberOfCodeFiles:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
+            throw new InvalidOperationException($"Expected '{FileCount:N0}' analyzer diagnostics but found '{diagnostics.Length}'");
         }
     }
 

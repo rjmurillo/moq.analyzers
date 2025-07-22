@@ -36,7 +36,24 @@ The CI workflow for this repository supports automated performance benchmarking 
 4. Set `run_performance` to `true`.
 5. Set `force_baseline` to `true` if you want to re-run baseline benchmarks.
 
-## Notes
+## Regression Detection Thresholds
 
-- This mechanism ensures efficient CI runs and gives maintainers control over when to refresh baseline results for performance validation.
-- For more details on running benchmarks locally, see [build/scripts/perf/README.md](../build/scripts/perf/README.md).
+### Benchmark Size and Statistical Significance
+
+Performance benchmarks are run with 1 file by default in PR actions. This ensures that analyzer performance is measured quickly to avoid any obvious regressions. Nightly, the full suite is run with baseline (no analyzers) and analyzers enabled on the one file and on 1,000 files. This provides a more realistic, statistically significant workload. The number of code files is controlled by each benchmark through a parameter, allowing BenchmarkDotNet to control the number of iterations required to provide stable and statistically significant results for comparison.
+
+Performance regressions are detected using the following thresholds in the PerfDiff tool:
+
+- **Mean (absolute) regression:** Fails if the mean execution time increases by more than **100 ms**.
+- **Mean (relative) regression:** Fails if the mean execution time increases by more than **5 %** *and* by at least **0.5 ms** over baseline.
+- **95th-percentile regression:** Fails if the 95th-percentile execution time exceeds **250 ms**.
+- **Median (percentage) regression:** Fails if the median execution time increases by more than **35 %** compared with baseline.
+- **Statistical Significance:** Uses the Mann-Whitney test to detect statistically significant regressions, with a user-supplied threshold.
+
+These thresholds are hardcoded in the PerfDiff tool and are used during CI runs to automatically detect and fail on performance regressions. For more details on running benchmarks locally, see [build/scripts/perf/README.md](../build/scripts/perf/README.md).
+
+## Future Direction: Practical Performance Budgets
+
+As discussed in [issue #563](https://github.com/rjmurillo/moq.analyzers/issues/563), the project intends to move CI performance validation toward practical, user-facing performance budgets (e.g., "total analysis time < 500 ms for 1kLOC solution") and memory usage limits. This will ensure CI failures are actionable and relevant to real-world usage, reducing noise and improving developer feedback.
+
+Currently, CI gating is based on microbenchmark regression thresholds (see above). Once benchmarks are updated to measure higher-level metrics, regression gates will be updated to fail only when these practical budgets are exceeded. The chosen budgets and rationale will be documented here when implemented.

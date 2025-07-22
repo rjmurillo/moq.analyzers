@@ -78,11 +78,14 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 
         if (typeArguments[0] is ITypeSymbol { TypeKind: not TypeKind.Interface })
         {
-            // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.
-            // If that fails for any reason, report the diagnostic on the operation itself.
-            NameSyntax? memberName = context.Operation.Syntax.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Select(mae => mae.Name).DefaultIfNotSingle();
-            Location location = memberName?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
+            // Find the first As<T> generic type argument and report the diagnostic on it
+            GenericNameSyntax? asGeneric = invocationOperation.Syntax
+                .DescendantNodes()
+                .OfType<GenericNameSyntax>()
+                .FirstOrDefault(x => string.Equals(x.Identifier.ValueText, "As", StringComparison.Ordinal));
 
+            TypeSyntax? typeArg = asGeneric?.TypeArgumentList.Arguments.FirstOrDefault();
+            Location location = typeArg?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
             context.ReportDiagnostic(location.CreateDiagnostic(Rule));
         }
     }
