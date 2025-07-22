@@ -9,6 +9,8 @@ Param(
   )
 
 Push-Location $perftestRootFolder
+Write-Host "Running performance tests in folder: $perftestRootFolder"
+
 try {
     # Check if running on Windows and warn about ETL on non-Windows platforms
     $isWindowsPlatform = $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
@@ -20,21 +22,27 @@ try {
     $projectsList = $projects -split ";"
     foreach ($project in $projectsList){
         $projectFullPath = Join-Path $perftestRootFolder $project
-        & dotnet restore $projectFullPath -verbosity:detailed
+        & dotnet restore $projectFullPath
         & dotnet build -c Release --no-incremental $projectFullPath
         $commandArguments = "run -c Release --no-build --project $projectFullPath -- --outliers DontRemove --memory --threading --exceptions --exporters JSON --artifacts $output"
         if ($ci) {
             $commandArguments = "$commandArguments --stopOnFirstError --keepFiles"
         }
         if ($etl) {
-            Write-Host "Running tests in project '$projectFullPath'"
-            Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList "$commandArguments --profiler ETW --filter $filter"
+            $commandArguments = "$commandArguments --profiler ETW"
         }
         else {
             Write-Host "Running tests in project '$projectFullPath'"
-            Write-Debug "dotnet $commandArguments --filter ""$filter"""
+            Write-Host "dotnet $commandArguments --filter ""$filter"""
             Invoke-Expression "dotnet $commandArguments --filter ""$filter"""
         }
+        $commandArguments = "$commandArguments --filter $filter"
+        
+        Write-Host "Invoking: dotnet $commandArguments"
+        # Note: Using Start-Process with -Verb RunAs to ensure it runs with elevated permissions for 
+        # 1. ETL, if it's enabled
+        # 2. To allow BenchmarkDotNet to set the power profile for the CPU
+        Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList "$commandArguments"
     }
 }
 catch {
