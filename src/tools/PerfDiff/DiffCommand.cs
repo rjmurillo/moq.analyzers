@@ -28,7 +28,7 @@ internal static class DiffCommand
     /// <summary>
     /// Gets the allowed verbosity levels for the command.
     /// </summary>
-    private static string[] VerbosityLevels => ["q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic"];
+    private static readonly string[] VerbosityLevels = ["q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic"];
 
     /// <summary>
     /// Creates the root command with options for the diff command.
