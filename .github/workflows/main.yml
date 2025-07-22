@@ -133,6 +133,23 @@ jobs:
         echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
       shell: pwsh
 
+    # The machine is not guaranteed to have the .NET SDK installed from the baseline SHA, so we need to install it
+    - name: Checkout baseline
+      uses: actions/checkout@v4
+      with:        
+        ref: ${{ steps.get-baseline-sha.outputs.sha }}
+        fetch-depth: 0
+
+    - name: Setup .NET for performance baseline
+      uses: actions/setup-dotnet@v4
+      with:
+        global-json-file: ./global.json   
+
+    - name: Restore checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
     - name: Get performance test filter
       id: get-perf-filter
       run: |
