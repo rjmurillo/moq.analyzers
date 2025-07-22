@@ -135,14 +135,14 @@ try {
     Write-Host "Done with performance run"
 
     # Diff perf results
-    $ComparePrefResultsArgs = @{
+    $ComparePerfResultsArgs = @{
             baseline = $resultsOutput
             results = $testOutput
     }
     if ($ci) { $ComparePerfResultsArgs.ci = $True }
 
-    Show-Invocation -ScriptPath $ComparePerfResults -Arguments $ComparePrefResultsArgs
-    & $ComparePerfResults @ComparePrefResultsArgs
+    Show-Invocation -ScriptPath $ComparePerfResults -Arguments $ComparePerfResultsArgs
+    & $ComparePerfResults @ComparePerfResultsArgs
 }
 catch {
     Write-Host $_
