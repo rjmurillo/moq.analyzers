@@ -40,7 +40,7 @@ The CI workflow for this repository supports automated performance benchmarking 
 
 ### Benchmark Size and Statistical Significance
 
-Performance benchmarks are run with 1 file by default in PR actions. This ensures that analyzer performance is measured quickly, to avoid any obvious regressions. Nightly, the full suite is run with baseline (no analyzers) and analyzers enabled on the one file and on 1,000 files. This provides a more realistic, statistically significant workload. The number of code files is controlled by each benchmark through a parameter, allowing BenchmarkDotNet to control the number of iterations required to provide stable and statistically significant results for comparison.
+Performance benchmarks are run with 1 file by default in PR actions. This ensures that analyzer performance is measured quickly to avoid any obvious regressions. Nightly, the full suite is run with baseline (no analyzers) and analyzers enabled on the one file and on 1,000 files. This provides a more realistic, statistically significant workload. The number of code files is controlled by each benchmark through a parameter, allowing BenchmarkDotNet to control the number of iterations required to provide stable and statistically significant results for comparison.
 
 Performance regressions are detected using the following thresholds in the PerfDiff tool:
 
