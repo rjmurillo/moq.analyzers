@@ -31,13 +31,9 @@ try {
         if ($etl) {
             $commandArguments = "$commandArguments --profiler ETW"
         }
-        else {
-            Write-Host "Running tests in project '$projectFullPath'"
-            Write-Host "dotnet $commandArguments --filter ""$filter"""
-            Invoke-Expression "dotnet $commandArguments --filter ""$filter"""
-        }
+
         $commandArguments = "$commandArguments --filter $filter"
-        
+
         Write-Host "Invoking: dotnet $commandArguments"
         # Note: Using Start-Process with -Verb RunAs to ensure it runs with elevated permissions for 
         # 1. ETL, if it's enabled
