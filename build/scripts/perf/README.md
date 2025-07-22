@@ -3,7 +3,7 @@
 > **CI Performance Benchmarking and Baseline Caching:**
 > This repository supports automated performance benchmarking in CI, with baseline result caching and manual override capabilities. Baseline results are cached per OS and SHA, and can be force-refreshed via workflow inputs. For details on usage, manual runs, and force options, see [docs/ci-performance.md](../../../docs/ci-performance.md).
 
-When running benchmarks, use the `PerfCore.ps1` script located in `build/scripts/perf/` whenever possible. This script provides a more streamlined and consistent experience for running performance tests. To allow [BenchmarkDotNet to set power plans](https://mawosoft.github.io/BenchmarkDotNet/articles/configs/powerplans.html).
+When running benchmarks, use the `PerfCore.ps1` script located in `build/scripts/perf/` whenever possible. This script provides a more streamlined and consistent experience for running performance tests. To allow [BenchmarkDotNet to set power plans](https://mawosoft.github.io/BenchmarkDotNet/articles/configs/powerplans.html) the script will automatically elevate.
 
 ## Cross-Platform Support
 
