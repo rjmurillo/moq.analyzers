@@ -3,7 +3,7 @@
 > **CI Performance Benchmarking and Baseline Caching:**
 > This repository supports automated performance benchmarking in CI, with baseline result caching and manual override capabilities. Baseline results are cached per OS and SHA, and can be force-refreshed via workflow inputs. For details on usage, manual runs, and force options, see [docs/ci-performance.md](../../../docs/ci-performance.md).
 
-When running benchmarks, use the `PerfCore.ps1` script located in `build/scripts/perf/` whenever possible. This script provides a more streamlined and consistent experience for running performance tests.
+When running benchmarks, use the `PerfCore.ps1` script located in `build/scripts/perf/` whenever possible. This script provides a more streamlined and consistent experience for running performance tests. To allow [BenchmarkDotNet to set power plans](https://mawosoft.github.io/BenchmarkDotNet/articles/configs/powerplans.html).
 
 ## Cross-Platform Support
 
@@ -13,6 +13,8 @@ The performance tools now support running on:
 - **Linux/macOS**: Use `Perf.sh` in the repo root or `build/scripts/perf/CIPerf.sh`
 
 The batch and shell files call out to PowerShell, which can run on Windows, Linux, and macOS. [Installation Instructions](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.5).
+
+> NOTE: If you are on Windows, the PowerShell will automatically elevate to allow your Power Plan to be set.
 
 ## Using PerfCore.ps1
 
