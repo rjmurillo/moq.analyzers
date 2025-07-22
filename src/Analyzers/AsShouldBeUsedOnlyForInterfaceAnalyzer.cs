@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
 
@@ -57,6 +57,11 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
             OperationKind.Invocation);
     }
 
+    /// <summary>
+    /// Reports a diagnostic if <c>Mock.As&lt;T&gt;()</c> is invoked with a type argument that is not an interface.
+    /// </summary>
+    /// <param name="context">The analysis context for the operation.</param>
+    /// <param name="wellKnownAsMethods">The set of recognized <c>Mock.As</c> method symbols.</param>
     private static void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownAsMethods)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)

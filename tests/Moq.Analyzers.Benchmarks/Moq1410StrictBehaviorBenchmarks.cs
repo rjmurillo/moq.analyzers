@@ -20,6 +20,12 @@ public class Moq1410StrictBehaviorBenchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Prepares Roslyn compilations with a specified number of generated source files for benchmarking the SetStrictMockBehaviorAnalyzer.
+    /// </summary>
+    /// <remarks>
+    /// Generates <c>FileCount</c> source files, each containing a unique interface and class using Moq, and creates both baseline and analyzer-enabled compilations for use in benchmarks.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -55,6 +61,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by running it on the test compilation and verifies that the number of diagnostics matches the expected file count.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the number of diagnostics produced does not equal <c>FileCount</c>.
+    /// </exception>
     [Benchmark]
     public async Task Moq1410WithDiagnostics()
     {

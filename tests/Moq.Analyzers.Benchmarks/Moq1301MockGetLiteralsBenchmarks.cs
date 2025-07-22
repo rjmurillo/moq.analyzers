@@ -20,6 +20,13 @@ public class Moq1301MockGetLiteralsBenchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Prepares Roslyn compilation objects with generated source files for benchmarking the Moq1301 analyzer.
+    /// </summary>
+    /// <remarks>
+    /// Generates a number of source files specified by <c>FileCount</c>, each containing code that triggers or does not trigger the analyzer. 
+    /// Initializes both baseline and test compilations with these sources and the appropriate reference assemblies.
+    /// </remarks>
     [GlobalSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -55,6 +62,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by verifying that the expected number of diagnostics are reported for the generated source files.
+    /// </summary>
+    /// <remarks>
+    /// Throws an <see cref="InvalidOperationException"/> if the number of diagnostics does not match <c>FileCount</c>.
+    /// </remarks>
     [Benchmark]
     public async Task Moq1301WithDiagnostics()
     {

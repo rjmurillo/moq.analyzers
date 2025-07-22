@@ -23,6 +23,12 @@ public class Moq1203MethodSetupReturnValueBenchmarks
 
     private CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Prepares Roslyn compilations with generated source files for benchmarking the analyzer, based on the current <c>FileCount</c> and <c>MoqKey</c>.
+    /// </summary>
+    /// <remarks>
+    /// Generates multiple source files, each defining a unique interface and class with Moq setups, and creates baseline and test compilations with the analyzer applied.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -64,6 +70,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by verifying that the expected number of diagnostics are reported for non-void Moq method setups across all generated files.
+    /// </summary>
+    /// <remarks>
+    /// Ensures that two diagnostics are produced per file (for <c>GetValue</c> and <c>Calculate</c> setups), and throws an exception if the actual diagnostic count does not match the expected value.
+    /// </remarks>
     [Benchmark]
     public async Task Moq1203WithDiagnostics()
     {

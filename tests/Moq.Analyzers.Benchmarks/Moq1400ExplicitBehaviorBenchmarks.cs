@@ -20,6 +20,12 @@ public class Moq1400ExplicitBehaviorBenchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Prepares Roslyn compilations with generated source files and analyzers for benchmarking, based on the current <see cref="FileCount"/>.
+    /// </summary>
+    /// <remarks>
+    /// Generates the specified number of source files, each containing a unique interface and class with mock usage, and creates two compilations: one with the analyzer under test and one baseline without diagnostics.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -55,6 +61,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by verifying that the test compilation produces exactly one diagnostic per generated source file.
+    /// </summary>
+    /// <remarks>
+    /// Throws an <see cref="InvalidOperationException"/> if the number of diagnostics does not match <c>FileCount</c>.
+    /// </remarks>
     [Benchmark]
     public async Task Moq1400WithDiagnostics()
     {

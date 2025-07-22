@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,6 +20,13 @@ public class Moq1300Benchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Prepares Roslyn compilations with a specified number of generated source files for benchmarking the AsShouldBeUsedOnlyForInterfaceAnalyzer.
+    /// </summary>
+    /// <remarks>
+    /// Generates <c>FileCount</c> source files, each containing a sample class and an internal class that exercises the analyzer scenario. 
+    /// Initializes both baseline and test compilations for use in benchmark methods.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -56,6 +63,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by running diagnostics on the test compilation and verifies that the number of reported diagnostics matches the configured file count.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the number of diagnostics produced does not equal <c>FileCount</c>.
+    /// </exception>
     [Benchmark]
     public async Task Moq1300WithDiagnostics()
     {

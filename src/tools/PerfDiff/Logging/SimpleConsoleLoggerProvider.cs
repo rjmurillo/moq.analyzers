@@ -19,6 +19,11 @@ internal sealed class SimpleConsoleLoggerProvider : ILoggerProvider
     /// </summary>
     /// <param name="console">The console to write output to.</param>
     /// <param name="minimalLogLevel">The minimal log level for output.</param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SimpleConsoleLoggerProvider"/> class with the specified console and minimal log levels.
+    /// </summary>
+    /// <param name="console">The console instance used for output.</param>
+    /// <param name="minimalLogLevel">The minimal log level for general output.</param>
     /// <param name="minimalErrorLevel">The minimal log level for error output.</param>
     public SimpleConsoleLoggerProvider(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
     {
@@ -27,13 +32,19 @@ internal sealed class SimpleConsoleLoggerProvider : ILoggerProvider
         _minimalErrorLevel = minimalErrorLevel;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Creates a new <see cref="SimpleConsoleLogger"/> instance for the specified category.
+    /// </summary>
+    /// <param name="categoryName">The category name for messages produced by the logger.</param>
+    /// <returns>A <see cref="SimpleConsoleLogger"/> configured with the provider's console and log level settings.</returns>
     public ILogger CreateLogger(string categoryName)
     {
         return new SimpleConsoleLogger(_console, _minimalLogLevel, _minimalErrorLevel);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Releases resources used by the logger provider. No action is required for this implementation.
+    /// </summary>
     public void Dispose()
     {
     }

@@ -20,6 +20,12 @@ public class Moq1101MethodInPropertySetupBenchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Prepares Roslyn compilations with a specified number of source files for benchmarking the analyzer.
+    /// </summary>
+    /// <remarks>
+    /// Generates source files containing interfaces and classes that intentionally misuse Moq's <c>SetupGet</c> on methods, then creates baseline and analyzer-enabled compilations for performance testing.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -56,6 +62,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by running it on the test compilation and verifies that the number of diagnostics matches the expected file count.
+    /// </summary>
+    /// <remarks>
+    /// Throws an <see cref="InvalidOperationException"/> if the number of diagnostics does not equal <c>FileCount</c>.
+    /// </remarks>
     [Benchmark]
     public async Task Moq1101WithDiagnostics()
     {

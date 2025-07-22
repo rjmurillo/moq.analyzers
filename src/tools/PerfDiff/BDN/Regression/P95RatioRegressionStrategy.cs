@@ -6,7 +6,13 @@ namespace PerfDiff.BDN.Regression;
 
 public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Determines whether there is a performance regression in benchmark results based on the 95th percentile (P95) ratio metric.
+    /// </summary>
+    /// <param name="comparison">An array of benchmark comparison results to analyze.</param>
+    /// <param name="logger">Logger for informational output about detected regressions or improvements.</param>
+    /// <param name="details">Outputs details about the regression detection, including metric name and threshold used.</param>
+    /// <returns>True if any benchmarks are slower by more than both a 5% ratio and 0.5 milliseconds in P95; otherwise, false.</returns>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
     {
         const string metricName = "P95 ratio";

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.CommandLine;
@@ -18,6 +18,11 @@ internal sealed class Program
     internal const int UnhandledExceptionExitCode = 1;
     private static ParseResult? s_parseResult;
 
+    /// <summary>
+    /// Application entry point that parses command-line arguments, sets up the root command, and executes the appropriate handler.
+    /// </summary>
+    /// <param name="args">Command-line arguments passed to the application.</param>
+    /// <returns>The exit code resulting from command execution.</returns>
     private static async Task<int> Main(string[] args)
     {
         RootCommand rootCommand = DiffCommand.CreateCommandLineOptions();
@@ -29,6 +34,14 @@ internal sealed class Program
         return await rootCommand.InvokeAsync(args).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Executes the performance comparison between a baseline and results file, handling logging, cancellation, and error reporting.
+    /// </summary>
+    /// <param name="baseline">The path to the baseline results file.</param>
+    /// <param name="results">The path to the results file to compare against the baseline.</param>
+    /// <param name="verbosity">Optional verbosity level for logging output.</param>
+    /// <param name="failOnRegression">If true, the process will return a nonzero exit code on detected regressions.</param>
+    /// <returns>The exit code indicating the result of the comparison or error state.</returns>
     public static async Task<int> RunAsync(
         string baseline,
         string results,

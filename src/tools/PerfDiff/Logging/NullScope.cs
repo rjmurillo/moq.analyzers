@@ -14,12 +14,17 @@ internal sealed class NullScope : IDisposable
     /// </summary>
     public static NullScope Instance { get; } = new NullScope();
 
+    /// <summary>
+    /// Prevents external instantiation of the <see cref="NullScope"/> class.
+    /// </summary>
     private NullScope()
     {
     }
 
     /// <summary>
     /// Disposes the scope. No operation performed.
+    /// <summary>
+    /// Performs no operation when disposing the scope.
     /// </summary>
     public void Dispose()
     {

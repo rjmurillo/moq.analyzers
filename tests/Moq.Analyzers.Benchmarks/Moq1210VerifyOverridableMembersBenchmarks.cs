@@ -20,6 +20,12 @@ public class Moq1210VerifyOverridableMembersBenchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Generates and compiles a set of source files based on the current <c>FileCount</c> parameter, preparing both baseline and analyzer test compilations for benchmarking.
+    /// </summary>
+    /// <remarks>
+    /// Each generated source file defines a unique class and a test case that triggers the analyzer under test. The method synchronously creates compilations with and without the analyzer attached, storing them for use in benchmark methods.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -57,6 +63,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by running it on the test compilation and verifies that the number of diagnostics matches the expected file count.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the number of diagnostics produced does not equal <c>FileCount</c>.
+    /// </exception>
     [Benchmark]
     public async Task Moq1210WithDiagnostics()
     {

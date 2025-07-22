@@ -20,6 +20,13 @@ public class Moq1100CallbackBenchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Prepares Roslyn compilation objects with generated source files for benchmarking, based on the current <c>FileCount</c>.
+    /// </summary>
+    /// <remarks>
+    /// Generates a set of source files, each containing an interface and a class with a Moq setup that intentionally mismatches callback signatures. 
+    /// Initializes both baseline and test compilations with these sources and the specified reference assemblies, ready for analyzer benchmarking.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -56,6 +63,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by verifying that the number of diagnostics reported matches the number of generated source files.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the number of diagnostics does not equal <c>FileCount</c>.
+    /// </exception>
     [Benchmark]
     public async Task Moq1100WithDiagnostics()
     {

@@ -25,7 +25,12 @@ public class Moq1000SealedClassBenchmarks
 
     /// <summary>
     /// Sets up the compilation with test sources for benchmarking.
+    /// <summary>
+    /// Prepares Roslyn compilation objects with a specified number of generated source files for benchmarking the Moq1000 analyzer.
     /// </summary>
+    /// <remarks>
+    /// Generates source files containing sealed and non-sealed classes, as well as code that attempts to mock sealed classes. Initializes both baseline and analyzer-enabled compilations for use in benchmark tests.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -62,6 +67,9 @@ internal class {name}
 
     /// <summary>
     /// Benchmarks the analyzer's performance when detecting attempts to mock sealed classes.
+    /// </summary>
+    /// <summary>
+    /// Benchmarks the analyzer by running it on the test compilation and verifies that the expected number of diagnostics are reported.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [Benchmark]

@@ -9,7 +9,13 @@ namespace PerfDiff.BDN.Regression;
 /// </summary>
 public sealed class PercentileRegressionStrategy : IBenchmarkRegressionStrategy
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Determines whether a performance regression exists based on the 95th percentile (P95) execution time, using a fixed threshold of 250 milliseconds.
+    /// </summary>
+    /// <param name="comparison">An array of benchmark comparison results to evaluate.</param>
+    /// <param name="logger">The logger used for diagnostic output.</param>
+    /// <param name="details">Outputs detailed information about the regression detection result.</param>
+    /// <returns>True if a regression is detected according to the P95 threshold; otherwise, false.</returns>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
     {
         Threshold testThreshold = Threshold.Create(ThresholdUnit.Milliseconds, 250D);

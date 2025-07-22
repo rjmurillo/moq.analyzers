@@ -20,6 +20,12 @@ public class Moq1500MockRepositoryBenchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Prepares Roslyn compilation objects with generated source files for benchmarking, based on the current <c>FileCount</c>.
+    /// </summary>
+    /// <remarks>
+    /// Generates the specified number of source files, each containing a unique interface and class that omits a <c>repository.Verify()</c> call, then creates baseline and test compilations with the relevant analyzers applied.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -63,6 +69,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by verifying that the expected number of diagnostics are reported for the generated test sources.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the number of diagnostics found does not match the expected <c>FileCount</c>.
+    /// </exception>
     [Benchmark]
     public async Task Moq1500WithDiagnostics()
     {

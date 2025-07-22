@@ -22,6 +22,12 @@ public class Moq1206ReturnsAsyncBenchmarks
 
     private CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Sets up Roslyn compilations with analyzers for benchmarking by generating a specified number of source files containing Moq async setups.
+    /// </summary>
+    /// <remarks>
+    /// Generates <c>FileCount</c> source files, each defining an async client class and a test class that uses Moq to set up async methods. Initializes <c>BaselineCompilation</c> and <c>TestCompilation</c> with the appropriate reference assemblies and analyzers for use in benchmark tests.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -62,6 +68,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Runs the analyzer on the test compilation and verifies that the expected number of diagnostics are reported for async Moq setups.
+    /// </summary>
+    /// <remarks>
+    /// Throws an <see cref="InvalidOperationException"/> if the number of diagnostics does not match <c>FileCount</c>.
+    /// </remarks>
     [Benchmark]
     public async Task Moq1206WithDiagnostics()
     {

@@ -10,6 +10,16 @@ namespace PerfDiff.BDN.Regression;
 /// </summary>
 public static class RegressionStrategyHelper
 {
+    /// <summary>
+    /// Determines whether any regressions are present in the benchmark comparison results based on the specified threshold and metric selector.
+    /// </summary>
+    /// <param name="comparison">Array of benchmark comparison results to analyze.</param>
+    /// <param name="testThreshold">Threshold used to evaluate regression for the selected metric.</param>
+    /// <param name="metricSelector">Function to extract the relevant metric value from a benchmark.</param>
+    /// <param name="displayValueSelector">Function to extract the display value from a regression result for logging.</param>
+    /// <param name="metricName">Name of the metric being evaluated.</param>
+    /// <param name="details">Outputs detailed regression detection results, including the metric name and threshold.</param>
+    /// <returns>True if any regressions (worse results) are detected; otherwise, false.</returns>
     public static bool HasRegression(
         BdnComparisonResult[] comparison,
         ILogger logger,
@@ -53,6 +63,13 @@ public static class RegressionStrategyHelper
         return worseCount > 0;
     }
 
+    /// <summary>
+    /// Analyzes benchmark comparison results to determine regression status for each test based on a specified threshold and metric selector.
+    /// </summary>
+    /// <param name="comparison">Array of benchmark comparison results to evaluate.</param>
+    /// <param name="testThreshold">Threshold used to determine regression status.</param>
+    /// <param name="metricSelector">Function to extract the relevant metric value from a benchmark.</param>
+    /// <returns>An array of <see cref="RegressionResult"/> objects indicating the regression conclusion for each valid comparison.</returns>
     private static RegressionResult[] FindRegressions(
         BdnComparisonResult[] comparison,
         Threshold testThreshold,

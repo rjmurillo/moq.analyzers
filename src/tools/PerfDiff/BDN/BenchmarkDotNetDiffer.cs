@@ -20,6 +20,11 @@ public static class BenchmarkDotNetDiffer
     /// <param name="baselineFolder">The folder containing baseline results.</param>
     /// <param name="resultsFolder">The folder containing new results.</param>
     /// <param name="logger">Logger for reporting errors.</param>
+    /// <summary>
+    /// Asynchronously compares BenchmarkDotNet results from the specified baseline and results folders to detect performance regressions.
+    /// </summary>
+    /// <param name="baselineFolder">The folder containing the baseline benchmark results.</param>
+    /// <param name="resultsFolder">The folder containing the new benchmark results to compare against the baseline.</param>
     /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating comparison success and regression detection.</returns>
     public static async Task<BenchmarkComparisonResult> TryCompareBenchmarkDotNetResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
     {
@@ -33,7 +38,12 @@ public static class BenchmarkDotNetDiffer
     /// <param name="baselineFolder">The folder containing baseline results.</param>
     /// <param name="resultsFolder">The folder containing new results.</param>
     /// <param name="logger">Logger for reporting errors.</param>
-    /// <returns>An array of <see cref="BdnComparisonResult"/> if successful; otherwise, <see langword="null"/>.</returns>
+    /// <summary>
+    /// Asynchronously loads and matches BenchmarkDotNet results from the specified baseline and results folders, returning paired benchmarks present in both sets.
+    /// </summary>
+    /// <param name="baselineFolder">The path to the folder or file containing baseline benchmark results.</param>
+    /// <param name="resultsFolder">The path to the folder or file containing new benchmark results.</param>
+    /// <returns>An array of <see cref="BdnComparisonResult"/> containing matched baseline and diff benchmarks if successful; otherwise, <see langword="null"/> if loading or matching fails.</returns>
     internal static async Task<BdnComparisonResult[]?> TryGetBdnResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
     {
         if (!TryGetFilesToParse(baselineFolder, out string[]? baseFiles))
@@ -80,6 +90,12 @@ public static class BenchmarkDotNetDiffer
             .ToArray();
     }
 
+    /// <summary>
+    /// Attempts to retrieve all BenchmarkDotNet result files from the specified path, supporting both directories and individual files.
+    /// </summary>
+    /// <param name="path">The directory or file path to search for result files.</param>
+    /// <param name="files">When successful, contains the array of file paths to parse; otherwise, null.</param>
+    /// <returns>True if valid result files are found; otherwise, false.</returns>
     private static bool TryGetFilesToParse(string path, [NotNullWhen(true)] out string[]? files)
     {
         if (Directory.Exists(path))
@@ -103,6 +119,11 @@ public static class BenchmarkDotNetDiffer
     /// </summary>
     /// <param name="comparison">Array of comparison results.</param>
     /// <param name="testThreshold">Threshold for regression detection.</param>
+    /// <summary>
+    /// Identifies regressions between baseline and diff benchmark results using a statistical equivalence test and a specified threshold.
+    /// </summary>
+    /// <param name="comparison">An array of matched benchmark results to compare.</param>
+    /// <param name="testThreshold">The statistical threshold used for equivalence testing.</param>
     /// <returns>An array of <see cref="RegressionResult"/> representing detected regressions.</returns>
     public static RegressionResult[] FindRegressions(BdnComparisonResult[] comparison, Perfolizer.Mathematics.Thresholds.Threshold testThreshold)
     {
@@ -130,7 +151,11 @@ public static class BenchmarkDotNetDiffer
     /// Gets the ratio of median values for a regression result.
     /// </summary>
     /// <param name="item">The regression result.</param>
-    /// <returns>The ratio of median values.</returns>
+    /// <summary>
+        /// Calculates the ratio of median values between the baseline and diff benchmarks for a given regression result.
+        /// </summary>
+        /// <param name="item">The regression result containing the equivalence test conclusion and benchmark data.</param>
+        /// <returns>The ratio of median values, or NaN if statistics are missing.</returns>
     public static double GetMedianRatio(RegressionResult item)
         => GetMedianRatio(item.Conclusion, item.BaseResult, item.DiffResult);
 
@@ -140,7 +165,13 @@ public static class BenchmarkDotNetDiffer
     /// <param name="conclusion">The equivalence test conclusion.</param>
     /// <param name="baseResult">The baseline benchmark.</param>
     /// <param name="diffResult">The diff benchmark.</param>
-    /// <returns>The ratio of median values.</returns>
+    /// <summary>
+    /// Calculates the ratio of median values between baseline and diff benchmarks based on the equivalence test conclusion.
+    /// </summary>
+    /// <param name="conclusion">The result of the equivalence test indicating which benchmark is faster.</param>
+    /// <param name="baseResult">The baseline benchmark result.</param>
+    /// <param name="diffResult">The diff benchmark result.</param>
+    /// <returns>The ratio of median values, or NaN if statistics are missing.</returns>
     public static double GetMedianRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
     {
         if (baseResult.Statistics == null || diffResult.Statistics == null)
@@ -159,7 +190,13 @@ public static class BenchmarkDotNetDiffer
     /// <param name="conclusion">The equivalence test conclusion.</param>
     /// <param name="baseResult">The baseline benchmark.</param>
     /// <param name="diffResult">The diff benchmark.</param>
-    /// <returns>The ratio of mean values.</returns>
+    /// <summary>
+    /// Calculates the ratio of mean values between baseline and diff benchmarks based on the equivalence test conclusion.
+    /// </summary>
+    /// <param name="conclusion">The result of the equivalence test indicating which benchmark is faster.</param>
+    /// <param name="baseResult">The baseline benchmark result.</param>
+    /// <param name="diffResult">The diff benchmark result.</param>
+    /// <returns>The ratio of mean values, or NaN if statistics are missing.</returns>
     public static double GetMeanRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
     {
         if (baseResult.Statistics == null || diffResult.Statistics == null)
@@ -178,7 +215,13 @@ public static class BenchmarkDotNetDiffer
     /// <param name="conclusion">The equivalence test conclusion.</param>
     /// <param name="baseResult">The baseline benchmark.</param>
     /// <param name="diffResult">The diff benchmark.</param>
-    /// <returns>The delta of mean values.</returns>
+    /// <summary>
+    /// Calculates the difference in mean values between the baseline and diff benchmarks based on the equivalence test conclusion.
+    /// </summary>
+    /// <param name="conclusion">The result of the equivalence test indicating which benchmark is faster.</param>
+    /// <param name="baseResult">The baseline benchmark result.</param>
+    /// <param name="diffResult">The diff (new) benchmark result.</param>
+    /// <returns>The mean value delta; returns NaN if statistics are missing.</returns>
     public static double GetMeanDelta(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
     {
         if (baseResult.Statistics == null || diffResult.Statistics == null)
@@ -197,7 +240,13 @@ public static class BenchmarkDotNetDiffer
     /// <param name="conclusion">The equivalence test conclusion.</param>
     /// <param name="baseResult">The baseline benchmark.</param>
     /// <param name="diffResult">The diff benchmark.</param>
-    /// <returns>The delta of P95 values.</returns>
+    /// <summary>
+    /// Calculates the difference in 95th percentile (P95) values between baseline and diff benchmarks based on the equivalence test conclusion.
+    /// </summary>
+    /// <param name="conclusion">The result of the equivalence test indicating which benchmark is faster.</param>
+    /// <param name="baseResult">The baseline benchmark result.</param>
+    /// <param name="diffResult">The diff benchmark result.</param>
+    /// <returns>The delta of P95 values, or NaN if statistics or percentiles are missing.</returns>
     public static double GetP95Delta(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
     {
         if (baseResult.Statistics == null || diffResult.Statistics == null

@@ -58,7 +58,10 @@ public class Benchmark
     /// <summary>
     /// Returns an array of the actual workload results (not warmup, not pilot).
     /// </summary>
-    /// <returns>An array of measured values for the benchmark workload.</returns>
+    /// <summary>
+            /// Returns an array of normalized workload times for the benchmark, including only measurements with an iteration stage of "Result".
+            /// </summary>
+            /// <returns>An array of measured values for the benchmark workload, calculated as nanoseconds per operation for each result measurement.</returns>
     internal double[] GetOriginalValues()
         => (Measurements ?? [])
             .Where(measurement => string.Equals(measurement.IterationStage, "Result", StringComparison.Ordinal))

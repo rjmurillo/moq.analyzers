@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,6 +20,9 @@ public class Moq1002ClassBenchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Generates source files and creates Roslyn compilations with and without the analyzer for benchmarking, based on the current <c>FileCount</c> parameter.
+    /// </summary>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -58,6 +61,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Runs the analyzer on the test compilation and verifies that the number of diagnostics matches the configured file count.
+    /// </summary>
+    /// <remarks>
+    /// Throws an <see cref="InvalidOperationException"/> if the number of diagnostics does not equal <c>FileCount</c>.
+    /// </remarks>
     [Benchmark]
     public async Task Moq1002WithDiagnostics()
     {

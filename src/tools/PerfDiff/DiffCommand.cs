@@ -33,7 +33,10 @@ internal static class DiffCommand
     /// <summary>
     /// Creates the root command with options for the diff command.
     /// </summary>
-    /// <returns>The configured <see cref="RootCommand"/>.</returns>
+    /// <summary>
+    /// Creates and configures the command-line options for the performance results diff command.
+    /// </summary>
+    /// <returns>The configured <see cref="RootCommand"/> for comparing two sets of performance results.</returns>
     internal static RootCommand CreateCommandLineOptions()
     {
         // Sync changes to option and argument names with the FormatCommand.Handler above.

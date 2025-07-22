@@ -19,6 +19,12 @@ public class Moq1204RaisesEventArgumentsBenchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Prepares Roslyn compilations with analyzers for the benchmark by generating the specified number of source files and initializing baseline and test compilation objects.
+    /// </summary>
+    /// <remarks>
+    /// Each generated source file defines a unique interface and class designed to trigger or avoid the Moq1204 analyzer diagnostic. The method synchronously creates compilations due to BenchmarkDotNet limitations.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -59,6 +65,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by verifying that the expected number of diagnostics are reported for the generated test sources.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the number of diagnostics found does not match <c>FileCount</c>.
+    /// </exception>
     [Benchmark]
     public async Task Moq1204WithDiagnostics()
     {

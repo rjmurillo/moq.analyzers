@@ -10,7 +10,12 @@ namespace PerfDiff.BDN.Regression;
 /// </summary>
 public sealed class MeanPercentageRegressionStrategy : IBenchmarkRegressionStrategy
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Determines whether any benchmark results indicate a performance regression based on both relative (5%) and absolute (0.5 ms) mean ratio thresholds.
+    /// </summary>
+    /// <param name="comparison">An array of benchmark comparison results to analyze.</param>
+    /// <param name="details">Outputs details about the regression detection, including the metric name and threshold used.</param>
+    /// <returns>True if any slower (worse) benchmark results exceed both thresholds, indicating a regression; otherwise, false.</returns>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
     {
         const string metricName = "Mean Ratio";

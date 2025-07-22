@@ -23,7 +23,12 @@ public class BenchmarkComparisonService(ILogger logger)
     /// </summary>
     /// <param name="baselineFolder">The folder containing baseline results.</param>
     /// <param name="resultsFolder">The folder containing new results.</param>
-    /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating comparison success and regression detection.</returns>
+    /// <summary>
+    /// Asynchronously compares benchmark results from two folders using multiple regression detection strategies.
+    /// </summary>
+    /// <param name="baselineFolder">The path to the folder containing baseline benchmark results.</param>
+    /// <param name="resultsFolder">The path to the folder containing new benchmark results to compare against the baseline.</param>
+    /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating whether the comparison succeeded and if any regression was detected.</returns>
     public async Task<BenchmarkComparisonResult> CompareAsync(string baselineFolder, string resultsFolder)
     {
         BdnComparisonResult[]? comparison = await BenchmarkDotNetDiffer.TryGetBdnResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);

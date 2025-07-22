@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 
@@ -12,7 +12,10 @@ public static class Program
     /// <summary>
     /// Main entrypoint for benchmarks.
     /// </summary>
-    /// <param name="args">Command line arguments.</param>
+    /// <summary>
+    /// Entry point for running all benchmarks in the current assembly with a custom configuration.
+    /// </summary>
+    /// <param name="args">Command line arguments passed to the benchmark runner.</param>
     public static void Main(string[] args)
     {
         // Needed because Microsoft.CodeAnalysis.Testing does not build with optimizations. See https://github.com/dotnet/roslyn-sdk/issues/1165.

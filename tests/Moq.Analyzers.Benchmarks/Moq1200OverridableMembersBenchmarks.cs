@@ -20,6 +20,12 @@ public class Moq1200OverridableMembersBenchmarks
 
     private static CompilationWithAnalyzers? TestCompilation { get; set; }
 
+    /// <summary>
+    /// Prepares Roslyn compilations with and without the analyzer for the benchmark, generating the specified number of source files.
+    /// </summary>
+    /// <remarks>
+    /// Generates <c>FileCount</c> source files, each containing a sample class and a Moq setup, then creates two compilations: one baseline without the analyzer and one with the <c>SetupShouldBeUsedOnlyForOverridableMembersAnalyzer</c>.
+    /// </remarks>
     [IterationSetup]
     [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Async setup not supported in BenchmarkDotNet.See https://github.com/dotnet/BenchmarkDotNet/issues/2442.")]
     public void SetupCompilation()
@@ -57,6 +63,12 @@ internal class {name}
             .GetResult();
     }
 
+    /// <summary>
+    /// Benchmarks the analyzer by running it on the test compilation and verifies that the expected number of diagnostics are produced.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the number of diagnostics found does not match <c>FileCount</c>.
+    /// </exception>
     [Benchmark]
     public async Task Moq1200WithDiagnostics()
     {

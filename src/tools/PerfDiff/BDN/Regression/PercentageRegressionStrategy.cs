@@ -9,7 +9,13 @@ namespace PerfDiff.BDN.Regression;
 /// </summary>
 public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Determines whether any performance regressions are present in the provided benchmark comparison results using a fixed percentage threshold.
+    /// </summary>
+    /// <param name="comparison">An array of benchmark comparison results to analyze.</param>
+    /// <param name="logger">Logger used to output information about detected regressions and improvements.</param>
+    /// <param name="details">Outputs details of the regression detection, including the metric name and threshold used.</param>
+    /// <returns>True if any regressions exceeding the threshold are detected; otherwise, false.</returns>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
     {
         const string metricName = "Median ratio";

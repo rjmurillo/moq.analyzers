@@ -10,6 +10,13 @@ namespace PerfDiff.ETL;
 
 internal static class EtlDiffer
 {
+    /// <summary>
+    /// Compares two ETL files and prints a report of the top potential performance regressions.
+    /// </summary>
+    /// <param name="sourceEtlPath">The file path to the source ETL file.</param>
+    /// <param name="baselineEtlPath">The file path to the baseline ETL file.</param>
+    /// <param name="regression">Always set to false; regression detection is not implemented.</param>
+    /// <returns>Always returns true.</returns>
     public static bool TryCompareETL(string sourceEtlPath, string baselineEtlPath, out bool regression)
     {
         regression = false;
@@ -22,6 +29,11 @@ internal static class EtlDiffer
         return true;
     }
 
+    /// <summary>
+    /// Constructs a call tree from the specified ETL file path by extracting trace process data and stack samples.
+    /// </summary>
+    /// <param name="eltPath">The path to the ETL file.</param>
+    /// <returns>A <see cref="CallTree"/> representing the aggregated call stacks from the ETL file.</returns>
     private static CallTree GetCallTree(string eltPath)
     {
         TraceProcess traceProcess = GetTraceProcessFromETLFile(eltPath);
@@ -29,6 +41,11 @@ internal static class EtlDiffer
         return CreateCallTreeFromStackSource(stackSource);
     }
 
+    /// <summary>
+    /// Retrieves the first "dotnet" process from the ETL file at the specified path.
+    /// </summary>
+    /// <param name="eltPath">The path to the ETL file.</param>
+    /// <returns>The first TraceProcess named "dotnet" found in the ETL file.</returns>
     public static TraceProcess GetTraceProcessFromETLFile(string eltPath)
     {
         TraceLog? traceLog = TraceLog.OpenOrConvert(eltPath);
@@ -36,6 +53,11 @@ internal static class EtlDiffer
             .First(p => p.Name.Equals("dotnet", StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// Creates a <see cref="StackSource"/> from the events of a given <see cref="TraceProcess"/>, filtering for sampled profile events within the process's active time range and resolving symbols for loaded modules.
+    /// </summary>
+    /// <param name="process">The trace process from which to extract and filter events.</param>
+    /// <returns>A <see cref="StackSource"/> representing the filtered and symbol-resolved events of the process.</returns>
     public static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
     {
         TraceEvents? events = process.EventsInProcess;
@@ -56,6 +78,11 @@ internal static class EtlDiffer
         return new TraceEventStackSource(events);
     }
 
+    /// <summary>
+    /// Creates a CallTree from the provided StackSource with scaling set to match the data.
+    /// </summary>
+    /// <param name="stackSource">The stack source to use for building the call tree.</param>
+    /// <returns>A CallTree representing the call hierarchy from the stack source.</returns>
     public static CallTree CreateCallTreeFromStackSource(StackSource stackSource)
     {
         CallTree calltree = new CallTree(ScalingPolicyKind.ScaleToData);
@@ -63,6 +90,12 @@ internal static class EtlDiffer
         return calltree;
     }
 
+    /// <summary>
+    /// Compares two call trees and generates a prioritized report of symbols with significant metric increases (overweights) between the source and baseline.
+    /// </summary>
+    /// <param name="source">The call tree representing the source ETL data.</param>
+    /// <param name="baseline">The call tree representing the baseline ETL data.</param>
+    /// <returns>An immutable array of <see cref="OverWeightResult"/> objects, each describing a symbol with its before/after metrics, delta, overweight percentage, percent contribution, and computed interest score. Returns an empty array if the total metrics are unchanged.</returns>
     public static ImmutableArray<OverWeightResult> GenerateOverweightReport(CallTree source, CallTree baseline)
     {
         float sourceTotal = LoadTrace(source, out Dictionary<string, float> sourceData);
