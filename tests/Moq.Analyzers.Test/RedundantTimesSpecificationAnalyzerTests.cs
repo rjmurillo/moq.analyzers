@@ -3,7 +3,7 @@ using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.Redun
 
 namespace Moq.Analyzers.Test;
 
-public class RedundantTimesSpecificationAnalyzerTests
+public class RedundantTimesSpecificationAnalyzerTests(ITestOutputHelper output)
 {
     public static IEnumerable<object[]> TestData()
     {
@@ -65,6 +65,7 @@ public class TestClass
 """;
 
         string source = Template(@namespace, sourceCode);
+        output.WriteLine(source);
         await Verifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
     }
 

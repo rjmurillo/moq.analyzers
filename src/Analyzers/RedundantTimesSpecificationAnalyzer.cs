@@ -103,8 +103,7 @@ public class RedundantTimesSpecificationAnalyzer : DiagnosticAnalyzer
 
     private static void ReportDiagnostic(OperationAnalysisContext context, IArgumentOperation timesArgument)
     {
-        Location diagnosticLocation = timesArgument.Syntax.GetLocation();
-        Diagnostic diagnostic = DiagnosticExtensions.CreateDiagnostic(timesArgument.Syntax, Rule, diagnosticLocation);
+        Diagnostic diagnostic = timesArgument.Syntax.CreateDiagnostic(Rule);
         context.ReportDiagnostic(diagnostic);
     }
 }
