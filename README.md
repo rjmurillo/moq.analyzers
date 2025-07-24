@@ -31,6 +31,7 @@ something is wrong with your Moq configuration.
 | [Moq1301](docs/rules/Moq1301.md) | Usage         | Mock.Get() should not take literals                                                     |
 | [Moq1400](docs/rules/Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
 | [Moq1410](docs/rules/Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              |
+| [Moq1800](docs/rules/Moq1800.md) | Correctness   | SetupSequence should be used only for overridable members                               |
 
 See [docs/rules/README.md](docs/rules/README.md) for full documentation.
 

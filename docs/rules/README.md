@@ -21,6 +21,7 @@
 | [Moq1400](./Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior | [SetExplicitMockBehaviorAnalyzer.cs](../../src/Analyzers/SetExplicitMockBehaviorAnalyzer.cs)                                       |
 | [Moq1410](./Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              | [SetStrictMockBehaviorAnalyzer.cs](../../src/Analyzers/SetStrictMockBehaviorAnalyzer.cs)                                           |
 | [Moq1500](./Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                | [MockRepositoryVerifyAnalyzer.cs](../../src/Analyzers/MockRepositoryVerifyAnalyzer.cs)                                             |
+| [Moq1800](./Moq1800.md) | Correctness   | SetupSequence should be used only for overridable members                               | [SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer.cs](../../src/Analyzers/SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer.cs) |
 ## Guidance for Future Rules
 
 ### Categories

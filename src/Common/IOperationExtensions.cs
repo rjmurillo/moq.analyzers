@@ -57,6 +57,53 @@ internal static class IOperationExtensions
     }
 
     /// <summary>
+    /// Extracts the referenced member syntax node from a lambda operation, handling both block lambdas
+    /// (e.g., => { return x.Property; }) and expression lambdas (e.g., => x.Property).
+    /// </summary>
+    /// <param name="bodyOperation">The lambda body operation to analyze.</param>
+    /// <returns>The referenced member syntax node, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
+    internal static SyntaxNode? GetReferencedMemberSyntaxFromLambda(this IOperation? bodyOperation)
+    {
+        if (bodyOperation is IBlockOperation { Operations.Length: 1 } blockOperation)
+        {
+            // If it's a block lambda (example: => { return x.Property; })
+            return blockOperation.Operations[0].GetSyntaxFromOperation();
+        }
+
+        // If it's an expression lambda (example: => x.Property or => x.Method(...))
+        return bodyOperation.GetSyntaxFromOperation();
+    }
+
+    /// <summary>
+    /// Extracts a syntax node from an <see cref="IOperation"/>, handling return operations, property references,
+    /// method invocations, events, fields, assignment operations, and expression statements.
+    /// </summary>
+    /// <param name="operation">The <see cref="IOperation"/> to analyze.</param>
+    /// <returns>The extracted syntax node, or <see langword="null" /> if not found or if the <paramref name="operation"/> operation is <see langword="null" />.</returns>
+    private static SyntaxNode? GetSyntaxFromOperation(this IOperation? operation)
+    {
+        switch (operation)
+        {
+            case null:
+                return null;
+            case IReturnOperation returnOp:
+                operation = returnOp.ReturnedValue;
+                break;
+        }
+
+        return operation switch
+        {
+            IPropertyReferenceOperation propertyRef => propertyRef.Syntax,
+            IInvocationOperation methodOp => methodOp.Syntax,
+            IEventReferenceOperation eventRef => eventRef.Syntax,
+            IFieldReferenceOperation fieldRef => fieldRef.Syntax,
+            IAssignmentOperation assignmentOp => GetSyntaxFromOperation(assignmentOp.Target),
+            IExpressionStatementOperation expressionStatement => GetSyntaxFromOperation(expressionStatement.Operation),
+            _ => null,
+        };
+    }
+
+    /// <summary>
     /// Extracts a <see cref="ISymbol"/> from an <see cref="IOperation"/>, handling return operations, property references,
     /// method invocations, events, fields, assignment operations, and expression statements.
     /// </summary>

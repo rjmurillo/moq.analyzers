@@ -2,7 +2,7 @@ using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.Setup
 
 namespace Moq.Analyzers.Test;
 
-public partial class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzerTests
+public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
@@ -22,11 +22,11 @@ public partial class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzerT
             ["""new Mock<IValueTaskMethods>().SetupSequence(x => x.GetNumberAsync()).Returns(ValueTask.FromResult(42));"""],
 
             // Invalid - should trigger Moq1800 diagnostic
-            ["""{|Moq1800:new Mock<BaseSampleClass>().SetupSequence(x => x.Calculate())|};"""],
-            ["""{|Moq1800:new Mock<SampleClass>().SetupSequence(x => x.Property)|};"""],
-            ["""{|Moq1800:new Mock<SampleClass>().SetupSequence(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))|};"""],
-            ["""{|Moq1800:new Mock<SampleClass>().SetupSequence(x => x.Field)|};"""],
-            ["""{|Moq1800:new Mock<SampleClassWithNonVirtualIndexer>().SetupSequence(x => x[0])|};"""],
+            ["""new Mock<BaseSampleClass>().SetupSequence(x => {|Moq1800:x.Calculate()|});"""],
+            ["""new Mock<SampleClass>().SetupSequence(x => {|Moq1800:x.Property|});"""],
+            ["""new Mock<SampleClass>().SetupSequence(x => {|Moq1800:x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())|});"""],
+            ["""new Mock<SampleClass>().SetupSequence(x => {|Moq1800:x.Field|});"""],
+            ["""new Mock<SampleClassWithNonVirtualIndexer>().SetupSequence(x => {|Moq1800:x[0]|});"""],
 
             // Additional argument matcher patterns - It.Is with predicates (supported in both versions)
             ["""new Mock<ISampleInterface>().SetupSequence(x => x.Calculate(It.Is<int>(i => i > 0), It.IsAny<int>()));"""],
