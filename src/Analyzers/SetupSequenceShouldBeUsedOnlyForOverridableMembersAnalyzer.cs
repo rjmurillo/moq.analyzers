@@ -72,7 +72,7 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : Diagno
         }
 
         // 4. Check if symbol is a property or method, and if it is overridable or is returning a Task (which Moq allows).
-        if (IsPropertyOrMethod(mockedMemberSymbol, knownSymbols))
+        if (IsOverridableOrTaskResultMember(mockedMemberSymbol, knownSymbols))
         {
             return;
         }
@@ -80,23 +80,24 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : Diagno
         // 5. If we reach here, the member is neither overridable nor allowed by Moq
         //    So we report the diagnostic.
         //
-        // NOTE: The location is on the invocationOperation, which is fairly broad
-        Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule);
+        // Try to get the specific member syntax for a more precise diagnostic location
+        SyntaxNode? memberSyntax = MoqVerificationHelpers.TryGetMockedMemberSyntax(invocationOperation);
+        Location diagnosticLocation = memberSyntax?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
+
+        Diagnostic diagnostic = diagnosticLocation.CreateDiagnostic(Rule);
         context.ReportDiagnostic(diagnostic);
     }
 
     /// <summary>
-    /// Determines whether a property or method is either
-    /// <see cref="ValueTask"/>, <see cref="ValueTask{TResult}"/>, <see cref="Task"/>, or <see cref="Task{TResult}"/>
-    /// - OR -
-    /// if the <paramref name="mockedMemberSymbol"/> is overridable.
+    /// Determines whether a member symbol is either overridable or represents a Task/ValueTask Result property
+    /// that Moq allows to be setup even if the underlying Task property is not overridable.
     /// </summary>
     /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
     /// <param name="knownSymbols">A <see cref="MoqKnownSymbols"/> instance for resolving well-known types.</param>
     /// <returns>
-    /// Returns <see langword="true"/> when the diagnostic should not be triggered; otherwise <see langword="false" />.
+    /// Returns <see langword="true"/> when the member is overridable or is a Task/ValueTask Result property; otherwise <see langword="false" />.
     /// </returns>
-    private static bool IsPropertyOrMethod(ISymbol mockedMemberSymbol, MoqKnownSymbols knownSymbols)
+    private static bool IsOverridableOrTaskResultMember(ISymbol mockedMemberSymbol, MoqKnownSymbols knownSymbols)
     {
         switch (mockedMemberSymbol)
         {
