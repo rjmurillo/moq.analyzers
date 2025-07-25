@@ -21,6 +21,7 @@
 | [Moq1302](./Moq1302.md) | Usage         | LINQ to Mocks expression should be valid                                               | [LinqToMocksExpressionShouldBeValidAnalyzer.cs](../../src/Analyzers/LinqToMocksExpressionShouldBeValidAnalyzer.cs)                 |
 | [Moq1400](./Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior | [SetExplicitMockBehaviorAnalyzer.cs](../../src/Analyzers/SetExplicitMockBehaviorAnalyzer.cs)                                       |
 | [Moq1410](./Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              | [SetStrictMockBehaviorAnalyzer.cs](../../src/Analyzers/SetStrictMockBehaviorAnalyzer.cs)                                           |
+| [Moq1420](./Moq1420.md) | Best Practice | Redundant Times.AtLeastOnce() specification can be removed                              | [RedundantTimesSpecificationAnalyzer.cs](../../src/Analyzers/RedundantTimesSpecificationAnalyzer.cs)                               |
 | [Moq1500](./Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                | [MockRepositoryVerifyAnalyzer.cs](../../src/Analyzers/MockRepositoryVerifyAnalyzer.cs)                                             |
 ## Guidance for Future Rules
 

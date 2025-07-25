@@ -23,5 +23,6 @@ internal static class DiagnosticIds
     internal const string LinqToMocksExpressionShouldBeValid = "Moq1302";
     internal const string SetExplicitMockBehavior = "Moq1400";
     internal const string SetStrictMockBehavior = "Moq1410";
+    internal const string RedundantTimesSpecification = "Moq1420";
     internal const string MockRepositoryVerifyNotCalled = "Moq1500";
 }
