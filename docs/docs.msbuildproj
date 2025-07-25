@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.Build.NoTargets">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <_DocFxInputs Include="**/*" />
+    <_FilesToLint
+      Include="$(RepoRoot)/**/*.yaml;$(RepoRoot)/**/*.yml;$(RepoRoot)/**/*.md;$(RepoRoot)/**/*.json"
+      Exclude="$(ArtifactsPath)/**/*;$(RepoRoot)/.git/**/*" />
+  </ItemGroup>
+
+  <Target
+    Name="BuildDocFx"
+    BeforeTargets="AfterBuild"
+    Inputs="@(_DocFxInputs)"
+    Outputs="$(IntermediateOutputPath)/docfx.stamp">
+
+    <Exec Command="dotnet docfx docfx.json" />
+    <Touch Files="$(IntermediateOutputPath)/docfx.stamp" AlwaysCreate="true" />
+  </Target>
+
+  <Target
+    Name="CleanDocFx"
+    BeforeTargets="AfterClean">
+
+    <Delete Files="$(IntermediateOutputPath)/docfx.stamp" />
+  </Target>
+
+  <Target
+    Name="LintFiles"
+    BeforeTargets="AfterBuild"
+    Inputs="@(_FilesToLint);$(RepoRoot)/.prettierrc"
+    Outputs="$(IntermediateOutputPath)/lint.stamp">
+
+    <Exec
+      Command="dotnet pprettier --check @(_FilesToLint, ' ')"
+      IgnoreExitCode="true"
+      StandardOutputImportance="High"
+      StandardErrorImportance="High">
+      <Output TaskParameter="ExitCode" PropertyName="LinterExitCode" />
+    </Exec>
+
+    <Error
+      Condition="'$(LinterExitCode)' != '0'"
+      Text="Linting failed. Run `dotnet pprettier --write .` from the repo root `$(RepoRoot)` to auto-format your documents. Make sure to commit the results." />
+
+    <!-- Touch the stamp file so MSBuild can calculate incremental build -->
+    <Touch Files="$(IntermediateOutputPath)/lint.stamp" AlwaysCreate="true" />
+  </Target>
+</Project>

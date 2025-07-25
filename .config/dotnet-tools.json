@@ -29,6 +29,18 @@
         "reportgenerator"
       ],
       "rollForward": false
+    },
+    "packedprettier": {
+      "version": "3.2.5.13",
+      "commands": ["pprettier"]
+    },
+    "microsoft.visualstudio.slngen.tool": {
+      "version": "11.2.6",
+      "commands": ["slngen"]
+    },
+    "docfx": {
+      "version": "2.78.2",
+      "commands": ["docfx"]
     }
   }
 }
