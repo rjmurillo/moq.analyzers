@@ -29,6 +29,7 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ### 2. Mandatory Workflow Compliance
 
 **You MUST enforce and validate required steps:**
+
 - **Check configuration files** and documentation before making changes
 - **Verify completion** of mandatory processes before allowing progression
 - **Validate that each step** was actually performed, not just mentioned
