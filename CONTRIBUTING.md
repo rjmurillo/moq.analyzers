@@ -40,6 +40,170 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
    dotnet test
    ```
 
+## Universal Agent Success Principles for Project Maintainers
+
+> **IMPORTANT:** These guidelines help project maintainers create environments where AI agents can be more successful, regardless of the specific agent platform or tools being used.
+
+### Creating Agent-Friendly Project Environments
+
+#### 1. Clear Expertise Validation Requirements
+
+**Document specific expertise requirements:**
+- **Define domain-specific knowledge** that agents must demonstrate before contributing
+- **Create validation checklists** with specific technical questions
+- **Establish clear criteria** for when agents should request expert guidance
+- **Provide escalation paths** for complex or unclear situations
+
+**Implementation:**
+- Create comprehensive documentation of domain concepts
+- Develop specific technical questions for expertise validation
+- Establish clear guidelines for when to seek human expert guidance
+- Document common failure patterns and their solutions
+
+#### 2. Mandatory Workflow Documentation
+
+**Create clear, enforceable workflows:**
+- **Document all mandatory steps** in the development process
+- **Provide validation checkpoints** that agents can verify
+- **Create clear success criteria** for each workflow step
+- **Establish rollback procedures** for failed workflows
+
+**Implementation:**
+- Document step-by-step workflows with clear success criteria
+- Create automated validation scripts where possible
+- Provide clear error messages and recovery procedures
+- Establish checkpoints that agents can validate independently
+
+#### 3. Configuration and Documentation Standards
+
+**Make project context easily discoverable:**
+- **Centralize configuration** in well-documented files
+- **Create comprehensive documentation** of project structure and conventions
+- **Establish clear naming conventions** and architectural patterns
+- **Document decision-making processes** and design rationales
+
+**Implementation:**
+- Use consistent configuration file formats and locations
+- Create comprehensive README files with clear project overview
+- Document architectural decisions and their rationales
+- Establish clear coding standards and conventions
+
+#### 4. Validation and Testing Infrastructure
+
+**Create robust validation systems:**
+- **Automate testing and validation** where possible
+- **Provide clear feedback** on validation failures
+- **Create comprehensive test suites** that cover all critical paths
+- **Establish performance benchmarks** for performance-sensitive code
+
+**Implementation:**
+- Set up automated CI/CD pipelines with comprehensive testing
+- Create clear test documentation and examples
+- Establish performance testing frameworks
+- Provide clear error messages and debugging information
+
+#### 5. Error Handling and Recovery
+
+**Design systems for graceful failure handling:**
+- **Create clear error messages** that guide agents toward solutions
+- **Establish retry mechanisms** for transient failures
+- **Provide rollback procedures** for failed changes
+- **Document common failure patterns** and their solutions
+
+**Implementation:**
+- Use descriptive error messages with actionable guidance
+- Implement retry logic for network and transient failures
+- Create rollback procedures for database and configuration changes
+- Document troubleshooting guides for common issues
+
+#### 6. State Management and Context Preservation
+
+**Design systems that preserve context:**
+- **Use persistent storage** for important state information
+- **Create clear state transition documentation**
+- **Implement context recovery mechanisms**
+- **Document state dependencies** and relationships
+
+**Implementation:**
+- Use databases or persistent storage for important state
+- Document state transitions and their triggers
+- Implement automatic context recovery after interruptions
+- Create clear documentation of state dependencies
+
+#### 7. Tool Integration and Documentation
+
+**Provide comprehensive tool documentation:**
+- **Document all available tools** and their capabilities
+- **Create clear usage examples** for each tool
+- **Establish tool integration patterns**
+- **Provide troubleshooting guides** for tool failures
+
+**Implementation:**
+- Create comprehensive tool documentation with examples
+- Establish clear patterns for tool integration
+- Provide troubleshooting guides for common tool issues
+- Create tool validation scripts where possible
+
+#### 8. Expert Guidance Protocols
+
+**Establish clear escalation procedures:**
+- **Define when agents should seek expert guidance**
+- **Create clear escalation paths** with contact information
+- **Establish response time expectations**
+- **Document expert availability** and areas of expertise
+
+**Implementation:**
+- Create clear criteria for when to escalate to human experts
+- Establish contact procedures and response time expectations
+- Document areas of expertise and availability
+- Create escalation templates and procedures
+
+### Best Practices for Agent Integration
+
+#### Documentation Standards
+
+- **Use clear, unambiguous language** in all documentation
+- **Provide concrete examples** for all concepts and procedures
+- **Create step-by-step guides** for complex processes
+- **Include troubleshooting sections** in all documentation
+
+#### Configuration Management
+
+- **Use consistent configuration formats** across the project
+- **Provide configuration validation** tools and scripts
+- **Document configuration dependencies** and relationships
+- **Create configuration templates** for common scenarios
+
+#### Testing and Validation
+
+- **Automate testing** wherever possible
+- **Provide clear test documentation** and examples
+- **Create comprehensive test coverage** for all critical paths
+- **Establish performance benchmarks** and monitoring
+
+#### Error Handling
+
+- **Use descriptive error messages** with actionable guidance
+- **Implement graceful degradation** for non-critical failures
+- **Provide rollback procedures** for all changes
+- **Create troubleshooting guides** for common issues
+
+### Monitoring and Improvement
+
+#### Success Metrics
+
+- **Track agent success rates** and failure patterns
+- **Monitor workflow completion rates** and bottlenecks
+- **Collect feedback** on documentation and process clarity
+- **Measure time to resolution** for common issues
+
+#### Continuous Improvement
+
+- **Regularly review and update** documentation and processes
+- **Collect and analyze** agent feedback and failure patterns
+- **Implement improvements** based on success metrics
+- **Update expertise requirements** as the project evolves
+
 ## Development Workflow
 
 ### Branch Naming Convention
