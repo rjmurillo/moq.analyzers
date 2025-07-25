@@ -34,7 +34,7 @@
     <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.23" />
   </ItemGroup>
   <ItemGroup Label="Transitive pins">
-    <PackageVersion Include="System.Collections.Immutable" Version="9.0.0" />
+    <PackageVersion Include="System.Collections.Immutable" Version="9.0.7" />
     <PackageVersion Include="System.Formats.Asn1" Version="9.0.7" />
   </ItemGroup>
 </Project>
