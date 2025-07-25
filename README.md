@@ -26,12 +26,13 @@ something is wrong with your Moq configuration.
 | [Moq1204](docs/rules/Moq1204.md) | Correctness   | Raises event arguments should match event signature                                     |
 | [Moq1205](docs/rules/Moq1205.md) | Correctness   | Event setup handler type should match event delegate type                               |
 | [Moq1206](docs/rules/Moq1206.md) | Correctness   | Async method setups should use ReturnsAsync instead of Returns with async lambda        |
+| [Moq1207](docs/rules/Moq1207.md) | Correctness   | SetupSequence should be used only for overridable members                               |
 | [Moq1210](docs/rules/Moq1210.md) | Correctness   | Verify should be used only for overridable members                                      |
 | [Moq1300](docs/rules/Moq1300.md) | Usage         | `Mock.As()` should take interfaces only                                                 |
 | [Moq1301](docs/rules/Moq1301.md) | Usage         | Mock.Get() should not take literals                                                     |
 | [Moq1400](docs/rules/Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
 | [Moq1410](docs/rules/Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              |
-| [Moq1800](docs/rules/Moq1800.md) | Correctness   | SetupSequence should be used only for overridable members                               |
+| [Moq1500](docs/rules/Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                |
 
 See [docs/rules/README.md](docs/rules/README.md) for full documentation.
 
