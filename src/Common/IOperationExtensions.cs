@@ -75,33 +75,51 @@ internal static class IOperationExtensions
     }
 
     /// <summary>
+    /// Traverses an <see cref="IOperation"/> tree to extract a value using the provided selector, handling return operations, assignments, and expression statements.
+    /// </summary>
+    /// <typeparam name="T">The type of value to extract (e.g., <see cref="SyntaxNode"/>, <see cref="ISymbol"/>).</typeparam>
+    /// <param name="operation">The <see cref="IOperation"/> to analyze.</param>
+    /// <param name="selector">A function that extracts the desired value from a leaf operation.</param>
+    /// <returns>The extracted value, or <see langword="null" /> if not found or if the <paramref name="operation"/> is <see langword="null" />.</returns>
+    private static T? TraverseOperation<T>(this IOperation? operation, Func<IOperation, T?> selector)
+        where T : class
+    {
+        while (true)
+        {
+            switch (operation)
+            {
+                case null:
+                    return null;
+                case IReturnOperation returnOp:
+                    operation = returnOp.ReturnedValue;
+                    continue;
+                case IAssignmentOperation assignmentOp:
+                    operation = assignmentOp.Target;
+                    continue;
+                case IExpressionStatementOperation exprStmtOp:
+                    operation = exprStmtOp.Operation;
+                    continue;
+                default:
+                    return operation != null ? selector(operation) : null;
+            }
+        }
+    }
+
+    /// <summary>
     /// Extracts a syntax node from an <see cref="IOperation"/>, handling return operations, property references,
     /// method invocations, events, fields, assignment operations, and expression statements.
     /// </summary>
     /// <param name="operation">The <see cref="IOperation"/> to analyze.</param>
     /// <returns>The extracted syntax node, or <see langword="null" /> if not found or if the <paramref name="operation"/> operation is <see langword="null" />.</returns>
     private static SyntaxNode? GetSyntaxFromOperation(this IOperation? operation)
-    {
-        switch (operation)
-        {
-            case null:
-                return null;
-            case IReturnOperation returnOp:
-                operation = returnOp.ReturnedValue;
-                break;
-        }
-
-        return operation switch
+        => IOperationExtensions.TraverseOperation<SyntaxNode>(operation, static op => op switch
         {
             IPropertyReferenceOperation propertyRef => propertyRef.Syntax,
             IInvocationOperation methodOp => methodOp.Syntax,
             IEventReferenceOperation eventRef => eventRef.Syntax,
             IFieldReferenceOperation fieldRef => fieldRef.Syntax,
-            IAssignmentOperation assignmentOp => GetSyntaxFromOperation(assignmentOp.Target),
-            IExpressionStatementOperation expressionStatement => GetSyntaxFromOperation(expressionStatement.Operation),
             _ => null,
-        };
-    }
+        });
 
     /// <summary>
     /// Extracts a <see cref="ISymbol"/> from an <see cref="IOperation"/>, handling return operations, property references,
@@ -110,25 +128,12 @@ internal static class IOperationExtensions
     /// <param name="operation">The <see cref="IOperation"/> to analyze.</param>
     /// <returns>The extracted symbol, or <see langword="null" /> if not found or if the <paramref name="operation"/> operation is <see langword="null" />.</returns>
     private static ISymbol? GetSymbolFromOperation(this IOperation? operation)
-    {
-        switch (operation)
-        {
-            case null:
-                return null;
-            case IReturnOperation returnOp:
-                operation = returnOp.ReturnedValue;
-                break;
-        }
-
-        return operation switch
+        => IOperationExtensions.TraverseOperation<ISymbol>(operation, static op => op switch
         {
             IPropertyReferenceOperation propertyRef => propertyRef.Property,
             IInvocationOperation methodOp => methodOp.TargetMethod,
             IEventReferenceOperation eventRef => eventRef.Event,
             IFieldReferenceOperation fieldRef => fieldRef.Field,
-            IAssignmentOperation assignmentOp => GetSymbolFromOperation(assignmentOp.Target),
-            IExpressionStatementOperation expressionStatement => GetSymbolFromOperation(expressionStatement.Operation),
             _ => null,
-        };
-    }
+        });
 }
