@@ -60,6 +60,36 @@ jobs:
       env:
         REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
+    - name: Restore Code Coverage history
+      uses: dawidd6/action-download-artifact@v3
+      with:
+        name: CoverageHistory-${{ matrix.os }}
+        path: ./artifacts/ReportGenerator/CoverageHistory
+      continue-on-error: true
+
+    - name: ReportGenerator
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.4.10
+      with:
+        reports: ./artifacts/TestResults/**/*cobertura.xml
+        targetdir: ./artifacts/ReportGenerator/CoverageReports
+        historydir: ./artifacts/ReportGenerator/CoverageHistory
+        reporttypes: Html;Cobertura;CodeClimate;MarkdownSummaryGithub
+        license: ${{ secrets.REPORTGENERATOR_LICENSE }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifacts@v4
+      if: success() || failure()
+      with:
+        name: artifacts-${{ matrix.os }}
+        path: ./artifacts
+        if-no-files-found: error
+
+    - name: Upload coverage history
+      uses: actions/upload-artifact@v4
+      with:
+        name: CoverageHistory-${{ matrix.os }}
+        path: ./artifacts/ReportGenerator/CoverageHistory
+
     - name: Upload binlogs
       uses: actions/upload-artifact@v4
       if: success() || failure()
