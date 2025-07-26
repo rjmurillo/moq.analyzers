@@ -536,6 +536,47 @@ Documentation updates are required for:
 3. **README**: Update for significant changes
 4. **Contributing Guidelines**: Update for workflow changes
 
+### Documentation Build and Linting Process
+
+Documentation is built and validated using [DocFX](https://dotnet.github.io/docfx/) and a custom linting process. The documentation build is managed by the `docs/dirs.proj` traversal project, which includes all documentation sources and the `docs.msbuildproj` for DocFX integration.
+
+#### Building Documentation
+
+To build the documentation, run:
+
+```pwsh
+dotnet build docs/dirs.proj
+```
+
+This will generate the documentation output in the `artifacts/docfx/` directory.
+
+#### Linting and Formatting
+
+All markdown (`*.md`), YAML (`*.yml`), and JSON (`*.json`) files are automatically linted as part of the documentation build. If any file does not conform to the required formatting rules, the build will fail with an error similar to:
+
+```text
+error : Linting failed. Run `dotnet pprettier --write .` from the repo root `C:\src\GitHub\rjmurillo\moq.analyzers\` to auto-format your documents. Make sure to commit the results.
+```
+
+To fix linting errors, run:
+
+```pwsh
+dotnet pprettier --write .
+```
+
+from the repository root. Commit any changes made by this command before pushing or opening a pull request.
+
+#### DocFX Configuration
+
+The documentation build is configured via `docs/docfx.json`. This file specifies the content sources, output directory, templates, and global metadata for the documentation site. See the file for details on structure and customization.
+
+#### Required Steps for Documentation Changes
+
+1. Edit or add documentation files as needed.
+2. Run `dotnet pprettier --write .` to ensure all files are properly formatted.
+3. Build the documentation with `dotnet build docs/dirs.proj` to verify there are no linting or build errors.
+4. Commit and push both your documentation changes and any formatting changes made by the linter.
+
 ### Documentation Format
 
 - Use clear, concise language

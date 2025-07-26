@@ -148,6 +148,7 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 
 - **Always check and follow** `.editorconfig` and all instructions in `.github/copilot-instructions.md` before editing or creating C# files.
 - **Always check for and follow** any new rules in `.cursor/rules/`, `.editorconfig`, and `.github/copilot-instructions.md` before making changes.
+- **When changing any `*.md`, `*.yml`, `*.yaml`, or `*.json` file, you MUST run `dotnet pprettier --write .` from the repository root and commit the results.**
 - **Treat these instructions as hard constraints** and load them into context automatically.
 
 ### AI Agent Coding Rules
