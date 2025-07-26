@@ -1,5 +1,5 @@
-name: 'Setup, Restore, and Build Solution'
-description: 'Checks out code, sets up .NET, restores NuGet packages, and builds the solution for CI jobs.'
+name: "Setup, Restore, and Build Solution"
+description: "Checks out code, sets up .NET, restores NuGet packages, and builds the solution for CI jobs."
 runs:
   using: "composite"
   steps:

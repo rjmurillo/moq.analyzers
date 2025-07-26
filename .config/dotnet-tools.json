@@ -4,30 +4,22 @@
   "tools": {
     "nbgv": {
       "version": "3.7.115",
-      "commands": [
-        "nbgv"
-      ],
+      "commands": ["nbgv"],
       "rollForward": false
     },
     "verify.tool": {
       "version": "0.6.0",
-      "commands": [
-        "dotnet-verify"
-      ],
+      "commands": ["dotnet-verify"],
       "rollForward": false
     },
     "squigglecop.tool": {
       "version": "1.0.26",
-      "commands": [
-        "dotnet-squigglecop"
-      ],
+      "commands": ["dotnet-squigglecop"],
       "rollForward": false
     },
     "dotnet-reportgenerator-globaltool": {
       "version": "5.4.10",
-      "commands": [
-        "reportgenerator"
-      ],
+      "commands": ["reportgenerator"],
       "rollForward": false
     },
     "packedprettier": {

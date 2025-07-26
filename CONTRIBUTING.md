@@ -49,12 +49,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 1. Clear Expertise Validation Requirements
 
 **Document specific expertise requirements:**
+
 - **Define domain-specific knowledge** that agents must demonstrate before contributing
 - **Create validation checklists** with specific technical questions
 - **Establish clear criteria** for when agents should request expert guidance
 - **Provide escalation paths** for complex or unclear situations
 
 **Implementation:**
+
 - Create comprehensive documentation of domain concepts
 - Develop specific technical questions for expertise validation
 - Establish clear guidelines for when to seek human expert guidance
@@ -63,12 +65,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 2. Mandatory Workflow Documentation
 
 **Create clear, enforceable workflows:**
+
 - **Document all mandatory steps** in the development process
 - **Provide validation checkpoints** that agents can verify
 - **Create clear success criteria** for each workflow step
 - **Establish rollback procedures** for failed workflows
 
 **Implementation:**
+
 - Document step-by-step workflows with clear success criteria
 - Create automated validation scripts where possible
 - Provide clear error messages and recovery procedures
@@ -77,12 +81,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 3. Configuration and Documentation Standards
 
 **Make project context easily discoverable:**
+
 - **Centralize configuration** in well-documented files
 - **Create comprehensive documentation** of project structure and conventions
 - **Establish clear naming conventions** and architectural patterns
 - **Document decision-making processes** and design rationales
 
 **Implementation:**
+
 - Use consistent configuration file formats and locations
 - Create comprehensive README files with clear project overview
 - Document architectural decisions and their rationales
@@ -91,12 +97,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 4. Validation and Testing Infrastructure
 
 **Create robust validation systems:**
+
 - **Automate testing and validation** where possible
 - **Provide clear feedback** on validation failures
 - **Create comprehensive test suites** that cover all critical paths
 - **Establish performance benchmarks** for performance-sensitive code
 
 **Implementation:**
+
 - Set up automated CI/CD pipelines with comprehensive testing
 - Create clear test documentation and examples
 - Establish performance testing frameworks
@@ -105,12 +113,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 5. Error Handling and Recovery
 
 **Design systems for graceful failure handling:**
+
 - **Create clear error messages** that guide agents toward solutions
 - **Establish retry mechanisms** for transient failures
 - **Provide rollback procedures** for failed changes
 - **Document common failure patterns** and their solutions
 
 **Implementation:**
+
 - Use descriptive error messages with actionable guidance
 - Implement retry logic for network and transient failures
 - Create rollback procedures for database and configuration changes
@@ -119,12 +129,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 6. State Management and Context Preservation
 
 **Design systems that preserve context:**
+
 - **Use persistent storage** for important state information
 - **Create clear state transition documentation**
 - **Implement context recovery mechanisms**
 - **Document state dependencies** and relationships
 
 **Implementation:**
+
 - Use databases or persistent storage for important state
 - Document state transitions and their triggers
 - Implement automatic context recovery after interruptions
@@ -133,12 +145,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 7. Tool Integration and Documentation
 
 **Provide comprehensive tool documentation:**
+
 - **Document all available tools** and their capabilities
 - **Create clear usage examples** for each tool
 - **Establish tool integration patterns**
 - **Provide troubleshooting guides** for tool failures
 
 **Implementation:**
+
 - Create comprehensive tool documentation with examples
 - Establish clear patterns for tool integration
 - Provide troubleshooting guides for common tool issues
@@ -147,12 +161,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 8. Expert Guidance Protocols
 
 **Establish clear escalation procedures:**
+
 - **Define when agents should seek expert guidance**
 - **Create clear escalation paths** with contact information
 - **Establish response time expectations**
 - **Document expert availability** and areas of expertise
 
 **Implementation:**
+
 - Create clear criteria for when to escalate to human experts
 - Establish contact procedures and response time expectations
 - Document areas of expertise and availability
@@ -209,6 +225,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 ### Branch Naming Convention
 
 Use descriptive branch names following this pattern:
+
 - `feature/issue-{number}` for new features
 - `fix/issue-{number}` for bug fixes
 - `docs/issue-{number}` for documentation changes
@@ -228,6 +245,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 ```
 
 **Types:**
+
 - `feat`: New features
 - `fix`: Bug fixes
 - `docs`: Documentation changes
@@ -240,6 +258,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 - `build`: Build system changes
 
 **Examples:**
+
 ```
 feat(analyzer): add new Moq1001 analyzer for callback validation
 fix(test): resolve flaky test in Moq1200AnalyzerTests
@@ -270,8 +289,9 @@ ci(workflow): add performance testing to nightly builds
 - **No Received Files:**  
   Remove any `*.received.*` files before committing.
 
-**CI Pipeline:**  
-- All PRs are validated by GitHub Actions.  
+**CI Pipeline:**
+
+- All PRs are validated by GitHub Actions.
 - PRs that fail CI (format, build, test, or Codacy) will be closed without review.
 
 **Summary:**  
@@ -357,13 +377,14 @@ When testing code fixes that modify a class member (method, property, etc.), you
 
 Define a `public static IEnumerable<object[]>` method to provide test cases.
 
--   **Signature:** `public static IEnumerable<object[]> YourDataSourceMethod()`
--   **Content:** Return a `new object[][] { ... }`. Each inner `object[]` must contain two strings:
-    1.  The original code snippet that triggers the analyzer (`brokenCode`).
-    2.  The target code snippet after the code fix is applied (`fixedCode`).
--   **Helpers:** You **MUST** chain `.WithNamespaces().WithMoqReferenceAssemblyGroups()` to the collection to automatically generate test variations.
+- **Signature:** `public static IEnumerable<object[]> YourDataSourceMethod()`
+- **Content:** Return a `new object[][] { ... }`. Each inner `object[]` must contain two strings:
+  1.  The original code snippet that triggers the analyzer (`brokenCode`).
+  2.  The target code snippet after the code fix is applied (`fixedCode`).
+- **Helpers:** You **MUST** chain `.WithNamespaces().WithMoqReferenceAssemblyGroups()` to the collection to automatically generate test variations.
 
 **Example:**
+
 ```csharp
 public static IEnumerable<object[]> MakesNonVirtualMethodVirtualData()
 {
@@ -381,9 +402,10 @@ public static IEnumerable<object[]> MakesNonVirtualMethodVirtualData()
 
 Create an `async Task` method decorated with `[Theory]` and `[MemberData]`.
 
--   **Signature:** The signature **MUST** match the data source output: `async Task YourTestMethod(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)`
+- **Signature:** The signature **MUST** match the data source output: `async Task YourTestMethod(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)`
 
 **Example:**
+
 ```csharp
 [Theory]
 [MemberData(nameof(MakesNonVirtualMethodVirtualData))]
@@ -397,11 +419,12 @@ public async Task MakesNonVirtualMethodVirtual(string referenceAssemblyGroup, st
 
 Inside the test method, define a `static` local function named `Template` that builds the full source code using a raw string literal.
 
--   **Placeholders:** The template **MUST** use `{{ns}}` for the namespace and `{{code}}` for the code snippet.
--   **Context:** The template **MUST** include all necessary `using` statements and class structures to create a valid, compilable test case. Note that `tests\Moq.Analyzers.Test\Helpers\Test.cs` inserts global usings common for tests.
--   **Diagnostic Marker:** The code that triggers the analyzer **MUST** be wrapped with `{|DIAGNOSTIC_ID: ... |}` (e.g., `{|Moq1210:...|}`). This is non-negotiable for the test verifier to work.
+- **Placeholders:** The template **MUST** use `{{ns}}` for the namespace and `{{code}}` for the code snippet.
+- **Context:** The template **MUST** include all necessary `using` statements and class structures to create a valid, compilable test case. Note that `tests\Moq.Analyzers.Test\Helpers\Test.cs` inserts global usings common for tests.
+- **Diagnostic Marker:** The code that triggers the analyzer **MUST** be wrapped with `{|DIAGNOSTIC_ID: ... |}` (e.g., `{|Moq1210:...|}`). This is non-negotiable for the test verifier to work.
 
 **Example:**
+
 ```csharp
 static string Template(string ns, string code) =>
 $$"""
@@ -428,6 +451,7 @@ public class MyTest
 Use the `Template` function to generate the "before" and "after" source files and pass them to `Verify.VerifyCodeFixAsync`.
 
 **Example:**
+
 ```csharp
 string originalSource = Template(@namespace, brokenCode);
 string fixedSource = Template(@namespace, fixedCode);
@@ -444,6 +468,7 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
 ```
 
 **Key Benefits:**
+
 - **Automatic Discovery**: Uses reflection to find all `DiagnosticAnalyzer` types in the `Moq.Analyzers` namespace
 - **No Manual Maintenance**: New analyzers are automatically included without code changes
 - **Comprehensive Coverage**: Tests against ALL analyzers simultaneously to ensure no false positives
@@ -453,12 +478,14 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
 ### Moq-Specific Testing Guidelines
 
 **Test Data Grouping:**
+
 - When adding or updating test data, group tests by Moq version compatibility:
   - Place tests for features only available in Moq 4.18.4+ in a "new" group.
   - Place tests for features available in both 4.8.2 and 4.18.4 in a "both" or "old" group.
   - Do not include tests for features/APIs that do not exist in the targeted Moq version.
 
 **Moq Version Compatibility:**
+
 - **Moq 4.8.2:**
   - Does _not_ support `SetupAdd`, `SetupRemove`, or `.Protected().Setup`.
   - Indexer setups are supported only for virtual or interface indexers.
@@ -472,6 +499,7 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
   - When in doubt, consult the official Moq documentation and changelogs for feature support.
 
 **Required Moq Testing Patterns:**
+
 - **Overridable Members Only:** Only set up or verify virtual, abstract, or interface members. Do **not** attempt to set up or verify non-virtual, static, or sealed members.
 - **Events and Indexers:** Use `SetupAdd` and `SetupRemove` **only** for virtual events, and only in Moq 4.18.4+.
 - **Explicit Interface Implementations:** Setups for explicit interface implementations must use the correct cast syntax (e.g., `((IMyInterface)x).Method()`).
@@ -494,6 +522,7 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
 ### When Documentation is Required
 
 Documentation updates are required for:
+
 - New analyzers or fixers
 - Changes to existing analyzer behavior
 - API changes or additions
@@ -529,18 +558,21 @@ When making CI/CD changes:
 ### Performance Testing Guidelines
 
 **When Performance Testing is Required:**
+
 - New analyzers or fixers
 - Changes to existing analyzer logic
 - Dependency updates that might affect performance
 - CI/CD changes that impact build times
 
 **Performance Testing Process:**
+
 1. Run benchmarks locally using `dotnet run --project tests/Moq.Analyzers.Benchmarks/`
 2. Compare results against baseline
 3. Document any performance regressions or improvements
 4. Include benchmark results in PR description
 
 **Performance Validation Evidence:**
+
 - Benchmark output showing no significant regressions
 - Comparison with previous baseline results
 - Explanation of any performance changes
@@ -550,6 +582,7 @@ When making CI/CD changes:
 ### Dependency Update Guidelines
 
 **For Renovate/Dependabot PRs:**
+
 - Review changelog and release notes
 - Test locally to ensure compatibility
 - Check for breaking changes
@@ -557,6 +590,7 @@ When making CI/CD changes:
 - Include testing evidence in PR description
 
 **For Manual Dependency Updates:**
+
 - Follow the same process as automated updates
 - Document the reason for the update
 - Include compatibility testing results
@@ -576,6 +610,7 @@ When making CI/CD changes:
 Follow conventional commit format: `type(scope): description`
 
 **Description Requirements:**
+
 1. **Clear summary** of changes
 2. **Problem statement** (what issue does this solve?)
 3. **Solution description** (how does this solve the problem?)
@@ -598,6 +633,7 @@ Before submitting a PR, ensure:
 ### Validation Evidence Requirements
 
 **What Constitutes Validation Evidence:**
+
 - Test execution logs showing all tests pass
 - Performance benchmark results (if applicable)
 - Screenshots of successful CI runs
@@ -605,6 +641,7 @@ Before submitting a PR, ensure:
 - Code coverage reports for new features
 
 **Evidence Format:**
+
 - Include logs, screenshots, or links to CI runs
 - Provide clear, readable evidence
 - Ensure evidence is recent and relevant
@@ -636,6 +673,7 @@ Maintainers will review PRs for:
 ### Common Review Feedback
 
 **Frequently Requested Changes:**
+
 - Add missing tests for edge cases
 - Update documentation for new features
 - Improve error handling and logging
@@ -643,6 +681,7 @@ Maintainers will review PRs for:
 - Clarify PR description or validation evidence
 
 **PRs That May Be Rejected:**
+
 - Missing validation evidence
 - Incomplete test coverage
 - Performance regressions without justification
@@ -768,7 +807,7 @@ In filmmaking, it is often quoted "show, don't tell" using visuals as the commun
 
 In our case, "tell, don't [just] show" – though we have some visuals at our disposal such as the browser, most of the specifics come from reading the physical code.
 
-When writing the commit, imagine how useful this could be in troubleshooting a bug or back-tracing changes made. 
+When writing the commit, imagine how useful this could be in troubleshooting a bug or back-tracing changes made.
 
 Where possible, use **Conventional Commits**
 
@@ -811,7 +850,7 @@ Example:
 ```
 fix: fix foo to enable bar
 
-This fixes the broken behavior of the component by doing xyz. 
+This fixes the broken behavior of the component by doing xyz.
 
 BREAKING CHANGE
 Before this fix foo wasn't enabled at all, behavior changes from <old> to <new>
@@ -834,7 +873,7 @@ Closes #12345
 - `Changed style`
 - `oops`
 - `I think I fixed it this time?`
-- *empty commit messages*
+- _empty commit messages_
 
 ## Getting Help
 
@@ -848,9 +887,9 @@ If you need help with any aspect of contributing:
 ## Recognition
 
 Contributors will be recognized in:
+
 - Release notes for significant contributions
 - Project README for major contributors
 - GitHub contributors list
 
 Thank you for contributing to Moq.Analyzers!
-

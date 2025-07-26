@@ -10,7 +10,7 @@ on:
       - released
 
 permissions:
-  security-events: write  # required for CodeQL
+  security-events: write # required for CodeQL
   packages: read
   contents: read
   actions: read

@@ -15,12 +15,14 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ### 1. Pre-Implementation Expertise Validation
 
 **Before writing any code, you MUST:**
+
 - **Demonstrate actual domain knowledge** through specific technical questions
 - **Validate understanding** of critical concepts before proceeding
 - **Prove comprehension** through concrete examples, not mere declarations
 - **Stop immediately** if you cannot demonstrate required expertise
 
 **Implementation:**
+
 - Answer domain-specific technical questions before coding
 - Provide concrete examples of your understanding
 - Request expert guidance if uncertain about any concept
@@ -36,6 +38,7 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 - **Stop progression** if any required step is incomplete
 
 **Implementation:**
+
 - Read and understand project-specific instructions first
 - Follow established patterns and conventions
 - Verify each workflow step was completed successfully
@@ -44,12 +47,14 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ### 3. Critical Failure Recognition
 
 **You MUST establish clear stop conditions:**
+
 - **Immediate halt** for uncertainty or lack of understanding
 - **Specific criteria** for when to request expert guidance
 - **No trial-and-error tolerance** - require deliberate, correct understanding
 - **Clear escalation paths** when encountering complex situations
 
 **Implementation:**
+
 - Stop immediately if you cannot explain your approach
 - Request expert guidance when uncertain about domain concepts
 - Never attempt to "figure out" solutions through guessing
@@ -58,12 +63,14 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ### 4. Tool Usage Reliability
 
 **You MUST use available tools consistently and reliably:**
+
 - **Consistent, reliable use** of available tools regardless of platform
 - **Graceful handling** of tool failures and interruptions
 - **Validation** that tools were used correctly and effectively
 - **Retry mechanisms** for interrupted operations
 
 **Implementation:**
+
 - Use tools systematically and consistently
 - Handle tool failures gracefully with clear error messages
 - Validate tool outputs before proceeding
@@ -72,12 +79,14 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ### 5. Context and State Management
 
 **You MUST preserve context and maintain state:**
+
 - **Preserve context** across task interruptions or resumptions
 - **Maintain state** during complex multi-step operations
 - **Automatic recovery** of context after interruptions
 - **Clear state transitions** between different phases of work
 
 **Implementation:**
+
 - Maintain clear state throughout complex operations
 - Recover context automatically after interruptions
 - Document state transitions clearly
@@ -86,12 +95,14 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ### 6. Documentation and Configuration Awareness
 
 **You MUST check and understand project context:**
+
 - **Check relevant files** before making changes
 - **Read and understand** project-specific instructions
 - **Follow established patterns** and conventions
 - **Respect existing architecture** and design decisions
 
 **Implementation:**
+
 - Always read configuration files and documentation first
 - Understand project structure and conventions
 - Follow established naming and architectural patterns
@@ -100,12 +111,14 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ### 7. Validation and Verification
 
 **You MUST verify work through appropriate means:**
+
 - **Verify work** through appropriate means (tests, analysis, etc.)
 - **Confirm changes** meet requirements before considering tasks complete
 - **Run validation checks** after modifications
 - **Ensure quality** through systematic verification
 
 **Implementation:**
+
 - Run tests and validation checks after changes
 - Verify that modifications meet stated requirements
 - Use appropriate verification methods for the domain
@@ -114,12 +127,14 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ### 8. No Trial-and-Error Tolerance
 
 **You MUST require deliberate understanding:**
+
 - **Require deliberate understanding** before implementation
 - **No guessing** at solutions or approaches
 - **Clear escalation paths** when uncertain
 - **Expert guidance triggers** for complex or unclear situations
 
 **Implementation:**
+
 - Never implement solutions you don't fully understand
 - Stop and request clarification when uncertain
 - Establish clear criteria for when to seek expert guidance
@@ -138,15 +153,19 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 ### AI Agent Coding Rules
 
 1. **Adhere to Existing Roslyn Component Patterns**
+
    - **Instruction:** When creating a new Roslyn analyzer or code fix, you **MUST** locate an existing, similar component within the `src/` directory. Replicate its structure, dependency injection, and overall design. Do not introduce novel architectural patterns. Prefer the `IOperation`-based approach where applicable.
 
 2. **Respect Global Usings**
+
    - **Instruction:** Do **NOT** add redundant `using` statements if the namespace is already covered by a global using (see `src/Common/GlobalUsings.cs`).
 
 3. **Follow Strict Naming Conventions**
+
    - **Instruction:** Use `[Description]Analyzer.cs`, `[Description]Fixer.cs`, `[Description]AnalyzerTests.cs`, `[Description]CodeFixTests.cs` for new components.
 
 4. **Mandatory Data-Driven Test Pattern for Code Fixes**
+
    - **Instruction:** Use the `[MemberData]`-annotated `[Theory]` pattern with a `public static IEnumerable<object[]>` data source for code fix tests.
 
 5. **Prioritize `AllAnalyzersVerifier` for Non-Diagnostic Tests**
@@ -192,6 +211,7 @@ flowchart TD
 Before writing a single line of code, you must internally verify you can make the following declaration. If not, you must halt immediately.
 
 > "I declare that I have expert-level, demonstrable expertise in:
+>
 > - Roslyn syntax tree navigation from `SyntaxNode` down to `SyntaxToken` and `SyntaxTrivia`.
 > - Precise, character-level diagnostic span calculation and verification.
 > - The distinction and correct application of `IOperation` vs. `ISyntaxNode` analysis.
@@ -266,7 +286,8 @@ If you encounter:
 I need your help tracking down and fixing some bugs that have been reported in this codebase.
 
 I suspect the bugs are related to:
-- Incorrect handling of edge cases 
+
+- Incorrect handling of edge cases
 - Off-by-one errors in loops or array indexing
 - Unexpected data types
 - Uncaught exceptions
@@ -274,17 +295,19 @@ I suspect the bugs are related to:
 - Improper configuration settings
 
 To diagnose:
-1. Review the code carefully and systematically 
-2. Trace the relevant code paths 
+
+1. Review the code carefully and systematically
+2. Trace the relevant code paths
 3. Consider boundary conditions and potential error states
 4. Look for antipatterns that tend to cause bugs
-5. Run the code mentally with example inputs 
+5. Run the code mentally with example inputs
 6. Think about interactions between components
 
 When you find potential bugs, for each one provide:
+
 1. File path and line number(s)
 2. Description of the issue and why it's a bug
-3. Example input that would trigger the bug 
+3. Example input that would trigger the bug
 4. Suggestions for how to fix it
 
 After analysis, please update the code with your proposed fixes. Try to match the existing code style. Add regression tests if possible, to prevent the bugs from recurring.
@@ -296,6 +319,7 @@ I appreciate your diligence and attention to detail! Let me know if you need any
 ## Reference to General Guidelines
 
 For comprehensive contributor guidance including:
+
 - Development workflow requirements
 - Code quality standards
 - Testing requirements and patterns

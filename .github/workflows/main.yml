@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       run_performance:
-        description: 'Run performance job? (true/false)'
+        description: "Run performance job? (true/false)"
         required: false
         default: false
         type: boolean
       force_baseline:
-        description: 'Force running baseline benchmarks even if cached (true/false)'
+        description: "Force running baseline benchmarks even if cached (true/false)"
         required: false
         default: false
         type: boolean
@@ -24,10 +24,10 @@ on:
       - main
   workflow_call: # Allow to be called from the release workflow
   schedule:
-    - cron: '0 3 * * *' # Nightly run for performance validation
+    - cron: "0 3 * * *" # Nightly run for performance validation
 
 permissions:
-  security-events: write  # required for CodeQL
+  security-events: write # required for CodeQL
   packages: read
   contents: read
   actions: read
@@ -48,161 +48,161 @@ jobs:
       FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }} # This is also used in PerfCore.ps1 to determine if the baseline should be forced
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Setup, Restore, and Build Solution
-      uses: ./.github/actions/setup-restore-build
+      - name: Setup, Restore, and Build Solution
+        uses: ./.github/actions/setup-restore-build
 
-    - name: Test
-      run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
+      - name: Test
+        run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
 
-    - name: Upload binlogs
-      uses: actions/upload-artifact@v4
-      if: success() || failure()
-      with:
-        name: binlogs-${{ matrix.os }}
-        path: ./artifacts/logs
-        if-no-files-found: error
+      - name: Upload binlogs
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: binlogs-${{ matrix.os }}
+          path: ./artifacts/logs
+          if-no-files-found: error
 
-    - name: Upload *.received.* files
-      uses: actions/upload-artifact@v4
-      if: failure()
-      with:
-        name: verify-test-results
-        path: |
-          **/*.received.*
+      - name: Upload *.received.* files
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: verify-test-results
+          path: |
+            **/*.received.*
 
-    - name: Upload SARIF files
-      uses: actions/upload-artifact@v4
-      if: success() || failure()
-      with:
-        name: SARIF files (${{ matrix.os }})
-        path: ./artifacts/obj/**/*.sarif
+      - name: Upload SARIF files
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: SARIF files (${{ matrix.os }})
+          path: ./artifacts/obj/**/*.sarif
 
-    - name: Upload Test Report
-      uses: actions/upload-artifact@v4
-      if: success() || failure()
-      with:
-        name: .NET Test Reports (${{ matrix.os }})
-        path: "artifacts/TestResults/**/*.trx"
-        if-no-files-found: error
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: .NET Test Reports (${{ matrix.os }})
+          path: "artifacts/TestResults/**/*.trx"
+          if-no-files-found: error
 
-    - name: Upload Code Coverage Report
-      uses: actions/upload-artifact@v4
-      if: success() || failure()
-      with:
-        name: .NET Code Coverage Reports (${{ matrix.os }})
-        path: "artifacts/TestResults/coverage/**"
+      - name: Upload Code Coverage Report
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: .NET Code Coverage Reports (${{ matrix.os }})
+          path: "artifacts/TestResults/coverage/**"
 
-    - name: Publish coverage summary to GitHub
-      run: cat artifacts/TestResults/coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
-      shell: bash
+      - name: Publish coverage summary to GitHub
+        run: cat artifacts/TestResults/coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+        shell: bash
 
-    - name: Upload coverage data to Codacy
-      if: ${{ runner.os == 'Linux' && env.IS_CODACY_COVERAGE_ALLOWED == 'true' }}
-      uses: codacy/codacy-coverage-reporter-action@v1.3.0
-      with:
-        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        coverage-reports: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
+      - name: Upload coverage data to Codacy
+        if: ${{ runner.os == 'Linux' && env.IS_CODACY_COVERAGE_ALLOWED == 'true' }}
+        uses: codacy/codacy-coverage-reporter-action@v1.3.0
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
 
-    - name: Upload coverage data to Qlty
-      if: ${{ runner.os == 'Linux' && env.IS_QLTY_COVERAGE_ALLOWED == 'true' }}
-      uses: qltysh/qlty-action/coverage@v1
-      with:
-        token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-        files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
+      - name: Upload coverage data to Qlty
+        if: ${{ runner.os == 'Linux' && env.IS_QLTY_COVERAGE_ALLOWED == 'true' }}
+        uses: qltysh/qlty-action/coverage@v1
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
 
-    - name: Upload packages
-      uses: actions/upload-artifact@v4
-      with:
-        name: packages-${{ matrix.os }}
-        path: |
-          ./artifacts/package
-        if-no-files-found: error
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.os }}
+          path: |
+            ./artifacts/package
+          if-no-files-found: error
 
-    - name: Upload rule documentation
-      uses: actions/upload-artifact@v4
-      with:
-        name: rule-documentation-${{ matrix.os }}
-        path: |
-          ./artifacts/docfx
+      - name: Upload rule documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: rule-documentation-${{ matrix.os }}
+          path: |
+            ./artifacts/docfx
 
-    - name: Get baseline SHA
-      id: get-baseline-sha
-      run: |
-        if (-not (Test-Path build/perf/baseline.json)) {
-          Write-Error "baseline.json not found – aborting performance job."
-          exit 1
-        }
-        $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
-        echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
-      shell: pwsh
-
-    # The machine is not guaranteed to have the .NET SDK installed from the baseline SHA, so we need to install it
-    - name: Checkout baseline
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ steps.get-baseline-sha.outputs.sha }}
-        fetch-depth: 0
-
-    - name: Setup .NET for performance baseline
-      uses: actions/setup-dotnet@v4
-      with:
-        global-json-file: ./global.json
-
-    - name: Restore checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Get performance test filter
-      id: get-perf-filter
-      run: |
-        if ('${{ env.RUN_FULL_PERF }}' -eq 'true') {
-          echo "filter='*'" >> $env:GITHUB_OUTPUT
-        } else {
-          echo "filter='*(FileCount: 1)'" >> $env:GITHUB_OUTPUT
-        }
-      shell: pwsh
-
-    - name: Validate performance
-      shell: pwsh
-      run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter ${{ steps.get-perf-filter.outputs.filter }}
-
-    - name: Publish baseline performance summaries to GitHub
-      if: success() || failure()
-      shell: pwsh
-      run: |
-        $resultsDir = "artifacts/performance/perfResults/baseline/results"
-        if (Test-Path $resultsDir) {
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Baseline Performance Results"
-          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
-          foreach ($file in $files) {
-            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+      - name: Get baseline SHA
+        id: get-baseline-sha
+        run: |
+          if (-not (Test-Path build/perf/baseline.json)) {
+            Write-Error "baseline.json not found – aborting performance job."
+            exit 1
           }
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
-        }
+          $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
+          echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
+        shell: pwsh
 
-    - name: Publish performance summaries to GitHub
-      if: success() || failure()
-      shell: pwsh
-      run: |
-        $resultsDir = "artifacts/performance/perfResults/perfTest/results"
-        if (Test-Path $resultsDir) {
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Current Performance Results"
-          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
-          foreach ($file in $files) {
-            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+      # The machine is not guaranteed to have the .NET SDK installed from the baseline SHA, so we need to install it
+      - name: Checkout baseline
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.get-baseline-sha.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Setup .NET for performance baseline
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: ./global.json
+
+      - name: Restore checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get performance test filter
+        id: get-perf-filter
+        run: |
+          if ('${{ env.RUN_FULL_PERF }}' -eq 'true') {
+            echo "filter='*'" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "filter='*(FileCount: 1)'" >> $env:GITHUB_OUTPUT
           }
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
-        }
+        shell: pwsh
 
-    - name: Upload performance files
-      uses: actions/upload-artifact@v4
-      if: success() || failure()
-      with:
-        name: performance-${{ matrix.os }}
-        path: |
-          ./artifacts/performance/**
+      - name: Validate performance
+        shell: pwsh
+        run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter ${{ steps.get-perf-filter.outputs.filter }}
+
+      - name: Publish baseline performance summaries to GitHub
+        if: success() || failure()
+        shell: pwsh
+        run: |
+          $resultsDir = "artifacts/performance/perfResults/baseline/results"
+          if (Test-Path $resultsDir) {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Baseline Performance Results"
+            $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
+            foreach ($file in $files) {
+              Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+            }
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
+          }
+
+      - name: Publish performance summaries to GitHub
+        if: success() || failure()
+        shell: pwsh
+        run: |
+          $resultsDir = "artifacts/performance/perfResults/perfTest/results"
+          if (Test-Path $resultsDir) {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Current Performance Results"
+            $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
+            foreach ($file in $files) {
+              Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+            }
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
+          }
+
+      - name: Upload performance files
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: performance-${{ matrix.os }}
+          path: |
+            ./artifacts/performance/**
