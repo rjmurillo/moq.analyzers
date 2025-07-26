@@ -9,7 +9,7 @@ namespace Moq.Analyzers.Test;
 /// Validates all advanced callback patterns including ref/out parameters, multiple callbacks,
 /// generic callbacks, and complex scenarios from issue #434.
 /// </summary>
-public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests
+public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHelper output)
 {
     /// <summary>
     /// Consolidated test data for all callback validation scenarios.
@@ -88,6 +88,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests
             """;
 
         string source = Template(@namespace, testCode);
+        output.WriteLine(source);
         await AnalyzerVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
     }
 
