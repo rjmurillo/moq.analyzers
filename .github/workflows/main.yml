@@ -122,6 +122,13 @@ jobs:
           ./artifacts/package
         if-no-files-found: error
 
+    - name: Upload rule documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: rule-documentation-${{ matrix.os }}
+        path: |
+          ./artifacts/docfx
+
     - name: Get baseline SHA
       id: get-baseline-sha
       run: |
