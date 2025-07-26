@@ -47,4 +47,20 @@ public class DiagnosticExtensionsTests
         Assert.Equal("TEST0003", diag.Id);
         Assert.Equal(DiagnosticSeverity.Error, diag.Severity);
     }
+
+    [Fact]
+    public void CreateDiagnostic_FromOperation_WithProperties()
+    {
+        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { void M() {} }");
+        SyntaxNode root = tree.GetRoot();
+        CSharpCompilation compilation = CSharpCompilation.Create("Test", new[] { tree });
+        SemanticModel model = compilation.GetSemanticModel(tree);
+        MethodDeclarationSyntax methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+        Microsoft.CodeAnalysis.IOperation? operation = model.GetOperation(methodDecl);
+        DiagnosticDescriptor rule = new DiagnosticDescriptor("TEST0004", "Test4", "Test message 4", "Test", DiagnosticSeverity.Warning, true);
+        ImmutableDictionary<string, string?> properties = ImmutableDictionary<string, string?>.Empty.Add("Key2", "Value2");
+        Diagnostic diag = operation!.CreateDiagnostic(rule, properties);
+        Assert.Equal("TEST0004", diag.Id);
+        Assert.Equal("Value2", diag.Properties["Key2"]);
+    }
 }
