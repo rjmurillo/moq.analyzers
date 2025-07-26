@@ -9,6 +9,7 @@ applyTo: '**/*'
 - **Read this file before editing unknown or rarely used file types**
 - **Complete the Validation Checklist before submitting**
 - **Escalate if blocked or uncertain**
+- **For complex changes, see the Decision Trees section below**
 
 ## Context Loading for Copilot
 
@@ -43,3 +44,40 @@ Before submitting any changes, verify:
 - [csharp.instructions.md](csharp.instructions.md) - For C# files
 - [markdown.instructions.md](markdown.instructions.md) - For documentation
 - [shell.instructions.md](shell.instructions.md) - For scripts 
+
+## Decision Trees for Complex Scenarios
+
+### Multi-File/Feature Change Flowchart
+
+1. **Identify all affected file types**
+2. **For each file type:**
+   - Locate and read the corresponding instruction file
+   - Note any validation, documentation, or escalation requirements
+3. **Plan the change:**
+   - List all files to be edited
+   - Determine order of operations (e.g., code first, then docs, then config)
+   - Identify dependencies between files
+4. **Edit files in logical order**
+5. **After each file edit:**
+   - Run required validation (build, test, lint, etc.)
+   - Document evidence as required
+6. **After all edits:**
+   - Re-run all tests and validations
+   - Update documentation and release notes as needed
+   - Prepare a comprehensive PR description with evidence for each file type
+7. **If blocked or uncertain at any step:**
+   - Escalate by tagging @repo-maintainers
+
+### Introducing a New Analyzer or Code Fix Flowchart
+
+1. **Read csharp.instructions.md and project.instructions.md**
+2. **Scaffold the new analyzer/fixer in the correct directory**
+3. **Add or update unit tests (see test instructions)**
+4. **Update documentation:**
+   - Add/modify rule docs in docs/rules/
+   - Update AnalyzerReleases.Unshipped.md
+5. **Update project files if needed**
+6. **Run all validations (build, test, lint, Codacy, etc.)**
+7. **Prepare PR with validation evidence for each file type**
+8. **If any diagnostic span or test fails more than once, STOP and escalate**
+9. **If uncertain about Roslyn APIs, Moq semantics, or workflow, escalate** 
