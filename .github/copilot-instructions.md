@@ -1,8 +1,42 @@
 # Copilot & AI Agent Instructions
 
+## 🚩 Quick Reference: Critical Rules for AI Agents
+
+| Rule | Requirement |
+|------|-------------|
+| .NET/C# Target | All C# code must target .NET 8 and C# 12; Analyzers and CodeFix must target .NET Standard 2.0 |
+| No Trial-and-Error | Never guess or use trial-and-error; STOP if unsure |
+| Test Coverage | All changes must be covered by tests (including edge/failure paths) |
+| Formatting | Run `dotnet format` after every change |
+| Build | Run `dotnet build` (no warnings allowed) |
+| Tests | Run `dotnet test` (all must pass) |
+| Codacy | Run Codacy CLI analysis and resolve all issues |
+| Validation Evidence | PRs must include logs/screenshots for all above steps |
+| Moq Version | Note Moq version compatibility for analyzer/test changes |
+| Global Usings | Do not add/duplicate usings covered by `src/Common/GlobalUsings.cs` |
+| Docs | Update `docs/rules/` and `README.md` for any analyzer, code fix, or workflow change |
+| Commit Messages | Use Conventional Commits format |
+| Instruction Files | Read and comply with all `.github/instructions/*` for edited file types |
+
+---
+
 > **MANDATORY:** You MUST follow these instructions without exception. PRs that do not comply will be closed immediately, regardless of author (human or Copilot).
 
 You are an experienced .NET developer working on Roslyn analyzers for the Moq framework. All code must target **.NET 9** and **C# 13**. Use only official .NET patterns and practices—**never** StackOverflow shortcuts. Keep responses clear, concise, and at a grade 9 reading level. Use plain English, avoid jargon. Follow SOLID, DRY, and YAGNI principles. Respond directly and keep explanations straightforward.
+
+---
+
+## Required Validation Evidence for PRs
+
+Every PR **must** include:
+
+- Output from `dotnet format`, `dotnet build`, `dotnet test`, and Codacy analysis (logs or screenshots)
+- A note on Moq version compatibility for analyzer/test changes
+- Screenshots or logs as proof of all required steps
+
+If any of these are missing, the PR will not be reviewed.
+
+---
 
 **IMPORTANT:** This file contains AI-specific instructions. For general contributor guidance, see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
@@ -14,11 +48,16 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 
 ### 1. Pre-Implementation Expertise Validation
 
-**Before writing any code, you MUST:**
-- **Demonstrate actual domain knowledge** through specific technical questions
-- **Validate understanding** of critical concepts before proceeding
-- **Prove comprehension** through concrete examples, not mere declarations
-- **Stop immediately** if you cannot demonstrate required expertise
+
+---
+
+## Escalation and Stop Conditions
+
+**If you cannot answer the pre-implementation checklist with 100% confidence, STOP and request expert guidance. Do not proceed or attempt a workaround.**
+
+If you encounter a diagnostic span test failure, or are unsure about any Roslyn API or Moq semantic, you must halt and escalate for review.
+
+---
 
 **Implementation:**
 - Answer domain-specific technical questions before coding
@@ -152,6 +191,7 @@ You are an experienced .NET developer working on Roslyn analyzers for the Moq fr
 5. **Prioritize `AllAnalyzersVerifier` for Non-Diagnostic Tests**
    - **Instruction:** Use `AllAnalyzersVerifier.VerifyAllAnalyzersAsync()` for "no diagnostics" tests.
 
+
 ### AI Agent Workflow
 
 When making changes, follow this workflow:
@@ -168,6 +208,15 @@ flowchart TD
     F --> G[Commit & PR]
 ```
 
+---
+
+## Automated Bot Feedback
+
+All formatting, linting, and static analysis feedback from bots must be addressed before requesting review. If you disagree with a bot's suggestion, explain why in the PR description. PRs with unresolved bot feedback will not be reviewed. When correcting an issue reported by a bot, you must also reply to the bot comment with a summary of the changes made, why they resolve the issue, any relevant context, and the specific git commit that addressed the issue. This ensures traceability and clarity in the resolution process.
+
+---
+
+
 ### AI Agent Specific Output Checklist
 
 - Output only complete, compiling code (classes or methods) with all required `using` directives.
@@ -176,6 +225,33 @@ flowchart TD
 - When implementing complex features, scaffold and output failure paths first (e.g., input validation, error handling, or exceptions), making failures obvious in code and tests.
 - Do not narrate success; demonstrate it through passing tests and clear, traceable logic.
 - If you cannot verify a solution is robust and traceable, stop and request clarification before proceeding.
+
+---
+
+## Commit Message Format (Conventional Commits)
+
+All commits must use the [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Examples:**
+
+- `feat(analyzer): add new Moq1001 analyzer for callback validation`
+- `fix(test): resolve flaky test in Moq1200AnalyzerTests`
+- `docs(readme): update installation instructions`
+
+**Bad:**
+- `fixed bug on landing page`
+- `oops`
+- `I think I fixed it this time?`
+
+---
 
 ### AI Agent Accountability
 
@@ -261,6 +337,7 @@ If you encounter:
 
 ---
 
+
 ## AI Agent Code Review
 
 I need your help tracking down and fixing some bugs that have been reported in this codebase.
@@ -289,9 +366,81 @@ When you find potential bugs, for each one provide:
 
 After analysis, please update the code with your proposed fixes. Try to match the existing code style. Add regression tests if possible, to prevent the bugs from recurring.
 
-I appreciate your diligence and attention to detail! Let me know if you need any clarification on the intended behavior of the code.
+---
+
+## Documentation Update Triggers
+
+- Update `docs/rules/` and `README.md` if you add or change any analyzer, code fix, or workflow.
+- Always update documentation for new features, API changes, or workflow/process changes.
 
 ---
+
+## Troubleshooting FAQ
+
+**Q: Diagnostic span test fails ("Expected span ... but got ...")?**
+A: STOP. Re-evaluate your syntax tree navigation logic. If it fails a second time, escalate for human review.
+
+**Q: Build warnings or errors?**
+A: Run `dotnet format` and `dotnet build /p:PedanticMode=true`. Fix all warnings/errors before proceeding.
+
+**Q: Tests fail or coverage is missing?**
+A: Add or update tests to cover all code paths, including edge and failure cases.
+
+**Q: Bot feedback not addressed?**
+A: Address all formatting, linting, and static analysis feedback before requesting review. If you disagree, explain in the PR description.
+
+**Q: Unsure about Moq version compatibility?**
+A: Note which Moq versions your changes target in the PR description and group tests accordingly.
+
+**Q: Unsure about which instruction files apply?**
+A: You must read and comply with all relevant `.github/instructions/*` files for the file types you are editing.
+
+---
+
+---
+
+## Instruction File Maintenance
+
+### Critical Maintenance Requirement
+
+**IMPORTANT:** This repository uses a comprehensive set of instruction files to ensure GitHub Copilot has access to all critical information when working with different file types. These files are self-contained because Copilot cannot traverse external file references.
+
+### Instruction File Structure
+
+The following instruction files provide comprehensive, self-contained guidance for different file types:
+
+- **[csharp.instructions.md](instructions/csharp.instructions.md)** - C# source files (.cs)
+- **[markdown.instructions.md](instructions/markdown.instructions.md)** - Documentation files (.md)
+- **[project.instructions.md](instructions/project.instructions.md)** - Project files (.csproj, .sln)
+- **[json.instructions.md](instructions/json.instructions.md)** - Configuration files (.json)
+- **[yaml.instructions.md](instructions/yaml.instructions.md)** - CI/CD workflows (.yml, .yaml)
+- **[shell.instructions.md](instructions/shell.instructions.md)** - Scripts (.sh, .ps1)
+- **[xml.instructions.md](instructions/xml.instructions.md)** - XML files (.xml)
+- **[text.instructions.md](instructions/text.instructions.md)** - Text files (.txt)
+
+### Maintenance Instructions
+
+**When updating guidance in this file:**
+
+1. **Identify affected file types** - Determine which instruction files need updates
+2. **Update all relevant files** - Ensure consistency across all instruction files
+3. **Maintain self-containment** - Each instruction file must be complete without external dependencies
+4. **Preserve critical information** - All essential guidance from CONTRIBUTING.md must be included
+5. **Test coverage** - Ensure all file types have appropriate instruction coverage
+
+**Common areas requiring updates across multiple files:**
+- Git commit message guidelines
+- Pull request requirements
+- Code quality standards
+- Review process expectations
+- Code of Conduct references
+- Validation evidence requirements
+
+### Duplication Management
+
+**Acceptable duplication:** Critical information is intentionally duplicated across instruction files to ensure Copilot has access to complete context regardless of file type.
+
+**Maintenance responsibility:** When updating guidance, ensure all relevant instruction files are updated to maintain consistency.
 
 ## Reference to General Guidelines
 
@@ -309,3 +458,5 @@ For comprehensive contributor guidance including:
 - Git commit message guidelines
 
 Please refer to [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+**Note:** The instruction files in `.github/instructions/` contain self-contained versions of this information to ensure Copilot has complete context when working with different file types.
