@@ -71,3 +71,19 @@ If you update guidance in copilot-instructions.md that affects C# development, e
 7. **Prepare PR with validation evidence for each file type**
 8. **If any diagnostic span or test fails more than once, STOP and escalate**
 9. **If uncertain about Roslyn APIs, Moq semantics, or workflow, escalate**
+
+## Test Data & Sample Inputs/Outputs
+
+### What Constitutes Good Test Data?
+- Cover all code paths: positive, negative, and edge cases
+- Include both minimal and complex/realistic examples
+- Test for invalid inputs, exceptions, and boundary conditions
+- Include performance-sensitive scenarios if relevant
+- For analyzers/code fixes: test all diagnostic locations, fix applications, and no-fix scenarios
+
+### Coverage Strategy
+- For every new analyzer/code fix, include:
+  - At least one positive, one negative, and one edge case test
+  - Data-driven tests for all fixable patterns
+  - Performance test if analyzer is non-trivial
+- Document test data rationale in comments or PR description

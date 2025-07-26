@@ -363,3 +363,27 @@ Maintainers will review PRs for:
 ## Code of Conduct
 
 This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDUCT.md). By participating, you are expected to uphold this code. 
+
+## Test Data & Sample Inputs/Outputs
+
+### What Constitutes Good Shell Script Test Data?
+- Validate script runs without errors
+- Include both working and intentionally broken examples
+- Test for missing shebang, syntax errors, and invalid arguments
+- Check for correct error handling and exit codes
+
+### Example: Valid Script
+```sh
+#!/bin/bash
+echo "Hello, world!"
+```
+
+### Example: Negative/Edge Case
+```sh
+echo "Hello, world!" # missing shebang
+exit 1
+```
+
+### Coverage Strategy
+- For every script change, test both valid and invalid scenarios
+- Document test data rationale in comments or PR description 

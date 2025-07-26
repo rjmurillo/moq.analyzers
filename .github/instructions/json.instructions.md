@@ -307,6 +307,34 @@ Maintainers will review PRs for:
 - If you disagree with a bot's suggestion, explain why in the PR description.
 - If a bot's feedback is not addressed and a human reviewer must repeat the request, the PR will be closed until all automated feedback is resolved.
 
+## Test Data & Sample Inputs/Outputs
+
+### What Constitutes Good JSON Test Data?
+- Validate against schema (if available)
+- Include both valid and invalid examples
+- Test for missing required fields, extra fields, and type mismatches
+- Check for correct handling of comments (if allowed)
+
+### Example: Valid Config
+```json
+{
+  "settingA": true,
+  "maxItems": 10
+}
+```
+
+### Example: Negative/Edge Case
+```json
+{
+  "settingA": "yes", // invalid type
+  // missing maxItems
+}
+```
+
+### Coverage Strategy
+- For every config change, validate with schema and test both valid and invalid cases
+- Document test data rationale in comments or PR description
+
 ## Code of Conduct
 
 This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDUCT.md). By participating, you are expected to uphold this code. 

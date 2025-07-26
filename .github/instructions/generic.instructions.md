@@ -81,3 +81,15 @@ Before submitting any changes, verify:
 7. **Prepare PR with validation evidence for each file type**
 8. **If any diagnostic span or test fails more than once, STOP and escalate**
 9. **If uncertain about Roslyn APIs, Moq semantics, or workflow, escalate** 
+
+## Test Data & Sample Inputs/Outputs
+
+### What Constitutes Good Test Data for Unknown File Types?
+- Validate file with any available tool (lint, build, CI, etc.)
+- Include both valid and invalid examples if possible
+- Test for missing required content, invalid formats, and edge cases
+- Document test data rationale in comments or PR description
+
+### Coverage Strategy
+- For every change, validate with available tools and test both valid and invalid cases
+- Document test data rationale in comments or PR description 
