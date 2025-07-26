@@ -207,7 +207,7 @@ internal static class ISymbolExtensions
     /// </summary>
     /// <param name="symbol">The symbol to check.</param>
     /// <param name="knownSymbols">The known symbols for type checking.</param>
-    /// <returns>True if the symbol is a Raises or RaisesAsync method from Moq.Language.IRaiseable or IRaiseableAsync; otherwise false.</returns>
+    /// <returns>True if the symbol is a Raises or RaisesAsync method from Moq.Language interfaces; otherwise false.</returns>
     internal static bool IsMoqRaisesMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
         if (symbol is not IMethodSymbol methodSymbol)
@@ -215,18 +215,21 @@ internal static class ISymbolExtensions
             return false;
         }
 
-        // First attempt: Use symbol-based detection for known Moq interfaces
+        // Primary: Use symbol-based detection for known Moq interfaces
         if (IsKnownMoqRaisesMethod(symbol, knownSymbols))
         {
             return true;
         }
 
-        // Fallback: Use string-based detection for compatibility
-        return IsRaisesMethodByName(methodSymbol);
+        // TODO: Remove this fallback once symbol-based detection is complete
+        // This is a temporary safety net for cases where symbol resolution fails
+        // but should be replaced with comprehensive symbol-based approach
+        return IsLikelyMoqRaisesMethodByName(methodSymbol);
     }
 
     /// <summary>
     /// Checks if the symbol matches any of the known Moq Raises method symbols.
+    /// This method handles all supported Moq interfaces that provide Raises functionality.
     /// </summary>
     /// <param name="symbol">The symbol to check.</param>
     /// <param name="knownSymbols">The known symbols for type checking.</param>
@@ -277,33 +280,26 @@ internal static class ISymbolExtensions
     }
 
     /// <summary>
-    /// Checks if a method is a Raises/RaisesAsync method by name and containing type.
-    /// This provides compatibility fallback when symbol-based detection fails.
+    /// TEMPORARY: Conservative fallback for Moq Raises method detection.
+    /// This should be removed once symbol-based detection is comprehensive.
+    /// Only matches methods that are clearly Moq Raises methods.
     /// </summary>
     /// <param name="methodSymbol">The method symbol to check.</param>
-    /// <returns>True if the method is named Raises/RaisesAsync and is in a Moq.Language namespace; otherwise false.</returns>
-    private static bool IsRaisesMethodByName(IMethodSymbol methodSymbol)
+    /// <returns>True if this is likely a Moq Raises method; otherwise false.</returns>
+    private static bool IsLikelyMoqRaisesMethodByName(IMethodSymbol methodSymbol)
     {
         string methodName = methodSymbol.Name;
 
-        if (!IsRaisesMethodName(methodName))
+        // Only match exact "Raises" or "RaisesAsync" method names
+        if (!string.Equals(methodName, "Raises", StringComparison.Ordinal) &&
+            !string.Equals(methodName, "RaisesAsync", StringComparison.Ordinal))
         {
             return false;
         }
 
-        string? containingTypeName = methodSymbol.ContainingType?.ToDisplayString();
-        return containingTypeName?.Contains("Moq.Language", StringComparison.Ordinal) == true;
-    }
-
-    /// <summary>
-    /// Checks if a method name matches the expected Raises method names.
-    /// </summary>
-    /// <param name="methodName">The method name to check.</param>
-    /// <returns>True if the method name is "Raises" or "RaisesAsync"; otherwise false.</returns>
-    private static bool IsRaisesMethodName(string methodName)
-    {
-        return string.Equals(methodName, "Raises", StringComparison.Ordinal) ||
-               string.Equals(methodName, "RaisesAsync", StringComparison.Ordinal);
+        // Must be in a type that contains "Moq" in its namespace to reduce false positives
+        string? containingTypeNamespace = methodSymbol.ContainingType?.ContainingNamespace?.ToDisplayString();
+        return containingTypeNamespace?.StartsWith("Moq", StringComparison.Ordinal) == true;
     }
 
     /// <summary>
