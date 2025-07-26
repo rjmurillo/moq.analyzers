@@ -20,6 +20,27 @@ Thank you for your interest in contributing to Moq.Analyzers! This document prov
 - [Roslyn Analyzer Development](#roslyn-analyzer-development)
 - [Git Commit Messages](#git-commit-messages)
 
+## Instruction File Index
+
+This table maps file patterns in the repository to their corresponding instruction files. Use this as a quick reference to ensure you are following the correct guidance for each file type. If a file type is not listed, refer to `generic.instructions.md` in `.github/instructions/`.
+
+| File Pattern            | Instruction File                                   | Description/Notes                       |
+|------------------------|----------------------------------------------------|-----------------------------------------|
+| `*.cs`                 | `.github/instructions/csharp.instructions.md`      | C# source files                         |
+| `*.csproj`, `*.sln`    | `.github/instructions/project.instructions.md`     | Project/solution files                  |
+| `*.md`                 | `.github/instructions/markdown.instructions.md`    | Markdown documentation                  |
+| `*.json`               | `.github/instructions/json.instructions.md`        | JSON config                             |
+| `*.yml`, `*.yaml`      | `.github/instructions/yaml.instructions.md`        | CI/CD workflows                         |
+| `*.sh`, `*.ps1`        | `.github/instructions/shell.instructions.md`       | Shell/PowerShell scripts                |
+| `*.xml`                | `.github/instructions/xml.instructions.md`         | XML config/docs                         |
+| `*.txt`                | `.github/instructions/text.instructions.md`        | Text files                              |
+| `.editorconfig`        | `.github/instructions/editorconfig.instructions.md`| EditorConfig rules                      |
+| `.gitignore`           | `.github/instructions/gitignore.instructions.md`   | Git ignore rules                        |
+| `*.props`, `*.targets` | `.github/instructions/msbuild.instructions.md`     | MSBuild property/target files           |
+| _Other_                | `.github/instructions/generic.instructions.md`     | Fallback for unknown file types         |
+
+**Note:** If you are editing a file type not listed above, always check for a matching instruction file in `.github/instructions/` or use the generic fallback. When in doubt, escalate by tagging `@repo-maintainers` in your PR.
+
 ## Code of Conduct
 
 This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDUCT.md). By participating, you are expected to uphold this code.
