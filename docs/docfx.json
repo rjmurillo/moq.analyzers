@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/refs/heads/main/schemas/docfx.schema.json",
+  "build": {
+    "content": [
+      {
+        "files": ["rules/**/*.md"],
+        "exclude": []
+      }
+    ],
+    "output": "../artifacts/docfx",
+    "template": ["default", "modern"],
+    "globalMetadata": {
+      "_appTitle": "Moq Analyzers",
+      "_appDescription": "Documentation for Moq Analyzers",
+      "_enableSearch": true,
+      "pdf": false
+    }
+  }
+}
