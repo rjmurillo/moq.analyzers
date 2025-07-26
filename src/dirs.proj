@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.Build.Traversal">
+  <!--
+    Recursively build dirs.proj files in child directories
+
+    DO NOT use a double-asterisk (**) wildcard here, as that
+    will cause the traversal to bypass the per-component dirs.proj
+    files and reach into descendants directly. This is not what we want.
+
+    We want each top-level component to control what / how things get built.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="*/*.*proj" />
+  </ItemGroup>
+</Project>

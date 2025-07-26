@@ -45,7 +45,7 @@ Performance benchmarks are run with 1 file by default in PR actions. This ensure
 Performance regressions are detected using the following thresholds in the PerfDiff tool:
 
 - **Mean (absolute) regression:** Fails if the mean execution time increases by more than **100 ms**.
-- **Mean (relative) regression:** Fails if the mean execution time increases by more than **5 %** *and* by at least **0.5 ms** over baseline.
+- **Mean (relative) regression:** Fails if the mean execution time increases by more than **5 %** _and_ by at least **0.5 ms** over baseline.
 - **95th-percentile regression:** Fails if the 95th-percentile execution time exceeds **250 ms**.
 - **Median (percentage) regression:** Fails if the median execution time increases by more than **35 %** compared with baseline.
 - **Statistical Significance:** Uses the Mann-Whitney test to detect statistically significant regressions, with a user-supplied threshold.
