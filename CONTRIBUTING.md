@@ -515,6 +515,46 @@ Documentation updates are required for:
 - Ensure all links are valid
 - Update table of contents if adding new sections
 
+### XML Documentation Standards
+
+**Required for all public APIs:**
+
+- **Use `<see cref=".." />` tags for all type references** instead of plain text
+  - ✅ Good: `<see cref="Task{T}"/>` or `<see cref="MoqKnownSymbols"/>`
+  - ❌ Bad: `Task<T>` or `MoqKnownSymbols`
+- **Use `<see langword=".." />` for C# keywords**
+  - ✅ Good: `<see langword="true"/>` or `<see langword="null"/>`
+  - ❌ Bad: `true` or `null`
+- **Use `<paramref name=".." />` for parameter references**
+  - ✅ Good: `<paramref name="mockedMemberSymbol"/>`
+  - ❌ Bad: `mockedMemberSymbol`
+- **Use `<c>..</c>` for inline code snippets**
+  - ✅ Good: `<c>x => x.Method()</c>`
+  - ❌ Bad: `x => x.Method()`
+
+**Examples:**
+```csharp
+/// <summary>
+/// Determines whether a member symbol is either overridable or represents a 
+/// <see cref="Task{T}"/>/<see cref="ValueTask{T}"/> Result property
+/// that Moq allows to be setup even if the underlying <see cref="Task{T}"/> 
+/// property is not overridable.
+/// </summary>
+/// <param name="mockedMemberSymbol">The mocked member symbol.</param>
+/// <param name="knownSymbols">A <see cref="MoqKnownSymbols"/> instance for resolving well-known types.</param>
+/// <returns>
+/// Returns <see langword="true"/> when the member is overridable or is a 
+/// <see cref="Task{T}"/>/<see cref="ValueTask{T}"/> Result property; 
+/// otherwise <see langword="false" />.
+/// </returns>
+```
+
+**Validation:**
+- All public APIs must have complete XML documentation
+- All type references must use `<see cref=".." />` tags
+- All C# keywords must use `<see langword=".." />` tags
+- Documentation must be accurate and up-to-date
+
 ## CI/CD and Performance Testing
 
 ### CI Workflow Requirements

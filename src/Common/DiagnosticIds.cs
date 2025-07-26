@@ -16,6 +16,7 @@ internal static class DiagnosticIds
     internal const string RaisesEventArgumentsShouldMatchEventSignature = "Moq1204";
     internal const string EventSetupHandlerShouldMatchEventType = "Moq1205";
     internal const string ReturnsAsyncShouldBeUsedForAsyncMethods = "Moq1206";
+    internal const string SetupSequenceOnlyUsedForOverridableMembers = "Moq1207";
     internal const string VerifyOnlyUsedForOverridableMembers = "Moq1210";
     internal const string AsShouldOnlyBeUsedForInterfacesRuleId = "Moq1300";
     internal const string MockGetShouldNotTakeLiterals = "Moq1301";
