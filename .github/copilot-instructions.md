@@ -293,6 +293,49 @@ I appreciate your diligence and attention to detail! Let me know if you need any
 
 ---
 
+## Instruction File Maintenance
+
+### Critical Maintenance Requirement
+
+**IMPORTANT:** This repository uses a comprehensive set of instruction files to ensure GitHub Copilot has access to all critical information when working with different file types. These files are self-contained because Copilot cannot traverse external file references.
+
+### Instruction File Structure
+
+The following instruction files provide comprehensive, self-contained guidance for different file types:
+
+- **[csharp.instructions.md](instructions/csharp.instructions.md)** - C# source files (.cs)
+- **[markdown.instructions.md](instructions/markdown.instructions.md)** - Documentation files (.md)
+- **[project.instructions.md](instructions/project.instructions.md)** - Project files (.csproj, .sln)
+- **[json.instructions.md](instructions/json.instructions.md)** - Configuration files (.json)
+- **[yaml.instructions.md](instructions/yaml.instructions.md)** - CI/CD workflows (.yml, .yaml)
+- **[shell.instructions.md](instructions/shell.instructions.md)** - Scripts (.sh, .ps1)
+- **[xml.instructions.md](instructions/xml.instructions.md)** - XML files (.xml)
+- **[text.instructions.md](instructions/text.instructions.md)** - Text files (.txt)
+
+### Maintenance Instructions
+
+**When updating guidance in this file:**
+
+1. **Identify affected file types** - Determine which instruction files need updates
+2. **Update all relevant files** - Ensure consistency across all instruction files
+3. **Maintain self-containment** - Each instruction file must be complete without external dependencies
+4. **Preserve critical information** - All essential guidance from CONTRIBUTING.md must be included
+5. **Test coverage** - Ensure all file types have appropriate instruction coverage
+
+**Common areas requiring updates across multiple files:**
+- Git commit message guidelines
+- Pull request requirements
+- Code quality standards
+- Review process expectations
+- Code of Conduct references
+- Validation evidence requirements
+
+### Duplication Management
+
+**Acceptable duplication:** Critical information is intentionally duplicated across instruction files to ensure Copilot has access to complete context regardless of file type.
+
+**Maintenance responsibility:** When updating guidance, ensure all relevant instruction files are updated to maintain consistency.
+
 ## Reference to General Guidelines
 
 For comprehensive contributor guidance including:
@@ -309,3 +352,5 @@ For comprehensive contributor guidance including:
 - Git commit message guidelines
 
 Please refer to [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+**Note:** The instruction files in `.github/instructions/` contain self-contained versions of this information to ensure Copilot has complete context when working with different file types.
