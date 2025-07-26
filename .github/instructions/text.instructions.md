@@ -2,9 +2,105 @@
 applyTo: '**/*.txt'
 ---
 
-# Text File Instructions
+# Text File Instructions (Quick Reference)
 
-> **MANDATORY:** You MUST follow these instructions when editing any text file (.txt) in this repository.
+- **Read this file before editing any .txt file**
+- **Cross-reference with related instruction files**
+- **Complete the Validation Checklist before submitting**
+- **Stop and request help if uncertain**
+
+## Context Loading for Copilot
+
+When working on this file type, you MUST:
+1. Read this entire instruction file before making any changes
+2. Cross-reference with related instruction files (listed below)
+3. Validate your understanding by checking the "Validation Checklist" section
+4. If uncertain about any requirement, stop and request clarification
+
+**Related Instruction Files:**
+- [markdown.instructions.md](markdown.instructions.md) - For documentation files
+- [project.instructions.md](project.instructions.md) - For build configuration
+- [json.instructions.md](json.instructions.md) - For configuration files
+
+## Validation Checklist
+
+Before submitting any changes, verify:
+
+**Text Quality & Documentation:**
+- [ ] Text formatting is consistent
+- [ ] Content is accurate and complete
+- [ ] Documentation is updated
+- [ ] Changes work as expected
+
+**Process:**
+- [ ] Conventional commit format used
+- [ ] PR description includes validation evidence
+- [ ] All checklist items completed
+- [ ] No breaking changes introduced (or documented if necessary)
+
+## Decision Trees
+
+### When to Request Human Review
+- Is this a new documentation or configuration standard? → Yes → Request expert guidance
+- Is this a breaking change to documentation or configuration? → Yes → Document thoroughly and request review
+- Are you uncertain about text file requirements? → Yes → Stop and request guidance
+
+### When to Stop and Ask for Help
+- Uncertain about text file requirements
+- Major changes to project documentation or configuration
+- Security or legal implications
+
+## Common Mistakes to Avoid
+
+**DO NOT:**
+- Skip validation steps
+- Submit changes without validation evidence
+
+**ALWAYS:**
+- Read the entire instruction file first
+- Validate all text and documentation changes
+- Include comprehensive documentation updates
+- Document all changes thoroughly
+
+## Context Management
+
+**Before Starting:**
+- Read the complete instruction file
+- Understand the current file's purpose and structure
+- Identify all related files that may need updates
+
+**During Editing:**
+- Keep track of all changes made
+- Validate each change against requirements
+- Maintain consistency with existing patterns
+
+**After Completing:**
+- Review all changes against the validation checklist
+- Ensure all requirements are met
+- Prepare comprehensive PR description with evidence
+
+## Handling Uncertainty
+
+**Stop and Request Help When:**
+- You cannot explain your approach clearly
+- You're making "educated guesses" about documentation or configuration
+- You're uncertain about project documentation or configuration
+- You cannot trace the logic in text file without narration
+
+**Escalation Process:**
+1. Stop all work immediately
+2. Document what you were trying to accomplish
+3. Explain what specific aspect is unclear
+4. Request expert guidance with specific questions
+5. Do not proceed until you have clear, confident understanding
+
+## Success Criteria
+
+Your changes are successful when:
+- All text and documentation validation checks pass
+- PR description is complete and accurate
+- All checklist items completed
+- No automated bot feedback ignored
 
 ## Text File Standards
 
