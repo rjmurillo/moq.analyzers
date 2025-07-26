@@ -46,7 +46,6 @@ jobs:
       IS_QLTY_COVERAGE_ALLOWED: ${{ secrets.QLTY_COVERAGE_TOKEN != '' }}
       RUN_FULL_PERF: ${{ (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true') }}
       FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }} # This is also used in PerfCore.ps1 to determine if the baseline should be forced
-      REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
     steps:
     - uses: actions/checkout@v4
@@ -58,6 +57,8 @@ jobs:
 
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
+      env:
+        REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
     - name: Upload binlogs
       uses: actions/upload-artifact@v4
