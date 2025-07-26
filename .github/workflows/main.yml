@@ -77,7 +77,7 @@ jobs:
         license: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
     - name: Upload artifacts
-      uses: actions/upload-artifacts@v4
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: artifacts-${{ matrix.os }}
