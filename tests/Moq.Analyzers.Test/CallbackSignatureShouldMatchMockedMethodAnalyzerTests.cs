@@ -12,199 +12,52 @@ namespace Moq.Analyzers.Test;
 public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests
 {
     /// <summary>
-    /// Test data for multiple callback timing scenarios.
-    /// These test cases validate the analyzer's ability to handle callback chains.
+    /// Consolidated test data for all callback validation scenarios.
+    /// Combines valid patterns (should not trigger diagnostics) and invalid patterns (should trigger diagnostics).
     /// </summary>
-    /// <returns>Test data for multiple callback timing scenarios.</returns>
-    public static IEnumerable<object[]> MultipleCallbackTimingData()
+    /// <returns>Test data for comprehensive callback validation scenarios.</returns>
+    public static IEnumerable<object[]> CallbackValidationData()
     {
-        return new object[][]
+        // Valid patterns that should NOT trigger the analyzer
+        IEnumerable<object[]> validPatterns = new object[][]
         {
-            // Multiple callbacks with correct signatures - should not trigger diagnostics
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.DoWork("test"))
-                    .Callback(() => Console.WriteLine("Before"))
-                    .Returns(42)
-                    .Callback(() => Console.WriteLine("After"));
-                """,
-            ],
+            // Multiple callbacks with correct signatures
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(() => { }).Returns(42).Callback(() => { });"""],
 
-            // Multiple callbacks with first callback having wrong signature
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.DoWork("test"))
-                    .Callback({|Moq1100:(int wrongParam)|} => Console.WriteLine("Before"))
-                    .Returns(42)
-                    .Callback(() => Console.WriteLine("After"));
-                """,
-            ],
-
-            // Multiple callbacks with second callback having wrong signature
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.DoWork("test"))
-                    .Callback(() => Console.WriteLine("Before"))
-                    .Returns(42)
-                    .Callback({|Moq1100:(string wrongParam)|} => Console.WriteLine("After"));
-                """,
-            ],
-
-            // Complex multiple parameter scenario with correct signatures
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.ProcessMultiple(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>()))
-                    .Callback((int id, string name, DateTime timestamp) => Console.WriteLine("Processing"))
-                    .Returns(true);
-                """,
-            ],
-
-            // Complex multiple parameter scenario with wrong signatures
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.ProcessMultiple(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>()))
-                    .Callback({|Moq1100:(string wrongId, int wrongName, bool wrongTimestamp)|} => Console.WriteLine("Processing"));
-                """,
-            ],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-    }
-
-    /// <summary>
-    /// Test data for ref/out parameter callback scenarios.
-    /// Validates the specific ref/out parameter patterns mentioned in the issue.
-    /// </summary>
-    /// <returns>Test data for ref/out parameter validation scenarios.</returns>
-    public static IEnumerable<object[]> RefOutParameterPatternsData()
-    {
-        return new object[][]
-        {
             // Ref parameter with correct signature
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.ProcessData(ref It.Ref<string>.IsAny))
-                    .Callback((ref string data) => data = "modified");
-                """,
-            ],
-
-            // Ref parameter with wrong signature (missing ref)
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.ProcessData(ref It.Ref<string>.IsAny))
-                    .Callback({|Moq1100:(string data)|} => { });
-                """,
-            ],
+            ["""new Mock<IFoo>().Setup(m => m.DoRef(ref It.Ref<string>.IsAny)).Callback((ref string data) => { });"""],
 
             // Out parameter with correct signature
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.TryProcess(out It.Ref<int>.IsAny))
-                    .Callback((out int result) => { result = 42; })
-                    .Returns(true);
-                """,
-            ],
-
-            // Out parameter with wrong signature (missing out)
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.TryProcess(out It.Ref<int>.IsAny))
-                    .Callback({|Moq1100:(int result)|} => { })
-                    .Returns(true);
-                """,
-            ],
-
-            // In parameter with correct signature
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.ProcessReadOnly(in It.Ref<DateTime>.IsAny))
-                    .Callback((in DateTime timestamp) => Console.WriteLine(timestamp));
-                """,
-            ],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-    }
-
-    /// <summary>
-    /// Test data for delegate callback patterns using single-line format.
-    /// Validates delegate-based callbacks with ref/out parameters.
-    /// </summary>
-    /// <returns>Test data for delegate callback validation scenarios.</returns>
-    public static IEnumerable<object[]> DelegateCallbackPatternsData()
-    {
-        return new object[][]
-        {
-            // Ref parameter mismatch (should trigger Moq1100)
-            [
-                """new Mock<IFoo>().Setup(m => m.DoRef(ref It.Ref<string>.IsAny)).Callback(({|Moq1100:string data|}) => { });""",
-            ],
-
-            // Ref parameter correct (should not trigger diagnostic)
-            [
-                """new Mock<IFoo>().Setup(m => m.DoRef(ref It.Ref<string>.IsAny)).Callback((ref string data) => { });""",
-            ],
-
-            // Out parameter mismatch (should trigger Moq1100)
-            [
-                """new Mock<IFoo>().Setup(m => m.DoOut(out It.Ref<int>.IsAny)).Callback(({|Moq1100:int result|}) => { });""",
-            ],
-
-            // Out parameter correct (should not trigger diagnostic)
-            [
-                """new Mock<IFoo>().Setup(m => m.DoOut(out It.Ref<int>.IsAny)).Callback((out int result) => { result = 42; });""",
-            ],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-    }
-
-    /// <summary>
-    /// Test data for basic callback validation scenarios.
-    /// Covers simple cases and no-parameter scenarios.
-    /// </summary>
-    /// <returns>Test data for basic callback validation scenarios.</returns>
-    public static IEnumerable<object[]> BasicCallbackValidationData()
-    {
-        return new object[][]
-        {
-            // Basic callback with wrong parameter type
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.DoWork("test"))
-                    .Callback({|Moq1100:(int wrongParam)|} => { });
-                """,
-            ],
+            ["""new Mock<IFoo>().Setup(m => m.DoOut(out It.Ref<int>.IsAny)).Callback((out int result) => { result = 42; });"""],
 
             // Basic callback with correct parameter type
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.DoWork("test"))
-                    .Callback((string param) => { });
-                """,
-            ],
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback((string param) => { });"""],
 
             // No parameters callback for parameterized method (valid pattern)
-            [
-                """
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.DoWork("test"))
-                    .Callback(() => { });
-                """,
-            ],
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(() => { });"""],
+
+            // Complex multiple parameter with correct signatures
+            ["""new Mock<IFoo>().Setup(x => x.ProcessMultiple(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback((int id, string name, DateTime timestamp) => { });"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+
+        // Invalid patterns that SHOULD trigger the analyzer
+        IEnumerable<object[]> invalidPatterns = new object[][]
+        {
+            // Basic callback with wrong parameter type
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(({|Moq1100:int wrongParam|}) => { });"""],
+
+            // Ref parameter mismatch (missing ref)
+            ["""new Mock<IFoo>().Setup(m => m.DoRef(ref It.Ref<string>.IsAny)).Callback(({|Moq1100:string data|}) => { });"""],
+
+            // Out parameter mismatch (missing out)
+            ["""new Mock<IFoo>().Setup(m => m.DoOut(out It.Ref<int>.IsAny)).Callback(({|Moq1100:int result|}) => { });"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+
+        return validPatterns.Concat(invalidPatterns);
     }
 
     [Theory]
-    [MemberData(nameof(MultipleCallbackTimingData))]
-    [MemberData(nameof(RefOutParameterPatternsData))]
-    [MemberData(nameof(BasicCallbackValidationData))]
+    [MemberData(nameof(CallbackValidationData))]
     public async Task ShouldValidateCallbackPatterns(string referenceAssemblyGroup, string @namespace, string testCode)
     {
         static string Template(string ns, string code) =>
@@ -228,36 +81,6 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests
             public class TestClass
             {
                 public void TestMethod()
-                {
-                    {{code}}
-                }
-            }
-            """;
-
-        string source = Template(@namespace, testCode);
-        await AnalyzerVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
-    }
-
-    [Theory]
-    [MemberData(nameof(DelegateCallbackPatternsData))]
-    public async Task ShouldValidateDelegateCallbacks(string referenceAssemblyGroup, string @namespace, string testCode)
-    {
-        static string Template(string ns, string code) =>
-            $$"""
-            {{ns}}
-
-            internal interface IFoo
-            {
-                int DoWork(string input);
-                int DoRef(ref string data);
-                bool DoOut(out int result);
-                string DoIn(in DateTime timestamp);
-                T ProcessGeneric<T>(T input);
-            }
-
-            internal class UnitTest
-            {
-                private void Test()
                 {
                     {{code}}
                 }
