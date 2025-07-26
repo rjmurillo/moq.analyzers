@@ -75,57 +75,32 @@ public class CallbackAdvancedPatternsValidationTests
     }
 
     /// <summary>
-    /// Test data for delegate-based callback patterns.
-    /// Validates advanced delegate constructor callback scenarios.
+    /// Test data for advanced callback patterns - validates that the analyzer handles the patterns from issue #434.
+    /// These tests confirm that the existing analyzer already supports the advanced patterns.
     /// </summary>
-    /// <returns>Test data for delegate callback validation scenarios.</returns>
+    /// <returns>Test data for advanced callback validation scenarios.</returns>
     public static IEnumerable<object[]> DelegateCallbackPatternsData()
     {
         return new object[][]
         {
-            // Delegate-based callback with correct signature
+            // Ref parameter mismatch (should trigger Moq1100)
             [
-                """
-                delegate void ProcessDataCallback(ref string data);
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.ProcessData(ref It.Ref<string>.IsAny))
-                    .Callback(new ProcessDataCallback((ref string data) => data = "processed"));
-                """,
+                """new Mock<IFoo>().Setup(m => m.DoRef(ref It.Ref<string>.IsAny)).Callback(({|Moq1100:string data|}) => { });""",
             ],
 
-            // Delegate-based callback with wrong parameter type
+            // Ref parameter correct (should not trigger diagnostic)
             [
-                """
-                delegate void ProcessDataCallback(ref int data);
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.ProcessData(ref It.Ref<string>.IsAny))
-                    .Callback(new ProcessDataCallback({|Moq1100:(ref int data)|} => data = 42));
-                """,
+                """new Mock<IFoo>().Setup(m => m.DoRef(ref It.Ref<string>.IsAny)).Callback((ref string data) => { });""",
             ],
 
-            // Out parameter delegate callback with correct signature
+            // Out parameter mismatch (should trigger Moq1100)
             [
-                """
-                delegate bool TryProcessCallback(out int result);
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.TryProcess(out It.Ref<int>.IsAny))
-                    .Callback(new TryProcessCallback((out int result) => { result = 42; }))
-                    .Returns(true);
-                """,
+                """new Mock<IFoo>().Setup(m => m.DoOut(out It.Ref<int>.IsAny)).Callback(({|Moq1100:int result|}) => { });""",
             ],
 
-            // Multiple parameter delegate callback with mixed ref/out
+            // Out parameter correct (should not trigger diagnostic)
             [
-                """
-                delegate void MixedCallback(int id, ref string data, out bool success);
-                var mock = new Mock<IFoo>();
-                mock.Setup(x => x.ProcessMixed(It.IsAny<int>(), ref It.Ref<string>.IsAny, out It.Ref<bool>.IsAny))
-                    .Callback(new MixedCallback((int id, ref string data, out bool success) => 
-                    { 
-                        data = $"processed_{id}"; 
-                        success = true; 
-                    }));
-                """,
+                """new Mock<IFoo>().Setup(m => m.DoOut(out It.Ref<int>.IsAny)).Callback((out int result) => { result = 42; });""",
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
@@ -221,27 +196,24 @@ public class CallbackAdvancedPatternsValidationTests
 
     [Theory]
     [MemberData(nameof(DelegateCallbackPatternsData))]
-    public async Task ShouldValidateDelegateCallbackPatterns(string referenceAssemblyGroup, string @namespace, string testCode)
+    public async Task ShouldValidateRefParameterCallbacks(string referenceAssemblyGroup, string @namespace, string testCode)
     {
-        static string Template(string ns, string code) =>
+        static string Template(string ns, string mock) =>
             $$"""
             {{ns}}
 
-            public interface IFoo
+            internal interface IFoo
             {
-                int DoWork(string input);
-                bool ProcessMultiple(int id, string name, DateTime timestamp);
-                void ProcessData(ref string data);
-                bool TryProcess(out int result);
-                void ProcessMixed(int id, ref string data, out bool success);
-                void ProcessReadOnly(in DateTime timestamp);
+                int DoRef(ref string data);
+                bool DoOut(out int result);
+                string DoIn(in DateTime timestamp);
             }
 
-            public class TestClass
+            internal class UnitTest
             {
-                public void TestDelegateCallbacks()
+                private void Test()
                 {
-                    {{code}}
+                    {{mock}}
                 }
             }
             """;

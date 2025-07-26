@@ -95,7 +95,6 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests
             // Delegate-based callback with ref parameter - correct signature
             [
                 """
-                delegate void ProcessDataCallback(ref string data);
                 var mock = new Mock<IFoo>();
                 mock.Setup(x => x.ProcessData(ref It.Ref<string>.IsAny))
                     .Callback(new ProcessDataCallback((ref string data) => data = "processed"));
@@ -105,7 +104,6 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests
             // Delegate-based callback with wrong ref parameter type - should trigger diagnostic
             [
                 """
-                delegate void ProcessDataCallback(ref int data);
                 var mock = new Mock<IFoo>();
                 mock.Setup(x => x.ProcessData(ref It.Ref<string>.IsAny))
                     .Callback(new ProcessDataCallback({|Moq1100:(ref int data)|} => data = 42));
@@ -115,7 +113,6 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests
             // Out parameter delegate callback - correct signature
             [
                 """
-                delegate bool TryProcessCallback(out int result);
                 var mock = new Mock<IFoo>();
                 mock.Setup(x => x.TryProcess(out It.Ref<int>.IsAny))
                     .Callback(new TryProcessCallback((out int result) => { result = 42; }))
@@ -198,6 +195,9 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests
                 bool TryProcess(out int result);
                 T ProcessGeneric<T>(T input);
             }
+
+            public delegate void ProcessDataCallback(ref string data);
+            public delegate bool TryProcessCallback(out int result);
 
             public class TestClass
             {
