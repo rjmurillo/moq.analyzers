@@ -25,7 +25,7 @@ Here are some common areas to explore:
 - **Target User:** "Who is the primary user of this feature?"
 - **Core Functionality:** "Can you describe the key actions a user should be able to perform with this feature?"
 - **User Stories:** "Could you provide a few user stories? (e.g., As a [type of user], I want to [perform an action] so that [benefit].)"
-- **Structure with INVEST**: Does each user story follow the INVEST mnemonic?
+- **INVEST compliance**: Validate that every user story follows the INVEST mnemonic.
 - **Acceptance Criteria:** "How will we know when this feature is successfully implemented? What are the key success criteria?"
 - **Scope/Boundaries:** "Are there any specific things this feature *should not* do (non-goals)?"
 - **Data Requirements:** "What kind of data does this feature need to display or manipulate?"
