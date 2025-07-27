@@ -1,5 +1,3 @@
-using Verifier = Moq.Analyzers.Test.Helpers.AllAnalyzersVerifier;
-
 namespace Moq.Analyzers.Test;
 
 /// <summary>

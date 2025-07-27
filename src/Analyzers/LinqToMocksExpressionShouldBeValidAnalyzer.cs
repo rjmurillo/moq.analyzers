@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis.Operations;
-using Moq.Analyzers.Common;
 
 namespace Moq.Analyzers;
 
