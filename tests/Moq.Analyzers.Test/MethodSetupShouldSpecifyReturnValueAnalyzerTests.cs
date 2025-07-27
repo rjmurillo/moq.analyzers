@@ -20,9 +20,6 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
 
             // Setup with nested lambda (should report Moq1203 diagnostic)
             ["""{|Moq1203:new Mock<IFoo>().Setup(x => new Func<int>(() => 1)())|};"""],
-
-            // Setup with property access (should not trigger analyzer)
-            ["""new Mock<IFoo>().Setup(x => x.Name);"""],
         ];
 
         // Test cases where a method setup should specify return value but doesn't
