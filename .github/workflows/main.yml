@@ -57,6 +57,8 @@ jobs:
 
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
+      env:
+        REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
     - name: Upload binlogs
       uses: actions/upload-artifact@v4
