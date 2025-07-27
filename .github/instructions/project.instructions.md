@@ -174,8 +174,8 @@ Before updating any dependencies:
 Before submitting a PR, ensure your changes pass all quality checks:
 
 1. **Formatting**: Run `dotnet format` to ensure consistent code formatting
-2. **Build**: Ensure `dotnet build` succeeds without warnings
-3. **Tests**: All tests must pass (`dotnet test`)
+2. **Build**: Ensure `dotnet build /p:PedanticMode=true` succeeds without warnings
+3. **Tests**: All tests must pass (`dotnet test --settings ./build/targets/tests/test.runsettings`)
 4. **Static Analysis**: Run Codacy analysis locally or ensure CI passes
 5. **Documentation**: Update relevant documentation files
 

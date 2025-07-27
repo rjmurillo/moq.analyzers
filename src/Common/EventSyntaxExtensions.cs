@@ -208,42 +208,79 @@ internal static class EventSyntaxExtensions
         return true;
     }
 
+    /// <summary>
+    /// Gets the parameter types for a given event delegate type.
+    /// This method handles various delegate types including Action delegates, EventHandler delegates,
+    /// and custom delegates by analyzing their structure and extracting parameter information.
+    /// </summary>
+    /// <param name="eventType">The event delegate type to analyze.</param>
+    /// <param name="knownSymbols">Known symbols for enhanced type checking and recognition.</param>
+    /// <returns>
+    /// An array of parameter types expected by the event delegate:
+    /// - For Action delegates: Returns all generic type arguments
+    /// - For EventHandler&lt;T&gt; delegates: Returns the single generic argument T
+    /// - For custom delegates: Returns parameters from the Invoke method
+    /// - For non-delegate types: Returns empty array.
+    /// </returns>
     private static ITypeSymbol[] GetEventParameterTypesInternal(ITypeSymbol eventType, KnownSymbols? knownSymbols)
     {
-        // For delegates like Action<T>, we need to get the generic type arguments
-        if (eventType is INamedTypeSymbol namedType)
+        if (eventType is not INamedTypeSymbol namedType)
         {
-            // Handle Action delegates
-            if (knownSymbols != null && namedType.IsActionDelegate(knownSymbols))
-            {
-                return namedType.TypeArguments.ToArray();
-            }
-
-            if (knownSymbols == null && IsActionDelegate(namedType))
-            {
-                return namedType.TypeArguments.ToArray();
-            }
-
-            // Handle EventHandler<T> - expects single argument of type T (not the sender/args pattern)
-            if (knownSymbols != null && namedType.IsEventHandlerDelegate(knownSymbols))
-            {
-                return [namedType.TypeArguments[0]];
-            }
-
-            if (knownSymbols == null && IsEventHandlerDelegate(namedType))
-            {
-                return [namedType.TypeArguments[0]];
-            }
-
-            // Handle custom delegates by getting the Invoke method parameters
-            IMethodSymbol? invokeMethod = namedType.DelegateInvokeMethod;
-            if (invokeMethod != null)
-            {
-                return invokeMethod.Parameters.Select(p => p.Type).ToArray();
-            }
+            return [];
         }
 
-        return [];
+        // Try different delegate type handlers in order of specificity
+        ITypeSymbol[]? parameterTypes = TryGetActionDelegateParameters(namedType, knownSymbols) ??
+                            TryGetEventHandlerDelegateParameters(namedType, knownSymbols) ??
+                            TryGetCustomDelegateParameters(namedType);
+
+        return parameterTypes ?? [];
+    }
+
+    /// <summary>
+    /// Attempts to get parameter types from Action delegate types.
+    /// </summary>
+    /// <param name="namedType">The named type symbol to check.</param>
+    /// <param name="knownSymbols">Optional known symbols for enhanced type checking.</param>
+    /// <returns>Parameter types if this is an Action delegate; otherwise null.</returns>
+    private static ITypeSymbol[]? TryGetActionDelegateParameters(INamedTypeSymbol namedType, KnownSymbols? knownSymbols)
+    {
+        bool isActionDelegate = knownSymbols != null
+            ? namedType.IsActionDelegate(knownSymbols)
+            : IsActionDelegate(namedType);
+
+        return isActionDelegate ? namedType.TypeArguments.ToArray() : null;
+    }
+
+    /// <summary>
+    /// Attempts to get parameter types from EventHandler delegate types.
+    /// </summary>
+    /// <param name="namedType">The named type symbol to check.</param>
+    /// <param name="knownSymbols">Optional known symbols for enhanced type checking.</param>
+    /// <returns>Parameter types if this is an EventHandler delegate; otherwise null.</returns>
+    private static ITypeSymbol[]? TryGetEventHandlerDelegateParameters(INamedTypeSymbol namedType, KnownSymbols? knownSymbols)
+    {
+        bool isEventHandlerDelegate = knownSymbols != null
+            ? namedType.IsEventHandlerDelegate(knownSymbols)
+            : IsEventHandlerDelegate(namedType);
+
+        if (isEventHandlerDelegate && namedType.TypeArguments.Length > 0)
+        {
+            return [namedType.TypeArguments[0]];
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Attempts to get parameter types from custom delegate types using the Invoke method.
+    /// </summary>
+    /// <param name="namedType">The named type symbol to check.</param>
+    /// <returns>Parameter types if this has a delegate Invoke method; otherwise null.</returns>
+    private static ITypeSymbol[]? TryGetCustomDelegateParameters(INamedTypeSymbol namedType)
+    {
+        IMethodSymbol? invokeMethod = namedType.DelegateInvokeMethod;
+        return invokeMethod?.Parameters.Select(p => p.Type).ToArray();
     }
 
     private static bool IsActionDelegate(INamedTypeSymbol namedType)

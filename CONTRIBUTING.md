@@ -28,16 +28,21 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 
 1. **Fork the repository** and clone your fork locally
 2. **Install dependencies**:
+
    ```bash
    dotnet restore
    ```
+
 3. **Build the project**:
+
    ```bash
-   dotnet build
+   dotnet build /p:PedanticMode=true
    ```
+
 4. **Run tests** to ensure everything works:
+
    ```bash
-   dotnet test
+   dotnet test --settings ./build/targets/tests/test.runsettings
    ```
 
 ## Universal Agent Success Principles for Project Maintainers
@@ -49,12 +54,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 1. Clear Expertise Validation Requirements
 
 **Document specific expertise requirements:**
+
 - **Define domain-specific knowledge** that agents must demonstrate before contributing
 - **Create validation checklists** with specific technical questions
 - **Establish clear criteria** for when agents should request expert guidance
 - **Provide escalation paths** for complex or unclear situations
 
 **Implementation:**
+
 - Create comprehensive documentation of domain concepts
 - Develop specific technical questions for expertise validation
 - Establish clear guidelines for when to seek human expert guidance
@@ -63,12 +70,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 2. Mandatory Workflow Documentation
 
 **Create clear, enforceable workflows:**
+
 - **Document all mandatory steps** in the development process
 - **Provide validation checkpoints** that agents can verify
 - **Create clear success criteria** for each workflow step
 - **Establish rollback procedures** for failed workflows
 
 **Implementation:**
+
 - Document step-by-step workflows with clear success criteria
 - Create automated validation scripts where possible
 - Provide clear error messages and recovery procedures
@@ -77,12 +86,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 3. Configuration and Documentation Standards
 
 **Make project context easily discoverable:**
+
 - **Centralize configuration** in well-documented files
 - **Create comprehensive documentation** of project structure and conventions
 - **Establish clear naming conventions** and architectural patterns
 - **Document decision-making processes** and design rationales
 
 **Implementation:**
+
 - Use consistent configuration file formats and locations
 - Create comprehensive README files with clear project overview
 - Document architectural decisions and their rationales
@@ -91,12 +102,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 4. Validation and Testing Infrastructure
 
 **Create robust validation systems:**
+
 - **Automate testing and validation** where possible
 - **Provide clear feedback** on validation failures
 - **Create comprehensive test suites** that cover all critical paths
 - **Establish performance benchmarks** for performance-sensitive code
 
 **Implementation:**
+
 - Set up automated CI/CD pipelines with comprehensive testing
 - Create clear test documentation and examples
 - Establish performance testing frameworks
@@ -105,12 +118,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 5. Error Handling and Recovery
 
 **Design systems for graceful failure handling:**
+
 - **Create clear error messages** that guide agents toward solutions
 - **Establish retry mechanisms** for transient failures
 - **Provide rollback procedures** for failed changes
 - **Document common failure patterns** and their solutions
 
 **Implementation:**
+
 - Use descriptive error messages with actionable guidance
 - Implement retry logic for network and transient failures
 - Create rollback procedures for database and configuration changes
@@ -119,12 +134,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 6. State Management and Context Preservation
 
 **Design systems that preserve context:**
+
 - **Use persistent storage** for important state information
 - **Create clear state transition documentation**
 - **Implement context recovery mechanisms**
 - **Document state dependencies** and relationships
 
 **Implementation:**
+
 - Use databases or persistent storage for important state
 - Document state transitions and their triggers
 - Implement automatic context recovery after interruptions
@@ -133,12 +150,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 7. Tool Integration and Documentation
 
 **Provide comprehensive tool documentation:**
+
 - **Document all available tools** and their capabilities
 - **Create clear usage examples** for each tool
 - **Establish tool integration patterns**
 - **Provide troubleshooting guides** for tool failures
 
 **Implementation:**
+
 - Create comprehensive tool documentation with examples
 - Establish clear patterns for tool integration
 - Provide troubleshooting guides for common tool issues
@@ -147,12 +166,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 #### 8. Expert Guidance Protocols
 
 **Establish clear escalation procedures:**
+
 - **Define when agents should seek expert guidance**
 - **Create clear escalation paths** with contact information
 - **Establish response time expectations**
 - **Document expert availability** and areas of expertise
 
 **Implementation:**
+
 - Create clear criteria for when to escalate to human experts
 - Establish contact procedures and response time expectations
 - Document areas of expertise and availability
@@ -209,6 +230,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 ### Branch Naming Convention
 
 Use descriptive branch names following this pattern:
+
 - `feature/issue-{number}` for new features
 - `fix/issue-{number}` for bug fixes
 - `docs/issue-{number}` for documentation changes
@@ -219,7 +241,7 @@ Use descriptive branch names following this pattern:
 
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -228,6 +250,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 ```
 
 **Types:**
+
 - `feat`: New features
 - `fix`: Bug fixes
 - `docs`: Documentation changes
@@ -240,7 +263,8 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 - `build`: Build system changes
 
 **Examples:**
-```
+
+```text
 feat(analyzer): add new Moq1001 analyzer for callback validation
 fix(test): resolve flaky test in Moq1200AnalyzerTests
 docs(readme): update installation instructions
@@ -251,21 +275,21 @@ ci(workflow): add performance testing to nightly builds
 
 **Every pull request must pass these checks before review:**
 
-- **Formatting:**  
+- **Formatting:**
   Run `dotnet format` and commit all changes. PRs with formatting issues will be rejected.
-- **Build:**  
+- **Build:**
   Build with `dotnet build /p:PedanticMode=true`. All warnings must be treated as errors. PRs that do not build cleanly will be closed.
-- **Tests:**  
-  Run all unit tests:  
-  `dotnet test --settings ./build/targets/tests/test.runsettings`  
+- **Tests:**
+  Run all unit tests:
+  `dotnet test --settings ./build/targets/tests/test.runsettings`
   All tests must pass. PRs with failing tests will be closed.
 - **Code Coverage:**  
   Code coverage is generated automatically if you use the `test.runsettings` from above, which produces Cobertura format. If you wish to have a different format, you can specify on the command line. Example:
   `dotnet test --collect:"XPlat Code Coverage" --settings ./build/targets/tests/test.runsettings`  
   PRs must not reduce coverage for critical paths without justification.
-- **Codacy Analysis:**  
+- **Codacy Analysis:**
   Run Codacy CLI analysis on all changed files. Fix all reported issues before submitting the PR.
-- **Evidence Required:**  
+- **Evidence Required:**
   PR description must include console output or screenshots for:
   - `dotnet format`
   - `dotnet build`
@@ -275,11 +299,12 @@ ci(workflow): add performance testing to nightly builds
 - **No Received Files:**  
   Remove any `*.received.*` files before committing.
 
-**CI Pipeline:**  
+**CI Pipeline:**
+
 - All PRs are validated by GitHub Actions.  
 - PRs that fail CI (format, build, test, or Codacy) will be closed without review.
 
-**Summary:**  
+**Summary:**
 If your PR does not pass all checks locally and in CI, it will not be reviewed. Always verify and document your results before submitting.
 
 ### Proactive Duplicate/Conflict Checks
@@ -293,8 +318,8 @@ If your PR does not pass all checks locally and in CI, it will not be reviewed. 
 Before submitting a PR, ensure your code passes all quality checks:
 
 1. **Formatting**: Run `dotnet format` to ensure consistent code formatting
-2. **Build**: Ensure `dotnet build` succeeds without warnings
-3. **Tests**: All tests must pass (`dotnet test`)
+2. **Build**: Ensure `dotnet build /p:PedanticMode=true` succeeds without warnings
+3. **Tests**: All tests must pass (`dotnet test --settings ./build/targets/tests/test.runsettings`)
 4. **Static Analysis**: Run Codacy analysis locally or ensure CI passes
 5. **Documentation**: Update relevant documentation files
 
@@ -415,6 +440,7 @@ $$"""
 public class MyClass
 {
     {{code}} // This is where brokenCode/fixedCode will be injected
+   
 }
 
 public class MyTest
