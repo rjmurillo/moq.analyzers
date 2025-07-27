@@ -75,13 +75,6 @@ jobs:
         name: CoverageHistory-${{ matrix.os }}
         path: ./artifacts/TestResults/coveragehistory
 
-    - name: Upload coverage history
-      uses: actions/upload-artifact@v4
-      if: success() && ${{ env.IS_TARGET_MAIN == 'true' }}
-      with:
-        name: CoverageHistory-${{ matrix.os }}
-        path: ./artifacts/TestResults/coveragehistory
-
     - name: Upload binlogs
       uses: actions/upload-artifact@v4
       if: success() || failure()
