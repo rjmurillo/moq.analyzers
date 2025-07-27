@@ -1,4 +1,3 @@
-using Moq.Analyzers.Test.Helpers;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.RedundantTimesSpecificationAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -7,8 +6,9 @@ public class RedundantTimesSpecificationAnalyzerTests(ITestOutputHelper output)
 {
     public static IEnumerable<object[]> TestData()
     {
-        IEnumerable<object[]> both = new object[][]
-        {
+        IEnumerable<object[]> both =
+        [
+
             // Should detect redundant Times.AtLeastOnce()
             ["new Mock<ISampleInterface>().Verify(x => x.TestMethod(), {|Moq1420:Times.AtLeastOnce()|});"],
 
@@ -49,10 +49,11 @@ public class RedundantTimesSpecificationAnalyzerTests(ITestOutputHelper output)
             // Should detect redundant Times with message argument
             ["new Mock<ISampleInterface>().Verify(x => x.TestMethod(), {|Moq1420:Times.AtLeastOnce()|}, \"should be called at least once\");"],
             ["new Mock<ISampleInterface>().VerifyGet(x => x.TestProperty, {|Moq1420:Times.AtLeastOnce()|}, \"should be called at least once\");"],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+        ];
 
-        IEnumerable<object[]> newMoqOnly = new object[][]
-        {
+        IEnumerable<object[]> newMoqOnly =
+        [
+
             // Should detect redundant Times.AtLeastOnce() in VerifySet (only available in new Moq versions)
             ["new Mock<ISampleInterface>().VerifySet(x => { x.TestProperty = It.IsAny<string>(); }, {|Moq1420:Times.AtLeastOnce()|});"],
 
@@ -65,9 +66,9 @@ public class RedundantTimesSpecificationAnalyzerTests(ITestOutputHelper output)
 
             // Should NOT detect variable/expression-based Times in VerifySet
             ["int times = 2; new Mock<ISampleInterface>().VerifySet(x => { x.TestProperty = It.IsAny<string>(); }, Times.Exactly(times));"],
-        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+        ];
 
-        return both.Concat(newMoqOnly);
+        return both.Concat(newMoqOnly).WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]
