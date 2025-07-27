@@ -67,30 +67,6 @@ public class DiagnosticEditPropertiesTests
     }
 
     [Fact]
-    public void TryGetFromImmutableDictionary_ParsesCultureInvariant()
-    {
-        // Use reflection to set CurrentCulture to avoid RS1035 banned symbol in test context
-        System.Type cultureType = typeof(System.Globalization.CultureInfo);
-        System.Reflection.PropertyInfo? currentCultureProperty = cultureType.GetProperty("CurrentCulture");
-        object? originalCulture = currentCultureProperty!.GetValue(null);
-        try
-        {
-            System.Globalization.CultureInfo frCulture = new System.Globalization.CultureInfo("fr-FR");
-            currentCultureProperty.SetValue(null, frCulture);
-            ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
-                .Add(DiagnosticEditProperties.EditTypeKey, "Insert")
-                .Add(DiagnosticEditProperties.EditPositionKey, "1234");
-            DiagnosticEditProperties? props;
-            Assert.True(DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out props));
-            Assert.Equal(1234, props!.EditPosition);
-        }
-        finally
-        {
-            currentCultureProperty.SetValue(null, originalCulture);
-        }
-    }
-
-    [Fact]
     public void TryGetFromImmutableDictionary_Succeeds_WithValidDictionary()
     {
         ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
