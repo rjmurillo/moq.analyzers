@@ -283,6 +283,10 @@ ci(workflow): add performance testing to nightly builds
   Run all unit tests:
   `dotnet test --settings ./build/targets/tests/test.runsettings`
   All tests must pass. PRs with failing tests will be closed.
+- **Code Coverage:**  
+  Code coverage is generated automatically if you use the `test.runsettings` from above, which produces Cobertura format. If you wish to have a different format, you can specify on the command line. Example:
+  `dotnet test --collect:"XPlat Code Coverage" --settings ./build/targets/tests/test.runsettings`  
+  PRs must not reduce coverage for critical paths without justification.
 - **Codacy Analysis:**
   Run Codacy CLI analysis on all changed files. Fix all reported issues before submitting the PR.
 - **Evidence Required:**
@@ -290,6 +294,7 @@ ci(workflow): add performance testing to nightly builds
   - `dotnet format`
   - `dotnet build`
   - `dotnet test`
+  - **Code coverage report summary**
   - Codacy analysis (if issues were found and fixed)
 - **No Received Files:**  
   Remove any `*.received.*` files before committing.
@@ -665,16 +670,18 @@ Before submitting a PR, ensure:
 
 **What Constitutes Validation Evidence:**
 - Test execution logs showing all tests pass
+- **Code coverage report summary and/or screenshots showing coverage for changed code**
 - Performance benchmark results (if applicable)
 - Screenshots of successful CI runs
 - Manual testing results for UI changes
-- Code coverage reports for new features
 
 **Evidence Format:**
 - Include logs, screenshots, or links to CI runs
 - Provide clear, readable evidence
 - Ensure evidence is recent and relevant
-- Link to specific test results or benchmarks
+- Link to specific test results, code coverage reports, or benchmarks
+
+**MANDATORY:** Always validate code coverage after making code or test changes. Code coverage validation is a required step before yielding, submitting, or completing any task. Coverage must be reported as part of the validation evidence in PRs and reviews.
 
 ### Evidence of Moq Version Awareness
 

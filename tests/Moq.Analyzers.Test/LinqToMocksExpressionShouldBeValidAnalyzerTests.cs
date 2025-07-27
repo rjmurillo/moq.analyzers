@@ -4,31 +4,51 @@ namespace Moq.Analyzers.Test;
 
 public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper output)
 {
+    private readonly ITestOutputHelper output = output;
+
+    // Only one version of each static data source method
+    public static IEnumerable<object[]> EdgeCaseExpressionTestData()
+    {
+        return new object[][]
+        {
+            // Existing edge cases
+            ["""Mock.Of<IRepository>(null);"""],
+            ["""Mock.Of<IRepository>(r => 42 == 42);"""],
+            ["""Mock.Of<IRepository>(r => r != null);"""],
+            ["""Mock.Of<IRepository>(r => new Func<int>(() => 1)() == 1);"""],
+            ["""Mock.Of<IRepository>(r => {|Moq1302:object.Equals(r, null)|});"""],
+
+            // New diverse edge cases
+
+            // Using a conditional operator (valid)
+            ["""Mock.Of<IRepository>(r => r.IsAuthenticated ? true : false);"""],
+
+            // Using a coalesce operator (valid)
+            ["""Mock.Of<IRepository>(r => (r.Name ?? "default") == "test");"""],
+
+            // Using a cast (valid)
+            ["""Mock.Of<IRepository>(r => ((object)r) != null);"""],
+
+            // Using a delegate invocation (valid)
+            ["""Mock.Of<IRepository>(r => new System.Func<IRepository, bool>(x => true)(r));"""],
+
+            // Using a discard (valid)
+            ["""Mock.Of<IRepository>(_ => true);"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     public static IEnumerable<object[]> ValidExpressionTestData()
     {
         return new object[][]
         {
-            // Interface properties - should be valid
             ["""Mock.Of<IRepository>(r => r.IsAuthenticated == true);"""],
             ["""Mock.Of<IRepository>(r => r.Name == "test");"""],
-
-            // Interface methods - should be valid
             ["""Mock.Of<IService>(s => s.GetData() == "result");"""],
             ["""Mock.Of<IService>(s => s.Calculate(1, 2) == 3);"""],
-
-            // Virtual properties - should be valid
             ["""Mock.Of<BaseClass>(b => b.VirtualProperty == "test");"""],
-
-            // Virtual methods - should be valid
             ["""Mock.Of<BaseClass>(b => b.VirtualMethod() == true);"""],
-
-            // Abstract properties - should be valid
             ["""Mock.Of<AbstractClass>(a => a.AbstractProperty == 42);"""],
-
-            // Abstract methods - should be valid
             ["""Mock.Of<AbstractClass>(a => a.AbstractMethod() == "result");"""],
-
-            // Simple boolean expressions without member access
             ["""Mock.Of<IRepository>(r => true);"""],
             ["""Mock.Of<IRepository>(r => false);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
@@ -38,16 +58,9 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
     {
         return new object[][]
         {
-            // Non-virtual properties - should trigger diagnostic
             ["""Mock.Of<ConcreteClass>(c => {|Moq1302:c.NonVirtualProperty|} == "test");"""],
-
-            // Non-virtual methods - should trigger diagnostic
             ["""Mock.Of<ConcreteClass>(c => {|Moq1302:c.NonVirtualMethod()|} == true);"""],
-
-            // Sealed class properties
             ["""Mock.Of<SealedClass>(s => {|Moq1302:s.Property|} == "value");"""],
-
-            // Static methods (if they could be called in LINQ expressions)
             ["""Mock.Of<ConcreteClass>(c => {|Moq1302:c.InstanceMethod()|} == 42);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
@@ -56,9 +69,33 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
     {
         return new object[][]
         {
-            // Field reference - should trigger diagnostic
             ["""Mock.Of<ConcreteClass>(c => {|Moq1302:c.Field|} == 5);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    [Theory]
+    [MemberData(nameof(EdgeCaseExpressionTestData))]
+    public async Task ShouldHandleEdgeCaseLinqToMocksExpressions(string referenceAssemblyGroup, string @namespace, string mockExpression)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+
+              public interface IRepository
+              {
+                  bool IsAuthenticated { get; set; }
+                  string Name { get; set; }
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      var mock = {{mockExpression}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup);
     }
 
     [Theory]

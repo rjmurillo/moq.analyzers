@@ -1,4 +1,3 @@
-using Moq.Analyzers.Test.Helpers;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer>;
 using Verify = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer, Moq.Analyzers.VerifyOverridableMembersFixer>;
 
@@ -386,6 +385,36 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
             {
                 var mock = new Mock<MyClass>();
                 mock.Verify(x => x.MyProperty);
+            }
+        }
+        """;
+
+        await Verify.VerifyCodeFixAsync(test, test, referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task NoFixForExplicitInterfaceImplementation(string referenceAssemblyGroup)
+    {
+        string test = """
+
+        public interface IMyInterface
+        {
+            void MyMethod();
+        }
+
+        public class MyClass : IMyInterface
+        {
+            void IMyInterface.MyMethod() { }
+        }
+
+        public class MyTest
+        {
+            public void Test()
+            {
+                var mock = new Mock<MyClass>();
+                // This is not a valid Moq pattern, but ensure analyzer/fixer does not crash or offer a fix
+                mock.Verify(x => ((IMyInterface)x).MyMethod());
             }
         }
         """;
