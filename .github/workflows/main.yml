@@ -65,6 +65,15 @@ jobs:
 
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
+      env:
+        REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
+
+    - name: Upload coverage history
+      uses: actions/upload-artifact@v4
+      if: success() && ${{ env.IS_TARGET_MAIN == 'true' }}
+      with:
+        name: CoverageHistory-${{ matrix.os }}
+        path: ./artifacts/TestResults/coveragehistory
 
     - name: Upload coverage history
       uses: actions/upload-artifact@v4
