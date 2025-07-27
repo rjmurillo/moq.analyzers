@@ -7,7 +7,6 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
     private readonly ITestOutputHelper output = output;
 
     // Only one version of each static data source method
-    // Only one version of each static data source method
     public static IEnumerable<object[]> EdgeCaseExpressionTestData()
     {
         return new object[][]
