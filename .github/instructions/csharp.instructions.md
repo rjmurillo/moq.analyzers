@@ -8,6 +8,20 @@ applyTo: '**/*.cs'
 
 - **For complex changes, see the Decision Trees section below**
 
+**MANDATORY: Only Valid C# Code in All Tests**
+
+> **You MUST NEVER write or include code in analyzer or code fix tests that produces C# compiler errors.**
+> - All test code must be valid, compilable C#.
+> - Do not write tests for static, const, readonly, or event members if the code would not compile.
+> - Do not include code that triggers CSxxxx errors (e.g., invalid member access, missing members, or illegal syntax).
+> - If a scenario cannot be expressed as valid C#, it is not a valid test case for analyzers or code fixes.
+> - Any test that fails to compile is an immediate failure and must be removed or rewritten.
+
+**Rationale:**
+- Roslyn analyzers and code fixes only operate on valid, successfully parsed C# code. Compiler errors prevent analyzers from running and invalidate the test scenario.
+- Writing invalid code in tests causes build failures, test failures, and wastes review/CI resources.
+- This is a non-negotiable rule. If you are unsure whether a test is valid C#, STOP and request expert guidance.
+
 ## Primary Instructions
 
 Always read and apply the instructions in [.github/copilot-instructions.md](../copilot-instructions.md) when working on C# source or project files.
