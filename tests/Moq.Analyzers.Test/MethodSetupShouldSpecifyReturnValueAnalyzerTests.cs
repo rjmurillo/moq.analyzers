@@ -6,9 +6,29 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
 {
     public static IEnumerable<object[]> TestData()
     {
+        IEnumerable<object[]> edge =
+        [
+
+            // Null lambda (should not crash, should not report diagnostic)
+            ["""new Mock<IFoo>().Setup(null);"""],
+
+            // Constant expression (should not report diagnostic)
+            ["""new Mock<IFoo>().Setup(x => 42);"""],
+
+            // Setup with method group (should report Moq1203 diagnostic)
+            ["""{|Moq1203:new Mock<IFoo>().Setup(x => x.ToString())|};"""],
+
+            // Setup with nested lambda (should report Moq1203 diagnostic)
+            ["""{|Moq1203:new Mock<IFoo>().Setup(x => new Func<int>(() => 1)())|};"""],
+
+            // Setup with property access (should not trigger analyzer)
+            ["""new Mock<IFoo>().Setup(x => x.Name);"""],
+        ];
+
         // Test cases where a method setup should specify return value but doesn't
-        IEnumerable<object[]> both = new object[][]
-        {
+        IEnumerable<object[]> both =
+        [
+
             // Method with return type should specify return value
             ["""{|Moq1203:new Mock<IFoo>().Setup(x => x.DoSomething("test"))|};"""],
             ["""{|Moq1203:new Mock<IFoo>().Setup(x => x.GetValue())|};"""],
@@ -28,9 +48,9 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             // Property setups should not trigger this analyzer
             ["""new Mock<IFoo>().Setup(x => x.Name);"""],
             ["""new Mock<IFoo>().SetupGet(x => x.Name);"""],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+        ];
 
-        return both;
+        return both.Union(edge).WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
     [Theory]
