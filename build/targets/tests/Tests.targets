@@ -6,6 +6,7 @@
 
     <_TestCoverageGlob>$(ArtifactsTestResultsPath)/**/*.cobertura.xml</_TestCoverageGlob>
     <_TestCoverageReportDirectory>$(ArtifactsTestResultsPath)/coverage</_TestCoverageReportDirectory>
+    <_TestCoverageHistoryDirectory>$(ArtifactsTestResultsPath)/coveragehistory</_TestCoverageHistoryDirectory>
   </PropertyGroup>
 
   <Target Name="CleanCoverageReport" BeforeTargets="Test;VSTest" Condition=" '$(IsTestProject)' == 'true' ">
@@ -30,6 +31,7 @@
       ProjectDirectory="$(MSBuildProjectDirectory)"
       ReportFiles="@(_CoverageFiles)"
       TargetDirectory="$(_TestCoverageReportDirectory)"
-      ReportTypes="MarkdownSummaryGithub;Cobertura;HtmlInline" />
+      ReportTypes="MarkdownSummaryGithub;Cobertura;HtmlInline"
+      HistoryDirectory="$(_TestCoverageHistoryDirectory)" />
   </Target>
 </Project>
