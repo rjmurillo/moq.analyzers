@@ -12,15 +12,29 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
     {
         return new object[][]
         {
+            // Existing edge cases
             ["""Mock.Of<IRepository>(null);"""],
             ["""Mock.Of<IRepository>(r => 42 == 42);"""],
             ["""Mock.Of<IRepository>(r => r != null);"""],
-
-            // new Func<int>(() => 1)() is a non-virtual member, but analyzer does not report a diagnostic
             ["""Mock.Of<IRepository>(r => new Func<int>(() => 1)() == 1);"""],
-
-            // object.Equals is a non-virtual member, analyzer reports Moq1302 at (13,46,13,68)
             ["""Mock.Of<IRepository>(r => {|Moq1302:object.Equals(r, null)|});"""],
+
+            // New diverse edge cases
+
+            // Using a conditional operator (valid)
+            ["""Mock.Of<IRepository>(r => r.IsAuthenticated ? true : false);"""],
+
+            // Using a coalesce operator (valid)
+            ["""Mock.Of<IRepository>(r => (r.Name ?? "default") == "test");"""],
+
+            // Using a cast (valid)
+            ["""Mock.Of<IRepository>(r => ((object)r) != null);"""],
+
+            // Using a delegate invocation (valid)
+            ["""Mock.Of<IRepository>(r => new System.Func<IRepository, bool>(x => true)(r));"""],
+
+            // Using a discard (valid)
+            ["""Mock.Of<IRepository>(_ => true);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
