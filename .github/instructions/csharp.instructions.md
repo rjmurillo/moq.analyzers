@@ -82,9 +82,10 @@ If you update guidance in copilot-instructions.md that affects C# development, e
    - Update AnalyzerReleases.Unshipped.md
 5. **Update project files if needed**
 6. **Run all validations (build, test, lint, Codacy, etc.)**
-7. **Prepare PR with validation evidence for each file type**
-8. **If any diagnostic span or test fails more than once, STOP and escalate**
-9. **If uncertain about Roslyn APIs, Moq semantics, or workflow, escalate**
+7. **Validate code coverage of your changed code**
+8. **Prepare PR with validation evidence for each file type**
+9. **If any diagnostic span or test fails more than once, STOP and escalate**
+10. **If uncertain about Roslyn APIs, Moq semantics, or workflow, escalate**
 
 ## Test Data & Sample Inputs/Outputs
 
@@ -101,3 +102,4 @@ If you update guidance in copilot-instructions.md that affects C# development, e
   - Data-driven tests for all fixable patterns
   - Performance test if analyzer is non-trivial
 - Document test data rationale in comments or PR description
+- Code coverage is automatically generated when `dotnet test --settings ./build/targets/tests/test.runsettings` is run and placed in `./artifacts/TestResults/coverage/Cobertura.xml`
