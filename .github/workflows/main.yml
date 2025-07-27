@@ -188,6 +188,7 @@ jobs:
         $resultsDir = "artifacts/performance/perfResults/baseline/results"
         if (Test-Path $resultsDir) {
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Baseline Performance Results"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Baseline SHA: ${{ steps.get-baseline-sha.outputs.sha }}"
           $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
           foreach ($file in $files) {
             Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
