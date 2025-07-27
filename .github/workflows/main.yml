@@ -44,6 +44,7 @@ jobs:
     env:
       IS_CODACY_COVERAGE_ALLOWED: ${{ secrets.CODACY_PROJECT_TOKEN != '' }}
       IS_QLTY_COVERAGE_ALLOWED: ${{ secrets.QLTY_COVERAGE_TOKEN != '' }}
+      IS_TARGET_MAIN: ${{ github.ref == 'refs/heads/main' }}
       RUN_FULL_PERF: ${{ (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true') }}
       FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }} # This is also used in PerfCore.ps1 to determine if the baseline should be forced
 
@@ -55,8 +56,22 @@ jobs:
     - name: Setup, Restore, and Build Solution
       uses: ./.github/actions/setup-restore-build
 
+    - name: Restore Code Coverage history
+      uses: actions/download-artifact@v4
+      with:
+        name: CoverageHistory-${{ matrix.os }}
+        path: ./artifacts/TestResults/coveragehistory
+      continue-on-error: true
+
     - name: Test
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
+
+    - name: Upload coverage history
+      uses: actions/upload-artifact@v4
+      if: success() && ${{ env.IS_TARGET_MAIN == 'true' }}
+      with:
+        name: CoverageHistory-${{ matrix.os }}
+        path: ./artifacts/TestResults/coveragehistory
 
     - name: Upload binlogs
       uses: actions/upload-artifact@v4
@@ -199,3 +214,11 @@ jobs:
         name: performance-${{ matrix.os }}
         path: |
           ./artifacts/performance/**
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      if: success() || failure()
+      with:
+        name: artifacts-${{ matrix.os }}
+        path: ./artifacts
+        if-no-files-found: error
