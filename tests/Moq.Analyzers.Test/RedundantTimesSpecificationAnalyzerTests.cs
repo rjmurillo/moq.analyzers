@@ -49,7 +49,6 @@ public class RedundantTimesSpecificationAnalyzerTests(ITestOutputHelper output)
             // Should detect redundant Times with message argument
             ["new Mock<ISampleInterface>().Verify(x => x.TestMethod(), {|Moq1420:Times.AtLeastOnce()|}, \"should be called at least once\");"],
             ["new Mock<ISampleInterface>().VerifyGet(x => x.TestProperty, {|Moq1420:Times.AtLeastOnce()|}, \"should be called at least once\");"],
-
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         IEnumerable<object[]> newMoqOnly = new object[][]
