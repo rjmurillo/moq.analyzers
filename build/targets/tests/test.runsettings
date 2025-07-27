@@ -10,6 +10,8 @@
           <CodeCoverage>
             <EnableStaticNativeInstrumentation>False</EnableStaticNativeInstrumentation>
             <EnableDynamicNativeInstrumentation>False</EnableDynamicNativeInstrumentation>
+            <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+            <SkipAutoProps>true</SkipAutoProps>
             <ModulePaths>
               <Include>
                 <!--
@@ -45,6 +47,8 @@
                 <Function>^get_.*</Function> <!-- Excludes property getters -->
                 <Function>^set_.*</Function> <!-- Excludes property setters -->
                 <Function>^.*Test.*</Function> <!-- Excludes test methods -->
+                <Function>^Microsoft\.Testing.*</Function>
+                <Function>^System\.Diagnostics.*</Function>
               </Exclude>
             </Functions>
           </CodeCoverage>
