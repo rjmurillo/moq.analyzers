@@ -5,4 +5,5 @@
 internal static class DiagnosticCategory
 {
     internal const string Moq = nameof(Moq);
+    internal const string Usage = nameof(Usage);
 }

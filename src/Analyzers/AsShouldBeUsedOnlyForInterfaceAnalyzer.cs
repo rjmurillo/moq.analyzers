@@ -17,7 +17,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         DiagnosticIds.AsShouldOnlyBeUsedForInterfacesRuleId,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: Description,
