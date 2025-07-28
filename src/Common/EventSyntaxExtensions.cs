@@ -6,6 +6,50 @@ namespace Moq.Analyzers.Common;
 internal static class EventSyntaxExtensions
 {
     /// <summary>
+    /// Extracts the event name from a lambda selector of the form: x => x.EventName += null.
+    /// </summary>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="eventSelector">The lambda event selector expression.</param>
+    /// <param name="eventName">The extracted event name, if found.</param>
+    /// <returns><see langword="true" /> if the event name was found; otherwise, <see langword="false" />.</returns>
+    internal static bool TryGetEventNameFromLambdaSelector(
+        SemanticModel semanticModel,
+        ExpressionSyntax eventSelector,
+        out string? eventName)
+    {
+        eventName = null;
+
+        // The event selector should be a lambda like: p => p.EventName += null
+        if (eventSelector is not LambdaExpressionSyntax lambda)
+        {
+            return false;
+        }
+
+        // The body should be an assignment expression with += operator
+        if (lambda.Body is not AssignmentExpressionSyntax assignment ||
+            !assignment.OperatorToken.IsKind(SyntaxKind.PlusEqualsToken))
+        {
+            return false;
+        }
+
+        // The left side should be a member access to the event
+        if (assignment.Left is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return false;
+        }
+
+        // Get the symbol for the event
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+        if (symbolInfo.Symbol is not IEventSymbol eventSymbol)
+        {
+            return false;
+        }
+
+        eventName = eventSymbol.Name;
+        return true;
+    }
+
+    /// <summary>
     /// Extracts the event type from a lambda selector of the form: x => x.EventName += null.
     /// </summary>
     /// <param name="semanticModel">The semantic model.</param>
