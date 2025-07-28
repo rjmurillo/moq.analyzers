@@ -380,6 +380,7 @@ If you encounter:
 
 - Place new analyzers in `src/Analyzers/`, code fixes in `src/CodeFixes/`, and shared logic in `src/Common/`.
 - Update `src/Analyzers/AnalyzerReleases.Unshipped.md` and add or update documentation in `docs/rules/` for each diagnostic.
+- **CRITICAL: Do not modify `AnalyzerReleases.Shipped.md`**. This file is an immutable record of past releases. All changes, including category or severity updates to existing rules, **MUST** be documented in `AnalyzerReleases.Unshipped.md`.
 - Add or update unit tests in `tests/Moq.Analyzers.Test/` for every analyzer or code fix change.
 - After any file edit, immediately run Codacy analysis for the edited file and resolve all reported issues before proceeding.
 - After any dependency change, run Codacy analysis with `tool: trivy` and resolve vulnerabilities before continuing.
