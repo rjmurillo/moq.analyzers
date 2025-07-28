@@ -33,16 +33,16 @@ The generated task list _must_ follow this structure. The example below is gener
 - The parent task list should be created as a GitHub issue (the parent issue), with each high-level task represented as a checklist item that links to a corresponding sub-task issue.
 - Each sub-task should be created as its own GitHub issue, with a reference back to the parent issue (e.g., "Parent: #123").
 - The parent issue should include a checklist like:
-  - [ ] [Sub-task Title 1](https://github.com/org/repo/issues/456)
-  - [ ] [Sub-task Title 2](https://github.com/org/repo/issues/457)
+  - [ ] #456
+  - [ ] #457
 - Each sub-task issue should include a link to the parent issue at the top, and may include its own detailed checklist if needed.
 
 #### Example Parent Issue Checklist
 
 ```markdown
-- [ ] [Implement Core Analyzer Logic](https://github.com/org/repo/issues/456)
-- [ ] [Add Test Coverage](https://github.com/org/repo/issues/457)
-- [ ] [Update Documentation](https://github.com/org/repo/issues/458)
+- [ ] #456
+- [ ] #457
+- [ ] #458
 ```
 
 #### Example Sub-task Issue Header
@@ -69,9 +69,9 @@ When editing files, follow the guidance at `.github/instructions/README.md` to d
 
 ## Tasks
 
-- [ ] [Implement Core Analyzer Logic](https://github.com/org/repo/issues/456)
-- [ ] [Add Test Coverage](https://github.com/org/repo/issues/457)
-- [ ] [Update Documentation](https://github.com/org/repo/issues/458)
+- [ ] #456
+- [ ] #457
+- [ ] #458
 ```
 
 ## Interaction Model
