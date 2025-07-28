@@ -347,6 +347,12 @@ If you have passed the expertise declaration, you must now answer the following 
   - Never guess which Roslyn API to use. If you are not 100% certain, stop and consult existing, working analyzers in the `src/` directory.
   - Never "fix" a failing test by slightly adjusting the code and re-running. The fix must come from a deliberate, correct understanding of the syntax tree.
 
+- **Handle Build Failures Correctly:** If a `dotnet build` command fails, you **MUST** treat it as a critical stop condition.
+  - **Analyze the error:** Do not guess. Read the build output carefully to understand the exact cause.
+  - **Do not apply workarounds:** Never change the code to simply make an error go away (e.g., changing a required value to a different, incorrect one that happens to exist).
+  - **Investigate the root cause:** If a type or member is "missing", find its definition. If a configuration is wrong, find the configuration file.
+  - **Escalate if unsure:** If you cannot determine the root cause after investigation, you **MUST STOP** and ask for guidance. A wrong "fix" is worse than no action.
+
 ---
 
 ## AI Agent Troubleshooting

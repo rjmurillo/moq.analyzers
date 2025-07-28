@@ -6,6 +6,7 @@ Guidelines for managing task lists in GitHub issue Markdown files to track progr
 
 - **One sub-task at a time:** Do **NOT** start the next sub‑task until you ask the user for permission and they say "yes" or "y"
 - **Load in the appropriate rules:** Before beginning any work, load `./.github/copilot-instructions.md` and `./.github/instructions/README.md`
+- **Build and Test Failures are STOP conditions**: If at any point a `dotnet build` or `dotnet test` command fails, you MUST stop. Do not proceed with the task list. Your immediate and only priority is to diagnose and fix the failure. Never apply a workaround to simply make a build pass. Investigate the root cause, and if you are unsure, you MUST ask for guidance.
 - **Completion protocol:**
   1. When you finish a **sub‑task**, immediately mark it as completed by changing `[ ]` to `[x]`.
   2. If **all** subtasks underneath a parent task are now `[x]`, follow this sequence:
