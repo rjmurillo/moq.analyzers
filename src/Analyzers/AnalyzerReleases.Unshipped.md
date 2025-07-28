@@ -4,6 +4,8 @@
 ### New Rules
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+Moq1001 | Usage | Warning | NoConstructorArgumentsForInterfaceMockRuleId (updated category from Moq to Usage)
+Moq1002 | Usage | Warning | NoMatchingConstructorRuleId (updated category from Moq to Usage)
 Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
 Moq1203 | Moq | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer
 Moq1204 | Moq | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer
