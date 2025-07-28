@@ -21,10 +21,15 @@ Guidelines for managing task lists in GitHub issue Markdown files to track progr
       - **Formats the message as a single-line command using `-m` flags**, e.g.:
 
         ```text
-        git commit -m "feat: add payment validation logic" -m "- Validates card type and expiry" -m "- Adds unit tests for edge cases" -m "Related to #123 in Explainer"
+        git commit -m "feat: add payment validation logic" -m "- Validates card type and expiry" -m "- Adds unit tests for edge cases" -m "Related to #123 in Explainer" -m "Fixes sub-task #456"
         ```
 
-  3. Once all the subtasks are marked completed and changes have been committed, mark the **parent task** as completed.
+  3. Once all the subtasks are marked completed and changes have been committed, verify with the user the task is completed.
+  4. Once the user has indicated the work is verified, push the branch and open a pull request.
+    - **Title**: Uses convention commit format
+    - **Body**: Be descriptive
+      - **Explain**: all changes made, why they were made, and all validation performed
+      - **Reference the Task** Use language to indicate the issue is resolved at the end of the description (e.g., `Fixes #456`, `Closes #123`, `Resolves #789` etc. )
 - Stop after each sub‑task and wait for the user's go‑ahead.
 
 ## Task List Maintenance
