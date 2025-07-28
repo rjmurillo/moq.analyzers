@@ -10,15 +10,17 @@ namespace Moq.Analyzers;
 public class RedundantTimesSpecificationAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Redundant Times specification";
-    private static readonly LocalizableString Message = "Redundant Times.AtLeastOnce() specification can be removed as it is the default for Verify calls";
+    private static readonly LocalizableString Message = "Redundant {0} specification can be removed as it is the default for Verify calls";
+    private static readonly LocalizableString Description = "Redundant Times.AtLeastOnce() specification can be removed as it is the default for Verify calls.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.RedundantTimesSpecification,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Info,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.RedundantTimesSpecification}.md");
 
     /// <inheritdoc />
@@ -103,7 +105,14 @@ public class RedundantTimesSpecificationAnalyzer : DiagnosticAnalyzer
 
     private static void ReportDiagnostic(OperationAnalysisContext context, IArgumentOperation timesArgument)
     {
-        Diagnostic diagnostic = timesArgument.Syntax.CreateDiagnostic(Rule);
+        // Extract the Times method name for the diagnostic message
+        string timesMethodName = "Times.AtLeastOnce()";
+        if (timesArgument.Value is IInvocationOperation timesInvocation)
+        {
+            timesMethodName = $"Times.{timesInvocation.TargetMethod.Name}()";
+        }
+
+        Diagnostic diagnostic = timesArgument.Syntax.CreateDiagnostic(Rule, timesMethodName);
         context.ReportDiagnostic(diagnostic);
     }
 }
