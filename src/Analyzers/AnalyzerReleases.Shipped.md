@@ -50,7 +50,7 @@ Moq1200 | Moq | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer, [Doc
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1300.md)
+Moq1300 | Moq | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1300.md)
 
 ## Release 0.0.9
 
