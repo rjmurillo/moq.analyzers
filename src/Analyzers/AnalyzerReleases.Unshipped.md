@@ -15,4 +15,4 @@ Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated catego
 Moq1301 | Moq | Warning | Mock.Get() should not take literals
 Moq1302 | Moq | Warning | LINQ to Mocks expression should be valid (flags non-virtual members including fields, events, nested and chained accesses)
 Moq1420 | Moq | Info | RedundantTimesSpecificationAnalyzer
-Moq1500 | Moq | Warning | MockRepository.Verify() should be called
+Moq1500 | Usage | Warning | MockRepository.Verify() should be called (updated category from Moq to Usage)

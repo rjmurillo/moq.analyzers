@@ -9,15 +9,17 @@ namespace Moq.Analyzers;
 public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: MockRepository.Verify() should be called";
-    private static readonly LocalizableString Message = "MockRepository.Verify() should be called to verify all mocks created through the repository";
+    private static readonly LocalizableString Message = "MockRepository '{0}' should have Verify() called";
+    private static readonly LocalizableString Description = "MockRepository.Verify() should be called to verify all mocks created through the repository.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.MockRepositoryVerifyNotCalled,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.MockRepositoryVerifyNotCalled}.md");
 
     /// <inheritdoc />
