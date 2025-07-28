@@ -11,7 +11,7 @@ Moq1205 | Moq | Warning | EventSetupHandlerShouldMatchEventTypeAnalyzer
 Moq1206 | Moq | Warning | ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer
 Moq1207 | Moq | Error | SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer
 Moq1210 | Moq | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer
-Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer, [Documentation](../../docs/rules/Moq1300.md)
+Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated category from Moq to Usage)
 Moq1301 | Moq | Warning | Mock.Get() should not take literals
 Moq1302 | Moq | Warning | LINQ to Mocks expression should be valid (flags non-virtual members including fields, events, nested and chained accesses)
 Moq1420 | Moq | Info | RedundantTimesSpecificationAnalyzer
