@@ -4,6 +4,7 @@
 ### New Rules
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+Moq1100 | Usage | Warning | CallbackSignatureShouldMatchMockedMethodAnalyzer (updated category from Moq to Usage)
 Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
 Moq1203 | Moq | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer
 Moq1204 | Moq | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer
