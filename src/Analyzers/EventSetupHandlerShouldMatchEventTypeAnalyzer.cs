@@ -7,15 +7,17 @@ namespace Moq.Analyzers;
 public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Event setup handler type should match event delegate type";
-    private static readonly LocalizableString Message = "Event setup handler type should match the event delegate type";
+    private static readonly LocalizableString Message = "Event setup handler type should match the event delegate type for '{0}'";
+    private static readonly LocalizableString Description = "Event setup handler type should match the event delegate type.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.EventSetupHandlerShouldMatchEventType,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.EventSetupHandlerShouldMatchEventType}.md");
 
     /// <inheritdoc />
@@ -40,12 +42,12 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (!TryGetEventSetupArguments(invocation, context.SemanticModel, out ExpressionSyntax? handlerExpression, out ITypeSymbol? expectedEventType))
+        if (!TryGetEventSetupArguments(invocation, context.SemanticModel, out ExpressionSyntax? handlerExpression, out ITypeSymbol? expectedEventType, out string? eventName))
         {
             return;
         }
 
-        ValidateHandlerType(context, knownSymbols, handlerExpression!, expectedEventType!);
+        ValidateHandlerType(context, knownSymbols, handlerExpression!, expectedEventType!, eventName!);
     }
 
     private static bool IsEventSetupMethodCall(SemanticModel semanticModel, InvocationExpressionSyntax invocation, MoqKnownSymbols knownSymbols)
@@ -59,10 +61,11 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         return methodSymbol.IsMoqEventSetupMethod(knownSymbols);
     }
 
-    private static bool TryGetEventSetupArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, out ExpressionSyntax? handlerExpression, out ITypeSymbol? expectedEventType)
+    private static bool TryGetEventSetupArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, out ExpressionSyntax? handlerExpression, out ITypeSymbol? expectedEventType, out string? eventName)
     {
         handlerExpression = null;
         expectedEventType = null;
+        eventName = null;
 
         // Get the arguments to the SetupAdd/SetupRemove method
         SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
@@ -75,20 +78,22 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
 
         // First argument should be a lambda that sets up the event handler
         ExpressionSyntax setupExpression = arguments[0].Expression;
-        if (!TryGetEventAndHandlerFromSetup(semanticModel, setupExpression, out ITypeSymbol? eventType, out ExpressionSyntax? handler))
+        if (!TryGetEventAndHandlerFromSetup(semanticModel, setupExpression, out ITypeSymbol? eventType, out ExpressionSyntax? handler, out string? name))
         {
             return false;
         }
 
         expectedEventType = eventType;
         handlerExpression = handler;
+        eventName = name;
         return true;
     }
 
-    private static bool TryGetEventAndHandlerFromSetup(SemanticModel semanticModel, ExpressionSyntax setupExpression, out ITypeSymbol? eventType, out ExpressionSyntax? handlerExpression)
+    private static bool TryGetEventAndHandlerFromSetup(SemanticModel semanticModel, ExpressionSyntax setupExpression, out ITypeSymbol? eventType, out ExpressionSyntax? handlerExpression, out string? eventName)
     {
         eventType = null;
         handlerExpression = null;
+        eventName = null;
 
         if (setupExpression is not LambdaExpressionSyntax lambda)
         {
@@ -118,10 +123,11 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
 
         eventType = eventSymbol.Type;
         handlerExpression = assignment.Right;
+        eventName = eventSymbol.Name;
         return true;
     }
 
-    private static void ValidateHandlerType(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ExpressionSyntax handlerExpression, ITypeSymbol expectedEventType)
+    private static void ValidateHandlerType(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ExpressionSyntax handlerExpression, ITypeSymbol expectedEventType, string eventName)
     {
         // Get the handler type from the expression
         if (!TryGetHandlerTypeFromExpression(context.SemanticModel, knownSymbols, handlerExpression, out ITypeSymbol? handlerType))
@@ -137,7 +143,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
             // reach this point also cause compiler errors (CS0029) which prevent the analyzer from running.
             // The analyzer only runs on syntactically and semantically valid C# code from the compiler's
             // perspective, but can still detect Moq-specific semantic issues like delegate type mismatches.
-            Diagnostic diagnostic = handlerExpression.GetLocation().CreateDiagnostic(Rule);
+            Diagnostic diagnostic = handlerExpression.GetLocation().CreateDiagnostic(Rule, eventName);
             context.ReportDiagnostic(diagnostic);
         }
     }
