@@ -8,7 +8,7 @@ Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
 Moq1203 | Moq | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer
 Moq1204 | Moq | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer
 Moq1205 | Moq | Warning | EventSetupHandlerShouldMatchEventTypeAnalyzer
-Moq1206 | Moq | Warning | ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer
+Moq1206 | Usage | Warning | ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer (updated category from Moq to Usage)
 Moq1207 | Moq | Error | SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer
 Moq1210 | Moq | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer
 Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated category from Moq to Usage)

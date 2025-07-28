@@ -7,15 +7,17 @@ namespace Moq.Analyzers;
 public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Invalid Returns usage with async method";
-    private static readonly LocalizableString Message = "Async method setups should use ReturnsAsync instead of Returns with async lambda";
+    private static readonly LocalizableString Message = "Async method '{0}' setups should use ReturnsAsync instead of Returns with async lambda";
+    private static readonly LocalizableString Description = "Async method setups should use ReturnsAsync instead of Returns with async lambda.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.ReturnsAsyncShouldBeUsedForAsyncMethods,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.ReturnsAsyncShouldBeUsedForAsyncMethods}.md");
 
     /// <inheritdoc />
@@ -48,8 +50,9 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
             return;
         }
 
-        // Check if the Setup is for an async method
-        if (!IsSetupForAsyncMethod(setupInvocation, context.SemanticModel, knownSymbols))
+        // Check if the Setup is for an async method and get the method name
+        string? methodName = GetAsyncMethodName(setupInvocation, context.SemanticModel, knownSymbols);
+        if (methodName == null)
         {
             return;
         }
@@ -64,7 +67,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         Microsoft.CodeAnalysis.Text.TextSpan span = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(startPos, endPos);
         Location location = Location.Create(invocation.SyntaxTree, span);
 
-        Diagnostic diagnostic = location.CreateDiagnostic(Rule);
+        Diagnostic diagnostic = location.CreateDiagnostic(Rule, methodName);
         context.ReportDiagnostic(diagnostic);
     }
 
@@ -120,34 +123,40 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
                lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
     }
 
-    private static bool IsSetupForAsyncMethod(InvocationExpressionSyntax setupInvocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
+    private static string? GetAsyncMethodName(InvocationExpressionSyntax setupInvocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
     {
         // Check if this is a Setup method call
         if (setupInvocation.Expression is not MemberAccessExpressionSyntax setupMemberAccess)
         {
-            return false;
+            return null;
         }
 
         SymbolInfo setupSymbolInfo = semanticModel.GetSymbolInfo(setupMemberAccess);
         if (setupSymbolInfo.Symbol is null || !setupSymbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
         {
-            return false;
+            return null;
         }
 
         // Get the mocked method from the setup
         ExpressionSyntax? mockedMemberExpression = setupInvocation.FindMockedMemberExpressionFromSetupMethod();
         if (mockedMemberExpression == null)
         {
-            return false;
+            return null;
         }
 
         SymbolInfo mockedSymbolInfo = semanticModel.GetSymbolInfo(mockedMemberExpression);
         if (mockedSymbolInfo.Symbol is not IMethodSymbol mockedMethod)
         {
-            return false;
+            return null;
         }
 
         // Check if the mocked method returns Task or Task<T>
-        return mockedMethod.ReturnType.IsTaskOrValueTaskType(knownSymbols);
+        if (!mockedMethod.ReturnType.IsTaskOrValueTaskType(knownSymbols))
+        {
+            return null;
+        }
+
+        // Return the method name
+        return mockedMethod.Name;
     }
 }
