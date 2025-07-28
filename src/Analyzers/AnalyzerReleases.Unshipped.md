@@ -14,5 +14,6 @@ Moq1210 | Moq | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer
 Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated category from Moq to Usage)
 Moq1301 | Moq | Warning | Mock.Get() should not take literals
 Moq1302 | Moq | Warning | LINQ to Mocks expression should be valid (flags non-virtual members including fields, events, nested and chained accesses)
+Moq1410 | Usage | Info | SetStrictMockBehaviorAnalyzer (updated category from Moq to Usage)
 Moq1420 | Moq | Info | RedundantTimesSpecificationAnalyzer
 Moq1500 | Moq | Warning | MockRepository.Verify() should be called
