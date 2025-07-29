@@ -68,6 +68,26 @@ internal static class EventSyntaxExtensions
         InvocationExpressionSyntax invocation,
         DiagnosticDescriptor rule)
     {
+        ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, rule, null);
+    }
+
+    /// <summary>
+    /// Validates that event arguments match the expected parameter types.
+    /// </summary>
+    /// <param name="context">The analysis context.</param>
+    /// <param name="eventArguments">The event arguments to validate.</param>
+    /// <param name="expectedParameterTypes">The expected parameter types.</param>
+    /// <param name="invocation">The invocation expression for error reporting.</param>
+    /// <param name="rule">The diagnostic rule to report.</param>
+    /// <param name="eventName">The event name to include in diagnostic messages.</param>
+    internal static void ValidateEventArgumentTypes(
+        SyntaxNodeAnalysisContext context,
+        ArgumentSyntax[] eventArguments,
+        ITypeSymbol[] expectedParameterTypes,
+        InvocationExpressionSyntax invocation,
+        DiagnosticDescriptor rule,
+        string? eventName)
+    {
         if (eventArguments.Length != expectedParameterTypes.Length)
         {
             Location location;
@@ -82,7 +102,9 @@ internal static class EventSyntaxExtensions
                 location = eventArguments[expectedParameterTypes.Length].GetLocation();
             }
 
-            Diagnostic diagnostic = location.CreateDiagnostic(rule);
+            Diagnostic diagnostic = eventName != null
+                ? location.CreateDiagnostic(rule, eventName)
+                : location.CreateDiagnostic(rule);
             context.ReportDiagnostic(diagnostic);
             return;
         }
@@ -97,7 +119,9 @@ internal static class EventSyntaxExtensions
             if (argumentType != null && !context.SemanticModel.HasConversion(argumentType, expectedType))
             {
                 // Report on the specific argument with the wrong type
-                Diagnostic diagnostic = eventArguments[i].GetLocation().CreateDiagnostic(rule);
+                Diagnostic diagnostic = eventName != null
+                    ? eventArguments[i].GetLocation().CreateDiagnostic(rule, eventName)
+                    : eventArguments[i].GetLocation().CreateDiagnostic(rule);
                 context.ReportDiagnostic(diagnostic);
             }
         }

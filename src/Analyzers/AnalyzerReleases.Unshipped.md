@@ -4,12 +4,15 @@
 ### New Rules
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+Moq1001 | Usage | Warning | NoConstructorArgumentsForInterfaceMockRuleId (updated category from Moq to Usage)
+Moq1002 | Usage | Warning | NoMatchingConstructorRuleId (updated category from Moq to Usage)
+Moq1200 | Usage | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
 Moq1202 | Usage | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer (updated category from Moq to Usage)
 Moq1203 | Moq | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer
-Moq1204 | Moq | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer
+Moq1204 | Usage | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer (updated category from Moq to Usage)
 Moq1205 | Moq | Warning | EventSetupHandlerShouldMatchEventTypeAnalyzer
 Moq1206 | Moq | Warning | ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer
-Moq1207 | Moq | Error | SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer
+Moq1207 | Usage | Error | SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
 Moq1210 | Moq | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer
 Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated category from Moq to Usage)
 Moq1301 | Moq | Warning | Mock.Get() should not take literals
