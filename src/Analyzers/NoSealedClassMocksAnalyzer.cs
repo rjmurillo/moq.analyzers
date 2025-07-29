@@ -89,7 +89,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
 
         if (mockedType != null && diagnosticLocation != null && ShouldReportDiagnostic(mockedType))
         {
-            context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(Rule, mockedType.Name));
+            context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(Rule, mockedType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
         }
     }
 
