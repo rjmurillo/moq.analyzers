@@ -15,21 +15,21 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor ClassMustHaveMatchingConstructor = new(
         DiagnosticIds.NoMatchingConstructorRuleId,
         "Mock<T> construction must call an existing type constructor",
-        "Could not find a matching constructor for arguments {0}",
-        DiagnosticCategory.Moq,
+        "Could not find a matching constructor for type '{0}' with arguments {1}",
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Parameters provided into mock do not match any existing constructors.",
+        description: "Could not find a matching constructor for arguments.",
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.NoMatchingConstructorRuleId}.md");
 
     private static readonly DiagnosticDescriptor InterfaceMustNotHaveConstructorParameters = new(
         DiagnosticIds.NoConstructorArgumentsForInterfaceMockRuleId,
         "Mock<T> construction must not specify parameters for interfaces",
-        "Mocked interface cannot have constructor parameters {0}",
-        DiagnosticCategory.Moq,
+        "Mocked interface '{0}' cannot have constructor parameters {1}",
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Mock of interface cannot contain constructor parameters.",
+        description: "Mocked interface cannot have constructor parameters.",
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.NoConstructorArgumentsForInterfaceMockRuleId}.md");
 
     /// <inheritdoc />
@@ -106,8 +106,19 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return IsExpressionMockBehavior(context, knownSymbols, expression);
     }
 
+    private static string FormatArguments(ArgumentSyntax[] arguments)
+    {
+        if (arguments.Length == 0)
+        {
+            return "()";
+        }
+
+        return $"({string.Join(", ", arguments.Select(arg => arg.Expression.ToString()))})";
+    }
+
     private static void VerifyDelegateMockAttempt(
     SyntaxNodeAnalysisContext context,
+    ITypeSymbol mockedDelegate,
     ArgumentListSyntax? argumentList,
     ArgumentSyntax[] arguments)
     {
@@ -116,7 +127,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        Diagnostic? diagnostic = argumentList?.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+        string argumentsString = FormatArguments(arguments);
+        Diagnostic? diagnostic = argumentList?.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedDelegate.Name, argumentsString);
         if (diagnostic != null)
         {
             context.ReportDiagnostic(diagnostic);
@@ -125,6 +137,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
     private static void VerifyInterfaceMockAttempt(
         SyntaxNodeAnalysisContext context,
+        ITypeSymbol mockedInterface,
         ArgumentListSyntax? argumentList,
         ArgumentSyntax[] arguments)
     {
@@ -134,7 +147,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        Diagnostic? diagnostic = argumentList?.CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, argumentList);
+        string argumentsString = FormatArguments(arguments);
+        Diagnostic? diagnostic = argumentList?.CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, mockedInterface.Name, argumentsString);
         if (diagnostic != null)
         {
             context.ReportDiagnostic(diagnostic);
@@ -418,12 +432,12 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         switch (mockedClass.TypeKind)
         {
             case TypeKind.Interface:
-                VerifyInterfaceMockAttempt(context, argumentList, arguments);
+                VerifyInterfaceMockAttempt(context, mockedClass, argumentList, arguments);
                 break;
 
             case TypeKind.Delegate:
                 // Interfaces and delegates don't have ctors, so bail out early
-                VerifyDelegateMockAttempt(context, argumentList, arguments);
+                VerifyDelegateMockAttempt(context, mockedClass, argumentList, arguments);
                 break;
 
             case TypeKind.Class:
@@ -446,11 +460,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             .Where(methodSymbol => methodSymbol.IsConstructor())
             .ToArray();
 
+        string argumentsString = FormatArguments(arguments);
+
         // Bail out early if there are no arguments on constructors or no constructors at all
         (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
         if (constructorIsEmpty.IsEmpty)
         {
-            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedClass.Name, argumentsString);
             context.ReportDiagnostic(diagnostic);
             return;
         }
@@ -460,7 +476,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         bool? matchingCtorFound = AnyConstructorsFound(constructors, arguments, context);
         if (matchingCtorFound.HasValue && !matchingCtorFound.Value)
         {
-            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, argumentList);
+            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedClass.Name, argumentsString);
             context.ReportDiagnostic(diagnostic);
         }
     }
