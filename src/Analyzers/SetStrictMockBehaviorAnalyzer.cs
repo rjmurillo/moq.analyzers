@@ -75,7 +75,7 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
             && objectCreation.Type is INamedTypeSymbol namedType
             && namedType.TypeArguments.Length > 0)
         {
-            return namedType.TypeArguments[0].Name;
+            return namedType.TypeArguments[0].ToDisplayString();
         }
 
         // For method invocation like Mock.Of<ISample>()
