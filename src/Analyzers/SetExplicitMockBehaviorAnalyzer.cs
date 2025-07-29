@@ -67,19 +67,19 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
         // For object creation (new Mock<T>), get the type argument from the Mock<T> type
         if (context.Operation is IObjectCreationOperation objectCreation && objectCreation.Type is INamedTypeSymbol namedType && namedType.TypeArguments.Length > 0)
         {
-            return namedType.TypeArguments[0].Name;
+            return namedType.TypeArguments[0].ToDisplayString();
         }
 
         // For method invocation (MockRepository.Of<T>), get the type argument from the method
         if (context.Operation is IInvocationOperation invocation && invocation.TargetMethod.TypeArguments.Length > 0)
         {
-            return invocation.TargetMethod.TypeArguments[0].Name;
+            return invocation.TargetMethod.TypeArguments[0].ToDisplayString();
         }
 
         // If we can't determine the type, try to get it from the target method if it's generic
         if (target.ContainingType?.TypeArguments.Length > 0)
         {
-            return target.ContainingType.TypeArguments[0].Name;
+            return target.ContainingType.TypeArguments[0].ToDisplayString();
         }
 
         // Fallback to a generic name
