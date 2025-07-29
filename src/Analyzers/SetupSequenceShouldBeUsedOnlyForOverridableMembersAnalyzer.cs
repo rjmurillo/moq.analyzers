@@ -10,15 +10,17 @@ namespace Moq.Analyzers;
 public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Invalid SetupSequence parameter";
-    private static readonly LocalizableString Message = "SetupSequence should be used only for overridable members";
+    private static readonly LocalizableString Message = "SetupSequence should be used only for overridable members, but '{0}' is not overridable";
+    private static readonly LocalizableString Description = "SetupSequence should be used only for overridable members.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.SetupSequenceOnlyUsedForOverridableMembers,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
+        Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.SetupSequenceOnlyUsedForOverridableMembers}.md");
 
     /// <inheritdoc />
@@ -84,7 +86,7 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : Diagno
         SyntaxNode? memberSyntax = MoqVerificationHelpers.TryGetMockedMemberSyntax(invocationOperation);
         Location diagnosticLocation = memberSyntax?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
 
-        Diagnostic diagnostic = diagnosticLocation.CreateDiagnostic(Rule);
+        Diagnostic diagnostic = diagnosticLocation.CreateDiagnostic(Rule, mockedMemberSymbol.Name);
         context.ReportDiagnostic(diagnostic);
     }
 
