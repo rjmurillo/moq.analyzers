@@ -67,7 +67,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         if (invocation.ArgumentList.Arguments.Count > 0)
         {
             ExpressionSyntax eventSelector = invocation.ArgumentList.Arguments[0].Expression;
-            EventSyntaxExtensions.TryGetEventNameFromLambdaSelector(context.SemanticModel, eventSelector, out eventName);
+            context.SemanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out eventName);
         }
 
         ValidateArgumentTypesWithEventName(context, eventArguments, expectedParameterTypes, invocation, eventName ?? "event");
@@ -87,7 +87,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             out expectedParameterTypes,
             (sm, selector) =>
             {
-                bool success = EventSyntaxExtensions.TryGetEventTypeFromLambdaSelector(sm, selector, out ITypeSymbol? eventType);
+                bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
                 return (success, eventType);
             },
             knownSymbols);
