@@ -10,15 +10,17 @@ namespace Moq.Analyzers;
 public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Invalid setup parameter";
-    private static readonly LocalizableString Message = "Setup should be used only for overridable members";
+    private static readonly LocalizableString Message = "Setup should be used only for overridable members, but '{0}' is not overridable";
+    private static readonly LocalizableString Description = "Setup should be used only for overridable members.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.SetupOnlyUsedForOverridableMembers,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.SetupOnlyUsedForOverridableMembers}.md");
 
     /// <inheritdoc />
@@ -81,7 +83,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         //    So we report the diagnostic.
         //
         // NOTE: The location is on the invocationOperation, which is fairly broad
-        Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule);
+        Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule, mockedMemberSymbol.Name);
         context.ReportDiagnostic(diagnostic);
     }
 
