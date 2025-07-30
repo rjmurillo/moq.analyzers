@@ -4,8 +4,10 @@
 ### New Rules
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+Moq1000 | Usage | Warning | NoSealedClassMocksAnalyzer (updated category from Moq to Usage)
 Moq1001 | Usage | Warning | NoConstructorArgumentsForInterfaceMockRuleId (updated category from Moq to Usage)
 Moq1002 | Usage | Warning | NoMatchingConstructorRuleId (updated category from Moq to Usage)
+Moq1100 | Usage | Warning | CallbackSignatureShouldMatchMockedMethodAnalyzer (updated category from Moq to Usage)
 Moq1200 | Usage | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
 Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
 Moq1203 | Moq | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer
@@ -18,5 +20,6 @@ Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated catego
 Moq1301 | Moq | Warning | Mock.Get() should not take literals
 Moq1302 | Moq | Warning | LINQ to Mocks expression should be valid (flags non-virtual members including fields, events, nested and chained accesses)
 Moq1400 | Usage | Warning | SetExplicitMockBehaviorAnalyzer (updated category from Moq to Usage)
+Moq1410 | Usage | Info | SetStrictMockBehaviorAnalyzer (updated category from Moq to Usage)
 Moq1420 | Usage | Info | RedundantTimesSpecificationAnalyzer (updated category from Moq to Usage)
 Moq1500 | Usage | Warning | MockRepository.Verify() should be called (updated category from Moq to Usage)
