@@ -7,15 +7,17 @@
 public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Invalid setup parameter";
-    private static readonly LocalizableString Message = "Setup of async methods should use ReturnsAsync instead of .Result";
+    private static readonly LocalizableString Message = "Setup of async method '{0}' should use ReturnsAsync instead of .Result";
+    private static readonly LocalizableString Description = "Setup of async methods should use ReturnsAsync instead of .Result.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.AsyncUsesReturnsAsyncInsteadOfResult,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.AsyncUsesReturnsAsyncInsteadOfResult}.md");
 
     /// <inheritdoc />
@@ -69,7 +71,36 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        Diagnostic diagnostic = mockedMemberExpression.CreateDiagnostic(Rule);
+        string methodName = GetMethodName(mockedMemberExpression);
+        Diagnostic diagnostic = mockedMemberExpression.CreateDiagnostic(Rule, methodName);
         context.ReportDiagnostic(diagnostic);
+    }
+
+    private static string GetMethodName(ExpressionSyntax mockedMemberExpression)
+    {
+        // Handle cases like c.GenericTaskAsync().Result
+        // where mockedMemberExpression is the entire expression
+        return mockedMemberExpression switch
+        {
+            MemberAccessExpressionSyntax { Expression: InvocationExpressionSyntax invocation } =>
+                GetMethodNameFromInvocation(invocation),
+            InvocationExpressionSyntax invocation =>
+                GetMethodNameFromInvocation(invocation),
+            MemberAccessExpressionSyntax memberAccess =>
+                memberAccess.Name.Identifier.ValueText,
+            IdentifierNameSyntax identifier =>
+                identifier.Identifier.ValueText,
+            _ => "Unknown",
+        };
+    }
+
+    private static string GetMethodNameFromInvocation(InvocationExpressionSyntax invocation)
+    {
+        return invocation.Expression switch
+        {
+            MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText,
+            IdentifierNameSyntax identifier => identifier.Identifier.ValueText,
+            _ => "Unknown",
+        };
     }
 }
