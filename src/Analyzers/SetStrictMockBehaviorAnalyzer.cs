@@ -81,7 +81,7 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
         // For method invocation like Mock.Of<ISample>()
         if (operation is IInvocationOperation && target.TypeArguments.Length > 0)
         {
-            return target.TypeArguments[0].Name;
+            return target.TypeArguments[0].ToDisplayString();
         }
 
         return "Unknown";
