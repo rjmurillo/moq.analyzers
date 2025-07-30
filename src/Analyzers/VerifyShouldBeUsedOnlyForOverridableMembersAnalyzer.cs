@@ -9,15 +9,17 @@ namespace Moq.Analyzers;
 public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Invalid verify parameter";
-    private static readonly LocalizableString Message = "Verify should be used only for overridable members";
+    private static readonly LocalizableString Message = "Verify should be used only for overridable members, but '{0}' is not overridable";
+    private static readonly LocalizableString Description = "Verify should be used only for overridable members.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.VerifyOnlyUsedForOverridableMembers,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.VerifyOnlyUsedForOverridableMembers}.md");
 
     /// <inheritdoc />
@@ -68,7 +70,7 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
             return;
         }
 
-        ReportDiagnostic(context, invocationOperation);
+        ReportDiagnostic(context, invocationOperation, mockedMemberSymbol);
     }
 
     private static bool ShouldAnalyzeMethod(IMethodSymbol targetMethod, MoqKnownSymbols knownSymbols)
@@ -99,10 +101,9 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         return IsAllowedMockMember(mockedMemberSymbol, knownSymbols);
     }
 
-    private static void ReportDiagnostic(OperationAnalysisContext context, IInvocationOperation invocationOperation)
+    private static void ReportDiagnostic(OperationAnalysisContext context, IInvocationOperation invocationOperation, ISymbol mockedMemberSymbol)
     {
-        Location diagnosticLocation = invocationOperation.Syntax.GetLocation();
-        Diagnostic diagnostic = DiagnosticExtensions.CreateDiagnostic(invocationOperation.Syntax, Rule, diagnosticLocation);
+        Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule, mockedMemberSymbol.Name);
         context.ReportDiagnostic(diagnostic);
     }
 
