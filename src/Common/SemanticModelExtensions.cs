@@ -113,16 +113,7 @@ internal static class SemanticModelExtensions
         ExpressionSyntax eventSelector,
         out string? eventName)
     {
-        eventName = null;
-
-        if (TryGetEventSymbolFromLambdaSelector(semanticModel, eventSelector, out IEventSymbol? eventSymbol) &&
-            eventSymbol != null)
-        {
-            eventName = eventSymbol.Name;
-            return true;
-        }
-
-        return false;
+        return TryGetEventPropertyFromLambdaSelector(semanticModel, eventSelector, static eventSymbol => eventSymbol.Name, out eventName);
     }
 
     /// <summary>
@@ -137,12 +128,30 @@ internal static class SemanticModelExtensions
         ExpressionSyntax eventSelector,
         out ITypeSymbol? eventType)
     {
-        eventType = null;
+        return TryGetEventPropertyFromLambdaSelector(semanticModel, eventSelector, static eventSymbol => eventSymbol.Type, out eventType);
+    }
+
+    /// <summary>
+    /// Extracts a property from an event symbol found in a lambda selector of the form: x => x.EventName += null.
+    /// </summary>
+    /// <typeparam name="T">The type of the property to extract.</typeparam>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="eventSelector">The lambda event selector expression.</param>
+    /// <param name="propertySelector">A function to extract the desired property from the event symbol.</param>
+    /// <param name="result">The extracted property, if found.</param>
+    /// <returns><see langword="true" /> if the property was extracted; otherwise, <see langword="false" />.</returns>
+    private static bool TryGetEventPropertyFromLambdaSelector<T>(
+        SemanticModel semanticModel,
+        ExpressionSyntax eventSelector,
+        Func<IEventSymbol, T> propertySelector,
+        out T? result)
+    {
+        result = default;
 
         if (TryGetEventSymbolFromLambdaSelector(semanticModel, eventSelector, out IEventSymbol? eventSymbol) &&
             eventSymbol != null)
         {
-            eventType = eventSymbol.Type;
+            result = propertySelector(eventSymbol);
             return true;
         }
 
