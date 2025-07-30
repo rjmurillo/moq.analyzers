@@ -33,4 +33,4 @@ github_actions:
 # Add 'analyzers' label to any change to an analyzer, code fix, or shipping documentation
 analyzers:
 - changed-files:
-  - any-glob-to-any-file: ['src/Moq.Analyzers/AnalyzerReleases.*.md', 'src/Moq.Analyzers/**/*Analyzer.cs', 'src/Moq.Analyzers/**/*CodeFix.cs']
+  - any-glob-to-any-file: ['src/Moq.Analyzers/AnalyzerReleases.*.md', 'src/Moq.Analyzers/**/*Analyzer.cs', 'src/Moq.Analyzers/**/*CodeFix.cs', 'src/Analyzers/**/*Analyzer.cs', 'src/CodeFixes/*Fixer.cs', 'src/Analyzers/AnalyzerReleases.*.md']

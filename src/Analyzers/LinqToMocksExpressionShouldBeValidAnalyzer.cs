@@ -215,7 +215,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
                 return;
         }
 
-        context.ReportDiagnostic(memberLocation.CreateDiagnostic(Rule, memberSymbol.Name));
+        context.ReportDiagnostic(memberLocation.CreateDiagnostic(Rule, memberSymbol.ToDisplayString()));
     }
 
     private static bool ShouldReportForProperty(IPropertySymbol property)

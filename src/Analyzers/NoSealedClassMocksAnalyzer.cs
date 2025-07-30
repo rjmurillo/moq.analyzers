@@ -10,15 +10,17 @@ namespace Moq.Analyzers;
 public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Sealed class mocked";
-    private static readonly LocalizableString Message = "Sealed classes cannot be mocked";
+    private static readonly LocalizableString Message = "Sealed class '{0}' cannot be mocked";
+    private static readonly LocalizableString Description = "Sealed classes cannot be mocked.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.SealedClassCannotBeMocked,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.SealedClassCannotBeMocked}.md");
 
     /// <inheritdoc />
@@ -87,7 +89,7 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
 
         if (mockedType != null && diagnosticLocation != null && ShouldReportDiagnostic(mockedType))
         {
-            context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(Rule));
+            context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(Rule, mockedType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
         }
     }
 
