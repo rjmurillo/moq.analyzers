@@ -42,14 +42,15 @@ jobs:
             }
 
             // Check if the body or title contains explainer or prd
-            if ((body != null && body.match(/explainer/i)) || (title != null && title.match(/explainer/i)) ||
-                (body != null && body.match(/prd/i)) || ((title != null && title.match(/prd/i))) {
-
+            if (
+                (body != null && body.match(/explainer/i)) || (title != null && title.match(/explainer/i)) ||
+                (body != null && body.match(/prd/i)) || (title != null && title.match(/prd/i))
+                ) {
                 labels.push("explainer")
             }
 
             // Check if the body or title contains "Tasks For"
-            if ((title != null && title.match(/Tasks for/i))) {
+            if (title != null && title.match(/Tasks for/i)) {
                 labels.push("epic")
             }
 
