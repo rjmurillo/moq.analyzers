@@ -8,14 +8,18 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 {
-    internal static readonly DiagnosticDescriptor Rule = new(
+    private static readonly LocalizableString Title = "Method setup should specify a return value";
+    private static readonly LocalizableString Message = "Method setup for '{0}' should specify a return value";
+    private static readonly LocalizableString Description = "Method setup for '{0}' should use Returns() or Throws() to specify a return value.";
+
+    private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.MethodSetupShouldSpecifyReturnValue,
-        "Method setup should specify a return value",
-        "Method setup for '{0}' should use Returns() or Throws() to specify a return value",
-        DiagnosticCategory.Moq,
+        Title,
+        Message,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Method setups that have a return type should specify what value to return using Returns() or Throws().");
+        description: Description);
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
