@@ -88,7 +88,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 
             TypeSyntax? typeArg = asGeneric?.TypeArgumentList.Arguments.FirstOrDefault();
             Location location = typeArg?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
-            context.ReportDiagnostic(location.CreateDiagnostic(Rule, typeSymbol.Name));
+            context.ReportDiagnostic(location.CreateDiagnostic(Rule, typeSymbol.ToDisplayString()));
         }
     }
 }

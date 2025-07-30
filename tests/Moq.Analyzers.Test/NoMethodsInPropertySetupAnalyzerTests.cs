@@ -60,4 +60,30 @@ public class NoMethodsInPropertySetupAnalyzerTests
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
+
+    [Fact]
+    public async Task ShouldIncludeMethodNameInDiagnosticMessage()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IFoo
+            {
+                string Prop1 { get; set; }
+                string Method();
+                int GetValue();
+            }
+
+            public class UnitTest
+            {
+                private void Test()
+                {
+                    new Mock<IFoo>().SetupGet(x => {|Moq1101:x.Method()|});
+                    new Mock<IFoo>().SetupGet(x => {|Moq1101:x.GetValue()|});
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
 }
