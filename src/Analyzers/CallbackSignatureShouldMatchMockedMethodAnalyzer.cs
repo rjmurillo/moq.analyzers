@@ -7,15 +7,17 @@ namespace Moq.Analyzers;
 public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Bad callback parameters";
-    private static readonly LocalizableString Message = "Callback signature must match the signature of the mocked method";
+    private static readonly LocalizableString Message = "Callback signature for '{0}' must match the signature of the mocked method";
+    private static readonly LocalizableString Description = "Callback signature must match the signature of the mocked method.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.BadCallbackParameters,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.BadCallbackParameters}.md");
 
     /// <inheritdoc />
@@ -76,25 +78,27 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         InvocationExpressionSyntax? mockedMethodInvocation = setupInvocation.FindMockedMethodInvocationFromSetupMethod();
         if (mockedMethodInvocation == null) return;
 
+        string methodName = GetMethodName(mockedMethodInvocation);
         SeparatedSyntaxList<ArgumentSyntax> mockedMethodArguments = mockedMethodInvocation.ArgumentList.Arguments;
 
         if (mockedMethodArguments.Count != lambdaParameters.Count)
         {
-            Diagnostic diagnostic = callbackLambda.ParameterList.CreateDiagnostic(Rule);
+            Diagnostic diagnostic = callbackLambda.ParameterList.CreateDiagnostic(Rule, methodName);
             context.ReportDiagnostic(diagnostic);
         }
         else
         {
             // Get the actual mocked method symbols to access parameter information including ref/out/in modifiers
             IEnumerable<IMethodSymbol> mockedMethodSymbols = context.SemanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupInvocation);
-            ValidateParameters(context, mockedMethodSymbols, lambdaParameters);
+            ValidateParameters(context, mockedMethodSymbols, lambdaParameters, methodName);
         }
     }
 
     private static void ValidateParameters(
         SyntaxNodeAnalysisContext context,
         IEnumerable<IMethodSymbol> mockedMethodSymbols,
-        SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
+        SeparatedSyntaxList<ParameterSyntax> lambdaParameters,
+        string methodName)
     {
         // Check if the lambda parameters match any of the mocked method overloads
         foreach (IMethodSymbol mockedMethod in mockedMethodSymbols)
@@ -109,7 +113,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         // No matching overload found, report diagnostic on the first parameter
         if (lambdaParameters.Count > 0)
         {
-            Diagnostic diagnostic = lambdaParameters[0].CreateDiagnostic(Rule);
+            Diagnostic diagnostic = lambdaParameters[0].CreateDiagnostic(Rule, methodName);
             context.ReportDiagnostic(diagnostic);
         }
     }
@@ -205,5 +209,15 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
 
         return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
+    }
+
+    private static string GetMethodName(InvocationExpressionSyntax mockedMethodInvocation)
+    {
+        return mockedMethodInvocation.Expression switch
+        {
+            MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText,
+            IdentifierNameSyntax identifier => identifier.Identifier.ValueText,
+            _ => "Unknown",
+        };
     }
 }
