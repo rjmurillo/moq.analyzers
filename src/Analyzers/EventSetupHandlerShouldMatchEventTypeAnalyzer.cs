@@ -123,7 +123,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
 
         eventType = eventSymbol.Type;
         handlerExpression = assignment.Right;
-        eventName = eventSymbol.Name;
+        eventName = eventSymbol.ToDisplayString();
         return true;
     }
 
