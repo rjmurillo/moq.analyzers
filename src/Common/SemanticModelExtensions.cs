@@ -113,7 +113,7 @@ internal static class SemanticModelExtensions
         ExpressionSyntax eventSelector,
         out string? eventName)
     {
-        return TryGetEventPropertyFromLambdaSelector(semanticModel, eventSelector, static eventSymbol => eventSymbol.Name, out eventName);
+        return TryGetEventPropertyFromLambdaSelector(semanticModel, eventSelector, static eventSymbol => eventSymbol.ToDisplayString(), out eventName);
     }
 
     /// <summary>
