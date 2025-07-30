@@ -9,6 +9,7 @@ Moq1001 | Usage | Warning | NoConstructorArgumentsForInterfaceMockRuleId (update
 Moq1002 | Usage | Warning | NoMatchingConstructorRuleId (updated category from Moq to Usage)
 Moq1100 | Usage | Warning | CallbackSignatureShouldMatchMockedMethodAnalyzer (updated category from Moq to Usage)
 Moq1200 | Usage | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
+Moq1201 | Usage | Error | SetupShouldNotIncludeAsyncResultAnalyzer (updated category from Moq to Usage)
 Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
 Moq1203 | Moq | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer
 Moq1204 | Usage | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer (updated category from Moq to Usage)
