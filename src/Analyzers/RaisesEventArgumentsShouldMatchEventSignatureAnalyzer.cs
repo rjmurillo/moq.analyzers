@@ -24,15 +24,17 @@ namespace Moq.Analyzers;
 public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Raises event arguments should match event signature";
-    private static readonly LocalizableString Message = "Raises event arguments should match the event delegate signature";
+    private static readonly LocalizableString Message = "Raises event arguments should match the '{0}' event delegate signature";
+    private static readonly LocalizableString Description = "Raises event arguments should match the event delegate signature.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.RaisesEventArgumentsShouldMatchEventSignature,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.RaisesEventArgumentsShouldMatchEventSignature}.md");
 
     /// <inheritdoc />
@@ -62,7 +64,10 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
             return;
         }
 
-        EventSyntaxExtensions.ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, Rule);
+        // Extract event name from the lambda selector (first argument)
+        string eventName = TryGetEventNameFromLambdaSelector(invocation, context.SemanticModel) ?? "event";
+
+        EventSyntaxExtensions.ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, Rule, eventName);
     }
 
     private static bool TryGetRaisesMethodArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes)
@@ -77,5 +82,51 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
                 bool success = EventSyntaxExtensions.TryGetEventTypeFromLambdaSelector(sm, selector, out ITypeSymbol? eventType);
                 return (success, eventType);
             });
+    }
+
+    /// <summary>
+    /// Extracts the event name from a lambda selector of the form: x => x.EventName += null.
+    /// </summary>
+    /// <param name="invocation">The method invocation containing the lambda selector.</param>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <returns>The event name if found; otherwise null.</returns>
+    private static string? TryGetEventNameFromLambdaSelector(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
+    {
+        // Get the first argument which should be the lambda selector
+        SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
+        if (arguments.Count < 1)
+        {
+            return null;
+        }
+
+        ExpressionSyntax eventSelector = arguments[0].Expression;
+
+        // The event selector should be a lambda like: p => p.EventName += null
+        if (eventSelector is not LambdaExpressionSyntax lambda)
+        {
+            return null;
+        }
+
+        // The body should be an assignment expression with += operator
+        if (lambda.Body is not AssignmentExpressionSyntax assignment ||
+            !assignment.OperatorToken.IsKind(SyntaxKind.PlusEqualsToken))
+        {
+            return null;
+        }
+
+        // The left side should be a member access to the event
+        if (assignment.Left is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return null;
+        }
+
+        // Get the symbol for the event
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+        if (symbolInfo.Symbol is IEventSymbol eventSymbol)
+        {
+            return eventSymbol.Name;
+        }
+
+        return null;
     }
 }
