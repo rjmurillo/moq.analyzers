@@ -10,7 +10,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Method setup should specify a return value";
     private static readonly LocalizableString Message = "Method setup for '{0}' should specify a return value";
-    private static readonly LocalizableString Description = "Method setup for '{0}' should use Returns() or Throws() to specify a return value.";
+    private static readonly LocalizableString Description = "Method setups that return a value should use Returns() or Throws() to specify a return value.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.MethodSetupShouldSpecifyReturnValue,
