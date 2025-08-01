@@ -101,6 +101,63 @@ internal static class SemanticModelExtensions
         return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
     }
 
+    /// <summary>
+    /// Extracts the event name from a lambda selector of the form: x => x.EventName += null.
+    /// </summary>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="eventSelector">The lambda event selector expression.</param>
+    /// <param name="eventName">The extracted event name, if found.</param>
+    /// <returns><see langword="true" /> if the event name was found; otherwise, <see langword="false" />.</returns>
+    internal static bool TryGetEventNameFromLambdaSelector(
+        this SemanticModel semanticModel,
+        ExpressionSyntax eventSelector,
+        out string? eventName)
+    {
+        return TryGetEventPropertyFromLambdaSelector(semanticModel, eventSelector, static eventSymbol => eventSymbol.ToDisplayString(), out eventName);
+    }
+
+    /// <summary>
+    /// Extracts the event type from a lambda selector of the form: x => x.EventName += null.
+    /// </summary>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="eventSelector">The lambda event selector expression.</param>
+    /// <param name="eventType">The extracted event type, if found.</param>
+    /// <returns><see langword="true" /> if the event type was found; otherwise, <see langword="false" />.</returns>
+    internal static bool TryGetEventTypeFromLambdaSelector(
+        this SemanticModel semanticModel,
+        ExpressionSyntax eventSelector,
+        out ITypeSymbol? eventType)
+    {
+        return TryGetEventPropertyFromLambdaSelector(semanticModel, eventSelector, static eventSymbol => eventSymbol.Type, out eventType);
+    }
+
+    /// <summary>
+    /// Extracts a property from an event symbol found in a lambda selector of the form: x => x.EventName += null.
+    /// </summary>
+    /// <typeparam name="T">The type of the property to extract.</typeparam>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="eventSelector">The lambda event selector expression.</param>
+    /// <param name="propertySelector">A function to extract the desired property from the event symbol.</param>
+    /// <param name="result">The extracted property, if found.</param>
+    /// <returns><see langword="true" /> if the property was extracted; otherwise, <see langword="false" />.</returns>
+    private static bool TryGetEventPropertyFromLambdaSelector<T>(
+        SemanticModel semanticModel,
+        ExpressionSyntax eventSelector,
+        Func<IEventSymbol, T> propertySelector,
+        out T? result)
+    {
+        result = default;
+
+        if (TryGetEventSymbolFromLambdaSelector(semanticModel, eventSelector, out IEventSymbol? eventSymbol) &&
+            eventSymbol != null)
+        {
+            result = propertySelector(eventSymbol);
+            return true;
+        }
+
+        return false;
+    }
+
     private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
         where T : class
     {
@@ -139,6 +196,50 @@ internal static class SemanticModelExtensions
         }
 
         return matchingSymbols;
+    }
+
+    /// <summary>
+    /// Extracts the event symbol from a lambda selector of the form: x => x.EventName += null.
+    /// </summary>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="eventSelector">The lambda event selector expression.</param>
+    /// <param name="eventSymbol">The extracted event symbol, if found.</param>
+    /// <returns><see langword="true" /> if the event symbol was found; otherwise, <see langword="false" />.</returns>
+    private static bool TryGetEventSymbolFromLambdaSelector(
+        SemanticModel semanticModel,
+        ExpressionSyntax eventSelector,
+        out IEventSymbol? eventSymbol)
+    {
+        eventSymbol = null;
+
+        // The event selector should be a lambda like: p => p.EventName += null
+        if (eventSelector is not LambdaExpressionSyntax lambda)
+        {
+            return false;
+        }
+
+        // The body should be an assignment expression with += operator
+        if (lambda.Body is not AssignmentExpressionSyntax assignment ||
+            !assignment.OperatorToken.IsKind(SyntaxKind.PlusEqualsToken))
+        {
+            return false;
+        }
+
+        // The left side should be a member access to the event
+        if (assignment.Left is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return false;
+        }
+
+        // Get the symbol for the event
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+        if (symbolInfo.Symbol is not IEventSymbol symbol)
+        {
+            return false;
+        }
+
+        eventSymbol = symbol;
+        return true;
     }
 
     private static bool IsCallbackOrReturnSymbol(ISymbol? symbol, MoqKnownSymbols knownSymbols)
