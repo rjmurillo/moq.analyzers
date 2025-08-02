@@ -36,7 +36,7 @@ public class SetExplicitMockBehaviorCodeFixTests
         IEnumerable<object[]> mockConstructorsWithTargetTypedNew = new object[][]
         {
             [
-                """Mock<ISamples> mock = {|Moq1400:new()|};""",
+                """Mock<ISample> mock = {|Moq1400:new()|};""",
                 """Mock<ISample> mock = new(MockBehavior.Loose);""",
             ],
             [
