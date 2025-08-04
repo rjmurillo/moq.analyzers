@@ -33,6 +33,26 @@ public class SetExplicitMockBehaviorCodeFixTests
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
+        IEnumerable<object[]> mockConstructorsWithTargetTypedNew = new object[][]
+        {
+            [
+                """Mock<ISample> mock = {|Moq1400:new()|};""",
+                """Mock<ISample> mock = new(MockBehavior.Loose);""",
+            ],
+            [
+                """Mock<ISample> mock = {|Moq1400:new(MockBehavior.Default)|};""",
+                """Mock<ISample> mock = new(MockBehavior.Loose);""",
+            ],
+            [
+                """Mock<ISample> mock = new(MockBehavior.Loose);""",
+                """Mock<ISample> mock = new(MockBehavior.Loose);""",
+            ],
+            [
+                """Mock<ISample> mock = new(MockBehavior.Strict);""",
+                """Mock<ISample> mock = new(MockBehavior.Strict);""",
+            ],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+
         IEnumerable<object[]> mockConstructorsWithExpressions = new object[][]
         {
             [
@@ -89,7 +109,7 @@ public class SetExplicitMockBehaviorCodeFixTests
             ],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
-        return mockConstructors.Union(mockConstructorsWithExpressions).Union(fluentBuilders).Union(mockRepositories);
+        return mockConstructors.Union(mockConstructorsWithTargetTypedNew).Union(mockConstructorsWithExpressions).Union(fluentBuilders).Union(mockRepositories);
     }
 
     [Theory]
