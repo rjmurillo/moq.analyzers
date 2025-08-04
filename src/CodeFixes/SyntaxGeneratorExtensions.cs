@@ -9,12 +9,6 @@ internal static class SyntaxGeneratorExtensions
         return generator.MemberAccessExpression(generator.TypeExpression(fieldSymbol.Type), generator.IdentifierName(fieldSymbol.Name));
     }
 
-    public static SyntaxNode InsertArguments(this SyntaxGenerator generator, IOperation operation, int index, params SyntaxNode[] items)
-    {
-        // Ideally we could modify argument lists only using the IOperation APIs, but I haven't figured out a way to do that yet.
-        return generator.InsertArguments(operation.Syntax, index, items);
-    }
-
     public static SyntaxNode InsertArguments(this SyntaxGenerator generator, SyntaxNode syntax, int index, params SyntaxNode[] items)
     {
         if (Array.Exists(items, item => item is not ArgumentSyntax))
@@ -37,12 +31,6 @@ internal static class SyntaxGeneratorExtensions
         }
 
         throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} or {nameof(BaseObjectCreationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
-    }
-
-    public static SyntaxNode ReplaceArgument(this SyntaxGenerator generator, IOperation operation, int index, SyntaxNode item)
-    {
-        // Ideally we could modify argument lists only using the IOperation APIs, but I haven't figured out a way to do that yet.
-        return generator.ReplaceArgument(operation.Syntax, index, item);
     }
 
     public static SyntaxNode ReplaceArgument(this SyntaxGenerator generator, SyntaxNode syntax, int index, SyntaxNode item)
