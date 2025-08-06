@@ -57,7 +57,7 @@ jobs:
       uses: ./.github/actions/setup-restore-build
 
     - name: Restore Code Coverage history
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: CoverageHistory-${{ matrix.os }}
         path: ./artifacts/TestResults/coveragehistory
