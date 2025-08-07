@@ -126,7 +126,7 @@ jobs:
 
     - name: Upload coverage data to Qlty
       if: ${{ runner.os == 'Linux' && env.IS_QLTY_COVERAGE_ALLOWED == 'true' }}
-      uses: qltysh/qlty-action/coverage@v1
+      uses: qltysh/qlty-action/coverage@v2
       with:
         token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
         files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
