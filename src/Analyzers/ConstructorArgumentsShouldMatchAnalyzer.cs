@@ -128,7 +128,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         string argumentsString = FormatArguments(arguments);
-        Diagnostic? diagnostic = argumentList?.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedDelegate.Name, argumentsString);
+        Diagnostic? diagnostic = argumentList?.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedDelegate.ToDisplayString(), argumentsString);
         if (diagnostic != null)
         {
             context.ReportDiagnostic(diagnostic);
@@ -148,7 +148,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         string argumentsString = FormatArguments(arguments);
-        Diagnostic? diagnostic = argumentList?.CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, mockedInterface.Name, argumentsString);
+        Diagnostic? diagnostic = argumentList?.CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, mockedInterface.ToDisplayString(), argumentsString);
         if (diagnostic != null)
         {
             context.ReportDiagnostic(diagnostic);
@@ -466,7 +466,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
         if (constructorIsEmpty.IsEmpty)
         {
-            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedClass.Name, argumentsString);
+            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedClass.ToDisplayString(), argumentsString);
             context.ReportDiagnostic(diagnostic);
             return;
         }
@@ -476,7 +476,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         bool? matchingCtorFound = AnyConstructorsFound(constructors, arguments, context);
         if (matchingCtorFound.HasValue && !matchingCtorFound.Value)
         {
-            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedClass.Name, argumentsString);
+            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedClass.ToDisplayString(), argumentsString);
             context.ReportDiagnostic(diagnostic);
         }
     }

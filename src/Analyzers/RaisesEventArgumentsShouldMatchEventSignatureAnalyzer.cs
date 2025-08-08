@@ -124,7 +124,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
         if (symbolInfo.Symbol is IEventSymbol eventSymbol)
         {
-            return eventSymbol.Name;
+            return eventSymbol.ToDisplayString();
         }
 
         return null;

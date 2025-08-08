@@ -46,7 +46,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         }
 
         // Report diagnostic for methods with return types that don't specify a return value
-        Diagnostic diagnostic = setupInvocation.Syntax.CreateDiagnostic(Rule, mockedMethod.Name);
+        Diagnostic diagnostic = setupInvocation.Syntax.CreateDiagnostic(Rule, mockedMethod.ToDisplayString());
         context.ReportDiagnostic(diagnostic);
     }
 

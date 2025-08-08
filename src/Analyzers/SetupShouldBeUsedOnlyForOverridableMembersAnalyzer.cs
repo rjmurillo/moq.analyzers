@@ -83,7 +83,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         //    So we report the diagnostic.
         //
         // NOTE: The location is on the invocationOperation, which is fairly broad
-        Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule, mockedMemberSymbol.Name);
+        Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule, mockedMemberSymbol.ToDisplayString());
         context.ReportDiagnostic(diagnostic);
     }
 
