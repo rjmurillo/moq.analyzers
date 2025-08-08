@@ -221,10 +221,14 @@ internal static class ISymbolExtensions
             return true;
         }
 
-        // TODO: Remove this fallback once symbol-based detection is complete
-        // This is a temporary safety net for cases where symbol resolution fails
-        // but should be replaced with comprehensive symbol-based approach
-        return IsLikelyMoqRaisesMethodByName(methodSymbol);
+        // Enhanced symbol-based detection for other Moq patterns
+        if (IsAdditionalMoqRaisesMethod(methodSymbol, knownSymbols))
+        {
+            return true;
+        }
+
+        // This fallback will be removed in a future version once symbol-based detection is comprehensive
+        return false;
     }
 
     /// <summary>
@@ -280,26 +284,87 @@ internal static class ISymbolExtensions
     }
 
     /// <summary>
-    /// TEMPORARY: Conservative fallback for Moq Raises method detection.
-    /// This should be removed once symbol-based detection is comprehensive.
-    /// Only matches methods that are clearly Moq Raises methods.
+    /// Enhanced symbol-based detection for additional Moq Raises method patterns.
+    /// This method detects Raises methods that may not be directly covered by the standard interfaces.
     /// </summary>
     /// <param name="methodSymbol">The method symbol to check.</param>
-    /// <returns>True if this is likely a Moq Raises method; otherwise false.</returns>
-    private static bool IsLikelyMoqRaisesMethodByName(IMethodSymbol methodSymbol)
+    /// <param name="knownSymbols">The known symbols for type checking.</param>
+    /// <returns>True if this is an additional Moq Raises method pattern; otherwise false.</returns>
+    private static bool IsAdditionalMoqRaisesMethod(IMethodSymbol methodSymbol, MoqKnownSymbols knownSymbols)
     {
-        string methodName = methodSymbol.Name;
-
-        // Only match exact "Raises" or "RaisesAsync" method names
-        if (!string.Equals(methodName, "Raises", StringComparison.Ordinal) &&
-            !string.Equals(methodName, "RaisesAsync", StringComparison.Ordinal))
+        // Method must be named "Raises" or "RaisesAsync"
+        if (!string.Equals(methodSymbol.Name, "Raises", StringComparison.Ordinal) &&
+            !string.Equals(methodSymbol.Name, "RaisesAsync", StringComparison.Ordinal))
         {
             return false;
         }
 
-        // Must be in a type that contains "Moq" in its namespace to reduce false positives
-        string? containingTypeNamespace = methodSymbol.ContainingType?.ContainingNamespace?.ToDisplayString();
-        return containingTypeNamespace?.StartsWith("Moq", StringComparison.Ordinal) == true;
+        // Method must be in a Moq namespace to ensure it's a Moq method
+        string? namespaceName = methodSymbol.ContainingNamespace?.ToDisplayString();
+        if (namespaceName == null || !namespaceName.StartsWith("Moq", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        // Additional validation: ensure the method is from a type that implements Moq interfaces
+        INamedTypeSymbol? containingType = methodSymbol.ContainingType;
+        if (containingType == null)
+        {
+            return false;
+        }
+
+        // Check if the containing type or its interfaces are related to Moq
+        return IsTypeRelatedToMoq(containingType, knownSymbols);
+    }
+
+    /// <summary>
+    /// Determines if a type is related to Moq by checking its interfaces and base types.
+    /// </summary>
+    /// <param name="type">The type to check.</param>
+    /// <param name="knownSymbols">The known symbols for type checking.</param>
+    /// <returns>True if the type is related to Moq; otherwise false.</returns>
+    private static bool IsTypeRelatedToMoq(INamedTypeSymbol type, MoqKnownSymbols knownSymbols)
+    {
+        // Check if the type directly implements any known Moq interfaces
+        foreach (INamedTypeSymbol implementedInterface in type.AllInterfaces)
+        {
+            if (IsMoqInterface(implementedInterface, knownSymbols))
+            {
+                return true;
+            }
+        }
+
+        // Check base types
+        INamedTypeSymbol? current = type.BaseType;
+        while (current != null)
+        {
+            if (IsMoqInterface(current, knownSymbols))
+            {
+                return true;
+            }
+
+            current = current.BaseType;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines if a type is a known Moq interface.
+    /// </summary>
+    /// <param name="type">The type to check.</param>
+    /// <param name="knownSymbols">The known symbols for type checking.</param>
+    /// <returns>True if the type is a Moq interface; otherwise false.</returns>
+    private static bool IsMoqInterface(INamedTypeSymbol type, MoqKnownSymbols knownSymbols)
+    {
+        return SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, knownSymbols.ICallback) ||
+               SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, knownSymbols.ICallback1) ||
+               SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, knownSymbols.ICallback2) ||
+               SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, knownSymbols.IReturns) ||
+               SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, knownSymbols.IReturns1) ||
+               SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, knownSymbols.IReturns2) ||
+               SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, knownSymbols.IRaiseable) ||
+               SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, knownSymbols.IRaiseableAsync);
     }
 
     /// <summary>
