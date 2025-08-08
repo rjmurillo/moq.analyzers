@@ -40,6 +40,9 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        // NOTE: This condition is impractical to test as it represents scenarios where
+        // the event setup method cannot extract valid event arguments. This would require
+        // constructing malformed invocation syntax that doesn't represent real code patterns.
         if (!TryGetEventSetupArguments(invocation, context.SemanticModel, out ExpressionSyntax? handlerExpression, out ITypeSymbol? expectedEventType))
         {
             return;
@@ -68,6 +71,8 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
 
         // SetupAdd/SetupRemove should have exactly 1 argument (the event setup lambda)
+        // NOTE: This condition is impractical to test as it represents malformed method calls
+        // with incorrect argument counts that would typically fail at compile time.
         if (arguments.Count != 1)
         {
             return false;

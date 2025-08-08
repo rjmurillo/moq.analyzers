@@ -39,6 +39,9 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         MoqKnownSymbols knownSymbols = new(context.Compilation);
 
         // Ensure Moq is referenced in the compilation
+        // NOTE: This early return is impractical to test as it requires a compilation environment
+        // where Moq is not referenced, but the analyzer infrastructure expects Moq to be present.
+        // The condition serves as a defensive check for edge cases in the build environment.
         if (!knownSymbols.IsMockReferenced())
         {
             return;
@@ -49,6 +52,10 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
             ..knownSymbols.MockAs,
             ..knownSymbols.Mock1As]);
 
+        // NOTE: This condition is impractical to test as it represents a scenario where
+        // Moq symbols are referenced but the As() methods cannot be resolved. This would
+        // indicate an inconsistent or corrupted compilation state that doesn't occur in
+        // normal usage scenarios.
         if (asMethods.IsEmpty)
         {
             return;
@@ -61,6 +68,9 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 
     private static void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownAsMethods)
     {
+        // NOTE: This early return in IInvocationOperation check is impractical to test
+        // because the analyzer framework only calls this method with IInvocationOperation.
+        // The check serves as a defensive guard against potential framework changes.
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
             return;
@@ -73,6 +83,10 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
         }
 
         ImmutableArray<ITypeSymbol> typeArguments = targetMethod.TypeArguments;
+
+        // NOTE: This condition is impractical to test as it would require constructing
+        // a malformed As<T>() call with incorrect type arguments. Such calls would
+        // typically fail at compile time, making this a defensive check for edge cases.
         if (typeArguments.Length != 1)
         {
             return;

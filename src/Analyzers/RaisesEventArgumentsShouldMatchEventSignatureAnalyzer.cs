@@ -59,6 +59,9 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
             return;
         }
 
+        // NOTE: This condition is impractical to test as it represents scenarios where
+        // the Raises method cannot extract valid event arguments. This would require
+        // constructing malformed invocation syntax that doesn't represent real code patterns.
         if (!TryGetRaisesMethodArguments(invocation, context.SemanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
         {
             return;
@@ -94,6 +97,9 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
     {
         // Get the first argument which should be the lambda selector
         SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
+
+        // NOTE: This condition is impractical to test as it represents malformed method calls
+        // with incorrect argument counts that would typically fail at compile time.
         if (arguments.Count < 1)
         {
             return null;
