@@ -44,9 +44,6 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         }
 
         // Find the Setup call that this Returns is chained from
-        // NOTE: This condition is impractical to test as it represents scenarios where
-        // Returns() calls exist without proper Setup() call chains, which doesn't occur
-        // in valid Moq usage patterns and would typically fail at compile time.
         InvocationExpressionSyntax? setupInvocation = FindSetupInvocation(invocation);
         if (setupInvocation == null)
         {
@@ -54,9 +51,6 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         }
 
         // Check if the Setup is for an async method and get the method name
-        // NOTE: This condition is impractical to test as it represents scenarios where
-        // the Setup() call cannot be analyzed for async method patterns, which would
-        // require constructing malformed or ambiguous lambda expressions.
         string? methodName = GetAsyncMethodName(setupInvocation, context.SemanticModel, knownSymbols);
         if (methodName == null)
         {

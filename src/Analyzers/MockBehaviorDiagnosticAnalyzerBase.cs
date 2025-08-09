@@ -38,10 +38,6 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
         DiagnosticDescriptor rule,
         DiagnosticEditProperties.EditType editType)
     {
-        // NOTE: This condition is impractical to test in isolation as it represents
-        // a scenario where a method that should have MockBehavior parameters doesn't.
-        // Testing this would require creating inconsistent symbol information that
-        // doesn't reflect real compilation scenarios.
         if (!method.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
         {
             return false;
@@ -73,10 +69,6 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
         MoqKnownSymbols knownSymbols,
         DiagnosticDescriptor rule)
     {
-        // NOTE: This complex condition is impractical to test as it requires constructing
-        // specific combinations of method overloads and parameter configurations that
-        // don't easily occur in typical test scenarios. The method serves as a helper
-        // for derived analyzers with specific overload detection logic.
         // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
         return mockParameter is null
             && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out IMethodSymbol? methodMatch, out _, cancellationToken: context.CancellationToken)
@@ -88,18 +80,12 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
         MoqKnownSymbols knownSymbols = new(context.Compilation);
 
         // Ensure Moq is referenced in the compilation
-        // NOTE: This early return is impractical to test as it requires a compilation environment
-        // where Moq is not referenced, but the analyzer infrastructure expects Moq to be present.
-        // The condition serves as a defensive check for edge cases in the build environment.
         if (!knownSymbols.IsMockReferenced())
         {
             return;
         }
 
         // Look for the MockBehavior type and provide it to Analyze to avoid looking it up multiple times.
-        // NOTE: This condition is impractical to test as it represents a scenario where
-        // Moq is referenced but MockBehavior type cannot be resolved. This would indicate
-        // an inconsistent or corrupted compilation state that doesn't occur in normal usage.
         if (knownSymbols.MockBehavior is null)
         {
             return;
@@ -112,9 +98,6 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
 
     private void AnalyzeObjectCreation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        // NOTE: This early return in IObjectCreationOperation check is impractical to test
-        // because the analyzer framework only calls this method with IObjectCreationOperation.
-        // The check serves as a defensive guard against potential framework changes.
         if (context.Operation is not IObjectCreationOperation creation)
         {
             return;
@@ -134,9 +117,6 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
 
     private void AnalyzeInvocation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        // NOTE: This early return in IInvocationOperation check is impractical to test
-        // because the analyzer framework only calls this method with IInvocationOperation.
-        // The check serves as a defensive guard against potential framework changes.
         if (context.Operation is not IInvocationOperation invocation)
         {
             return;

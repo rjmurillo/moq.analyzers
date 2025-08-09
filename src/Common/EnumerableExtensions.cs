@@ -5,9 +5,6 @@ internal static class EnumerableExtensions
     /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
     internal static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source)
     {
-        // NOTE: This null check is impractical to test in the context of Roslyn analyzers
-        // because the compiler infrastructure ensures collections passed to analyzers are never null.
-        // The check serves as a defensive guard for potential external usage scenarios.
         if (source == null)
         {
             return default;
@@ -31,9 +28,6 @@ internal static class EnumerableExtensions
     /// </remarks>
     internal static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
     {
-        // NOTE: These null checks are impractical to test in the context of Roslyn analyzers
-        // because the compiler infrastructure ensures parameters passed to analyzers are never null.
-        // The checks serve as defensive guards for potential external usage scenarios.
         if (source == null)
         {
             return default;
@@ -44,9 +38,6 @@ internal static class EnumerableExtensions
             throw new ArgumentNullException(nameof(predicate));
         }
 
-        // NOTE: This condition is impractical to test as ImmutableArray<T> is rarely used
-        // in the specific contexts where this method is called within the analyzer codebase.
-        // The optimization exists for potential performance benefits in edge cases.
         if (source is ImmutableArray<TSource> immutableArray)
         {
             return DefaultIfNotSingle(immutableArray, predicate);

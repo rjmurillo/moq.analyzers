@@ -54,10 +54,6 @@ internal record DiagnosticEditProperties
     /// <returns><see langword="true"/> if parsing succeeded; <see langword="false"/> otherwise.</returns>
     internal static bool TryGetFromImmutableDictionary(ImmutableDictionary<string, string?> dictionary, [NotNullWhen(true)] out DiagnosticEditProperties? editProperties)
     {
-        // NOTE: The following error conditions are impractical to test in normal analyzer usage
-        // because diagnostic properties are created and consumed within the same analyzer infrastructure.
-        // These conditions serve as defensive checks for potential data corruption or manual
-        // dictionary construction scenarios that don't occur in typical code fix workflows.
         editProperties = null;
         if (!dictionary.TryGetValue(EditTypeKey, out string? editTypeString))
         {

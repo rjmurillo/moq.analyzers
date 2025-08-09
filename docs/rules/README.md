@@ -23,11 +23,6 @@
 | [Moq1410](./Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              | [SetStrictMockBehaviorAnalyzer.cs](../../src/Analyzers/SetStrictMockBehaviorAnalyzer.cs)                                           |
 | [Moq1420](./Moq1420.md) | Best Practice | Redundant Times.AtLeastOnce() specification can be removed                              | [RedundantTimesSpecificationAnalyzer.cs](../../src/Analyzers/RedundantTimesSpecificationAnalyzer.cs)                               |
 | [Moq1500](./Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                | [MockRepositoryVerifyAnalyzer.cs](../../src/Analyzers/MockRepositoryVerifyAnalyzer.cs)                                             |
-
-## Testing and Code Coverage
-
-See [TESTING_LIMITATIONS.md](./TESTING_LIMITATIONS.md) for documentation on code paths that are impractical to test and the reasons why.
-
 ## Guidance for Future Rules
 
 ### Categories
