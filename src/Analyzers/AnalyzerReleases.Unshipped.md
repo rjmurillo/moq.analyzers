@@ -11,7 +11,7 @@ Moq1100 | Usage | Warning | CallbackSignatureShouldMatchMockedMethodAnalyzer (up
 Moq1101 | Usage | Warning | NoMethodsInPropertySetupAnalyzer (updated category from Moq to Usage)
 Moq1200 | Usage | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
 Moq1201 | Usage | Error | SetupShouldNotIncludeAsyncResultAnalyzer (updated category from Moq to Usage)
-Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
+Moq1202 | Usage | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer (updated category from Moq to Usage)
 Moq1203 | Moq | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer
 Moq1204 | Usage | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer (updated category from Moq to Usage)
 Moq1205 | Moq | Warning | EventSetupHandlerShouldMatchEventTypeAnalyzer
