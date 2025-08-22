@@ -9,15 +9,17 @@ namespace Moq.Analyzers;
 public class MockGetShouldNotTakeLiteralsAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Mock.Get() should not take literals";
-    private static readonly LocalizableString Message = "Mock.Get() should not take literals";
+    private static readonly LocalizableString Message = "Mock.Get() should not take literal '{0}'";
+    private static readonly LocalizableString Description = "Mock.Get() should not take literals.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.MockGetShouldNotTakeLiterals,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.MockGetShouldNotTakeLiterals}.md");
 
     /// <inheritdoc />
@@ -72,7 +74,8 @@ public class MockGetShouldNotTakeLiteralsAnalyzer : DiagnosticAnalyzer
         {
             if (IsLiteralValue(argument.Value))
             {
-                context.ReportDiagnostic(argument.Syntax.GetLocation().CreateDiagnostic(Rule));
+                string literalText = GetLiteralText(argument.Value);
+                context.ReportDiagnostic(argument.Syntax.GetLocation().CreateDiagnostic(Rule, literalText));
             }
         }
     }
@@ -85,6 +88,17 @@ public class MockGetShouldNotTakeLiteralsAnalyzer : DiagnosticAnalyzer
             OperationKind.DefaultValue => true,
             OperationKind.Conversion when operation is IConversionOperation conversionOperation => IsLiteralValue(conversionOperation.Operand),
             _ => false,
+        };
+    }
+
+    private static string GetLiteralText(IOperation operation)
+    {
+        return operation.Kind switch
+        {
+            OperationKind.Literal when operation is ILiteralOperation literal => literal.ConstantValue.Value?.ToString() ?? "null",
+            OperationKind.DefaultValue when operation is IDefaultValueOperation defaultValue => $"default({defaultValue.Type?.ToDisplayString() ?? string.Empty})",
+            OperationKind.Conversion when operation is IConversionOperation conversionOperation => GetLiteralText(conversionOperation.Operand),
+            _ => operation.Syntax.ToString(),
         };
     }
 }
