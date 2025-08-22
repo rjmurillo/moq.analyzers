@@ -14,7 +14,7 @@ Moq1201 | Usage | Error | SetupShouldNotIncludeAsyncResultAnalyzer (updated cate
 Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
 Moq1203 | Usage | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer (updated category from Moq to Usage)
 Moq1204 | Usage | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer (updated category from Moq to Usage)
-Moq1205 | Moq | Warning | EventSetupHandlerShouldMatchEventTypeAnalyzer
+Moq1205 | Usage | Warning | EventSetupHandlerShouldMatchEventTypeAnalyzer (updated category from Moq to Usage)
 Moq1206 | Usage | Warning | ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer (updated category from Moq to Usage)
 Moq1207 | Usage | Error | SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
 Moq1210 | Usage | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
