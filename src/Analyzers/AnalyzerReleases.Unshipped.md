@@ -12,7 +12,7 @@ Moq1101 | Usage | Warning | NoMethodsInPropertySetupAnalyzer (updated category f
 Moq1200 | Usage | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
 Moq1201 | Usage | Error | SetupShouldNotIncludeAsyncResultAnalyzer (updated category from Moq to Usage)
 Moq1202 | Moq | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
-Moq1203 | Moq | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer
+Moq1203 | Usage | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer (updated category from Moq to Usage)
 Moq1204 | Usage | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer (updated category from Moq to Usage)
 Moq1205 | Moq | Warning | EventSetupHandlerShouldMatchEventTypeAnalyzer
 Moq1206 | Usage | Warning | ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer (updated category from Moq to Usage)
