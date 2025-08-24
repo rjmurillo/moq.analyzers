@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.Operations;
+﻿using System.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
 
@@ -38,7 +39,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
     {
         MoqKnownSymbols knownSymbols = new(context.Compilation);
 
-        // Ensure Moq is referenced in the compilation
+        // Only analyze if Moq is referenced - if we're analyzing Moq usage patterns, Moq should be available
         if (!knownSymbols.IsMockReferenced())
         {
             return;
@@ -49,6 +50,7 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
             ..knownSymbols.MockAs,
             ..knownSymbols.Mock1As]);
 
+        // If As() methods are not available, this may indicate an unsupported Moq version
         if (asMethods.IsEmpty)
         {
             return;
@@ -61,6 +63,9 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
 
     private static void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> wellKnownAsMethods)
     {
+        // This should always be an invocation operation since we registered for OperationKind.Invocation
+        Debug.Assert(context.Operation is IInvocationOperation, "Expected IInvocationOperation");
+
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
             return;
