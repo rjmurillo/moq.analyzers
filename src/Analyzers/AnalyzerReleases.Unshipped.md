@@ -20,7 +20,7 @@ Moq1207 | Usage | Error | SetupSequenceShouldBeUsedOnlyForOverridableMembersAnal
 Moq1210 | Usage | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
 Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated category from Moq to Usage)
 Moq1301 | Usage | Warning | Mock.Get() should not take literals (updated category from Moq to Usage)
-Moq1302 | Moq | Warning | LINQ to Mocks expression should be valid (flags non-virtual members including fields, events, nested and chained accesses)
+Moq1302 | Usage | Warning | LINQ to Mocks expression should be valid (updated category from Moq to Usage)
 Moq1400 | Usage | Warning | SetExplicitMockBehaviorAnalyzer (updated category from Moq to Usage)
 Moq1410 | Usage | Info | SetStrictMockBehaviorAnalyzer (updated category from Moq to Usage)
 Moq1420 | Usage | Info | RedundantTimesSpecificationAnalyzer (updated category from Moq to Usage)
