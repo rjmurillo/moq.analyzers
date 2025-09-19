@@ -221,10 +221,16 @@ internal static class ISymbolExtensions
             return true;
         }
 
-        // TODO: Remove this fallback once symbol-based detection is complete
-        // This is a temporary safety net for cases where symbol resolution fails
-        // but should be replaced with comprehensive symbol-based approach
-        return IsLikelyMoqRaisesMethodByName(methodSymbol);
+        // TODO: Replace this with comprehensive symbol-based detection
+        // The current symbol-based detection in IsKnownMoqRaisesMethod covers the standard
+        // Moq interfaces (ICallback, IReturns, IRaiseable) but may not cover all possible
+        // Raises method scenarios. A complete replacement would require:
+        // 1. Analysis of all possible Moq Raises patterns in different versions
+        // 2. Enhanced MoqKnownSymbols to include any missing interface patterns
+        // 3. Comprehensive test coverage for edge cases
+        //
+        // For now, keep the conservative string-based fallback to avoid breaking existing functionality
+        return IsConservativeRaisesMethodFallback(methodSymbol);
     }
 
     /// <summary>
@@ -280,26 +286,29 @@ internal static class ISymbolExtensions
     }
 
     /// <summary>
-    /// TEMPORARY: Conservative fallback for Moq Raises method detection.
-    /// This should be removed once symbol-based detection is comprehensive.
-    /// Only matches methods that are clearly Moq Raises methods.
+    /// Conservative fallback for Moq Raises method detection using string-based name checking.
+    ///
+    /// NOTE: This method should eventually be replaced with comprehensive symbol-based detection.
+    /// It provides a safety net for Raises method patterns that may not be covered by the current
+    /// symbol-based detection in IsKnownMoqRaisesMethod.
+    ///
+    /// The method is intentionally conservative to minimize false positives while ensuring
+    /// that legitimate Moq Raises calls are detected.
     /// </summary>
     /// <param name="methodSymbol">The method symbol to check.</param>
     /// <returns>True if this is likely a Moq Raises method; otherwise false.</returns>
-    private static bool IsLikelyMoqRaisesMethodByName(IMethodSymbol methodSymbol)
+    private static bool IsConservativeRaisesMethodFallback(IMethodSymbol methodSymbol)
     {
-        string methodName = methodSymbol.Name;
-
         // Only match exact "Raises" or "RaisesAsync" method names
-        if (!string.Equals(methodName, "Raises", StringComparison.Ordinal) &&
-            !string.Equals(methodName, "RaisesAsync", StringComparison.Ordinal))
+        if (!string.Equals(methodSymbol.Name, "Raises", StringComparison.Ordinal) &&
+            !string.Equals(methodSymbol.Name, "RaisesAsync", StringComparison.Ordinal))
         {
             return false;
         }
 
-        // Must be in a type that contains "Moq" in its namespace to reduce false positives
-        string? containingTypeNamespace = methodSymbol.ContainingType?.ContainingNamespace?.ToDisplayString();
-        return containingTypeNamespace?.StartsWith("Moq", StringComparison.Ordinal) == true;
+        // Must be in a Moq namespace to reduce false positives
+        string? containingNamespace = methodSymbol.ContainingType?.ContainingNamespace?.ToDisplayString();
+        return containingNamespace?.StartsWith("Moq", StringComparison.Ordinal) == true;
     }
 
     /// <summary>
