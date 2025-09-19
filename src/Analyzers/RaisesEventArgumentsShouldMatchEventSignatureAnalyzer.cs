@@ -79,7 +79,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
             out expectedParameterTypes,
             (sm, selector) =>
             {
-                bool success = EventSyntaxExtensions.TryGetEventTypeFromLambdaSelector(sm, selector, out ITypeSymbol? eventType);
+                bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
                 return (success, eventType);
             });
     }

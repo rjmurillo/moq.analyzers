@@ -20,15 +20,17 @@ namespace Moq.Analyzers;
 public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Raise event arguments should match event signature";
-    private static readonly LocalizableString Message = "Raise event arguments should match the event delegate signature";
+    private static readonly LocalizableString Message = "Raise event arguments should match the '{0}' event delegate signature";
+    private static readonly LocalizableString Description = "Raise event arguments should match the event delegate signature.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.RaiseEventArgumentsShouldMatchEventSignature,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.RaiseEventArgumentsShouldMatchEventSignature}.md");
 
     /// <inheritdoc />
@@ -60,7 +62,15 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             return;
         }
 
-        ValidateArgumentTypes(context, eventArguments, expectedParameterTypes, invocation);
+        // Extract event name from the first argument (event selector lambda)
+        string? eventName = null;
+        if (invocation.ArgumentList.Arguments.Count > 0)
+        {
+            ExpressionSyntax eventSelector = invocation.ArgumentList.Arguments[0].Expression;
+            context.SemanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out eventName);
+        }
+
+        ValidateArgumentTypesWithEventName(context, eventArguments, expectedParameterTypes, invocation, eventName ?? "event");
     }
 
     private static bool TryGetRaiseMethodArguments(
@@ -77,15 +87,47 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             out expectedParameterTypes,
             (sm, selector) =>
             {
-                bool success = EventSyntaxExtensions.TryGetEventTypeFromLambdaSelector(sm, selector, out ITypeSymbol? eventType);
+                bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
                 return (success, eventType);
             },
             knownSymbols);
     }
 
-    private static void ValidateArgumentTypes(SyntaxNodeAnalysisContext context, ArgumentSyntax[] eventArguments, ITypeSymbol[] expectedParameterTypes, InvocationExpressionSyntax invocation)
+    private static void ValidateArgumentTypesWithEventName(SyntaxNodeAnalysisContext context, ArgumentSyntax[] eventArguments, ITypeSymbol[] expectedParameterTypes, InvocationExpressionSyntax invocation, string eventName)
     {
-        EventSyntaxExtensions.ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, Rule);
+        if (eventArguments.Length != expectedParameterTypes.Length)
+        {
+            Location location;
+            if (eventArguments.Length < expectedParameterTypes.Length)
+            {
+                // Too few arguments: report on the invocation
+                location = invocation.GetLocation();
+            }
+            else
+            {
+                // Too many arguments: report on the first extra argument
+                location = eventArguments[expectedParameterTypes.Length].GetLocation();
+            }
+
+            Diagnostic diagnostic = location.CreateDiagnostic(Rule, eventName);
+            context.ReportDiagnostic(diagnostic);
+            return;
+        }
+
+        // Check each argument type matches the expected parameter type
+        for (int i = 0; i < eventArguments.Length; i++)
+        {
+            TypeInfo argumentTypeInfo = context.SemanticModel.GetTypeInfo(eventArguments[i].Expression, context.CancellationToken);
+            ITypeSymbol? argumentType = argumentTypeInfo.Type;
+            ITypeSymbol expectedType = expectedParameterTypes[i];
+
+            if (argumentType != null && !context.SemanticModel.HasConversion(argumentType, expectedType))
+            {
+                // Report on the specific argument with the wrong type
+                Diagnostic diagnostic = eventArguments[i].GetLocation().CreateDiagnostic(Rule, eventName);
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
     }
 
     private static bool IsRaiseMethodCall(SemanticModel semanticModel, InvocationExpressionSyntax invocation, MoqKnownSymbols knownSymbols)
