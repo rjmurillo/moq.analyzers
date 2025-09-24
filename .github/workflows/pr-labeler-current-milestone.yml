@@ -13,7 +13,7 @@ jobs:
     steps:
     
     # Label PRs
-    - uses: actions/labeler@v5
+    - uses: actions/labeler@v6
       with:        
         pr-number: |
           52
