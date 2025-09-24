@@ -1,6 +1,6 @@
 # This workflow will approve pull requests from dependabot
 
-name: Auto approve PRs by dependabot
+name: Auto approve PRs by dependabot or renovate
 on: [pull_request_target]
 
 jobs:
@@ -10,6 +10,6 @@ jobs:
     steps:
       - name: Auto approve
         uses: cognitedata/auto-approve-dependabot-action@v3.0.1
-        if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
+        if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]' || github.actor == 'renovate[bot]'
         with:
           github-token: ${{ secrets.GH_ACTIONS_PR_WRITE }}
