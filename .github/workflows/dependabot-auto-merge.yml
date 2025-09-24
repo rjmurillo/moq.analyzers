@@ -1,4 +1,4 @@
-name: Auto-merge Dependabot
+name: Auto-merge Dependabot or Renovate
 on: pull_request
 
 permissions:
@@ -8,7 +8,7 @@ permissions:
 jobs:
   automerge:
     runs-on: ubuntu-24.04-arm
-    if: ${{ github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]' }}
+    if: ${{ github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]' || github.actor == 'renovate[bot]' }}
     steps:
       - uses: peter-evans/enable-pull-request-automerge@v3
         with:
