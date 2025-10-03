@@ -5,6 +5,7 @@
 [![Main build](https://github.com/rjmurillo/moq.analyzers/actions/workflows/main.yml/badge.svg)](https://github.com/rjmurillo/moq.analyzers/actions/workflows/main.yml)
 [![Codacy Grade Badge](https://app.codacy.com/project/badge/Grade/fc7c184dcb1843d4b1ae1b926fb82d5a)](https://app.codacy.com/gh/rjmurillo/moq.analyzers/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Codacy Coverage Badge](https://app.codacy.com/project/badge/Coverage/fc7c184dcb1843d4b1ae1b926fb82d5a)](https://app.codacy.com/gh/rjmurillo/moq.analyzers/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rjmurillo/moq.analyzers)
 
 **Moq.Analyzers** is a Roslyn analyzer that helps you to write unit tests using the popular
 [Moq](https://github.com/devlooped/moq) framework. Moq.Analyzers protects you from common mistakes and warns you if
