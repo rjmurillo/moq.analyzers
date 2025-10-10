@@ -9,15 +9,17 @@ namespace Moq.Analyzers;
 public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Invalid LINQ to Mocks expression";
-    private static readonly LocalizableString Message = "LINQ to Mocks expression contains non-virtual member '{0}' that cannot be mocked";
+    private static readonly LocalizableString Message = "Invalid member '{0}' in LINQ to Mocks expression";
+    private static readonly LocalizableString Description = "LINQ to Mocks expression contains non-virtual member that cannot be mocked.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.LinqToMocksExpressionShouldBeValid,
         Title,
         Message,
-        DiagnosticCategory.Moq,
+        DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
+        description: Description,
         helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.LinqToMocksExpressionShouldBeValid}.md");
 
     /// <inheritdoc />
@@ -215,7 +217,10 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
                 return;
         }
 
-        context.ReportDiagnostic(memberLocation.CreateDiagnostic(Rule, memberSymbol.ToDisplayString()));
+        // Get the expression text from the syntax location
+        string expressionText = memberLocation.SourceTree?.GetText(context.CancellationToken).ToString(memberLocation.SourceSpan) ?? memberSymbol.ToDisplayString();
+
+        context.ReportDiagnostic(memberLocation.CreateDiagnostic(Rule, expressionText));
     }
 
     private static bool ShouldReportForProperty(IPropertySymbol property)
