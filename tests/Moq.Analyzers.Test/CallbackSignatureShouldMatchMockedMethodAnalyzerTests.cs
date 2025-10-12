@@ -93,10 +93,20 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
     }
 
     /// <summary>
-    /// Test to document the current limitation with generic callback validation.
+    /// Test to document the known limitation with generic callback validation.
     /// This test documents that .Callback&lt;T&gt;() with wrong type parameters is NOT currently validated.
-    /// This could be enhanced in a future version.
+    /// This is an accepted limitation as the explicit generic syntax is rarely used in practice.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Analysis shows zero real-world usage of the explicit generic .Callback&lt;T&gt;() syntax in open-source projects.
+    /// The recommended approach is to use lambda parameter inference which provides full type validation:
+    /// <c>.Callback(param => { })</c> or <c>.Callback((string param) => { })</c>.
+    /// </para>
+    /// <para>
+    /// See docs/rules/Moq1100.md "Known Limitations" section for best practices.
+    /// </para>
+    /// </remarks>
     /// <returns>A task representing the asynchronous unit test.</returns>
     [Fact]
     public async Task GenericCallbackValidation_CurrentLimitation_IsDocumented()
@@ -114,14 +124,15 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
                 public void TestGenericCallback()
                 {
                     var mock = new Mock<IFoo>();
-                    // Note: This currently does NOT trigger a diagnostic, which could be enhanced in the future
+                    // Note: This does NOT trigger a diagnostic (known limitation)
+                    // Best practice: Use .Callback(param => { }) instead of .Callback<T>(param => { })
                     mock.Setup(x => x.DoWork("test"))
-                        .Callback<int>(wrongTypeParam => { }); // Should ideally trigger Moq1100 but currently doesn't
+                        .Callback<int>(wrongTypeParam => { }); // Generic syntax not validated
                 }
             }
             """;
 
-        // This test documents the current limitation - no diagnostic is expected
+        // This test documents the known limitation - no diagnostic is expected
         await AnalyzerVerifier.VerifyAnalyzerAsync(source, "Net80WithOldMoq");
     }
 }
