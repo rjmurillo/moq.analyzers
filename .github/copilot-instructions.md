@@ -4,7 +4,7 @@
 
 | Rule | Requirement |
 |------|-------------|
-| .NET/C# Target | All C# code must target .NET 8 and C# 12; Analyzers and CodeFix must target .NET Standard 2.0 |
+| .NET/C# Target | All C# code must target .NET 9 and C# 13; Analyzers and CodeFix must target .NET Standard 2.0 |
 | No Trial-and-Error | Never guess or use trial-and-error; STOP if unsure |
 | Test Coverage | All changes must be covered by tests (including edge/failure paths) |
 | Formatting | Run `dotnet format` after every change |
