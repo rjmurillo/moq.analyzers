@@ -80,12 +80,33 @@ internal static class SemanticModelExtensions
         }
 
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(raisesMethod);
-        return symbolInfo.CandidateReason switch
+
+        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
         {
-            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(symbol => symbol.IsMoqRaisesMethod(knownSymbols)),
-            CandidateReason.None => IsRaisesSymbol(symbolInfo.Symbol, knownSymbols),
-            _ => false,
-        };
+            return symbolInfo.CandidateSymbols.Any(symbol => symbol.IsMoqRaisesMethod(knownSymbols));
+        }
+
+        if (symbolInfo.CandidateReason == CandidateReason.None)
+        {
+            return IsRaisesSymbol(symbolInfo.Symbol, knownSymbols);
+        }
+
+        // Conservative syntactic fallback: if this member access is named "Raises" and the expression
+        // contains a Setup(...) call, treat it as a Raises invocation. This keeps detection robust for
+        // invalid-argument scenarios where overload resolution yields no candidate symbols.
+        if (string.Equals(raisesMethod.Name.Identifier.Text, "Raises", StringComparison.Ordinal))
+        {
+            if (raisesMethod.Expression.ToString().Contains("Setup("))
+            {
+                return true;
+            }
+
+            // Otherwise, attempt a symbol-backed lookup for a Setup invocation.
+            InvocationExpressionSyntax? setupInvocation = semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, raisesMethod.Expression, CancellationToken.None);
+            return setupInvocation is not null;
+        }
+
+        return false;
     }
 
     /// <summary>
