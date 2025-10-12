@@ -10,6 +10,7 @@
 | Formatting | Run `dotnet format` after every change |
 | Build | Run `dotnet build` (no warnings allowed) |
 | Tests | Run `dotnet test` (all must pass) |
+| Coverage | Validate code coverage after changes; report coverage for modified code |
 | Codacy | Run Codacy CLI analysis and resolve all issues |
 | Validation Evidence | PRs must include logs/screenshots for all above steps |
 | Moq Version | Note Moq version compatibility for analyzer/test changes |
