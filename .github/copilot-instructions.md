@@ -60,6 +60,41 @@ If you encounter a diagnostic span test failure, or are unsure about any Roslyn 
 
 ---
 
+## Roslyn Analyzer Development Essentials
+
+### Symbol-Based Detection (MANDATORY)
+
+**Always prefer symbol-based detection over string matching:**
+- ✅ Use `ISymbol` and `SemanticModel.GetSymbolInfo()` for type-safe detection
+- ✅ Register types in `MoqKnownSymbols` using `TypeProvider.GetOrCreateTypeByMetadataName()`
+- ❌ Avoid string-based method name matching (fragile, not refactoring-safe)
+
+**Generic Type Handling:**
+- Use backtick notation for generic arity: `"Moq.Language.IRaise\`1"` for `IRaise<T>`
+- Collect method overloads: `GetMembers("MethodName").OfType<IMethodSymbol>().ToImmutableArray()`
+
+**Moq Fluent API Chain Pattern:**
+- Moq methods return different interfaces at different chain positions
+- Example: `Setup()` → `ISetup<T>` → `.Raises()` → `IRaise<T>` → `.Returns()` → `IReturns<T>`
+- **Register ALL interfaces in the chain**, not just endpoint types
+
+### Diagnostic Investigation Pattern
+
+When tests fail after removing string-based detection:
+1. Create temporary diagnostic test using `SemanticModel.GetSymbolInfo()`
+2. Capture actual symbol type at runtime
+3. Compare against `MoqKnownSymbols` registry to find missing entries
+4. Delete temporary test after fixing root cause
+
+### Context Preservation
+
+Use appropriate analysis contexts to maintain compilation access:
+- `SyntaxNodeAnalysisContext` - For syntax tree analysis with semantic model
+- `SemanticModelAnalysisContext` - For semantic analysis
+- `SyntaxTreeAnalysisContext` - For whole-file analysis
+
+---
+
 **Implementation:**
 - Answer domain-specific technical questions before coding
 - Provide concrete examples of your understanding
