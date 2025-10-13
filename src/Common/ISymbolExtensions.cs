@@ -302,7 +302,6 @@ internal static class ISymbolExtensions
                symbol.IsInstanceOf(knownSymbols.IRaise1RaisesAsync);
     }
 
-
     /// <summary>
     /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/> or <see cref="ValueTask{TResult}"/>.
     /// </summary>
