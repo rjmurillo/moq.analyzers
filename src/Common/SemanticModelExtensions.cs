@@ -91,21 +91,8 @@ internal static class SemanticModelExtensions
             return IsRaisesSymbol(symbolInfo.Symbol, knownSymbols);
         }
 
-        // Conservative syntactic fallback: if this member access is named "Raises" and the expression
-        // contains a Setup(...) call, treat it as a Raises invocation. This keeps detection robust for
-        // invalid-argument scenarios where overload resolution yields no candidate symbols.
-        if (string.Equals(raisesMethod.Name.Identifier.Text, "Raises", StringComparison.Ordinal))
-        {
-            if (raisesMethod.Expression.ToString().Contains("Setup("))
-            {
-                return true;
-            }
-
-            // Otherwise, attempt a symbol-backed lookup for a Setup invocation.
-            InvocationExpressionSyntax? setupInvocation = semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, raisesMethod.Expression, CancellationToken.None);
-            return setupInvocation is not null;
-        }
-
+        // If symbol resolution failed for other reasons, return false.
+        // All valid Raises invocations should be detected via symbol-based analysis above.
         return false;
     }
 
