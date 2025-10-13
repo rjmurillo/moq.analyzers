@@ -302,7 +302,6 @@ internal static class ISymbolExtensions
                symbol.IsInstanceOf(knownSymbols.IRaise1RaisesAsync);
     }
 
-    // String-based fallback removed: symbol-based detection covers all known Raises methods.
 
     /// <summary>
     /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/> or <see cref="ValueTask{TResult}"/>.
