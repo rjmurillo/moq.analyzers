@@ -30,11 +30,11 @@
     <PackageVersion Include="System.CommandLine.Rendering" Version="2.0.0-beta1.20074.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Perfolizer" Version="0.2.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.10" />
     <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.26" />
   </ItemGroup>
   <ItemGroup Label="Transitive pins">
-    <PackageVersion Include="System.Collections.Immutable" Version="9.0.9" />
-    <PackageVersion Include="System.Formats.Asn1" Version="9.0.9" />
+    <PackageVersion Include="System.Collections.Immutable" Version="9.0.10" />
+    <PackageVersion Include="System.Formats.Asn1" Version="9.0.10" />
   </ItemGroup>
 </Project>
