@@ -221,9 +221,16 @@ internal static class ISymbolExtensions
             return true;
         }
 
-        // TODO: Remove this fallback once symbol-based detection is complete
-        // This is a temporary safety net for cases where symbol resolution fails
-        // but should be replaced with comprehensive symbol-based approach
+        // TODO: Remove this fallback once symbol-based detection is complete.
+        // Investigation notes:
+        // - Tests fail when fallback is removed, indicating symbol-based detection is incomplete
+        // - Current known symbols check: ICallback, ICallback<T>, ICallback<TMock,TResult>,
+        //   IReturns, IReturns<T>, IReturns<TMock,TResult>, ISetupGetter<TMock,TProperty>,
+        //   ISetupSetter<TMock,TProperty>, IRaiseable, IRaiseableAsync
+        // - Issue appears to be related to symbol resolution for Setup().Raises() chains
+        // - May be version-specific differences between Moq 4.8.2 and 4.18.4
+        // - Requires runtime debugging to identify which specific interface method symbols
+        //   are not being matched by IsInstanceOf checks
         return IsLikelyMoqRaisesMethodByName(methodSymbol);
     }
 
@@ -251,7 +258,9 @@ internal static class ISymbolExtensions
     {
         return symbol.IsInstanceOf(knownSymbols.ICallbackRaises) ||
                symbol.IsInstanceOf(knownSymbols.ICallback1Raises) ||
-               symbol.IsInstanceOf(knownSymbols.ICallback2Raises);
+               symbol.IsInstanceOf(knownSymbols.ICallback2Raises) ||
+               symbol.IsInstanceOf(knownSymbols.ISetupGetterRaises) ||
+               symbol.IsInstanceOf(knownSymbols.ISetupSetterRaises);
     }
 
     /// <summary>

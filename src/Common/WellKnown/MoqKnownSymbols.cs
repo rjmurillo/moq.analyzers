@@ -215,6 +215,26 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> ICallback2Raises => ICallback2?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the interface <c>Moq.Language.ISetupGetter{TMock, TProperty}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ISetupGetter => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ISetupGetter`2");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ISetupGetter{TMock, TProperty}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ISetupGetterRaises => ISetupGetter?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.ISetupSetter{TMock, TProperty}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ISetupSetter => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ISetupSetter`2");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ISetupSetter{TMock, TProperty}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ISetupSetterRaises => ISetupSetter?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the methods for <c>Moq.Language.IReturns.Raises</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> IReturnsRaises => IReturns?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
