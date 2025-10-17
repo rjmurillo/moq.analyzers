@@ -272,7 +272,9 @@ internal static class ISymbolExtensions
     {
         return symbol.IsInstanceOf(knownSymbols.ICallbackRaises) ||
                symbol.IsInstanceOf(knownSymbols.ICallback1Raises) ||
-               symbol.IsInstanceOf(knownSymbols.ICallback2Raises);
+               symbol.IsInstanceOf(knownSymbols.ICallback2Raises) ||
+               symbol.IsInstanceOf(knownSymbols.ISetupGetterRaises) ||
+               symbol.IsInstanceOf(knownSymbols.ISetupSetterRaises);
     }
 
     /// <summary>
