@@ -215,26 +215,6 @@ internal static class ISymbolExtensions
             return false;
         }
 
-        // Primary: Use symbol-based detection for known Moq interfaces
-        if (IsKnownMoqRaisesMethod(symbol, knownSymbols))
-        {
-            return true;
-        }
-
-        // Symbol-based detection is now comprehensive for Raises methods.
-        // No string-based fallback is allowed; return false if not matched by known symbols.
-        return false;
-    }
-
-    /// <summary>
-    /// Checks if the symbol matches any of the known Moq Raises method symbols.
-    /// This method handles all supported Moq interfaces that provide Raises functionality.
-    /// </summary>
-    /// <param name="symbol">The symbol to check.</param>
-    /// <param name="knownSymbols">The known symbols for type checking.</param>
-    /// <returns>True if the symbol matches a known Moq Raises method; otherwise false.</returns>
-    private static bool IsKnownMoqRaisesMethod(ISymbol symbol, MoqKnownSymbols knownSymbols)
-    {
         return IsCallbackRaisesMethod(symbol, knownSymbols) ||
             IsReturnsRaisesMethod(symbol, knownSymbols) ||
             IsRaiseableMethod(symbol, knownSymbols) ||
