@@ -57,7 +57,7 @@ jobs:
       uses: ./.github/actions/setup-restore-build
 
     - name: Restore Code Coverage history
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: CoverageHistory-${{ matrix.os }}
         path: ./artifacts/TestResults/coveragehistory
@@ -69,14 +69,14 @@ jobs:
         REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
     - name: Upload coverage history
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: success() && env.IS_TARGET_MAIN == 'true'
       with:
         name: CoverageHistory-${{ matrix.os }}
         path: ./artifacts/TestResults/coveragehistory
 
     - name: Upload binlogs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: success() || failure()
       with:
         name: binlogs-${{ matrix.os }}
@@ -84,7 +84,7 @@ jobs:
         if-no-files-found: error
 
     - name: Upload *.received.* files
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: failure()
       with:
         name: verify-test-results
@@ -92,14 +92,14 @@ jobs:
           **/*.received.*
 
     - name: Upload SARIF files
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: success() || failure()
       with:
         name: SARIF files (${{ matrix.os }})
         path: ./artifacts/obj/**/*.sarif
 
     - name: Upload Test Report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: success() || failure()
       with:
         name: .NET Test Reports (${{ matrix.os }})
@@ -107,7 +107,7 @@ jobs:
         if-no-files-found: error
 
     - name: Upload Code Coverage Report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: success() || failure()
       with:
         name: .NET Code Coverage Reports (${{ matrix.os }})
@@ -132,7 +132,7 @@ jobs:
         files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
 
     - name: Upload packages
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: packages-${{ matrix.os }}
         path: |
@@ -211,7 +211,7 @@ jobs:
         }
 
     - name: Upload performance files
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: success() || failure()
       with:
         name: performance-${{ matrix.os }}
@@ -219,7 +219,7 @@ jobs:
           ./artifacts/performance/**
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: success() || failure()
       with:
         name: artifacts-${{ matrix.os }}
