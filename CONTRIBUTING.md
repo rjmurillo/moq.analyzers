@@ -776,6 +776,71 @@ If the answer to **ANY** question is "no" or "unsure," you **MUST STOP** and req
   - Never guess which Roslyn API to use. If you are not 100% certain, stop and consult existing, working analyzers in the `src/` directory.
   - Never "fix" a failing test by slightly adjusting the code and re-running. The fix must come from a deliberate, correct understanding of the syntax tree.
 
+### Symbol-Based Detection Architecture
+
+This repository uses **symbol-based detection** for all Moq pattern matching:
+
+**Symbol Registry Pattern:**
+- Central registry: `src/Common/WellKnown/MoqKnownSymbols.cs`
+- Symbols loaded via `TypeProvider.GetOrCreateTypeByMetadataName()`
+- Method collections via `GetMembers("MethodName").OfType<IMethodSymbol>().ToImmutableArray()`
+
+**Example - Adding New Moq Interface:**
+```csharp
+// In MoqKnownSymbols.cs
+internal INamedTypeSymbol? IRaise1 => 
+    TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IRaise\`1");
+
+internal ImmutableArray<IMethodSymbol> IRaise1Raises => 
+    IRaise1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() 
+    ?? ImmutableArray<IMethodSymbol>.Empty;
+```
+
+**Detection Helper Pattern:**
+```csharp
+// In ISymbolExtensions.cs
+public static bool IsRaiseableMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+{
+    return knownSymbols.IRaise1Raises.Contains(symbol, SymbolEqualityComparer.Default)
+        || knownSymbols.IRaise1RaisesAsync.Contains(symbol, SymbolEqualityComparer.Default);
+}
+```
+
+### Moq Fluent API Understanding
+
+Moq uses **method chaining** with different return types at each stage:
+
+| Stage | Method | Returns Interface |
+|-------|--------|-------------------|
+| Setup | `Setup(x => x.Method())` | `ISetup<T>` |
+| Callback | `.Callback(...)` | `ICallback<T>` |
+| Event | `.Raises(...)` | `IRaise<T>` (generic) |
+| Return | `.Returns(...)` | `IReturns<T>` |
+
+**Critical**: Register ALL interfaces in the chain, not just the final return type.
+
+### Debugging Symbol Detection Issues
+
+**Symptom**: Tests fail after removing string-based fallback detection.
+
+**Root Cause**: Missing symbol registration in `MoqKnownSymbols`.
+
+**Solution Process**:
+1. Create temporary test to capture `SemanticModel.GetSymbolInfo()` output
+2. Identify the actual symbol type (e.g., `Moq.Language.IRaise<T>`)
+3. Add missing symbol to `MoqKnownSymbols` with proper metadata name
+4. Update detection helper to check new symbol collection
+5. Delete temporary diagnostic test
+
+**Example Investigation**:
+```csharp
+// Temporary diagnostic test
+var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression);
+Console.WriteLine($"Actual symbol: {symbolInfo.Symbol?.ContainingType}");
+// Output: "Moq.Language.IRaise<ITestInterface>" 
+// → Need to add IRaise`1 to MoqKnownSymbols!
+```
+
 ### Implementation Requirements
 
 - **MANDATORY:** Roslyn analyzer development requires deep understanding of:

@@ -210,42 +210,36 @@ internal static class ISymbolExtensions
     /// <returns>True if the symbol is a Raises or RaisesAsync method from Moq.Language interfaces; otherwise false.</returns>
     internal static bool IsMoqRaisesMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        if (symbol is not IMethodSymbol methodSymbol)
+        if (symbol is not IMethodSymbol)
         {
             return false;
         }
 
-        // Primary: Use symbol-based detection for known Moq interfaces
-        if (IsKnownMoqRaisesMethod(symbol, knownSymbols))
-        {
-            return true;
-        }
-
-        // TODO: Remove this fallback once symbol-based detection is complete.
-        // Investigation notes:
-        // - Tests fail when fallback is removed, indicating symbol-based detection is incomplete
-        // - Current known symbols check: ICallback, ICallback<T>, ICallback<TMock,TResult>,
-        //   IReturns, IReturns<T>, IReturns<TMock,TResult>, ISetupGetter<TMock,TProperty>,
-        //   ISetupSetter<TMock,TProperty>, IRaiseable, IRaiseableAsync
-        // - Issue appears to be related to symbol resolution for Setup().Raises() chains
-        // - May be version-specific differences between Moq 4.8.2 and 4.18.4
-        // - Requires runtime debugging to identify which specific interface method symbols
-        //   are not being matched by IsInstanceOf checks
-        return IsLikelyMoqRaisesMethodByName(methodSymbol);
+        return IsCallbackRaisesMethod(symbol, knownSymbols) ||
+            IsReturnsRaisesMethod(symbol, knownSymbols) ||
+            IsRaiseableMethod(symbol, knownSymbols) ||
+            IsSetupRaisesMethod(symbol, knownSymbols) ||
+            IsConcreteSetupPhraseRaisesMethod(symbol, knownSymbols);
     }
 
     /// <summary>
-    /// Checks if the symbol matches any of the known Moq Raises method symbols.
-    /// This method handles all supported Moq interfaces that provide Raises functionality.
+    /// Checks if the symbol is a Raises method from ISetup / ISetupPhrase interfaces.
     /// </summary>
-    /// <param name="symbol">The symbol to check.</param>
-    /// <param name="knownSymbols">The known symbols for type checking.</param>
-    /// <returns>True if the symbol matches a known Moq Raises method; otherwise false.</returns>
-    private static bool IsKnownMoqRaisesMethod(ISymbol symbol, MoqKnownSymbols knownSymbols)
+    private static bool IsSetupRaisesMethod(ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        return IsCallbackRaisesMethod(symbol, knownSymbols) ||
-               IsReturnsRaisesMethod(symbol, knownSymbols) ||
-               IsRaiseableMethod(symbol, knownSymbols);
+        return symbol.IsInstanceOf(knownSymbols.ISetup1Raises) ||
+            symbol.IsInstanceOf(knownSymbols.ISetupPhrase1Raises) ||
+            symbol.IsInstanceOf(knownSymbols.ISetupGetter1Raises) ||
+            symbol.IsInstanceOf(knownSymbols.ISetupSetter1Raises);
+    }
+
+    /// <summary>
+    /// Checks if the symbol is a Raises method on concrete setup phrase types (Void/NonVoid).
+    /// </summary>
+    private static bool IsConcreteSetupPhraseRaisesMethod(ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        return symbol.IsInstanceOf(knownSymbols.VoidSetupPhrase1Raises) ||
+               symbol.IsInstanceOf(knownSymbols.NonVoidSetupPhrase2Raises);
     }
 
     /// <summary>
@@ -285,30 +279,9 @@ internal static class ISymbolExtensions
     private static bool IsRaiseableMethod(ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
         return symbol.IsInstanceOf(knownSymbols.IRaiseableRaises) ||
-               symbol.IsInstanceOf(knownSymbols.IRaiseableAsyncRaisesAsync);
-    }
-
-    /// <summary>
-    /// TEMPORARY: Conservative fallback for Moq Raises method detection.
-    /// This should be removed once symbol-based detection is comprehensive.
-    /// Only matches methods that are clearly Moq Raises methods.
-    /// </summary>
-    /// <param name="methodSymbol">The method symbol to check.</param>
-    /// <returns>True if this is likely a Moq Raises method; otherwise false.</returns>
-    private static bool IsLikelyMoqRaisesMethodByName(IMethodSymbol methodSymbol)
-    {
-        string methodName = methodSymbol.Name;
-
-        // Only match exact "Raises" or "RaisesAsync" method names
-        if (!string.Equals(methodName, "Raises", StringComparison.Ordinal) &&
-            !string.Equals(methodName, "RaisesAsync", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        // Must be in a type that contains "Moq" in its namespace to reduce false positives
-        string? containingTypeNamespace = methodSymbol.ContainingType?.ContainingNamespace?.ToDisplayString();
-        return containingTypeNamespace?.StartsWith("Moq", StringComparison.Ordinal) == true;
+               symbol.IsInstanceOf(knownSymbols.IRaiseableAsyncRaisesAsync) ||
+               symbol.IsInstanceOf(knownSymbols.IRaise1Raises) ||
+               symbol.IsInstanceOf(knownSymbols.IRaise1RaisesAsync);
     }
 
     /// <summary>
