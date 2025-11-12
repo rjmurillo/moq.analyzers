@@ -4,17 +4,17 @@ namespace Moq.Analyzers.Test;
 
 public class PackageTests
 {
-    public static TheoryData<FileInfo> GetPackages()
+    public static TheoryData<string> GetPackages()
     {
         DirectoryInfo directory = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory!;
         FileInfo[] packages = directory.GetFiles("Moq.Analyzers*.nupkg")
             .OrderBy(fileInfo => fileInfo.Name, StringComparer.Ordinal)
             .ToArray();
 
-        TheoryData<FileInfo> theoryData = new();
+        TheoryData<string> theoryData = new();
         foreach (FileInfo package in packages)
         {
-            theoryData.Add(package);
+            theoryData.Add(package.FullName);
         }
 
         return theoryData;
@@ -22,8 +22,12 @@ public class PackageTests
 
     [Theory]
     [MemberData(nameof(GetPackages))]
-    public Task Baseline(FileInfo package)
+    public Task Baseline(string packagePath)
     {
+        // xUnit requires theory data to be serializable. FileInfo is not serializable,
+        // so we pass the path as a string and reconstruct the FileInfo here.
+        FileInfo package = new(packagePath);
+
         // Use a stable discriminator based on package type, not version/hash
         string discriminator = package.Name.Contains(".symbols.nupkg", StringComparison.Ordinal)
             ? "symbols"
