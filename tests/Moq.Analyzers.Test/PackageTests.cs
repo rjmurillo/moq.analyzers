@@ -11,6 +11,11 @@ public class PackageTests
             .OrderBy(fileInfo => fileInfo.Name, StringComparer.Ordinal)
             .ToArray();
 
+        if (packages.Length == 0)
+        {
+            throw new InvalidOperationException("No Moq.Analyzers*.nupkg files were found. Ensure the pack step runs before executing this test.");
+        }
+
         TheoryData<string> theoryData = new();
         foreach (FileInfo package in packages)
         {
