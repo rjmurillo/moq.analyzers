@@ -23,6 +23,10 @@
     <Copyright>2017 Andrey Lipatkin</Copyright>
     <PackageTags>moq, tdd, mocking, mocks, unittesting, agile, unittest, mock, test, analyzers</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeSymbols>true</IncludeSymbols>
+    <IncludeSource>true</IncludeSource>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <ItemGroup>
