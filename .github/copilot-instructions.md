@@ -4,12 +4,13 @@
 
 | Rule | Requirement |
 |------|-------------|
-| .NET/C# Target | All C# code must target .NET 8 and C# 12; Analyzers and CodeFix must target .NET Standard 2.0 |
+| .NET/C# Target | All C# code must target .NET 9 and C# 13; Analyzers and CodeFix must target .NET Standard 2.0 |
 | No Trial-and-Error | Never guess or use trial-and-error; STOP if unsure |
 | Test Coverage | All changes must be covered by tests (including edge/failure paths) |
 | Formatting | Run `dotnet format` after every change |
 | Build | Run `dotnet build` (no warnings allowed) |
 | Tests | Run `dotnet test` (all must pass) |
+| Coverage | Validate code coverage after changes; report coverage for modified code |
 | Codacy | Run Codacy CLI analysis and resolve all issues |
 | Validation Evidence | PRs must include logs/screenshots for all above steps |
 | Moq Version | Note Moq version compatibility for analyzer/test changes |
@@ -56,6 +57,41 @@ If any of these are missing, the PR will not be reviewed.
 **If you cannot answer the pre-implementation checklist with 100% confidence, STOP and request expert guidance. Do not proceed or attempt a workaround.**
 
 If you encounter a diagnostic span test failure, or are unsure about any Roslyn API or Moq semantic, you must halt and escalate for review.
+
+---
+
+## Roslyn Analyzer Development Essentials
+
+### Symbol-Based Detection (MANDATORY)
+
+**Always prefer symbol-based detection over string matching:**
+- ✅ Use `ISymbol` and `SemanticModel.GetSymbolInfo()` for type-safe detection
+- ✅ Register types in `MoqKnownSymbols` using `TypeProvider.GetOrCreateTypeByMetadataName()`
+- ❌ Avoid string-based method name matching (fragile, not refactoring-safe)
+
+**Generic Type Handling:**
+- Use backtick notation for generic arity: `"Moq.Language.IRaise\`1"` for `IRaise<T>`
+- Collect method overloads: `GetMembers("MethodName").OfType<IMethodSymbol>().ToImmutableArray()`
+
+**Moq Fluent API Chain Pattern:**
+- Moq methods return different interfaces at different chain positions
+- Example: `Setup()` → `ISetup<T>` → `.Raises()` → `IRaise<T>` → `.Returns()` → `IReturns<T>`
+- **Register ALL interfaces in the chain**, not just endpoint types
+
+### Diagnostic Investigation Pattern
+
+When tests fail after removing string-based detection:
+1. Create temporary diagnostic test using `SemanticModel.GetSymbolInfo()`
+2. Capture actual symbol type at runtime
+3. Compare against `MoqKnownSymbols` registry to find missing entries
+4. Delete temporary test after fixing root cause
+
+### Context Preservation
+
+Use appropriate analysis contexts to maintain compilation access:
+- `SyntaxNodeAnalysisContext` - For syntax tree analysis with semantic model
+- `SemanticModelAnalysisContext` - For semantic analysis
+- `SyntaxTreeAnalysisContext` - For whole-file analysis
 
 ---
 
