@@ -1,5 +1,5 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="Polyfill" Version="9.0.3" />
+    <PackageVersion Include="Polyfill" Version="9.1.0" />
   </ItemGroup>
 </Project>
