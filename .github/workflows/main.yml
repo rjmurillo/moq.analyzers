@@ -49,7 +49,7 @@ jobs:
       FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }} # This is also used in PerfCore.ps1 to determine if the baseline should be forced
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -152,7 +152,7 @@ jobs:
 
     # The machine is not guaranteed to have the .NET SDK installed from the baseline SHA, so we need to install it
     - name: Checkout baseline
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ steps.get-baseline-sha.outputs.sha }}
         fetch-depth: 0
@@ -163,7 +163,7 @@ jobs:
         global-json-file: ./global.json
 
     - name: Restore checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
