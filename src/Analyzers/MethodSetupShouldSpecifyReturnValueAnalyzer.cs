@@ -20,10 +20,11 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: Description);
+        description: Description,
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.MethodSetupShouldSpecifyReturnValue}.md");
 
     /// <inheritdoc />
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
@@ -35,7 +36,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeInvocation(OperationAnalysisContext context)
     {
-        if (!TryGetSetupInvocation(context, out IInvocationOperation? setupInvocation, out _))
+        if (!TryGetSetupInvocation(context, out IInvocationOperation? setupInvocation))
         {
             return;
         }
@@ -56,11 +57,9 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     private static bool TryGetSetupInvocation(
         OperationAnalysisContext context,
-        out IInvocationOperation setupInvocation,
-        out MoqKnownSymbols knownSymbols)
+        out IInvocationOperation setupInvocation)
     {
         setupInvocation = null!;
-        knownSymbols = null!;
 
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
@@ -73,7 +72,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        knownSymbols = new MoqKnownSymbols(semanticModel.Compilation);
+        MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
 
         if (!targetMethod.IsMoqSetupMethod(knownSymbols))
@@ -168,15 +167,25 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool HasReturnValueSymbol(SymbolInfo symbolInfo) =>
-        symbolInfo.CandidateReason switch
+    private static bool HasReturnValueSymbol(SymbolInfo symbolInfo)
+    {
+        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
         {
-            CandidateReason.OverloadResolutionFailure =>
-                symbolInfo.CandidateSymbols.Any(s => s is IMethodSymbol m && IsReturnValueMethod(m.Name)),
-            CandidateReason.None =>
-                symbolInfo.Symbol is IMethodSymbol method && IsReturnValueMethod(method.Name),
-            _ => false,
-        };
+            foreach (ISymbol candidate in symbolInfo.CandidateSymbols)
+            {
+                if (candidate is IMethodSymbol method && IsReturnValueMethod(method.Name))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return symbolInfo.CandidateReason == CandidateReason.None
+            && symbolInfo.Symbol is IMethodSymbol resolved
+            && IsReturnValueMethod(resolved.Name);
+    }
 
     private static bool IsReturnValueMethod(string methodName) =>
         methodName switch
