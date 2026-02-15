@@ -139,21 +139,21 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeMethodSetupReturnValue(string referenceAssemblyGroup, string @namespace, string mock)
     {
-        await VerifyMock(referenceAssemblyGroup, @namespace, mock);
+        await VerifyMockAsync(referenceAssemblyGroup, @namespace, mock);
     }
 
     [Theory]
     [MemberData(nameof(Issue849_FalsePositiveTestData))]
     public async Task ShouldNotFlagSetupWithReturnsAsyncOrCallbackChaining(string referenceAssemblyGroup, string @namespace, string mock)
     {
-        await VerifyMock(referenceAssemblyGroup, @namespace, mock);
+        await VerifyMockAsync(referenceAssemblyGroup, @namespace, mock);
     }
 
     [Theory]
     [MemberData(nameof(CallbackOnlyNewMoqTestData))]
     public async Task ShouldFlagCallbackOnlySetupOnNewMoq(string referenceAssemblyGroup, string @namespace, string mock)
     {
-        await VerifyMock(referenceAssemblyGroup, @namespace, mock);
+        await VerifyMockAsync(referenceAssemblyGroup, @namespace, mock);
     }
 
     [Theory]
@@ -169,14 +169,14 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
     [MemberData(nameof(OverloadResolutionFailureTestData))]
     public async Task ShouldRecognizeReturnValueMethodFromCandidateSymbols(string referenceAssemblyGroup, string @namespace, string mock)
     {
-        await VerifyMockIgnoringCompilerErrors(referenceAssemblyGroup, @namespace, mock);
+        await VerifyMockIgnoringCompilerErrorsAsync(referenceAssemblyGroup, @namespace, mock);
     }
 
     [Theory]
     [MemberData(nameof(OverloadResolutionFailureWithDiagnosticTestData))]
     public async Task ShouldFlagSetupWhenOnlyNonReturnValueCandidatesExist(string referenceAssemblyGroup, string @namespace, string mock)
     {
-        await VerifyMockIgnoringCompilerErrors(referenceAssemblyGroup, @namespace, mock);
+        await VerifyMockIgnoringCompilerErrorsAsync(referenceAssemblyGroup, @namespace, mock);
     }
 
     private static string BuildSource(string @namespace, string mock)
@@ -205,7 +205,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             """;
     }
 
-    private async Task VerifyMock(string referenceAssemblyGroup, string @namespace, string mock)
+    private async Task VerifyMockAsync(string referenceAssemblyGroup, string @namespace, string mock)
     {
         string source = BuildSource(@namespace, mock);
         output.WriteLine(source);
@@ -215,7 +215,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             referenceAssemblyGroup).ConfigureAwait(false);
     }
 
-    private async Task VerifyMockIgnoringCompilerErrors(string referenceAssemblyGroup, string @namespace, string mock)
+    private async Task VerifyMockIgnoringCompilerErrorsAsync(string referenceAssemblyGroup, string @namespace, string mock)
     {
         string source = BuildSource(@namespace, mock);
         output.WriteLine(source);
