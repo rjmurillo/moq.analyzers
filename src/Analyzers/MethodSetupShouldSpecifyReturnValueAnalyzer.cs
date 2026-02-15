@@ -133,8 +133,8 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Checks if the setup invocation is followed by a Returns() or Throws() call.
-    /// This uses semantic analysis to verify the method being called.
+    /// Checks if the setup invocation is followed by a return value specification
+    /// anywhere in the method chain (e.g., .Setup().Callback().Returns()).
     /// </summary>
     private static bool HasReturnValueSpecification(IInvocationOperation setupInvocation)
     {
@@ -146,17 +146,30 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        // Check if the setup call is the target of a member access (method chaining)
-        if (setupSyntax.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax memberAccess)
+        SyntaxNode? current = setupSyntax;
+        while (current?.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax memberAccess)
         {
-            // Get the symbol information for the method being accessed
             SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
 
-            // Check if it's a method call and if the method name is Returns or Throws
-            return symbolInfo.Symbol is IMethodSymbol method &&
-                   (string.Equals(method.Name, "Returns", StringComparison.Ordinal) || string.Equals(method.Name, "Throws", StringComparison.Ordinal));
+            if (symbolInfo.Symbol is IMethodSymbol method && IsReturnValueMethod(method.Name))
+            {
+                return true;
+            }
+
+            // Walk up to the containing invocation to check the next chained call
+            current = memberAccess.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax parentInvocation
+                ? parentInvocation
+                : null;
         }
 
         return false;
+    }
+
+    private static bool IsReturnValueMethod(string methodName)
+    {
+        return string.Equals(methodName, "Returns", StringComparison.Ordinal)
+            || string.Equals(methodName, "ReturnsAsync", StringComparison.Ordinal)
+            || string.Equals(methodName, "Throws", StringComparison.Ordinal)
+            || string.Equals(methodName, "ThrowsAsync", StringComparison.Ordinal);
     }
 }

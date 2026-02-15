@@ -55,6 +55,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
     {
         IEnumerable<object[]> data =
         [
+
             // ReturnsAsync should be recognized as a return value specification
             ["""new Mock<IFoo>().Setup(x => x.BarAsync()).ReturnsAsync(1);"""],
 
