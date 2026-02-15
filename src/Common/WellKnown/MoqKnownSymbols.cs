@@ -185,6 +185,31 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> IReturns2Returns => IReturns2?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the interface <c>Moq.Language.IThrows</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IThrows => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IThrows");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IThrows.Throws</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IThrowsThrows => IThrows?.GetMembers("Throws").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the class <c>Moq.ReturnsExtensions</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ReturnsExtensions => TypeProvider.GetOrCreateTypeByMetadataName("Moq.ReturnsExtensions");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.ReturnsExtensions.ReturnsAsync</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ReturnsExtensionsReturnsAsync => ReturnsExtensions?.GetMembers("ReturnsAsync").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.ReturnsExtensions.ThrowsAsync</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ReturnsExtensionsThrowsAsync => ReturnsExtensions?.GetMembers("ThrowsAsync").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the methods for <c>Moq.Language.ICallback.Callback</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> ICallbackCallback => ICallback?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
