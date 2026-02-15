@@ -195,7 +195,7 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> IThrowsThrows => IThrows?.GetMembers("Throws").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
-    /// Gets the class <c>Moq.ReturnsExtensions</c> (contains ReturnsAsync and ThrowsAsync extension methods).
+    /// Gets the class <c>Moq.ReturnsExtensions</c>.
     /// </summary>
     internal INamedTypeSymbol? ReturnsExtensions => TypeProvider.GetOrCreateTypeByMetadataName("Moq.ReturnsExtensions");
 

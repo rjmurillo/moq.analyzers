@@ -67,6 +67,9 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             // ThrowsAsync recognized as a return value specification
             ["""new Mock<IFoo>().Setup(x => x.BarAsync()).ThrowsAsync(new InvalidOperationException());"""],
 
+            // Throws on async method should also be recognized
+            ["""new Mock<IFoo>().Setup(x => x.BarAsync()).Throws<InvalidOperationException>();"""],
+
             // Callback before Returns should not cause false positive
             ["""new Mock<IFoo>().Setup(x => x.BarAsync()).Callback(() => { }).Returns(Task.FromResult(1));"""],
 
@@ -79,14 +82,19 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             // Callback before Returns on sync method should not cause false positive
             ["""new Mock<IFoo>().Setup(x => x.DoSomething("test")).Callback(() => { }).Returns(true);"""],
 
-            // Callback before Throws should not cause false positive
+            // Callback before Throws (generic form) should not cause false positive
             ["""new Mock<IFoo>().Setup(x => x.DoSomething("test")).Callback(() => { }).Throws<InvalidOperationException>();"""],
+
+            // Callback before Throws (instance form) should not cause false positive
+            ["""new Mock<IFoo>().Setup(x => x.DoSomething("test")).Callback(() => { }).Throws(new InvalidOperationException());"""],
         ];
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
-    // Callback-only tests require newer Moq (4.18.4+) API shapes.
+    // Callback-only tests require newer Moq (4.18.4+) because older versions lack
+    // the generic ICallback<TMock, TResult> interface that enables Callback on
+    // non-void setups.
     public static IEnumerable<object[]> CallbackOnlyNewMoqTestData()
     {
         IEnumerable<object[]> data =
@@ -171,9 +179,9 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         await VerifyMockIgnoringCompilerErrors(referenceAssemblyGroup, @namespace, mock);
     }
 
-    private async Task VerifyMock(string referenceAssemblyGroup, string @namespace, string mock)
+    private static string BuildSource(string @namespace, string mock)
     {
-        string source = $$"""
+        return $$"""
             {{@namespace}}
 
             public interface IFoo
@@ -195,7 +203,11 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
                 }
             }
             """;
+    }
 
+    private async Task VerifyMock(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        string source = BuildSource(@namespace, mock);
         output.WriteLine(source);
 
         await Verifier.VerifyAnalyzerAsync(
@@ -205,29 +217,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
 
     private async Task VerifyMockIgnoringCompilerErrors(string referenceAssemblyGroup, string @namespace, string mock)
     {
-        string source = $$"""
-            {{@namespace}}
-
-            public interface IFoo
-            {
-                bool DoSomething(string value);
-                int GetValue();
-                int Calculate(int a, int b);
-                Task<int> BarAsync();
-                void DoVoidMethod();
-                void ProcessData(string data);
-                string Name { get; set; }
-            }
-
-            internal class UnitTest
-            {
-                private void Test()
-                {
-                    {{mock}}
-                }
-            }
-            """;
-
+        string source = BuildSource(@namespace, mock);
         output.WriteLine(source);
 
         await Verifier.VerifyAnalyzerAsync(

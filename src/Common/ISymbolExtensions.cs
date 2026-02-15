@@ -187,10 +187,9 @@ internal static class ISymbolExtensions
     /// </summary>
     /// <param name="symbol">The symbol to check.</param>
     /// <param name="knownSymbols">The known symbols for type checking.</param>
-    /// <returns>True if the symbol is a Returns method from Moq.Language.IReturns; otherwise false.</returns>
+    /// <returns>True if the symbol is a Returns method from any Moq.Language.IReturns interface; otherwise false.</returns>
     internal static bool IsMoqReturnsMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        // Check if this method symbol matches any of the known Returns methods
         return symbol.IsInstanceOf(knownSymbols.IReturnsReturns) ||
                symbol.IsInstanceOf(knownSymbols.IReturns1Returns) ||
                symbol.IsInstanceOf(knownSymbols.IReturns2Returns);
@@ -252,7 +251,6 @@ internal static class ISymbolExtensions
     /// <returns>True if the symbol is a Callback method from Moq.Language.ICallback; otherwise false.</returns>
     internal static bool IsMoqCallbackMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        // Check if this method symbol matches any of the known Callback methods
         return symbol.IsInstanceOf(knownSymbols.ICallbackCallback) ||
                symbol.IsInstanceOf(knownSymbols.ICallback1Callback) ||
                symbol.IsInstanceOf(knownSymbols.ICallback2Callback);

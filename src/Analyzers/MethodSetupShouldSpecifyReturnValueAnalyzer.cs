@@ -137,7 +137,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
     /// Checks if the setup invocation is followed by a return value specification
     /// anywhere in the method chain (e.g., .Setup().Callback().Returns()).
     /// Uses semantic analysis to resolve method symbols, including candidate symbols
-    /// when overload resolution fails (common with Moq extension methods).
+    /// when overload resolution fails.
     /// </summary>
     private static bool HasReturnValueSpecification(
         IInvocationOperation setupInvocation,
@@ -170,23 +170,20 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
+    /// <summary>
+    /// Determines whether the given <see cref="SymbolInfo"/> resolves to a Moq return value
+    /// specification method. Checks the resolved symbol first, then falls back to scanning
+    /// candidate symbols when Roslyn cannot complete overload resolution.
+    /// </summary>
     private static bool HasReturnValueSymbol(SymbolInfo symbolInfo, MoqKnownSymbols knownSymbols)
     {
-        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
+        if (symbolInfo.Symbol is IMethodSymbol resolved)
         {
-            foreach (ISymbol candidate in symbolInfo.CandidateSymbols)
-            {
-                if (candidate is IMethodSymbol method && method.IsMoqReturnValueSpecificationMethod(knownSymbols))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return resolved.IsMoqReturnValueSpecificationMethod(knownSymbols);
         }
 
-        return symbolInfo.CandidateReason == CandidateReason.None
-            && symbolInfo.Symbol is IMethodSymbol resolved
-            && resolved.IsMoqReturnValueSpecificationMethod(knownSymbols);
+        return symbolInfo.CandidateSymbols
+            .OfType<IMethodSymbol>()
+            .Any(method => method.IsMoqReturnValueSpecificationMethod(knownSymbols));
     }
 }
