@@ -28,4 +28,19 @@ internal static class AnalyzerVerifier<TAnalyzer>
 
         await test.RunAsync().ConfigureAwait(false);
     }
+
+    public static async Task VerifyAnalyzerAsync(string source, string referenceAssemblyGroup, CompilerDiagnostics compilerDiagnostics)
+    {
+        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[referenceAssemblyGroup];
+
+        Test<TAnalyzer, EmptyCodeFixProvider> test = new Test<TAnalyzer, EmptyCodeFixProvider>
+        {
+            TestCode = source,
+            FixedCode = source,
+            ReferenceAssemblies = referenceAssemblies,
+            CompilerDiagnostics = compilerDiagnostics,
+        };
+
+        await test.RunAsync().ConfigureAwait(false);
+    }
 }

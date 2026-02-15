@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.Testing;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.MethodSetupShouldSpecifyReturnValueAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -98,6 +99,34 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         return data.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
     }
 
+    // Deliberately uses wrong argument types so Roslyn reports OverloadResolutionFailure.
+    // The analyzer should still recognize the return value method via candidate symbols.
+    public static IEnumerable<object[]> OverloadResolutionFailureTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // Mismatched argument type forces Roslyn to report candidates instead of a resolved symbol
+            ["""new Mock<IFoo>().Setup(x => x.GetValue()).Returns("wrong type");"""],
+        ];
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    // Deliberately uses wrong argument types on a non-return-value method.
+    // No return value specification follows, so Moq1203 should still fire.
+    public static IEnumerable<object[]> OverloadResolutionFailureWithDiagnosticTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // Mismatched argument type on Callback, with no return value specification
+            ["""{|Moq1203:new Mock<IFoo>().Setup(x => x.GetValue())|}.Callback("wrong type");"""],
+        ];
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeMethodSetupReturnValue(string referenceAssemblyGroup, string @namespace, string mock)
@@ -126,6 +155,20 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Theory]
+    [MemberData(nameof(OverloadResolutionFailureTestData))]
+    public async Task ShouldRecognizeReturnValueMethodFromCandidateSymbols(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await VerifyMockIgnoringCompilerErrors(referenceAssemblyGroup, @namespace, mock);
+    }
+
+    [Theory]
+    [MemberData(nameof(OverloadResolutionFailureWithDiagnosticTestData))]
+    public async Task ShouldFlagSetupWhenOnlyNonReturnValueCandidatesExist(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await VerifyMockIgnoringCompilerErrors(referenceAssemblyGroup, @namespace, mock);
     }
 
     private async Task VerifyMock(string referenceAssemblyGroup, string @namespace, string mock)
@@ -158,5 +201,38 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         await Verifier.VerifyAnalyzerAsync(
             source,
             referenceAssemblyGroup).ConfigureAwait(false);
+    }
+
+    private async Task VerifyMockIgnoringCompilerErrors(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        string source = $$"""
+            {{@namespace}}
+
+            public interface IFoo
+            {
+                bool DoSomething(string value);
+                int GetValue();
+                int Calculate(int a, int b);
+                Task<int> BarAsync();
+                void DoVoidMethod();
+                void ProcessData(string data);
+                string Name { get; set; }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    {{mock}}
+                }
+            }
+            """;
+
+        output.WriteLine(source);
+
+        await Verifier.VerifyAnalyzerAsync(
+            source,
+            referenceAssemblyGroup,
+            CompilerDiagnostics.None).ConfigureAwait(false);
     }
 }
