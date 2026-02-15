@@ -35,7 +35,15 @@ internal static class ISymbolExtensions
 
         if (symbol is IMethodSymbol method)
         {
-            return symbolEqualityComparer.Equals(method.OriginalDefinition, other);
+            if (symbolEqualityComparer.Equals(method.OriginalDefinition, other))
+            {
+                return true;
+            }
+
+            // Reduced extension methods have a different OriginalDefinition than
+            // the static method on the containing type. Check the unreduced form.
+            return method.ReducedFrom != null
+                && symbolEqualityComparer.Equals(method.ReducedFrom.OriginalDefinition, other);
         }
 
         if (symbol is IParameterSymbol parameter && other is IParameterSymbol otherParameter)
@@ -186,6 +194,54 @@ internal static class ISymbolExtensions
         return symbol.IsInstanceOf(knownSymbols.IReturnsReturns) ||
                symbol.IsInstanceOf(knownSymbols.IReturns1Returns) ||
                symbol.IsInstanceOf(knownSymbols.IReturns2Returns);
+    }
+
+    /// <summary>
+    /// Determines whether a symbol is a Moq Throws method.
+    /// </summary>
+    /// <param name="symbol">The symbol to check.</param>
+    /// <param name="knownSymbols">The known symbols for type checking.</param>
+    /// <returns>True if the symbol is a Throws method from Moq.Language.IThrows; otherwise false.</returns>
+    internal static bool IsMoqThrowsMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        return symbol.IsInstanceOf(knownSymbols.IThrowsThrows);
+    }
+
+    /// <summary>
+    /// Determines whether a symbol is a Moq ReturnsAsync extension method.
+    /// </summary>
+    /// <param name="symbol">The symbol to check.</param>
+    /// <param name="knownSymbols">The known symbols for type checking.</param>
+    /// <returns>True if the symbol is a ReturnsAsync method from Moq.ReturnsExtensions; otherwise false.</returns>
+    internal static bool IsMoqReturnsAsyncMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        return symbol.IsInstanceOf(knownSymbols.ReturnsExtensionsReturnsAsync);
+    }
+
+    /// <summary>
+    /// Determines whether a symbol is a Moq ThrowsAsync extension method.
+    /// </summary>
+    /// <param name="symbol">The symbol to check.</param>
+    /// <param name="knownSymbols">The known symbols for type checking.</param>
+    /// <returns>True if the symbol is a ThrowsAsync method from Moq.ReturnsExtensions; otherwise false.</returns>
+    internal static bool IsMoqThrowsAsyncMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        return symbol.IsInstanceOf(knownSymbols.ReturnsExtensionsThrowsAsync);
+    }
+
+    /// <summary>
+    /// Determines whether a symbol is any Moq method that specifies a return value
+    /// (Returns, ReturnsAsync, Throws, or ThrowsAsync).
+    /// </summary>
+    /// <param name="symbol">The symbol to check.</param>
+    /// <param name="knownSymbols">The known symbols for type checking.</param>
+    /// <returns>True if the symbol is a return value specification method; otherwise false.</returns>
+    internal static bool IsMoqReturnValueSpecificationMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    {
+        return symbol.IsMoqReturnsMethod(knownSymbols) ||
+               symbol.IsMoqThrowsMethod(knownSymbols) ||
+               symbol.IsMoqReturnsAsyncMethod(knownSymbols) ||
+               symbol.IsMoqThrowsAsyncMethod(knownSymbols);
     }
 
     /// <summary>

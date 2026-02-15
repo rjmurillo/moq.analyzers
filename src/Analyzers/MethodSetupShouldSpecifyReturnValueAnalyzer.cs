@@ -36,7 +36,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeInvocation(OperationAnalysisContext context)
     {
-        if (!TryGetSetupInvocation(context, out IInvocationOperation? setupInvocation))
+        if (!TryGetSetupInvocation(context, out IInvocationOperation? setupInvocation, out MoqKnownSymbols? knownSymbols))
         {
             return;
         }
@@ -46,7 +46,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (HasReturnValueSpecification(setupInvocation, context.CancellationToken))
+        if (HasReturnValueSpecification(setupInvocation, knownSymbols, context.CancellationToken))
         {
             return;
         }
@@ -57,9 +57,11 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     private static bool TryGetSetupInvocation(
         OperationAnalysisContext context,
-        out IInvocationOperation setupInvocation)
+        out IInvocationOperation setupInvocation,
+        out MoqKnownSymbols knownSymbols)
     {
         setupInvocation = null!;
+        knownSymbols = null!;
 
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
@@ -72,7 +74,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
+        knownSymbols = new MoqKnownSymbols(semanticModel.Compilation);
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
 
         if (!targetMethod.IsMoqSetupMethod(knownSymbols))
@@ -139,6 +141,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static bool HasReturnValueSpecification(
         IInvocationOperation setupInvocation,
+        MoqKnownSymbols knownSymbols,
         CancellationToken cancellationToken)
     {
         SyntaxNode setupSyntax = setupInvocation.Syntax;
@@ -156,7 +159,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
             SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
 
-            if (HasReturnValueSymbol(symbolInfo))
+            if (HasReturnValueSymbol(symbolInfo, knownSymbols))
             {
                 return true;
             }
@@ -167,13 +170,13 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool HasReturnValueSymbol(SymbolInfo symbolInfo)
+    private static bool HasReturnValueSymbol(SymbolInfo symbolInfo, MoqKnownSymbols knownSymbols)
     {
         if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
         {
             foreach (ISymbol candidate in symbolInfo.CandidateSymbols)
             {
-                if (candidate is IMethodSymbol method && IsReturnValueMethod(method.Name))
+                if (candidate is IMethodSymbol method && method.IsMoqReturnValueSpecificationMethod(knownSymbols))
                 {
                     return true;
                 }
@@ -184,13 +187,6 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
         return symbolInfo.CandidateReason == CandidateReason.None
             && symbolInfo.Symbol is IMethodSymbol resolved
-            && IsReturnValueMethod(resolved.Name);
+            && resolved.IsMoqReturnValueSpecificationMethod(knownSymbols);
     }
-
-    private static bool IsReturnValueMethod(string methodName) =>
-        methodName switch
-        {
-            "Returns" or "ReturnsAsync" or "Throws" or "ThrowsAsync" => true,
-            _ => false,
-        };
 }
