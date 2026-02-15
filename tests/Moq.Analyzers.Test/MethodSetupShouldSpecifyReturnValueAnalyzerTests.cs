@@ -50,6 +50,30 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         return both.Union(edge).WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    // Regression test data for https://github.com/rjmurillo/moq.analyzers/issues/849
+    public static IEnumerable<object[]> Issue849_FalsePositiveTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+            // ReturnsAsync should be recognized as a return value specification
+            ["""new Mock<IFoo>().Setup(x => x.BarAsync()).ReturnsAsync(1);"""],
+
+            // Callback before Returns should not prevent detection
+            ["""new Mock<IFoo>().Setup(x => x.BarAsync()).Callback(() => { }).Returns(Task.FromResult(1));"""],
+
+            // Callback before ReturnsAsync should not prevent detection
+            ["""new Mock<IFoo>().Setup(x => x.BarAsync()).Callback(() => { }).ReturnsAsync(1);"""],
+
+            // Callback before Returns on sync method should not prevent detection
+            ["""new Mock<IFoo>().Setup(x => x.DoSomething("test")).Callback(() => { }).Returns(true);"""],
+
+            // Callback before Throws should not prevent detection
+            ["""new Mock<IFoo>().Setup(x => x.DoSomething("test")).Callback(() => { }).Throws<InvalidOperationException>();"""],
+        ];
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeMethodSetupReturnValue(string referenceAssemblyGroup, string @namespace, string mock)
@@ -62,6 +86,40 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
                 bool DoSomething(string value);
                 int GetValue();
                 int Calculate(int a, int b);
+                void DoVoidMethod();
+                void ProcessData(string data);
+                string Name { get; set; }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    {{mock}}
+                }
+            }
+            """;
+
+        output.WriteLine(source);
+
+        await Verifier.VerifyAnalyzerAsync(
+            source,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(Issue849_FalsePositiveTestData))]
+    public async Task ShouldNotFlagSetupWithReturnsAsyncOrCallbackChaining(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        string source = $$"""
+            {{@namespace}}
+
+            public interface IFoo
+            {
+                bool DoSomething(string value);
+                int GetValue();
+                int Calculate(int a, int b);
+                Task<int> BarAsync();
                 void DoVoidMethod();
                 void ProcessData(string data);
                 string Name { get; set; }
