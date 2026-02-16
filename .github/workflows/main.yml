@@ -256,11 +256,12 @@ jobs:
         path: ./artifacts
         if-no-files-found: error
 
-  # Verify the shipped nupkg loads without CS8032 on every supported SDK and TFM.
+  # Verify the shipped nupkg loads without CS8032 on every supported host.
   # This is the end-to-end integration test for issue #850.
-  # The analyzer targets netstandard2.0 so it must load for both .NET and
-  # .NET Framework projects. The compiler host is the .NET SDK regardless of
-  # the target TFM, but we test all TFMs to catch packaging issues too.
+  #
+  # The analyzer targets netstandard2.0 because it must load in two hosts:
+  #   1. dotnet CLI  - csc runs on .NET (8/9/10), tested on Linux ARM
+  #   2. msbuild.exe - csc runs on .NET Framework (VS), tested on Windows x64
   analyzer-load-test:
     needs: build
     runs-on: ${{ matrix.runs-on }}
@@ -268,32 +269,42 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # .NET (modern) TFMs on ARM runners
+          # dotnet CLI compiler host (modern .NET runtime)
           - dotnet-version: '8.0.x'
             tfm: net8.0
             runs-on: ubuntu-24.04-arm
+            build-engine: dotnet
           - dotnet-version: '9.0.x'
             tfm: net9.0
             runs-on: ubuntu-24.04-arm
+            build-engine: dotnet
           - dotnet-version: '10.0.x'
             tfm: net10.0
             runs-on: ubuntu-24.04-arm
-          # .NET Framework TFMs require x64 runners
+            build-engine: dotnet
+          # MSBuild/.NET Framework compiler host (Visual Studio)
           - dotnet-version: '8.0.x'
             tfm: net472
-            runs-on: ubuntu-24.04
+            runs-on: windows-latest
+            build-engine: msbuild
           - dotnet-version: '8.0.x'
             tfm: net48
-            runs-on: ubuntu-24.04
+            runs-on: windows-latest
+            build-engine: msbuild
           - dotnet-version: '8.0.x'
             tfm: net481
-            runs-on: ubuntu-24.04
+            runs-on: windows-latest
+            build-engine: msbuild
 
     steps:
     - name: Setup .NET ${{ matrix.dotnet-version }}
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
+
+    - name: Setup MSBuild
+      if: matrix.build-engine == 'msbuild'
+      uses: microsoft/setup-msbuild@v2
 
     - name: Download nupkg artifact
       uses: actions/download-artifact@v7
@@ -308,7 +319,7 @@ jobs:
         PKG=$(find ./local-feed -name 'Moq.Analyzers.*.nupkg' ! -name '*.symbols.*' | head -1)
         VERSION=$(basename "$PKG" | sed 's/Moq\.Analyzers\.\(.*\)\.nupkg/\1/')
         FEED_DIR=$(cd "$(dirname "$PKG")" && pwd)
-        echo "Testing Moq.Analyzers $VERSION on .NET ${{ matrix.dotnet-version }} (${{ matrix.tfm }})"
+        echo "Testing Moq.Analyzers $VERSION with ${{ matrix.build-engine }} / ${{ matrix.tfm }}"
 
         mkdir test-project && cd test-project
 
@@ -326,7 +337,7 @@ jobs:
 
         # Minimal project referencing the analyzer nupkg.
         # Microsoft.NETFramework.ReferenceAssemblies provides targeting packs
-        # for .NET Framework TFMs on Linux (no-op for .NET Core TFMs).
+        # for .NET Framework TFMs (no-op for modern .NET TFMs).
         cat > TestAnalyzerLoad.csproj <<EOF
         <Project Sdk="Microsoft.NET.Sdk">
           <PropertyGroup>
@@ -347,9 +358,13 @@ jobs:
         public class Placeholder { }
         EOF
 
-        # Build with normal verbosity so analyzer warnings are visible
+        # Build with the appropriate compiler host
         set +e
-        BUILD_OUTPUT=$(dotnet build -v n 2>&1)
+        if [ "${{ matrix.build-engine }}" = "msbuild" ]; then
+          BUILD_OUTPUT=$(msbuild TestAnalyzerLoad.csproj -restore -p:Configuration=Release -v:n 2>&1)
+        else
+          BUILD_OUTPUT=$(dotnet build -v n 2>&1)
+        fi
         BUILD_EXIT=$?
         set -e
 
@@ -357,21 +372,21 @@ jobs:
 
         if echo "$BUILD_OUTPUT" | grep -q "CS8032"; then
           echo ""
-          echo "::error::CS8032: analyzer failed to load on .NET ${{ matrix.dotnet-version }} (${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
+          echo "::error::CS8032: analyzer failed to load (${{ matrix.build-engine }} / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
           exit 1
         fi
 
         if echo "$BUILD_OUTPUT" | grep -qi "could not load file or assembly"; then
           echo ""
-          echo "::error::Assembly binding failure on .NET ${{ matrix.dotnet-version }} (${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
+          echo "::error::Assembly binding failure (${{ matrix.build-engine }} / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
           exit 1
         fi
 
         if [ "$BUILD_EXIT" -ne 0 ]; then
           echo ""
-          echo "::error::Build failed with exit code $BUILD_EXIT on .NET ${{ matrix.dotnet-version }}. See build output above for details."
+          echo "::error::Build failed with exit code $BUILD_EXIT (${{ matrix.build-engine }} / ${{ matrix.tfm }}). See build output above."
           exit 1
         fi
 
         echo ""
-        echo "Analyzer loaded successfully on .NET ${{ matrix.dotnet-version }} (${{ matrix.tfm }})"
+        echo "Analyzer loaded successfully (${{ matrix.build-engine }} / ${{ matrix.tfm }})"
