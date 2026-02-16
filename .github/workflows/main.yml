@@ -255,3 +255,94 @@ jobs:
         name: artifacts-${{ matrix.os }}
         path: ./artifacts
         if-no-files-found: error
+
+  # Verify the shipped nupkg loads without CS8032 on every supported SDK.
+  # This is the end-to-end integration test for issue #850.
+  analyzer-load-test:
+    needs: build
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dotnet-version: '8.0.x'
+            tfm: net8.0
+          - dotnet-version: '9.0.x'
+            tfm: net9.0
+
+    steps:
+    - name: Setup .NET ${{ matrix.dotnet-version }}
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: ${{ matrix.dotnet-version }}
+
+    - name: Download nupkg artifact
+      uses: actions/download-artifact@v7
+      with:
+        name: packages-ubuntu-24.04-arm
+        path: ./local-feed
+
+    - name: Build test project and verify analyzer loads
+      shell: bash
+      run: |
+        # Find the nupkg and extract its version
+        PKG=$(find ./local-feed -name 'Moq.Analyzers.*.nupkg' ! -name '*.symbols.*' | head -1)
+        VERSION=$(basename "$PKG" | sed 's/Moq\.Analyzers\.\(.*\)\.nupkg/\1/')
+        FEED_DIR=$(cd "$(dirname "$PKG")" && pwd)
+        echo "Testing Moq.Analyzers $VERSION on .NET ${{ matrix.dotnet-version }} (${{ matrix.tfm }})"
+
+        mkdir test-project && cd test-project
+
+        # Point NuGet at the local feed + nuget.org for framework deps
+        cat > nuget.config <<EOF
+        <?xml version="1.0" encoding="utf-8"?>
+        <configuration>
+          <packageSources>
+            <clear />
+            <add key="local" value="$FEED_DIR" />
+            <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+          </packageSources>
+        </configuration>
+        EOF
+
+        # Minimal project referencing the analyzer nupkg
+        cat > TestAnalyzerLoad.csproj <<EOF
+        <Project Sdk="Microsoft.NET.Sdk">
+          <PropertyGroup>
+            <OutputType>Library</OutputType>
+            <TargetFramework>${{ matrix.tfm }}</TargetFramework>
+          </PropertyGroup>
+          <ItemGroup>
+            <PackageReference Include="Moq.Analyzers" Version="$VERSION" />
+          </ItemGroup>
+        </Project>
+        EOF
+
+        # Minimal source file; the compiler loads analyzers regardless of content
+        cat > Placeholder.cs <<'EOF'
+        namespace TestAnalyzerLoad;
+        public class Placeholder { }
+        EOF
+
+        # Build with normal verbosity so analyzer warnings are visible
+        set +e
+        BUILD_OUTPUT=$(dotnet build -v n 2>&1)
+        BUILD_EXIT=$?
+        set -e
+
+        echo "$BUILD_OUTPUT"
+
+        if echo "$BUILD_OUTPUT" | grep -q "CS8032"; then
+          echo ""
+          echo "::error::CS8032: analyzer failed to load on .NET ${{ matrix.dotnet-version }}. See https://github.com/rjmurillo/moq.analyzers/issues/850"
+          exit 1
+        fi
+
+        if echo "$BUILD_OUTPUT" | grep -qi "could not load file or assembly"; then
+          echo ""
+          echo "::error::Assembly binding failure on .NET ${{ matrix.dotnet-version }}. See https://github.com/rjmurillo/moq.analyzers/issues/850"
+          exit 1
+        fi
+
+        echo ""
+        echo "Analyzer loaded successfully on .NET ${{ matrix.dotnet-version }} (${{ matrix.tfm }})"
