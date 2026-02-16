@@ -14,6 +14,7 @@
   <PropertyGroup>
     <!-- Maximum assembly versions the minimum supported host (.NET 8 SDK) provides -->
     <_MaxSystemCollectionsImmutableMajor>8</_MaxSystemCollectionsImmutableMajor>
+    <_MaxSystemReflectionMetadataMajor>8</_MaxSystemReflectionMetadataMajor>
   </PropertyGroup>
 
   <Target Name="ValidateAnalyzerHostCompatibility"
@@ -21,13 +22,19 @@
           Condition="'$(GeneratePackageOnBuild)' == 'true' OR '$(MSBuildProjectName)' == 'Moq.CodeFixes'">
 
     <ItemGroup>
-      <_HostSensitiveRef Include="@(ResolvedCompileFileDefinitions)"
-                         Condition="'%(NuGetPackageId)' == 'System.Collections.Immutable'" />
+      <_SciRef Include="@(ResolvedCompileFileDefinitions)"
+               Condition="'%(NuGetPackageId)' == 'System.Collections.Immutable'" />
+      <_SrmRef Include="@(ResolvedCompileFileDefinitions)"
+               Condition="'%(NuGetPackageId)' == 'System.Reflection.Metadata'" />
     </ItemGroup>
 
-    <Error Condition="'@(_HostSensitiveRef)' != '' AND
-                      $([System.Version]::Parse('%(_HostSensitiveRef.NuGetPackageVersion)').Major) &gt; $(_MaxSystemCollectionsImmutableMajor)"
-           Text="BUILD BLOCKED: System.Collections.Immutable resolved to %(_HostSensitiveRef.NuGetPackageVersion) for shipped analyzer project '$(MSBuildProjectName)'. Maximum allowed major version is $(_MaxSystemCollectionsImmutableMajor).x. The analyzer runs in the user's compiler host which may only have version $(_MaxSystemCollectionsImmutableMajor).0.0.0. See: https://github.com/rjmurillo/moq.analyzers/issues/850" />
+    <Error Condition="'@(_SciRef)' != '' AND
+                      $([System.Version]::Parse('%(_SciRef.NuGetPackageVersion)').Major) &gt; $(_MaxSystemCollectionsImmutableMajor)"
+           Text="BUILD BLOCKED: System.Collections.Immutable resolved to %(_SciRef.NuGetPackageVersion) for shipped analyzer project '$(MSBuildProjectName)'. Maximum allowed major version is $(_MaxSystemCollectionsImmutableMajor).x. The analyzer runs in the user's compiler host which may only have version $(_MaxSystemCollectionsImmutableMajor).0.0.0. See: https://github.com/rjmurillo/moq.analyzers/issues/850" />
+
+    <Error Condition="'@(_SrmRef)' != '' AND
+                      $([System.Version]::Parse('%(_SrmRef.NuGetPackageVersion)').Major) &gt; $(_MaxSystemReflectionMetadataMajor)"
+           Text="BUILD BLOCKED: System.Reflection.Metadata resolved to %(_SrmRef.NuGetPackageVersion) for shipped analyzer project '$(MSBuildProjectName)'. Maximum allowed major version is $(_MaxSystemReflectionMetadataMajor).x. The analyzer runs in the user's compiler host which may only have version $(_MaxSystemReflectionMetadataMajor).0.0.0. See: https://github.com/rjmurillo/moq.analyzers/issues/850" />
 
   </Target>
 </Project>
