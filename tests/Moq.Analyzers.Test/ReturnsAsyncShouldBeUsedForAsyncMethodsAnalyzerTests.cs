@@ -25,6 +25,10 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzerTests(ITestOutputHel
 
             // Setup without Returns call should not be affected
             ["""new Mock<AsyncClient>().Setup(c => c.GetAsync());"""],
+
+            // Callback chained before Returns: FindSetupInvocation returns null because
+            // the expression before .Returns is Callback, not Setup
+            ["""new Mock<AsyncClient>().Setup(c => c.GetAsync()).Callback(() => { }).Returns(async () => "value");"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         // Invalid patterns that SHOULD trigger the analyzer
