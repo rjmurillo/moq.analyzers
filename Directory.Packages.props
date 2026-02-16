@@ -25,8 +25,8 @@
     <!--
       AnalyzerUtilities is bundled in the shipped analyzer nupkg.
       Version 4.14.0+ references System.Collections.Immutable 9.0.0.0,
-      which fails to load in .NET 8 SDK hosts (CS8032). Use 3.3.4 which
-      has no SCI dependency.
+      which fails to load in .NET 8 SDK hosts (CS8032). Use 3.3.4, which
+      references System.Collections.Immutable 1.2.3.0 (compatible).
       See: https://github.com/rjmurillo/moq.analyzers/issues/850
     -->
     <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.3.4" />

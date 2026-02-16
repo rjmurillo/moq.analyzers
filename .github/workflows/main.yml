@@ -320,7 +320,7 @@ jobs:
 
         if ($buildExitCode -ne 0) {
           Write-Host "::error::Build failed with exit code $buildExitCode (dotnet / ${{ matrix.tfm }})"
-          exit 1
+          exit $buildExitCode
         }
 
         if ($output -match 'CS8032') {
@@ -346,7 +346,7 @@ jobs:
 
         if ($buildExitCode -ne 0) {
           Write-Host "::error::Build failed with exit code $buildExitCode (msbuild / ${{ matrix.tfm }})"
-          exit 1
+          exit $buildExitCode
         }
 
         if ($output -match 'CS8032') {

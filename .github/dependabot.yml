@@ -29,3 +29,4 @@ updates:
       # See: https://github.com/rjmurillo/moq.analyzers/issues/850
       - dependency-name: "System.Collections.Immutable"
       - dependency-name: "System.Reflection.Metadata"
+      - dependency-name: "Microsoft.CodeAnalysis.AnalyzerUtilities"
