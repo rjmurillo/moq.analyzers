@@ -25,3 +25,7 @@ updates:
       - dependency-name: "Microsoft.CodeAnalysis.CSharp.Workspaces"
       - dependency-name: "Microsoft.CodeAnalysis.Common"
       - dependency-name: "Microsoft.CodeAnalysis.Workspaces.Common"
+      # Analyzer-shipped BCL packages must match minimum supported SDK host.
+      # See: https://github.com/rjmurillo/moq.analyzers/issues/850
+      - dependency-name: "System.Collections.Immutable"
+      - dependency-name: "System.Reflection.Metadata"

@@ -1,0 +1,33 @@
+<Project>
+  <!--
+    Analyzer Host Compatibility Validation
+
+    Analyzers run inside the user's compiler host (csc). The host provides
+    BCL assemblies at specific versions. If the analyzer was compiled against
+    a NEWER version than the host provides, assembly binding fails with CS8032.
+
+    This target enforces version ceilings on host-provided packages for all
+    shipped analyzer projects. It is a build-breaking gate.
+
+    See: https://github.com/rjmurillo/moq.analyzers/issues/850
+  -->
+  <PropertyGroup>
+    <!-- Maximum assembly versions the minimum supported host (.NET 8 SDK) provides -->
+    <_MaxSystemCollectionsImmutableMajor>8</_MaxSystemCollectionsImmutableMajor>
+  </PropertyGroup>
+
+  <Target Name="ValidateAnalyzerHostCompatibility"
+          AfterTargets="ResolvePackageAssets"
+          Condition="'$(GeneratePackageOnBuild)' == 'true' OR '$(MSBuildProjectName)' == 'Moq.CodeFixes'">
+
+    <ItemGroup>
+      <_HostSensitiveRef Include="@(ResolvedCompileFileDefinitions)"
+                         Condition="'%(NuGetPackageId)' == 'System.Collections.Immutable'" />
+    </ItemGroup>
+
+    <Error Condition="'@(_HostSensitiveRef)' != '' AND
+                      $([System.Version]::Parse('%(_HostSensitiveRef.NuGetPackageVersion)').Major) &gt; $(_MaxSystemCollectionsImmutableMajor)"
+           Text="BUILD BLOCKED: System.Collections.Immutable resolved to %(_HostSensitiveRef.NuGetPackageVersion) for shipped analyzer project '$(MSBuildProjectName)'. Maximum allowed major version is $(_MaxSystemCollectionsImmutableMajor).x. The analyzer runs in the user's compiler host which may only have version $(_MaxSystemCollectionsImmutableMajor).0.0.0. See: https://github.com/rjmurillo/moq.analyzers/issues/850" />
+
+  </Target>
+</Project>
