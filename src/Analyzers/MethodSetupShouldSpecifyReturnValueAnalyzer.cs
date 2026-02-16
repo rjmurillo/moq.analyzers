@@ -153,7 +153,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         }
 
         SyntaxNode? current = setupSyntax;
-        while (current?.Parent is MemberAccessExpressionSyntax memberAccess)
+        while (current?.GetParentSkippingParentheses() is MemberAccessExpressionSyntax memberAccess)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
