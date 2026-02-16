@@ -267,6 +267,10 @@ jobs:
         $pkg = Get-ChildItem ./local-feed -Recurse -Filter 'Moq.Analyzers.*.nupkg' |
                Where-Object { $_.Name -notlike '*.symbols.*' } |
                Select-Object -First 1
+        if (-not $pkg) {
+          Write-Error "Could not find Moq.Analyzers.*.nupkg (excluding symbols) in ./local-feed"
+          exit 1
+        }
         $version = $pkg.Name -replace '^Moq\.Analyzers\.' -replace '\.nupkg$'
         $feedDir = (Resolve-Path $pkg.DirectoryName).Path
         Write-Host "Testing Moq.Analyzers $version with ${{ matrix.build-engine }} / ${{ matrix.tfm }}"
@@ -311,7 +315,13 @@ jobs:
       working-directory: test-project
       run: |
         $output = dotnet build -v n 2>&1 | Out-String
+        $buildExitCode = $LASTEXITCODE
         Write-Host $output
+
+        if ($buildExitCode -ne 0) {
+          Write-Host "::error::Build failed with exit code $buildExitCode (dotnet / ${{ matrix.tfm }})"
+          exit 1
+        }
 
         if ($output -match 'CS8032') {
           Write-Host "::error::CS8032: analyzer failed to load (dotnet / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
@@ -331,7 +341,13 @@ jobs:
       working-directory: test-project
       run: |
         $output = msbuild TestAnalyzerLoad.csproj -restore -p:Configuration=Release -v:n 2>&1 | Out-String
+        $buildExitCode = $LASTEXITCODE
         Write-Host $output
+
+        if ($buildExitCode -ne 0) {
+          Write-Host "::error::Build failed with exit code $buildExitCode (msbuild / ${{ matrix.tfm }})"
+          exit 1
+        }
 
         if ($output -match 'CS8032') {
           Write-Host "::error::CS8032: analyzer failed to load (msbuild / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
