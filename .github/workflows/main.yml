@@ -33,18 +33,12 @@ permissions:
   actions: read
 
 jobs:
+  # Build, validate, package, and run performance benchmarks.
+  # Tests run in the separate 'test' job below.
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-11-arm, ubuntu-24.04-arm]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-24.04-arm
 
     env:
-      IS_CODACY_COVERAGE_ALLOWED: ${{ secrets.CODACY_PROJECT_TOKEN != '' }}
-      IS_QLTY_COVERAGE_ALLOWED: ${{ secrets.QLTY_COVERAGE_TOKEN != '' }}
-      IS_TARGET_MAIN: ${{ github.ref == 'refs/heads/main' }}
       RUN_FULL_PERF: ${{ (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true') }}
       FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }} # This is also used in PerfCore.ps1 to determine if the baseline should be forced
 
@@ -86,85 +80,25 @@ jobs:
         }
         if ($failed) { exit 1 }
 
-    - name: Restore Code Coverage history
-      uses: actions/download-artifact@v7
-      with:
-        name: CoverageHistory-${{ matrix.os }}
-        path: ./artifacts/TestResults/coveragehistory
-      continue-on-error: true
-
-    - name: Test
-      run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
-      env:
-        REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
-
-    - name: Upload coverage history
-      uses: actions/upload-artifact@v6
-      if: success() && env.IS_TARGET_MAIN == 'true'
-      with:
-        name: CoverageHistory-${{ matrix.os }}
-        path: ./artifacts/TestResults/coveragehistory
-
     - name: Upload binlogs
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: binlogs-${{ matrix.os }}
+        name: binlogs
         path: ./artifacts/logs
         if-no-files-found: error
-
-    - name: Upload *.received.* files
-      uses: actions/upload-artifact@v6
-      if: failure()
-      with:
-        name: verify-test-results
-        path: |
-          **/*.received.*
 
     - name: Upload SARIF files
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: SARIF files (${{ matrix.os }})
+        name: SARIF files
         path: ./artifacts/obj/**/*.sarif
-
-    - name: Upload Test Report
-      uses: actions/upload-artifact@v6
-      if: success() || failure()
-      with:
-        name: .NET Test Reports (${{ matrix.os }})
-        path: "artifacts/TestResults/**/*.trx"
-        if-no-files-found: error
-
-    - name: Upload Code Coverage Report
-      uses: actions/upload-artifact@v6
-      if: success() || failure()
-      with:
-        name: .NET Code Coverage Reports (${{ matrix.os }})
-        path: "artifacts/TestResults/coverage/**"
-
-    - name: Publish coverage summary to GitHub
-      run: cat artifacts/TestResults/coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
-      shell: bash
-
-    - name: Upload coverage data to Codacy
-      if: ${{ runner.os == 'Linux' && env.IS_CODACY_COVERAGE_ALLOWED == 'true' }}
-      uses: codacy/codacy-coverage-reporter-action@v1.3.0
-      with:
-        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        coverage-reports: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
-
-    - name: Upload coverage data to Qlty
-      if: ${{ runner.os == 'Linux' && env.IS_QLTY_COVERAGE_ALLOWED == 'true' }}
-      uses: qltysh/qlty-action/coverage@v2
-      with:
-        token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-        files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
 
     - name: Upload packages
       uses: actions/upload-artifact@v6
       with:
-        name: packages-${{ matrix.os }}
+        name: packages
         path: |
           ./artifacts/package
         if-no-files-found: error
@@ -173,7 +107,7 @@ jobs:
       id: get-baseline-sha
       run: |
         if (-not (Test-Path build/perf/baseline.json)) {
-          Write-Error "baseline.json not found – aborting performance job."
+          Write-Error "baseline.json not found - aborting performance job."
           exit 1
         }
         $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
@@ -244,7 +178,7 @@ jobs:
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: performance-${{ matrix.os }}
+        name: performance
         path: |
           ./artifacts/performance/**
 
@@ -252,9 +186,92 @@ jobs:
       uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
-        name: artifacts-${{ matrix.os }}
+        name: artifacts
         path: ./artifacts
         if-no-files-found: error
+
+  # Run unit tests on multiple platforms.
+  # Build happens independently on each runner so tests use platform-native binaries.
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04-arm, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      IS_CODACY_COVERAGE_ALLOWED: ${{ secrets.CODACY_PROJECT_TOKEN != '' }}
+      IS_QLTY_COVERAGE_ALLOWED: ${{ secrets.QLTY_COVERAGE_TOKEN != '' }}
+      IS_TARGET_MAIN: ${{ github.ref == 'refs/heads/main' }}
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Setup, Restore, and Build Solution
+      uses: ./.github/actions/setup-restore-build
+
+    - name: Restore Code Coverage history
+      uses: actions/download-artifact@v7
+      with:
+        name: CoverageHistory-${{ matrix.os }}
+        path: ./artifacts/TestResults/coveragehistory
+      continue-on-error: true
+
+    - name: Test
+      run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
+      env:
+        REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
+
+    - name: Upload coverage history
+      uses: actions/upload-artifact@v6
+      if: success() && env.IS_TARGET_MAIN == 'true'
+      with:
+        name: CoverageHistory-${{ matrix.os }}
+        path: ./artifacts/TestResults/coveragehistory
+
+    - name: Upload *.received.* files
+      uses: actions/upload-artifact@v6
+      if: failure()
+      with:
+        name: verify-test-results-${{ matrix.os }}
+        path: |
+          **/*.received.*
+
+    - name: Upload Test Report
+      uses: actions/upload-artifact@v6
+      if: success() || failure()
+      with:
+        name: .NET Test Reports (${{ matrix.os }})
+        path: "artifacts/TestResults/**/*.trx"
+        if-no-files-found: error
+
+    - name: Upload Code Coverage Report
+      uses: actions/upload-artifact@v6
+      if: success() || failure()
+      with:
+        name: .NET Code Coverage Reports (${{ matrix.os }})
+        path: "artifacts/TestResults/coverage/**"
+
+    - name: Publish coverage summary to GitHub
+      run: cat artifacts/TestResults/coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+      shell: bash
+
+    - name: Upload coverage data to Codacy
+      if: ${{ runner.os == 'Linux' && env.IS_CODACY_COVERAGE_ALLOWED == 'true' }}
+      uses: codacy/codacy-coverage-reporter-action@v1.3.0
+      with:
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        coverage-reports: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
+
+    - name: Upload coverage data to Qlty
+      if: ${{ runner.os == 'Linux' && env.IS_QLTY_COVERAGE_ALLOWED == 'true' }}
+      uses: qltysh/qlty-action/coverage@v2
+      with:
+        token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+        files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
 
   # Verify the shipped nupkg loads without CS8032 on every supported host.
   # This is the end-to-end integration test for issue #850.
@@ -282,7 +299,7 @@ jobs:
             tfm: net10.0
             runs-on: ubuntu-24.04-arm
             build-engine: dotnet
-          # MSBuild/.NET Framework compiler host — VS 2022 (GA)
+          # MSBuild/.NET Framework compiler host - VS 2022 (GA)
           - dotnet-version: '8.0.x'
             tfm: net472
             runs-on: windows-2022
@@ -295,7 +312,7 @@ jobs:
             tfm: net481
             runs-on: windows-2022
             build-engine: msbuild
-          # MSBuild/.NET Framework compiler host — VS 2026 (beta)
+          # MSBuild/.NET Framework compiler host - VS 2026 (beta)
           - dotnet-version: '8.0.x'
             tfm: net472
             runs-on: windows-2025-vs2026
@@ -322,7 +339,7 @@ jobs:
     - name: Download nupkg artifact
       uses: actions/download-artifact@v7
       with:
-        name: packages-ubuntu-24.04-arm
+        name: packages
         path: ./local-feed
 
     - name: Build test project and verify analyzer loads
