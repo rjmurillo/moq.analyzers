@@ -27,8 +27,7 @@ jobs:
         uses: actions/download-artifact@v6
         with:
           path: packages
-          pattern: packages-ubuntu-*
-          merge-multiple: true
+          name: packages
       - name: Publish NuGet package
         shell: pwsh
         run: |
