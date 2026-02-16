@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Testing;
 using Moq.Analyzers.Common.WellKnown;
+using Moq.Analyzers.Test.Helpers;
 
 namespace Moq.Analyzers.Test.Common;
 
@@ -879,23 +881,9 @@ public class C
 
     private static MetadataReference[] GetMoqReferences()
     {
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        string moqDll = Path.Combine("/tmp/test-packages/moq/4.18.4/lib/net6.0", "Moq.dll");
-        string castleDll = Path.Combine("/tmp/test-packages/Castle.Core.5.1.1/lib/net6.0", "Castle.Core.dll");
-
-        return
-        [
-            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-            MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll")),
-            MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Linq.Expressions.Expression).Assembly.Location),
-            MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Collections.dll")),
-            MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Threading.dll")),
-            MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "netstandard.dll")),
-            MetadataReference.CreateFromFile(moqDll),
-            MetadataReference.CreateFromFile(castleDll),
-        ];
+        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithNewMoq];
+        ImmutableArray<MetadataReference> resolved = referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).GetAwaiter().GetResult();
+        return [.. resolved];
     }
 
     private static IMethodSymbol GetConstructor(string code, Accessibility expectedAccessibility)
