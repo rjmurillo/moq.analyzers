@@ -135,6 +135,55 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    // Regression test data for https://github.com/rjmurillo/moq.analyzers/issues/887
+    // Tests parenthesized Setup expressions that should correctly detect return value specs.
+    public static IEnumerable<object[]> Issue887_ParenthesizedSetupTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // Parenthesized Setup with Returns should not trigger diagnostic
+            ["""(new Mock<IFoo>().Setup(x => x.GetValue())).Returns(42);"""],
+
+            // Nested parentheses with Returns should not trigger diagnostic
+            ["""((new Mock<IFoo>().Setup(x => x.GetValue()))).Returns(42);"""],
+
+            // Parenthesized Setup with Throws should not trigger diagnostic
+            ["""(new Mock<IFoo>().Setup(x => x.DoSomething("test"))).Throws<InvalidOperationException>();"""],
+
+            // Parenthesized Setup with Callback chaining should not trigger diagnostic
+            ["""(new Mock<IFoo>().Setup(x => x.GetValue())).Callback(() => { }).Returns(42);"""],
+
+            // Parentheses around intermediate chain node should not trigger diagnostic
+            ["""(new Mock<IFoo>().Setup(x => x.GetValue()).Callback(() => { })).Returns(42);"""],
+
+            // Parenthesized Setup with ReturnsAsync should not trigger diagnostic
+            ["""(new Mock<IFoo>().Setup(x => x.BarAsync())).ReturnsAsync(1);"""],
+        ];
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    // Parenthesized Setup without return value spec should still trigger Moq1203.
+    // Uses discard assignment to keep expressions valid C# while preserving parentheses.
+    public static IEnumerable<object[]> Issue887_ParenthesizedSetupWithDiagnosticTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // Parenthesized Setup WITHOUT return value spec should still trigger diagnostic
+            ["""_ = ({|Moq1203:new Mock<IFoo>().Setup(x => x.GetValue())|});"""],
+
+            // Nested parentheses WITHOUT return value spec should still trigger diagnostic
+            ["""_ = (({|Moq1203:new Mock<IFoo>().Setup(x => x.GetValue())|}));"""],
+
+            // Parenthesized async Setup WITHOUT return value spec should still trigger diagnostic
+            ["""_ = ({|Moq1203:new Mock<IFoo>().Setup(x => x.BarAsync())|});"""],
+        ];
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeMethodSetupReturnValue(string referenceAssemblyGroup, string @namespace, string mock)
@@ -152,6 +201,20 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
     [Theory]
     [MemberData(nameof(CallbackOnlyNewMoqTestData))]
     public async Task ShouldFlagCallbackOnlySetupOnNewMoq(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await VerifyMockAsync(referenceAssemblyGroup, @namespace, mock);
+    }
+
+    [Theory]
+    [MemberData(nameof(Issue887_ParenthesizedSetupTestData))]
+    public async Task ShouldHandleParenthesizedSetupExpressions(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await VerifyMockAsync(referenceAssemblyGroup, @namespace, mock);
+    }
+
+    [Theory]
+    [MemberData(nameof(Issue887_ParenthesizedSetupWithDiagnosticTestData))]
+    public async Task ShouldFlagParenthesizedSetupWithoutReturnValue(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await VerifyMockAsync(referenceAssemblyGroup, @namespace, mock);
     }
