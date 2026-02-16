@@ -67,9 +67,9 @@ jobs:
           'System.Reflection.Metadata'   = [Version]'8.0.0.0'
         }
         $shippedDlls = @(
-          'src/Analyzers/bin/Release/netstandard2.0/Moq.Analyzers.dll',
-          'src/Analyzers/bin/Release/netstandard2.0/Moq.CodeFixes.dll',
-          'src/Analyzers/bin/Release/netstandard2.0/Microsoft.CodeAnalysis.AnalyzerUtilities.dll'
+          'artifacts/bin/Moq.Analyzers/release/Moq.Analyzers.dll',
+          'artifacts/bin/Moq.Analyzers/release/Moq.CodeFixes.dll',
+          'artifacts/bin/Moq.Analyzers/release/Microsoft.CodeAnalysis.AnalyzerUtilities.dll'
         )
         $failed = $false
         foreach ($dll in $shippedDlls) {
