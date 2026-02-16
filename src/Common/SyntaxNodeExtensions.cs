@@ -25,4 +25,21 @@ internal static class SyntaxNodeExtensions
             ? Location.Create(syntax.SyntaxTree, node.Span)
             : null;
     }
+
+    /// <summary>
+    /// Returns the parent node, skipping any intermediate <see cref="ParenthesizedExpressionSyntax"/> wrappers.
+    /// This handles cases like <c>(mock.Setup(...)).Returns()</c> where parentheses wrap an invocation.
+    /// </summary>
+    /// <param name="node">The node whose logical parent to find.</param>
+    /// <returns>The first non-parenthesized ancestor, or <see langword="null"/> if none exists.</returns>
+    internal static SyntaxNode? GetParentSkippingParentheses(this SyntaxNode node)
+    {
+        SyntaxNode? parent = node.Parent;
+        while (parent is ParenthesizedExpressionSyntax)
+        {
+            parent = parent.Parent;
+        }
+
+        return parent;
+    }
 }
