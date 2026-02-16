@@ -164,21 +164,21 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
-    // Parenthesized Setup without return value spec triggers both Moq1203 and CS0201
-    // (parenthesized expressions are not valid C# statements), so compiler errors must be ignored.
+    // Parenthesized Setup without return value spec should still trigger Moq1203.
+    // Uses discard assignment to keep expressions valid C# while preserving parentheses.
     public static IEnumerable<object[]> Issue887_ParenthesizedSetupWithDiagnosticTestData()
     {
         IEnumerable<object[]> data =
         [
 
             // Parenthesized Setup WITHOUT return value spec should still trigger diagnostic
-            ["""({|Moq1203:new Mock<IFoo>().Setup(x => x.GetValue())|});"""],
+            ["""_ = ({|Moq1203:new Mock<IFoo>().Setup(x => x.GetValue())|});"""],
 
             // Nested parentheses WITHOUT return value spec should still trigger diagnostic
-            ["""(({|Moq1203:new Mock<IFoo>().Setup(x => x.GetValue())|}));"""],
+            ["""_ = (({|Moq1203:new Mock<IFoo>().Setup(x => x.GetValue())|}));"""],
 
             // Parenthesized async Setup WITHOUT return value spec should still trigger diagnostic
-            ["""({|Moq1203:new Mock<IFoo>().Setup(x => x.BarAsync())|});"""],
+            ["""_ = ({|Moq1203:new Mock<IFoo>().Setup(x => x.BarAsync())|});"""],
         ];
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
@@ -216,7 +216,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
     [MemberData(nameof(Issue887_ParenthesizedSetupWithDiagnosticTestData))]
     public async Task ShouldFlagParenthesizedSetupWithoutReturnValue(string referenceAssemblyGroup, string @namespace, string mock)
     {
-        await VerifyMockIgnoringCompilerErrorsAsync(referenceAssemblyGroup, @namespace, mock);
+        await VerifyMockAsync(referenceAssemblyGroup, @namespace, mock);
     }
 
     [Theory]
