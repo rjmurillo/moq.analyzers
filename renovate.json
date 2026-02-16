@@ -20,6 +20,16 @@
       "matchUpdateTypes": ["minor", "patch"],
       "matchCurrentVersion": "!/^0/",
       "automerge": true
+    },
+    {
+      "description": "Analyzer-shipped BCL packages must match minimum supported SDK host. Manual review required.",
+      "matchPackageNames": [
+        "System.Collections.Immutable",
+        "System.Reflection.Metadata",
+        "Microsoft.CodeAnalysis.AnalyzerUtilities"
+      ],
+      "automerge": false,
+      "labels": ["analyzer-compat"]
     }
   ],
   "platformAutomerge": true
