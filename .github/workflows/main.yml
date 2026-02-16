@@ -266,6 +266,10 @@ jobs:
         PKG=$(find ./local-feed -name 'Moq.Analyzers.*.nupkg' ! -name '*.symbols.*' | head -1)
         VERSION=$(basename "$PKG" | sed 's/Moq\.Analyzers\.\(.*\)\.nupkg/\1/')
         FEED_DIR=$(cd "$(dirname "$PKG")" && pwd)
+        # Convert MSYS path to Windows path on Windows runners
+        if command -v cygpath &> /dev/null; then
+          FEED_DIR=$(cygpath -w "$FEED_DIR")
+        fi
         echo "Testing Moq.Analyzers $VERSION with ${{ matrix.build-engine }} / ${{ matrix.tfm }}"
 
         mkdir test-project && cd test-project
