@@ -56,6 +56,36 @@ jobs:
     - name: Setup, Restore, and Build Solution
       uses: ./.github/actions/setup-restore-build
 
+    - name: Validate analyzer host compatibility
+      shell: pwsh
+      run: |
+        # Verify shipped analyzer DLLs don't reference assembly versions
+        # exceeding what the minimum supported SDK host (.NET 8) provides.
+        # See: https://github.com/rjmurillo/moq.analyzers/issues/850
+        $maxVersions = @{
+          'System.Collections.Immutable' = [Version]'8.0.0.0'
+          'System.Reflection.Metadata'   = [Version]'8.0.0.0'
+        }
+        $shippedDlls = @(
+          'artifacts/bin/Moq.Analyzers/release/Moq.Analyzers.dll',
+          'artifacts/bin/Moq.Analyzers/release/Moq.CodeFixes.dll',
+          'artifacts/bin/Moq.Analyzers/release/Microsoft.CodeAnalysis.AnalyzerUtilities.dll'
+        )
+        $failed = $false
+        foreach ($dll in $shippedDlls) {
+          $name = [System.IO.Path]::GetFileName($dll)
+          $bytes = [System.IO.File]::ReadAllBytes($dll)
+          $asm = [System.Reflection.Assembly]::Load($bytes)
+          foreach ($ref in $asm.GetReferencedAssemblies()) {
+            if ($maxVersions.ContainsKey($ref.Name) -and $ref.Version -gt $maxVersions[$ref.Name]) {
+              Write-Error "$name references $($ref.Name) $($ref.Version), max allowed is $($maxVersions[$ref.Name])"
+              $failed = $true
+            }
+          }
+          Write-Host "$name - OK"
+        }
+        if ($failed) { exit 1 }
+
     - name: Restore Code Coverage history
       uses: actions/download-artifact@v7
       with:
