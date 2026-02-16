@@ -346,5 +346,11 @@ jobs:
           exit 1
         fi
 
+        if [ "$BUILD_EXIT" -ne 0 ]; then
+          echo ""
+          echo "::error::Build failed with exit code $BUILD_EXIT on .NET ${{ matrix.dotnet-version }}. See build output above for details."
+          exit 1
+        fi
+
         echo ""
         echo "Analyzer loaded successfully on .NET ${{ matrix.dotnet-version }} (${{ matrix.tfm }})"
