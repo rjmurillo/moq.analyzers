@@ -259,37 +259,32 @@ jobs:
         name: packages
         path: ./local-feed
 
-    - name: Build test project and verify analyzer loads
-      shell: bash
+    - name: Create test project
+      shell: pwsh
       run: |
-        # Find the nupkg and extract its version
-        PKG=$(find ./local-feed -name 'Moq.Analyzers.*.nupkg' ! -name '*.symbols.*' | head -1)
-        VERSION=$(basename "$PKG" | sed 's/Moq\.Analyzers\.\(.*\)\.nupkg/\1/')
-        FEED_DIR=$(cd "$(dirname "$PKG")" && pwd)
-        # Convert MSYS path to Windows path on Windows runners
-        if command -v cygpath &> /dev/null; then
-          FEED_DIR=$(cygpath -w "$FEED_DIR")
-        fi
-        echo "Testing Moq.Analyzers $VERSION with ${{ matrix.build-engine }} / ${{ matrix.tfm }}"
+        $pkg = Get-ChildItem ./local-feed -Recurse -Filter 'Moq.Analyzers.*.nupkg' |
+               Where-Object { $_.Name -notlike '*.symbols.*' } |
+               Select-Object -First 1
+        $version = $pkg.Name -replace '^Moq\.Analyzers\.' -replace '\.nupkg$'
+        $feedDir = (Resolve-Path $pkg.DirectoryName).Path
+        Write-Host "Testing Moq.Analyzers $version with ${{ matrix.build-engine }} / ${{ matrix.tfm }}"
+        echo "ANALYZER_VERSION=$version" >> $env:GITHUB_ENV
+        echo "FEED_DIR=$feedDir" >> $env:GITHUB_ENV
 
-        mkdir test-project && cd test-project
+        New-Item -ItemType Directory -Path test-project | Out-Null
 
-        # Point NuGet at the local feed + nuget.org for framework deps
-        cat > nuget.config <<EOF
+        @"
         <?xml version="1.0" encoding="utf-8"?>
         <configuration>
           <packageSources>
             <clear />
-            <add key="local" value="$FEED_DIR" />
+            <add key="local" value="$feedDir" />
             <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
           </packageSources>
         </configuration>
-        EOF
+        "@ | Set-Content test-project/nuget.config
 
-        # Minimal project referencing the analyzer nupkg.
-        # Microsoft.NETFramework.ReferenceAssemblies provides targeting packs
-        # for .NET Framework TFMs (no-op for modern .NET TFMs).
-        cat > TestAnalyzerLoad.csproj <<EOF
+        @"
         <Project Sdk="Microsoft.NET.Sdk">
           <PropertyGroup>
             <OutputType>Library</OutputType>
@@ -297,50 +292,56 @@ jobs:
             <LangVersion>latest</LangVersion>
           </PropertyGroup>
           <ItemGroup>
-            <PackageReference Include="Moq.Analyzers" Version="$VERSION" />
+            <PackageReference Include="Moq.Analyzers" Version="$version" />
             <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
           </ItemGroup>
         </Project>
-        EOF
+        "@ | Set-Content test-project/TestAnalyzerLoad.csproj
 
-        # Minimal source file; the compiler loads analyzers regardless of content
-        cat > Placeholder.cs <<'EOF'
+        @"
         namespace TestAnalyzerLoad;
         public class Placeholder { }
-        EOF
+        "@ | Set-Content test-project/Placeholder.cs
 
-        # Build with the appropriate compiler host
-        set +e
-        if [ "${{ matrix.build-engine }}" = "msbuild" ]; then
-          BUILD_OUTPUT=$(msbuild TestAnalyzerLoad.csproj -restore -p:Configuration=Release -v:n 2>&1)
-        else
-          BUILD_OUTPUT=$(dotnet build -v n 2>&1)
-        fi
-        BUILD_EXIT=$?
-        set -e
+    - name: Build with dotnet CLI
+      if: matrix.build-engine == 'dotnet'
+      shell: pwsh
+      working-directory: test-project
+      run: |
+        $output = dotnet build -v n 2>&1 | Out-String
+        Write-Host $output
 
-        echo "$BUILD_OUTPUT"
-
-        if echo "$BUILD_OUTPUT" | grep -q "CS8032"; then
-          echo ""
-          echo "::error::CS8032: analyzer failed to load (${{ matrix.build-engine }} / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
+        if ($output -match 'CS8032') {
+          Write-Host "::error::CS8032: analyzer failed to load (dotnet / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
           exit 1
-        fi
-
-        if echo "$BUILD_OUTPUT" | grep -qi "could not load file or assembly"; then
-          echo ""
-          echo "::error::Assembly binding failure (${{ matrix.build-engine }} / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
+        }
+        if ($output -match '(?i)could not load file or assembly') {
+          Write-Host "::error::Assembly binding failure (dotnet / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
           exit 1
-        fi
+        }
 
-        if [ "$BUILD_EXIT" -ne 0 ]; then
-          echo ""
-          echo "::error::Build failed with exit code $BUILD_EXIT (${{ matrix.build-engine }} / ${{ matrix.tfm }}). See build output above."
+        Write-Host ""
+        Write-Host "Analyzer loaded successfully (dotnet / ${{ matrix.tfm }})"
+
+    - name: Build with MSBuild
+      if: matrix.build-engine == 'msbuild'
+      shell: pwsh
+      working-directory: test-project
+      run: |
+        $output = msbuild TestAnalyzerLoad.csproj -restore -p:Configuration=Release -v:n 2>&1 | Out-String
+        Write-Host $output
+
+        if ($output -match 'CS8032') {
+          Write-Host "::error::CS8032: analyzer failed to load (msbuild / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
           exit 1
-        fi
+        }
+        if ($output -match '(?i)could not load file or assembly') {
+          Write-Host "::error::Assembly binding failure (msbuild / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
+          exit 1
+        }
 
-        echo ""
-        echo "Analyzer loaded successfully (${{ matrix.build-engine }} / ${{ matrix.tfm }})"
+        Write-Host ""
+        Write-Host "Analyzer loaded successfully (msbuild / ${{ matrix.tfm }})"
 
   # Performance validation runs last, after build and tests confirm correctness.
   # Builds from source on Linux ARM to get consistent benchmark results.
