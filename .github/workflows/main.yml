@@ -33,14 +33,10 @@ permissions:
   actions: read
 
 jobs:
-  # Build, validate, package, and run performance benchmarks.
-  # Tests run in the separate 'test' job below.
+  # Build, validate, and package. Fast gate (~5 min).
+  # Tests, analyzer-load-test, and perf run as separate downstream jobs.
   build:
     runs-on: ubuntu-24.04-arm
-
-    env:
-      RUN_FULL_PERF: ${{ (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true') }}
-      FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }} # This is also used in PerfCore.ps1 to determine if the baseline should be forced
 
     steps:
     - uses: actions/checkout@v6
@@ -102,85 +98,6 @@ jobs:
         path: |
           ./artifacts/package
         if-no-files-found: error
-
-    - name: Get baseline SHA
-      id: get-baseline-sha
-      run: |
-        if (-not (Test-Path build/perf/baseline.json)) {
-          Write-Error "baseline.json not found - aborting performance job."
-          exit 1
-        }
-        $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
-        echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
-      shell: pwsh
-
-    # The machine is not guaranteed to have the .NET SDK installed from the baseline SHA, so we need to install it
-    - name: Checkout baseline
-      uses: actions/checkout@v6
-      with:
-        ref: ${{ steps.get-baseline-sha.outputs.sha }}
-        fetch-depth: 0
-
-    - name: Setup .NET for performance baseline
-      uses: actions/setup-dotnet@v5
-      with:
-        global-json-file: ./global.json
-
-    - name: Restore checkout
-      uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
-
-    - name: Get performance test filter
-      id: get-perf-filter
-      run: |
-        if ('${{ env.RUN_FULL_PERF }}' -eq 'true') {
-          echo "filter='*'" >> $env:GITHUB_OUTPUT
-        } else {
-          echo "filter='*(FileCount: 1)'" >> $env:GITHUB_OUTPUT
-        }
-      shell: pwsh
-
-    - name: Validate performance
-      shell: pwsh
-      run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter ${{ steps.get-perf-filter.outputs.filter }}
-
-    - name: Publish baseline performance summaries to GitHub
-      if: success() || failure()
-      shell: pwsh
-      run: |
-        $resultsDir = "artifacts/performance/perfResults/baseline/results"
-        if (Test-Path $resultsDir) {
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Baseline Performance Results"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Baseline SHA: ${{ steps.get-baseline-sha.outputs.sha }}"
-          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
-          foreach ($file in $files) {
-            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
-          }
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
-        }
-
-    - name: Publish performance summaries to GitHub
-      if: success() || failure()
-      shell: pwsh
-      run: |
-        $resultsDir = "artifacts/performance/perfResults/perfTest/results"
-        if (Test-Path $resultsDir) {
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Current Performance Results"
-          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
-          foreach ($file in $files) {
-            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
-          }
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
-        }
-
-    - name: Upload performance files
-      uses: actions/upload-artifact@v6
-      if: success() || failure()
-      with:
-        name: performance
-        path: |
-          ./artifacts/performance/**
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v6
@@ -420,3 +337,100 @@ jobs:
 
         echo ""
         echo "Analyzer loaded successfully (${{ matrix.build-engine }} / ${{ matrix.tfm }})"
+
+  # Performance validation runs last, after build and tests confirm correctness.
+  # Builds from source on Linux ARM to get consistent benchmark results.
+  perf:
+    needs: [build, test]
+    runs-on: ubuntu-24.04-arm
+
+    env:
+      RUN_FULL_PERF: ${{ (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true') }}
+      FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }}
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Setup, Restore, and Build Solution
+      uses: ./.github/actions/setup-restore-build
+
+    - name: Get baseline SHA
+      id: get-baseline-sha
+      run: |
+        if (-not (Test-Path build/perf/baseline.json)) {
+          Write-Error "baseline.json not found - aborting performance job."
+          exit 1
+        }
+        $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
+        echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
+      shell: pwsh
+
+    # The baseline SHA may require a different .NET SDK version
+    - name: Checkout baseline
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ steps.get-baseline-sha.outputs.sha }}
+        fetch-depth: 0
+
+    - name: Setup .NET for performance baseline
+      uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: ./global.json
+
+    - name: Restore checkout
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Get performance test filter
+      id: get-perf-filter
+      run: |
+        if ('${{ env.RUN_FULL_PERF }}' -eq 'true') {
+          echo "filter='*'" >> $env:GITHUB_OUTPUT
+        } else {
+          echo "filter='*(FileCount: 1)'" >> $env:GITHUB_OUTPUT
+        }
+      shell: pwsh
+
+    - name: Validate performance
+      shell: pwsh
+      run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter ${{ steps.get-perf-filter.outputs.filter }}
+
+    - name: Publish baseline performance summaries to GitHub
+      if: success() || failure()
+      shell: pwsh
+      run: |
+        $resultsDir = "artifacts/performance/perfResults/baseline/results"
+        if (Test-Path $resultsDir) {
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Baseline Performance Results"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Baseline SHA: ${{ steps.get-baseline-sha.outputs.sha }}"
+          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
+          foreach ($file in $files) {
+            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
+        }
+
+    - name: Publish performance summaries to GitHub
+      if: success() || failure()
+      shell: pwsh
+      run: |
+        $resultsDir = "artifacts/performance/perfResults/perfTest/results"
+        if (Test-Path $resultsDir) {
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Current Performance Results"
+          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
+          foreach ($file in $files) {
+            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
+        }
+
+    - name: Upload performance files
+      uses: actions/upload-artifact@v6
+      if: success() || failure()
+      with:
+        name: performance
+        path: |
+          ./artifacts/performance/**
