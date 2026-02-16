@@ -66,13 +66,15 @@ jobs:
           $name = [System.IO.Path]::GetFileName($dll)
           $bytes = [System.IO.File]::ReadAllBytes($dll)
           $asm = [System.Reflection.Assembly]::Load($bytes)
+          $dllFailed = $false
           foreach ($ref in $asm.GetReferencedAssemblies()) {
             if ($maxVersions.ContainsKey($ref.Name) -and $ref.Version -gt $maxVersions[$ref.Name]) {
               Write-Error "$name references $($ref.Name) $($ref.Version), max allowed is $($maxVersions[$ref.Name])"
               $failed = $true
+              $dllFailed = $true
             }
           }
-          Write-Host "$name - OK"
+          if (-not $dllFailed) { Write-Host "$name - OK" }
         }
         if ($failed) { exit 1 }
 
