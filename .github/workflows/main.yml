@@ -263,25 +263,31 @@ jobs:
   # the target TFM, but we test all TFMs to catch packaging issues too.
   analyzer-load-test:
     needs: build
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          # .NET (modern) TFMs
+          # .NET (modern) TFMs on ARM runners
           - dotnet-version: '8.0.x'
             tfm: net8.0
+            runs-on: ubuntu-24.04-arm
           - dotnet-version: '9.0.x'
             tfm: net9.0
+            runs-on: ubuntu-24.04-arm
           - dotnet-version: '10.0.x'
             tfm: net10.0
-          # .NET Framework TFMs (built via dotnet CLI on Linux using reference assemblies)
+            runs-on: ubuntu-24.04-arm
+          # .NET Framework TFMs require x64 runners
           - dotnet-version: '8.0.x'
             tfm: net472
+            runs-on: ubuntu-24.04
           - dotnet-version: '8.0.x'
             tfm: net48
+            runs-on: ubuntu-24.04
           - dotnet-version: '8.0.x'
             tfm: net481
+            runs-on: ubuntu-24.04
 
     steps:
     - name: Setup .NET ${{ matrix.dotnet-version }}
