@@ -256,8 +256,11 @@ jobs:
         path: ./artifacts
         if-no-files-found: error
 
-  # Verify the shipped nupkg loads without CS8032 on every supported SDK.
+  # Verify the shipped nupkg loads without CS8032 on every supported SDK and TFM.
   # This is the end-to-end integration test for issue #850.
+  # The analyzer targets netstandard2.0 so it must load for both .NET and
+  # .NET Framework projects. The compiler host is the .NET SDK regardless of
+  # the target TFM, but we test all TFMs to catch packaging issues too.
   analyzer-load-test:
     needs: build
     runs-on: ubuntu-24.04-arm
@@ -265,12 +268,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # .NET (modern) TFMs
           - dotnet-version: '8.0.x'
             tfm: net8.0
           - dotnet-version: '9.0.x'
             tfm: net9.0
           - dotnet-version: '10.0.x'
             tfm: net10.0
+          # .NET Framework TFMs (built via dotnet CLI on Linux using reference assemblies)
+          - dotnet-version: '8.0.x'
+            tfm: net472
+          - dotnet-version: '8.0.x'
+            tfm: net48
+          - dotnet-version: '8.0.x'
+            tfm: net481
 
     steps:
     - name: Setup .NET ${{ matrix.dotnet-version }}
@@ -307,15 +318,19 @@ jobs:
         </configuration>
         EOF
 
-        # Minimal project referencing the analyzer nupkg
+        # Minimal project referencing the analyzer nupkg.
+        # Microsoft.NETFramework.ReferenceAssemblies provides targeting packs
+        # for .NET Framework TFMs on Linux (no-op for .NET Core TFMs).
         cat > TestAnalyzerLoad.csproj <<EOF
         <Project Sdk="Microsoft.NET.Sdk">
           <PropertyGroup>
             <OutputType>Library</OutputType>
             <TargetFramework>${{ matrix.tfm }}</TargetFramework>
+            <LangVersion>latest</LangVersion>
           </PropertyGroup>
           <ItemGroup>
             <PackageReference Include="Moq.Analyzers" Version="$VERSION" />
+            <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
           </ItemGroup>
         </Project>
         EOF
@@ -336,13 +351,13 @@ jobs:
 
         if echo "$BUILD_OUTPUT" | grep -q "CS8032"; then
           echo ""
-          echo "::error::CS8032: analyzer failed to load on .NET ${{ matrix.dotnet-version }}. See https://github.com/rjmurillo/moq.analyzers/issues/850"
+          echo "::error::CS8032: analyzer failed to load on .NET ${{ matrix.dotnet-version }} (${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
           exit 1
         fi
 
         if echo "$BUILD_OUTPUT" | grep -qi "could not load file or assembly"; then
           echo ""
-          echo "::error::Assembly binding failure on .NET ${{ matrix.dotnet-version }}. See https://github.com/rjmurillo/moq.analyzers/issues/850"
+          echo "::error::Assembly binding failure on .NET ${{ matrix.dotnet-version }} (${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
           exit 1
         fi
 
