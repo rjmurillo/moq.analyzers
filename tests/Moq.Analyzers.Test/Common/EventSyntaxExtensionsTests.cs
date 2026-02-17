@@ -490,12 +490,11 @@ class C { event MyDelegate MyEvent; }",
     private static ITypeSymbol GetEventFieldType(string code, string eventName)
     {
         (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
-        EventFieldDeclarationSyntax eventField = tree.GetRoot()
-            .DescendantNodes().OfType<EventFieldDeclarationSyntax>()
-            .First(e => e.Declaration.Variables.Any(v =>
-                string.Equals(v.Identifier.Text, eventName, StringComparison.Ordinal)));
-        VariableDeclaratorSyntax variable = eventField.Declaration.Variables
-            .First(v => string.Equals(v.Identifier.Text, eventName, StringComparison.Ordinal));
+        VariableDeclaratorSyntax variable = tree.GetRoot()
+            .DescendantNodes()
+            .OfType<VariableDeclaratorSyntax>()
+            .First(v => v.Parent?.Parent is EventFieldDeclarationSyntax &&
+                        string.Equals(v.Identifier.Text, eventName, StringComparison.Ordinal));
         IEventSymbol eventSymbol = (IEventSymbol)model.GetDeclaredSymbol(variable)!;
         return eventSymbol.Type;
     }
@@ -506,12 +505,11 @@ class C { event MyDelegate MyEvent; }",
     {
         (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
         KnownSymbols knownSymbols = new KnownSymbols(model.Compilation);
-        EventFieldDeclarationSyntax eventField = tree.GetRoot()
-            .DescendantNodes().OfType<EventFieldDeclarationSyntax>()
-            .First(e => e.Declaration.Variables.Any(v =>
-                string.Equals(v.Identifier.Text, eventName, StringComparison.Ordinal)));
-        VariableDeclaratorSyntax variable = eventField.Declaration.Variables
-            .First(v => string.Equals(v.Identifier.Text, eventName, StringComparison.Ordinal));
+        VariableDeclaratorSyntax variable = tree.GetRoot()
+            .DescendantNodes()
+            .OfType<VariableDeclaratorSyntax>()
+            .First(v => v.Parent?.Parent is EventFieldDeclarationSyntax &&
+                        string.Equals(v.Identifier.Text, eventName, StringComparison.Ordinal));
         IEventSymbol eventSymbol = (IEventSymbol)model.GetDeclaredSymbol(variable)!;
         return (eventSymbol.Type, knownSymbols);
     }

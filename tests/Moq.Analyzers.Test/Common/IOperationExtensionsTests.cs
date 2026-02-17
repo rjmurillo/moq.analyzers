@@ -639,7 +639,8 @@ class C
         IEnumerable<IOperation> allOperations = tree.GetRoot()
             .DescendantNodes()
             .Select(node => model.GetOperation(node))
-            .Where(op => op != null)!;
+            .Where(op => op is not null)
+            .Select(op => op!);
 
         T? found = allOperations.OfType<T>().FirstOrDefault();
         Assert.NotNull(found);
@@ -660,12 +661,11 @@ class C
 
     private static LambdaExpressionSyntax GetFirstLambda(SyntaxTree tree)
     {
-        ParenthesizedLambdaExpressionSyntax? pLambda = tree.GetRoot()
-            .DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().FirstOrDefault();
-        SimpleLambdaExpressionSyntax? sLambda = tree.GetRoot()
-            .DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().FirstOrDefault();
-        LambdaExpressionSyntax result = (LambdaExpressionSyntax?)pLambda ?? sLambda!;
-        Assert.NotNull(result);
-        return result;
+        LambdaExpressionSyntax? lambda = tree.GetRoot()
+            .DescendantNodes()
+            .OfType<LambdaExpressionSyntax>()
+            .FirstOrDefault();
+        Assert.NotNull(lambda);
+        return lambda!;
     }
 }
