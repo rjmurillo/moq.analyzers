@@ -580,7 +580,7 @@ public class C
     }
 
     [Fact]
-    public void IsMoqSetupMethod_SetupCall_ReturnsTrue()
+    public async Task IsMoqSetupMethod_SetupCall_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -593,12 +593,12 @@ public class C
         mock.Setup(x => x.GetValue());
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "Setup");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "Setup");
         Assert.True(symbol.IsMoqSetupMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqSetupMethod_NonSetupCall_ReturnsFalse()
+    public async Task IsMoqSetupMethod_NonSetupCall_ReturnsFalse()
     {
         string code = @"
 using Moq;
@@ -611,12 +611,12 @@ public class C
         mock.Verify(x => x.GetValue());
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "Verify");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "Verify");
         Assert.False(symbol.IsMoqSetupMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqVerificationMethod_VerifyCall_ReturnsTrue()
+    public async Task IsMoqVerificationMethod_VerifyCall_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -629,12 +629,12 @@ public class C
         mock.Verify(x => x.GetValue());
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "Verify");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "Verify");
         Assert.True(symbol.IsMoqVerificationMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqSetupSequenceMethod_SetupSequenceCall_ReturnsTrue()
+    public async Task IsMoqSetupSequenceMethod_SetupSequenceCall_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -647,12 +647,12 @@ public class C
         mock.SetupSequence(x => x.GetValue());
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "SetupSequence");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "SetupSequence");
         Assert.True(symbol.IsMoqSetupSequenceMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqReturnsMethod_ReturnsCall_ReturnsTrue()
+    public async Task IsMoqReturnsMethod_ReturnsCall_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -665,12 +665,12 @@ public class C
         mock.Setup(x => x.GetValue()).Returns(42);
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "Returns");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "Returns");
         Assert.True(symbol.IsMoqReturnsMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqCallbackMethod_CallbackCall_ReturnsTrue()
+    public async Task IsMoqCallbackMethod_CallbackCall_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -683,12 +683,12 @@ public class C
         mock.Setup(x => x.GetValue()).Callback(() => { });
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "Callback");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "Callback");
         Assert.True(symbol.IsMoqCallbackMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqThrowsMethod_ThrowsCall_ReturnsTrue()
+    public async Task IsMoqThrowsMethod_ThrowsCall_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -702,12 +702,12 @@ public class C
         mock.Setup(x => x.GetValue()).Throws(new Exception());
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "Throws");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "Throws");
         Assert.True(symbol.IsMoqThrowsMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqReturnValueSpecificationMethod_Returns_ReturnsTrue()
+    public async Task IsMoqReturnValueSpecificationMethod_Returns_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -720,12 +720,12 @@ public class C
         mock.Setup(x => x.GetValue()).Returns(42);
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "Returns");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "Returns");
         Assert.True(symbol.IsMoqReturnValueSpecificationMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqReturnsAsyncMethod_ReturnsAsyncCall_ReturnsTrue()
+    public async Task IsMoqReturnsAsyncMethod_ReturnsAsyncCall_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -739,12 +739,12 @@ public class C
         mock.Setup(x => x.GetValueAsync()).ReturnsAsync(42);
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "ReturnsAsync");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "ReturnsAsync");
         Assert.True(symbol.IsMoqReturnsAsyncMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqThrowsAsyncMethod_ThrowsAsyncCall_ReturnsTrue()
+    public async Task IsMoqThrowsAsyncMethod_ThrowsAsyncCall_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -759,12 +759,12 @@ public class C
         mock.Setup(x => x.GetValueAsync()).ThrowsAsync(new Exception());
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "ThrowsAsync");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "ThrowsAsync");
         Assert.True(symbol.IsMoqThrowsAsyncMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqEventSetupMethod_SetupAddCall_ReturnsTrue()
+    public async Task IsMoqEventSetupMethod_SetupAddCall_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -778,13 +778,13 @@ public class C
         mock.SetupAdd(x => x.MyEvent += null);
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "SetupAdd");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "SetupAdd");
         Assert.True(symbol.IsMoqEventSetupMethod(knownSymbols));
         Assert.True(symbol.IsMoqSetupAddMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqEventSetupMethod_SetupRemoveCall_ReturnsTrue()
+    public async Task IsMoqEventSetupMethod_SetupRemoveCall_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -798,20 +798,21 @@ public class C
         mock.SetupRemove(x => x.MyEvent -= null);
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "SetupRemove");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "SetupRemove");
         Assert.True(symbol.IsMoqEventSetupMethod(knownSymbols));
         Assert.True(symbol.IsMoqSetupRemoveMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqRaisesMethod_NonMethodSymbol_ReturnsFalse()
+    public async Task IsMoqRaisesMethod_NonMethodSymbol_ReturnsFalse()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateMoqCompilation(@"
+        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(@"
 using Moq;
 public interface IService { int Value { get; } }
 public class C { }");
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
-        InterfaceDeclarationSyntax ifaceSyntax = tree.GetRoot()
+        SyntaxNode root = await tree.GetRootAsync();
+        InterfaceDeclarationSyntax ifaceSyntax = root
             .DescendantNodes().OfType<InterfaceDeclarationSyntax>().First();
         INamedTypeSymbol ifaceSymbol = model.GetDeclaredSymbol(ifaceSyntax)!;
 
@@ -819,7 +820,7 @@ public class C { }");
     }
 
     [Fact]
-    public void IsMoqVerificationMethod_VerifyGet_ReturnsTrue()
+    public async Task IsMoqVerificationMethod_VerifyGet_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -832,12 +833,12 @@ public class C
         mock.VerifyGet(x => x.Value);
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "VerifyGet");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "VerifyGet");
         Assert.True(symbol.IsMoqVerificationMethod(knownSymbols));
     }
 
     [Fact]
-    public void IsMoqVerificationMethod_VerifyNoOtherCalls_ReturnsTrue()
+    public async Task IsMoqVerificationMethod_VerifyNoOtherCalls_ReturnsTrue()
     {
         string code = @"
 using Moq;
@@ -850,7 +851,7 @@ public class C
         mock.VerifyNoOtherCalls();
     }
 }";
-        (ISymbol symbol, MoqKnownSymbols knownSymbols) = GetMoqInvocationSymbol(code, "VerifyNoOtherCalls");
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "VerifyNoOtherCalls");
         Assert.True(symbol.IsMoqVerificationMethod(knownSymbols));
     }
 
@@ -866,10 +867,10 @@ public class C
         return (model, tree);
     }
 
-    private static (SemanticModel Model, SyntaxTree Tree) CreateMoqCompilation(string code)
+    private static async Task<(SemanticModel Model, SyntaxTree Tree)> CreateMoqCompilationAsync(string code)
     {
         SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        MetadataReference[] references = GetMoqReferences();
+        MetadataReference[] references = await GetMoqReferencesAsync().ConfigureAwait(false);
         CSharpCompilation compilation = CSharpCompilation.Create(
             "TestAssembly",
             new[] { tree },
@@ -879,10 +880,10 @@ public class C
         return (model, tree);
     }
 
-    private static MetadataReference[] GetMoqReferences()
+    private static async Task<MetadataReference[]> GetMoqReferencesAsync()
     {
         ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithNewMoq];
-        ImmutableArray<MetadataReference> resolved = referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).GetAwaiter().GetResult();
+        ImmutableArray<MetadataReference> resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
         return [.. resolved];
     }
 
@@ -917,13 +918,14 @@ public class C
         return (prop, knownSymbols);
     }
 
-    private static (ISymbol Symbol, MoqKnownSymbols KnownSymbols) GetMoqInvocationSymbol(
+    private static async Task<(ISymbol Symbol, MoqKnownSymbols KnownSymbols)> GetMoqInvocationSymbol(
         string code,
         string methodName)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateMoqCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code).ConfigureAwait(false);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
-        InvocationExpressionSyntax invocation = tree.GetRoot()
+        SyntaxNode root = await tree.GetRootAsync().ConfigureAwait(false);
+        InvocationExpressionSyntax invocation = root
             .DescendantNodes().OfType<InvocationExpressionSyntax>()
             .First(i => i.Expression switch
             {

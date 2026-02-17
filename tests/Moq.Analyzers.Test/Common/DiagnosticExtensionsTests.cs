@@ -5,6 +5,7 @@ namespace Moq.Analyzers.Test.Common;
 public class DiagnosticExtensionsTests
 {
 #pragma warning disable RS2008 // Enable analyzer release tracking (test-only descriptor)
+#pragma warning disable ECS1300 // Test-only descriptor; inline init is simpler than static constructor
     private static readonly DiagnosticDescriptor TestRule = new(
         "TEST0001",
         "Test",
@@ -12,6 +13,7 @@ public class DiagnosticExtensionsTests
         "Test",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
+#pragma warning restore ECS1300
 #pragma warning restore RS2008
 
     // Overload #1: SyntaxNode + rule + messageArgs

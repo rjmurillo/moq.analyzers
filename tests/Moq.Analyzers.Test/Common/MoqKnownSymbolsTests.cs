@@ -575,75 +575,75 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void Mock_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task Mock_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.Mock);
         Assert.Equal("Mock", symbols.Mock!.Name);
         Assert.Equal("Moq", symbols.Mock.ContainingNamespace.Name);
     }
 
     [Fact]
-    public void Mock1_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task Mock1_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.Mock1);
         Assert.Equal("Mock", symbols.Mock1!.Name);
         Assert.Equal(1, symbols.Mock1.Arity);
     }
 
     [Fact]
-    public void MockRepository_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task MockRepository_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.MockRepository);
         Assert.Equal("MockRepository", symbols.MockRepository!.Name);
     }
 
     [Fact]
-    public void MockBehavior_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task MockBehavior_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.MockBehavior);
         Assert.Equal(TypeKind.Enum, symbols.MockBehavior!.TypeKind);
     }
 
     [Fact]
-    public void MockBehaviorStrict_WithMoqReference_ReturnsFieldSymbol()
+    public async Task MockBehaviorStrict_WithMoqReference_ReturnsFieldSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.MockBehaviorStrict);
         Assert.Equal("Strict", symbols.MockBehaviorStrict!.Name);
     }
 
     [Fact]
-    public void MockBehaviorLoose_WithMoqReference_ReturnsFieldSymbol()
+    public async Task MockBehaviorLoose_WithMoqReference_ReturnsFieldSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.MockBehaviorLoose);
         Assert.Equal("Loose", symbols.MockBehaviorLoose!.Name);
     }
 
     [Fact]
-    public void MockBehaviorDefault_WithMoqReference_ReturnsFieldSymbol()
+    public async Task MockBehaviorDefault_WithMoqReference_ReturnsFieldSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.MockBehaviorDefault);
         Assert.Equal("Default", symbols.MockBehaviorDefault!.Name);
     }
 
     [Fact]
-    public void It_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task It_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.It);
         Assert.Equal("It", symbols.It!.Name);
     }
 
     [Fact]
-    public void ItIsAny_WithMoqReference_ReturnsNonEmpty()
+    public async Task ItIsAny_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.ItIsAny.IsEmpty);
 #pragma warning disable ECS0900 // Minimize boxing and unboxing
         Assert.All(symbols.ItIsAny, m => Assert.Equal("IsAny", m.Name));
@@ -651,45 +651,45 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void Times_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task Times_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.Times);
         Assert.Equal("Times", symbols.Times!.Name);
     }
 
     [Fact]
-    public void TimesAtLeastOnce_WithMoqReference_ReturnsNonEmpty()
+    public async Task TimesAtLeastOnce_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.TimesAtLeastOnce.IsEmpty);
     }
 
     [Fact]
-    public void TimesNever_WithMoqReference_ReturnsNonEmpty()
+    public async Task TimesNever_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.TimesNever.IsEmpty);
     }
 
     [Fact]
-    public void TimesOnce_WithMoqReference_ReturnsNonEmpty()
+    public async Task TimesOnce_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.TimesOnce.IsEmpty);
     }
 
     [Fact]
-    public void TimesExactly_WithMoqReference_ReturnsNonEmpty()
+    public async Task TimesExactly_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.TimesExactly.IsEmpty);
     }
 
     [Fact]
-    public void MockAs_WithMoqReference_ReturnsNonEmpty()
+    public async Task MockAs_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.MockAs.IsEmpty);
 #pragma warning disable ECS0900 // Minimize boxing and unboxing
         Assert.All(symbols.MockAs, m => Assert.Equal("As", m.Name));
@@ -697,9 +697,9 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void MockOf_WithMoqReference_ReturnsNonEmpty()
+    public async Task MockOf_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.MockOf.IsEmpty);
 #pragma warning disable ECS0900 // Minimize boxing and unboxing
         Assert.All(symbols.MockOf, m => Assert.Equal("Of", m.Name));
@@ -707,9 +707,9 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void MockGet_WithMoqReference_ReturnsNonEmpty()
+    public async Task MockGet_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.MockGet.IsEmpty);
 #pragma warning disable ECS0900 // Minimize boxing and unboxing
         Assert.All(symbols.MockGet, m => Assert.Equal("Get", m.Name));
@@ -717,9 +717,9 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void Mock1Setup_WithMoqReference_ReturnsNonEmpty()
+    public async Task Mock1Setup_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.Mock1Setup.IsEmpty);
 #pragma warning disable ECS0900 // Minimize boxing and unboxing
         Assert.All(symbols.Mock1Setup, m => Assert.Equal("Setup", m.Name));
@@ -727,72 +727,72 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void Mock1SetupAdd_WithMoqReference_ReturnsNonEmpty()
+    public async Task Mock1SetupAdd_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.Mock1SetupAdd.IsEmpty);
     }
 
     [Fact]
-    public void Mock1SetupRemove_WithMoqReference_ReturnsNonEmpty()
+    public async Task Mock1SetupRemove_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.Mock1SetupRemove.IsEmpty);
     }
 
     [Fact]
-    public void Mock1SetupSequence_WithMoqReference_ReturnsNonEmpty()
+    public async Task Mock1SetupSequence_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.Mock1SetupSequence.IsEmpty);
     }
 
     [Fact]
-    public void Mock1Raise_WithMoqReference_ReturnsNonEmpty()
+    public async Task Mock1Raise_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.Mock1Raise.IsEmpty);
     }
 
     [Fact]
-    public void Mock1Verify_WithMoqReference_ReturnsNonEmpty()
+    public async Task Mock1Verify_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.Mock1Verify.IsEmpty);
     }
 
     [Fact]
-    public void Mock1VerifyGet_WithMoqReference_ReturnsNonEmpty()
+    public async Task Mock1VerifyGet_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.Mock1VerifyGet.IsEmpty);
     }
 
     [Fact]
-    public void Mock1VerifySet_WithMoqReference_ReturnsNonEmpty()
+    public async Task Mock1VerifySet_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.Mock1VerifySet.IsEmpty);
     }
 
     [Fact]
-    public void Mock1VerifyNoOtherCalls_WithMoqReference_ReturnsNonEmpty()
+    public async Task Mock1VerifyNoOtherCalls_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.Mock1VerifyNoOtherCalls.IsEmpty);
     }
 
     [Fact]
-    public void Mock1As_WithMoqReference_ReturnsNonEmpty()
+    public async Task Mock1As_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.Mock1As.IsEmpty);
     }
 
     [Fact]
-    public void MockRepositoryCreate_WithMoqReference_ReturnsNonEmpty()
+    public async Task MockRepositoryCreate_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.MockRepositoryCreate.IsEmpty);
 #pragma warning disable ECS0900 // Minimize boxing and unboxing
         Assert.All(symbols.MockRepositoryCreate, m => Assert.Equal("Create", m.Name));
@@ -800,107 +800,107 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void MockRepositoryVerify_WithMoqReference_ReturnsNonEmpty()
+    public async Task MockRepositoryVerify_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.MockRepositoryVerify.IsEmpty);
     }
 
     [Fact]
-    public void IReturns2_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task IReturns2_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.IReturns2);
         Assert.Equal(2, symbols.IReturns2!.Arity);
     }
 
     [Fact]
-    public void IReturns2Returns_WithMoqReference_ReturnsNonEmpty()
+    public async Task IReturns2Returns_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.IReturns2Returns.IsEmpty);
     }
 
     [Fact]
-    public void IThrows_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task IThrows_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.IThrows);
         Assert.Equal("IThrows", symbols.IThrows!.Name);
     }
 
     [Fact]
-    public void IThrowsThrows_WithMoqReference_ReturnsNonEmpty()
+    public async Task IThrowsThrows_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.IThrowsThrows.IsEmpty);
     }
 
     [Fact]
-    public void ReturnsExtensions_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task ReturnsExtensions_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.ReturnsExtensions);
         Assert.Equal("ReturnsExtensions", symbols.ReturnsExtensions!.Name);
     }
 
     [Fact]
-    public void ReturnsExtensionsReturnsAsync_WithMoqReference_ReturnsNonEmpty()
+    public async Task ReturnsExtensionsReturnsAsync_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.ReturnsExtensionsReturnsAsync.IsEmpty);
     }
 
     [Fact]
-    public void ReturnsExtensionsThrowsAsync_WithMoqReference_ReturnsNonEmpty()
+    public async Task ReturnsExtensionsThrowsAsync_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.ReturnsExtensionsThrowsAsync.IsEmpty);
     }
 
     [Fact]
-    public void ICallback_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task ICallback_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.ICallback);
         Assert.Equal("ICallback", symbols.ICallback!.Name);
     }
 
     [Fact]
-    public void ICallbackCallback_WithMoqReference_ReturnsNonEmpty()
+    public async Task ICallbackCallback_WithMoqReference_ReturnsNonEmpty()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.ICallbackCallback.IsEmpty);
     }
 
     [Fact]
-    public void ISetup1_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task ISetup1_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.ISetup1);
         Assert.Equal(1, symbols.ISetup1!.Arity);
     }
 
     [Fact]
-    public void IRaiseable_WithMoqReference_ReturnsNullForMoq4()
+    public async Task IRaiseable_WithMoqReference_ReturnsNullForMoq4()
     {
         // IRaiseable was added after Moq 4.18.4; verify graceful null return.
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.Null(symbols.IRaiseable);
     }
 
     [Fact]
-    public void IRaiseableRaises_WithMoqReference_ReturnsEmptyForMoq4()
+    public async Task IRaiseableRaises_WithMoqReference_ReturnsEmptyForMoq4()
     {
         // IRaiseable not present in Moq 4.18.4, so Raises is empty.
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.True(symbols.IRaiseableRaises.IsEmpty);
     }
 
     [Fact]
-    public void IRaise1_WithMoqReference_ReturnsNamedTypeSymbol()
+    public async Task IRaise1_WithMoqReference_ReturnsNamedTypeSymbol()
     {
-        MoqKnownSymbols symbols = CreateSymbolsWithMoq();
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.IRaise1);
         Assert.Equal(1, symbols.IRaise1!.Arity);
     }
@@ -966,9 +966,9 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void BothConstructors_ProduceSameResults_ForMockType()
+    public async Task BothConstructors_ProduceSameResults_ForMockType()
     {
-        CSharpCompilation compilation = CreateMoqCompilation();
+        CSharpCompilation compilation = await CreateMoqCompilationAsync();
         Analyzer.Utilities.WellKnownTypeProvider typeProvider =
             Analyzer.Utilities.WellKnownTypeProvider.GetOrCreate(compilation);
 
@@ -981,9 +981,9 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void BothConstructors_ProduceSameResults_ForMock1Type()
+    public async Task BothConstructors_ProduceSameResults_ForMock1Type()
     {
-        CSharpCompilation compilation = CreateMoqCompilation();
+        CSharpCompilation compilation = await CreateMoqCompilationAsync();
         Analyzer.Utilities.WellKnownTypeProvider typeProvider =
             Analyzer.Utilities.WellKnownTypeProvider.GetOrCreate(compilation);
 
@@ -1010,15 +1010,15 @@ public class MoqKnownSymbolsTests
         return new MoqKnownSymbols(CreateMinimalCompilation());
     }
 
-    private static MoqKnownSymbols CreateSymbolsWithMoq()
+    private static async Task<MoqKnownSymbols> CreateSymbolsWithMoqAsync()
     {
-        return new MoqKnownSymbols(CreateMoqCompilation());
+        return new MoqKnownSymbols(await CreateMoqCompilationAsync().ConfigureAwait(false));
     }
 
-    private static CSharpCompilation CreateMoqCompilation()
+    private static async Task<CSharpCompilation> CreateMoqCompilationAsync()
     {
         SyntaxTree tree = CSharpSyntaxTree.ParseText("public class Empty { }");
-        MetadataReference[] references = GetMoqReferences();
+        MetadataReference[] references = await GetMoqReferencesAsync().ConfigureAwait(false);
         return CSharpCompilation.Create(
             "TestAssembly",
             new[] { tree },
@@ -1026,10 +1026,10 @@ public class MoqKnownSymbolsTests
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
-    private static MetadataReference[] GetMoqReferences()
+    private static async Task<MetadataReference[]> GetMoqReferencesAsync()
     {
         ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithNewMoq];
-        ImmutableArray<MetadataReference> resolved = referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).GetAwaiter().GetResult();
+        ImmutableArray<MetadataReference> resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
         return [.. resolved];
     }
 }
