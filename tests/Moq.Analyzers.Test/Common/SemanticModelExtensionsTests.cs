@@ -1,4 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
+using Moq.Analyzers.Common.WellKnown;
+using Moq.Analyzers.Test.Helpers;
 
 namespace Moq.Analyzers.Test.Common;
 
@@ -7,25 +9,6 @@ public class SemanticModelExtensionsTests
     // Methods requiring Moq compilation reference (FindSetupMethodFromCallbackInvocation,
     // GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation, IsCallbackOrReturnInvocation,
     // IsRaisesInvocation) require Moq symbols and are covered by integration tests.
-    private static readonly MetadataReference CorlibReference;
-    private static readonly MetadataReference SystemRuntimeReference;
-    private static readonly MetadataReference SystemLinqReference;
-    private static readonly MetadataReference SystemLinqExpressionsReference;
-
-#pragma warning disable S3963 // "static fields" should be initialized inline - conflicts with ECS1300
-    static SemanticModelExtensionsTests()
-    {
-        CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        SystemRuntimeReference = MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll"));
-        SystemLinqReference = MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location);
-        SystemLinqExpressionsReference = MetadataReference.CreateFromFile(typeof(System.Linq.Expressions.Expression).Assembly.Location);
-    }
-#pragma warning restore S3963
-
-    private static MetadataReference[] CoreReferences =>
-        [CorlibReference, SystemRuntimeReference, SystemLinqReference, SystemLinqExpressionsReference];
-
     [Fact]
     public void HasConversion_IntToLong_ImplicitConversion_ReturnsTrue()
     {
@@ -237,7 +220,7 @@ class C
         int x = 42;
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CompilationHelper.CoreReferencesWithLinq);
 
         LiteralExpressionSyntax literal = tree.GetRoot()
             .DescendantNodes()
@@ -370,7 +353,7 @@ class C
         int x = 42;
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CompilationHelper.CoreReferencesWithLinq);
 
         LiteralExpressionSyntax literal = tree.GetRoot()
             .DescendantNodes()
@@ -452,16 +435,320 @@ class C
         Assert.Null(eventType);
     }
 
-    private static (SemanticModel Model, SyntaxTree Tree) CreateCompilation(string code)
+    [Fact]
+    public async Task FindSetupMethodFromCallbackInvocation_ValidReturnsChain_FindsSetupInvocation()
     {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            CoreReferences,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
+        const string code = @"
+using Moq;
+public interface IFoo { int Bar(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Bar()).Returns(42);
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax returnsInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, "Returns", StringComparison.Ordinal));
+
+        InvocationExpressionSyntax? setupInvocation = model.FindSetupMethodFromCallbackInvocation(
+            knownSymbols, returnsInvocation, CancellationToken.None);
+
+        Assert.NotNull(setupInvocation);
+        MemberAccessExpressionSyntax setupAccess = (MemberAccessExpressionSyntax)setupInvocation!.Expression;
+        Assert.Equal("Setup", setupAccess.Name.Identifier.Text);
+    }
+
+    [Fact]
+    public async Task FindSetupMethodFromCallbackInvocation_ExpressionNotInvocation_ReturnsNull()
+    {
+        const string code = @"
+using Moq;
+public interface IFoo { void Bar(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Bar());
+    }
+}";
+        (SemanticModel model, _) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+
+        // Pass a non-invocation expression (a literal)
+        LiteralExpressionSyntax literal = SyntaxFactory.LiteralExpression(
+            SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(42));
+
+        InvocationExpressionSyntax? result = model.FindSetupMethodFromCallbackInvocation(
+            knownSymbols, literal, CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation_ValidSetup_ReturnsMethodSymbols()
+    {
+        const string code = @"
+using Moq;
+public interface IFoo { int Bar(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Bar()).Returns(42);
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax setupInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, "Setup", StringComparison.Ordinal));
+
+        IEnumerable<IMethodSymbol> symbols = model.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupInvocation);
+
+        Assert.NotEmpty(symbols);
+        Assert.Contains(symbols, s => string.Equals(s.Name, "Bar", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation_NullInput_ReturnsEmpty()
+    {
+        const string code = @"
+using Moq;
+public class C { }";
+        (SemanticModel model, _) = await CompilationHelper.CreateMoqCompilationAsync(code);
+
+        IEnumerable<IMethodSymbol> symbols = model.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(null);
+
+        Assert.Empty(symbols);
+    }
+
+    [Fact]
+    public async Task GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation_LambdaBodyNotInvocation_ReturnsEmpty()
+    {
+        // Create a setup where the lambda body is a property access, not a method invocation
+        const string code = @"
+using Moq;
+public interface IFoo { int Value { get; } }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Value);
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax setupInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, "Setup", StringComparison.Ordinal));
+
+        IEnumerable<IMethodSymbol> symbols = model.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupInvocation);
+
+        Assert.Empty(symbols);
+    }
+
+    [Fact]
+    public async Task IsCallbackOrReturnInvocation_CallbackInvocation_ReturnsTrue()
+    {
+        const string code = @"
+using Moq;
+public interface IFoo { void Bar(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Bar()).Callback(() => { });
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax callbackInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, "Callback", StringComparison.Ordinal));
+
+        bool result = model.IsCallbackOrReturnInvocation(callbackInvocation, knownSymbols);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task IsCallbackOrReturnInvocation_ReturnsInvocation_ReturnsTrue()
+    {
+        const string code = @"
+using Moq;
+public interface IFoo { int Bar(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Bar()).Returns(42);
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax returnsInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, "Returns", StringComparison.Ordinal));
+
+        bool result = model.IsCallbackOrReturnInvocation(returnsInvocation, knownSymbols);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task IsCallbackOrReturnInvocation_NonCallbackReturnsMethodName_ReturnsFalse()
+    {
+        const string code = @"
+using Moq;
+public interface IFoo { int Bar(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Bar());
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax setupInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, "Setup", StringComparison.Ordinal));
+
+        bool result = model.IsCallbackOrReturnInvocation(setupInvocation, knownSymbols);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task IsCallbackOrReturnInvocation_ExpressionNotMemberAccess_ReturnsFalse()
+    {
+        // Create an invocation that does not use member access (direct method call)
+        const string code = @"
+using Moq;
+public class C
+{
+    static void Foo() { }
+    public void M()
+    {
+        Foo();
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax fooInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is IdentifierNameSyntax id
+                && string.Equals(id.Identifier.Text, "Foo", StringComparison.Ordinal));
+
+        bool result = model.IsCallbackOrReturnInvocation(fooInvocation, knownSymbols);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task IsRaisesInvocation_RaisesCall_ReturnsTrue()
+    {
+        const string code = @"
+using Moq;
+using System;
+public interface IFoo { event EventHandler MyEvent; void Bar(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Bar()).Raises(x => x.MyEvent += null, EventArgs.Empty);
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax raisesInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, "Raises", StringComparison.Ordinal));
+
+        bool result = model.IsRaisesInvocation(raisesInvocation, knownSymbols);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task IsRaisesInvocation_ExpressionNotMemberAccess_ReturnsFalse()
+    {
+        const string code = @"
+using Moq;
+public class C
+{
+    static void Raises() { }
+    public void M()
+    {
+        Raises();
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax raisesInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is IdentifierNameSyntax id
+                && string.Equals(id.Identifier.Text, "Raises", StringComparison.Ordinal));
+
+        bool result = model.IsRaisesInvocation(raisesInvocation, knownSymbols);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task IsRaisesInvocation_NonMoqMethodNamedRaises_ReturnsFalse()
+    {
+        const string code = @"
+using Moq;
+public class MyClass
+{
+    public MyClass Raises() => this;
+}
+public class C
+{
+    public void M()
+    {
+        var obj = new MyClass();
+        obj.Raises();
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax raisesInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, "Raises", StringComparison.Ordinal));
+
+        bool result = model.IsRaisesInvocation(raisesInvocation, knownSymbols);
+
+        Assert.False(result);
     }
 
     private static (SemanticModel Model, ITypeSymbol FirstType, ITypeSymbol SecondType) GetTwoVariableTypes(
@@ -469,7 +756,7 @@ class C
         string firstName,
         string secondName)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CompilationHelper.CoreReferencesWithLinq);
         VariableDeclaratorSyntax[] declarators = tree.GetRoot()
             .DescendantNodes()
             .OfType<VariableDeclaratorSyntax>()
@@ -487,7 +774,7 @@ class C
         string code,
         string variableName)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CompilationHelper.CoreReferencesWithLinq);
         VariableDeclaratorSyntax declarator = tree.GetRoot()
             .DescendantNodes()
             .OfType<VariableDeclaratorSyntax>()
