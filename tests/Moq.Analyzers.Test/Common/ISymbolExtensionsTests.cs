@@ -855,6 +855,82 @@ public class C
         Assert.True(symbol.IsMoqVerificationMethod(knownSymbols));
     }
 
+    [Fact]
+    public async Task IsMoqReturnValueSpecificationMethod_Throws_ReturnsTrue()
+    {
+        string code = @"
+using Moq;
+using System;
+public interface IService { int GetValue(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IService>();
+        mock.Setup(x => x.GetValue()).Throws(new Exception());
+    }
+}";
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "Throws");
+        Assert.True(symbol.IsMoqReturnValueSpecificationMethod(knownSymbols));
+    }
+
+    [Fact]
+    public async Task IsMoqReturnValueSpecificationMethod_ReturnsAsync_ReturnsTrue()
+    {
+        string code = @"
+using Moq;
+using System.Threading.Tasks;
+public interface IService { Task<int> GetValueAsync(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IService>();
+        mock.Setup(x => x.GetValueAsync()).ReturnsAsync(1);
+    }
+}";
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "ReturnsAsync");
+        Assert.True(symbol.IsMoqReturnValueSpecificationMethod(knownSymbols));
+    }
+
+    [Fact]
+    public async Task IsMoqReturnValueSpecificationMethod_ThrowsAsync_ReturnsTrue()
+    {
+        string code = @"
+using Moq;
+using System;
+using System.Threading.Tasks;
+public interface IService { Task<int> GetValueAsync(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IService>();
+        mock.Setup(x => x.GetValueAsync()).ThrowsAsync(new Exception());
+    }
+}";
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "ThrowsAsync");
+        Assert.True(symbol.IsMoqReturnValueSpecificationMethod(knownSymbols));
+    }
+
+    [Fact]
+    public async Task IsMoqVerificationMethod_VerifySet_ReturnsTrue()
+    {
+        string code = @"
+using Moq;
+public interface IService { string Name { get; set; } }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IService>();
+        mock.VerifySet(x => x.Name = It.IsAny<string>());
+    }
+}";
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "VerifySet");
+        Assert.True(symbol.IsMoqVerificationMethod(knownSymbols));
+    }
+
     private static (SemanticModel Model, SyntaxTree Tree) CreateCompilation(string code)
     {
         SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
