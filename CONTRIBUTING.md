@@ -833,7 +833,21 @@ This project uses [Nerdbank.GitVersioning](https://github.com/dotnet/Nerdbank.Gi
 | `release/v0.4.0` | `0.4.0` | `0.4.0` (stable) |
 | `release/v0.4.1` | `0.4.1` | `0.4.1` (stable) |
 
-The `publicReleaseRefSpec` in `version.json` controls which branches produce public (non-local) versions. Release branches matching `^refs/heads/release/v\d+\.\d+\.\d+$` are included.
+The `publicReleaseRefSpec` in `version.json` controls which branches produce public (non-local) versions. The actual configuration:
+
+```json
+{
+  "version": "0.4.0-alpha",
+  "publicReleaseRefSpec": [
+    "^refs/heads/main$",
+    "^refs/heads/v\\d+(?:\\.\\d+)?$",
+    "^refs/heads/release/v\\d+\\.\\d+\\.\\d+$",
+    "^refs/tags/v\\d+\\.\\d+\\.\\d+(-(alpha|beta|rc)(\\.\\d+)?)?$"
+  ]
+}
+```
+
+On a release branch, the `version` field is set to the stable version (e.g., `"0.4.0"` without the `-alpha` suffix).
 
 ### Branch Strategy
 
@@ -935,6 +949,29 @@ release/v0.4.0 ─────────────────────�
    - Description: list of changes included
 3. The `release.yml` workflow triggers on GitHub Release events, builds the project, and publishes `.nupkg` files to NuGet.
 
+### Troubleshooting
+
+**`release.yml` does not trigger:**
+
+- Verify the GitHub Release event targets the correct branch (`release/v{X}.{Y}.{Z}`).
+- Check that the tag format matches `v{X}.{Y}.{Z}` exactly.
+- Confirm the workflow has `on: release` with `types: [published]` configured.
+
+**Version mismatch in built packages:**
+
+- Confirm `version.json` on the release branch has the stable version (no `-alpha` suffix).
+- Run `nbgv get-version` locally on the release branch to verify NBGV output matches expectations.
+
+**NuGet publish fails:**
+
+- Check the `.nupkg` artifacts in the workflow run to verify they were built.
+- Verify the `NUGET_API_KEY` secret is configured and has push permissions.
+- Review the release job logs for authentication or validation errors.
+
+**Tag and target mismatch:**
+
+- The tag (`v0.4.1`) must match the target branch version (`release/v0.4.1`). A mismatch causes incorrect version metadata.
+
 ### Release Checklist
 
 - [ ] Release branch created from correct base
@@ -944,6 +981,7 @@ release/v0.4.0 ─────────────────────�
 - [ ] All tests pass
 - [ ] Performance benchmarks show no regressions
 - [ ] CI/CD is green on the release branch
+- [ ] Release notes/description prepared
 - [ ] GitHub Release created with correct tag and target branch
 
 ## Roslyn Analyzer Development
