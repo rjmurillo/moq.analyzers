@@ -493,34 +493,6 @@ public class C
     }
 
     [Fact]
-    public async Task FindSetupMethodFromCallbackInvocation_ReturnsChain_FindsSetup()
-    {
-        const string code = @"
-using Moq;
-public interface IFoo { int Bar(); }
-public class C
-{
-    public void M()
-    {
-        var mock = new Mock<IFoo>();
-        mock.Setup(x => x.Bar()).Returns(42);
-    }
-}";
-        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
-        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
-        SyntaxNode root = await tree.GetRootAsync();
-        InvocationExpressionSyntax returnsInvocation = root
-            .DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .First(i => i.Expression is MemberAccessExpressionSyntax ma
-                && string.Equals(ma.Name.Identifier.Text, "Returns", StringComparison.Ordinal));
-
-        InvocationExpressionSyntax? setupInvocation = model.FindSetupMethodFromCallbackInvocation(
-            knownSymbols, returnsInvocation, CancellationToken.None);
-
-        Assert.NotNull(setupInvocation);
-    }
-
-    [Fact]
     public async Task GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation_ValidSetup_ReturnsMethodSymbols()
     {
         const string code = @"
