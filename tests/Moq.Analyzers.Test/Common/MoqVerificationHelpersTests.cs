@@ -1,30 +1,14 @@
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Testing;
 
 namespace Moq.Analyzers.Test.Common;
 
 public class MoqVerificationHelpersTests
 {
-    private static readonly MetadataReference CorlibReference;
-    private static readonly MetadataReference SystemRuntimeReference;
-
-#pragma warning disable S3963 // "static fields" should be initialized inline - conflicts with ECS1300
-    static MoqVerificationHelpersTests()
-    {
-        CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        SystemRuntimeReference = MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll"));
-    }
-#pragma warning restore S3963
-
-    private static MetadataReference[] CoreReferences => [CorlibReference, SystemRuntimeReference];
-
     [Fact]
     public void ExtractLambdaFromArgument_ReturnsLambda_ForDirectLambda()
     {
         string code = @"class C { void M() { System.Action a = () => { }; } }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         ParenthesizedLambdaExpressionSyntax lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().First();
         IOperation? operation = model.GetOperation(lambda);
 
@@ -38,7 +22,7 @@ public class MoqVerificationHelpersTests
     public void ExtractLambdaFromArgument_ReturnsLambda_ForSimpleLambda()
     {
         string code = @"class C { void M() { System.Func<int, string> f = x => x.ToString(); } }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         SimpleLambdaExpressionSyntax lambda = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
         IOperation? operation = model.GetOperation(lambda);
 
@@ -52,7 +36,7 @@ public class MoqVerificationHelpersTests
     public void ExtractLambdaFromArgument_ReturnsNull_ForMethodGroupConversion()
     {
         string code = @"class C { void M() { System.Action a = M2; } void M2() { } }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         IdentifierNameSyntax methodGroup = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
             .First(id => string.Equals(id.Identifier.Text, "M2", StringComparison.Ordinal));
         IOperation? operation = model.GetOperation(methodGroup);
@@ -66,7 +50,7 @@ public class MoqVerificationHelpersTests
     public void ExtractLambdaFromArgument_ReturnsLambda_ForNestedLambda()
     {
         string code = @"class C { void M() { System.Func<int, System.Action> f = x => () => { }; } }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         ParenthesizedLambdaExpressionSyntax innerLambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().First();
         IOperation? operation = model.GetOperation(innerLambda);
 
@@ -80,7 +64,7 @@ public class MoqVerificationHelpersTests
     public void ExtractLambdaFromArgument_ReturnsNull_ForNonLambda()
     {
         string code = @"class C { void M() { int x = 1; } }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         LiteralExpressionSyntax literal = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().First();
         IOperation? operation = model.GetOperation(literal);
 
@@ -357,41 +341,9 @@ class C
         Assert.Null(result);
     }
 
-    private static (SemanticModel Model, SyntaxTree Tree) CreateCompilation(string code)
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            CoreReferences,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
-    }
-
-    private static async Task<(SemanticModel Model, SyntaxTree Tree)> CreateMoqCompilationAsync(string code)
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        MetadataReference[] references = await GetMoqReferencesAsync().ConfigureAwait(false);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
-    }
-
-    private static async Task<MetadataReference[]> GetMoqReferencesAsync()
-    {
-        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithNewMoq];
-        ImmutableArray<MetadataReference> resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
-        return [.. resolved];
-    }
-
     private static IInvocationOperation GetInvocationOperation(string code, string methodName)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         InvocationExpressionSyntax invocationSyntax = tree.GetRoot()
             .DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
@@ -404,7 +356,7 @@ class C
 
     private static async Task<IInvocationOperation> GetMoqInvocationAsync(string code, string methodName)
     {
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code).ConfigureAwait(false);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code).ConfigureAwait(false);
         SyntaxNode root = await tree.GetRootAsync().ConfigureAwait(false);
         InvocationExpressionSyntax invocationSyntax = root
             .DescendantNodes()

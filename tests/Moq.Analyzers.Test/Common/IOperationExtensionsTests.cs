@@ -4,20 +4,6 @@ namespace Moq.Analyzers.Test.Common;
 
 public class IOperationExtensionsTests
 {
-    private static readonly MetadataReference CorlibReference;
-    private static readonly MetadataReference SystemRuntimeReference;
-
-#pragma warning disable S3963 // "static fields" should be initialized inline - conflicts with ECS1300
-    static IOperationExtensionsTests()
-    {
-        CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        SystemRuntimeReference = MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll"));
-    }
-#pragma warning restore S3963
-
-    private static MetadataReference[] CoreReferences => [CorlibReference, SystemRuntimeReference];
-
     [Fact]
     public void WalkDownConversion_NonConversionOperation_ReturnsSelf()
     {
@@ -48,7 +34,7 @@ class C
         long y = x;
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         VariableDeclaratorSyntax declarator = tree.GetRoot()
             .DescendantNodes().OfType<VariableDeclaratorSyntax>()
             .First(v => string.Equals(v.Identifier.Text, "y", StringComparison.Ordinal));
@@ -78,7 +64,7 @@ class C
         long y = b;
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         VariableDeclaratorSyntax declarator = tree.GetRoot()
             .DescendantNodes().OfType<VariableDeclaratorSyntax>()
             .First(v => string.Equals(v.Identifier.Text, "y", StringComparison.Ordinal));
@@ -120,7 +106,7 @@ class C
         long y = x;
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         VariableDeclaratorSyntax declarator = tree.GetRoot()
             .DescendantNodes().OfType<VariableDeclaratorSyntax>()
             .First(v => string.Equals(v.Identifier.Text, "y", StringComparison.Ordinal));
@@ -150,7 +136,7 @@ class C
         short y = (short)x;
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         CastExpressionSyntax castExpr = tree.GetRoot()
             .DescendantNodes().OfType<CastExpressionSyntax>().First();
         IOperation? castOp = model.GetOperation(castExpr);
@@ -174,7 +160,7 @@ class C
         long y = b;
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         VariableDeclaratorSyntax declarator = tree.GetRoot()
             .DescendantNodes().OfType<VariableDeclaratorSyntax>()
             .First(v => string.Equals(v.Identifier.Text, "y", StringComparison.Ordinal));
@@ -610,21 +596,9 @@ class C
         Assert.Contains("_field", result!.ToString(), StringComparison.Ordinal);
     }
 
-    private static (SemanticModel Model, SyntaxTree Tree) CreateCompilation(string code)
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            CoreReferences,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
-    }
-
     private static IAnonymousFunctionOperation GetLambdaOperation(string code)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         LambdaExpressionSyntax lambda = GetFirstLambda(tree);
         IOperation? lambdaOp = model.GetOperation(lambda);
         Assert.NotNull(lambdaOp);
@@ -635,7 +609,7 @@ class C
     private static T GetFirstOperationOfType<T>(string code)
         where T : IOperation
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         IEnumerable<IOperation> allOperations = tree.GetRoot()
             .DescendantNodes()
             .Select(node => model.GetOperation(node))

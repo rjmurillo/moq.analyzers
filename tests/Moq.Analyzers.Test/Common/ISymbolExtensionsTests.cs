@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Testing;
 using Moq.Analyzers.Common.WellKnown;
 using Moq.Analyzers.Test.Helpers;
 
@@ -7,24 +6,13 @@ namespace Moq.Analyzers.Test.Common;
 
 public class ISymbolExtensionsTests
 {
-    private static readonly MetadataReference CorlibReference;
-    private static readonly MetadataReference SystemRuntimeReference;
-    private static readonly MetadataReference SystemThreadingTasksReference;
-    private static readonly MetadataReference SystemLinqReference;
+#pragma warning disable ECS1300 // Static field init is simpler than static constructor for single field
+    private static readonly MetadataReference SystemThreadingTasksReference =
+        MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).Assembly.Location);
+#pragma warning restore ECS1300
 
-#pragma warning disable S3963 // "static fields" should be initialized inline - conflicts with ECS1300
-    static ISymbolExtensionsTests()
-    {
-        CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        SystemRuntimeReference = MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll"));
-        SystemThreadingTasksReference = MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).Assembly.Location);
-        SystemLinqReference = MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location);
-    }
-#pragma warning restore S3963
-
-    private static MetadataReference[] CoreReferences =>
-        [CorlibReference, SystemRuntimeReference, SystemThreadingTasksReference, SystemLinqReference];
+    private static MetadataReference[] CoreReferencesWithTasks =>
+        [CompilationHelper.CorlibReference, CompilationHelper.SystemRuntimeReference, SystemThreadingTasksReference, CompilationHelper.SystemLinqReference];
 
     [Fact]
     public void IsConstructor_PublicConstructor_ReturnsTrue()
@@ -57,7 +45,7 @@ public class ISymbolExtensionsTests
     [Fact]
     public void IsConstructor_StaticConstructor_ReturnsFalse()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation("public class C { static C() {} }");
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation("public class C { static C() {} }");
         IMethodSymbol staticCtor = GetMethodSymbols(model, tree)
             .First(m => m.MethodKind == MethodKind.StaticConstructor);
         Assert.False(((ISymbol)staticCtor).IsConstructor());
@@ -66,7 +54,7 @@ public class ISymbolExtensionsTests
     [Fact]
     public void IsConstructor_RegularMethod_ReturnsFalse()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation("public class C { public void M() {} }");
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation("public class C { public void M() {} }");
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
         Assert.False(((ISymbol)method).IsConstructor());
@@ -75,7 +63,7 @@ public class ISymbolExtensionsTests
     [Fact]
     public void IsConstructor_Property_ReturnsFalse()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation("public class C { public int P { get; set; } }");
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation("public class C { public int P { get; set; } }");
         IPropertySymbol prop = tree.GetRoot()
             .DescendantNodes()
             .OfType<PropertyDeclarationSyntax>()
@@ -88,7 +76,7 @@ public class ISymbolExtensionsTests
     [Fact]
     public void IsInstanceOf_NullSymbol_ReturnsFalse()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation("public class C { public void M() {} }");
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation("public class C { public void M() {} }");
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
         ISymbol? nullSymbol = null;
@@ -98,7 +86,7 @@ public class ISymbolExtensionsTests
     [Fact]
     public void IsInstanceOf_NullOther_ReturnsFalse()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation("public class C { public void M() {} }");
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation("public class C { public void M() {} }");
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
         Assert.False(method.IsInstanceOf<IMethodSymbol>(null));
@@ -113,7 +101,7 @@ public class C
     public void M<T>(T value) {}
     public void Caller() { M<int>(42); }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         IMethodSymbol? calledMethod = model.GetSymbolInfo(invocation).Symbol as IMethodSymbol;
@@ -131,7 +119,7 @@ public class C
     public void M1() {}
     public void M2() {}
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         IMethodSymbol[] methods = GetMethodSymbols(model, tree)
             .Where(m => m.Name.StartsWith("M", StringComparison.Ordinal))
             .ToArray();
@@ -150,7 +138,7 @@ public class C
 {
     public void Caller() { ""hello"".DoSomething(); }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         IMethodSymbol? reducedMethod = model.GetSymbolInfo(invocation).Symbol as IMethodSymbol;
@@ -171,7 +159,7 @@ public class C
     public void M<T>(T value) {}
     public void Caller() { M<int>(42); }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         IMethodSymbol? calledMethod = model.GetSymbolInfo(invocation).Symbol as IMethodSymbol;
@@ -189,7 +177,7 @@ public class C
 {
     public void M(int a, string b) {}
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
         IParameterSymbol paramA = method.Parameters[0];
@@ -207,7 +195,7 @@ public class C
 {
     public List<int> Prop { get; set; }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         PropertyDeclarationSyntax propSyntax = tree.GetRoot()
             .DescendantNodes().OfType<PropertyDeclarationSyntax>().First();
         IPropertySymbol propSymbol = model.GetDeclaredSymbol(propSyntax)!;
@@ -221,7 +209,7 @@ public class C
     public void IsInstanceOf_NonGenericNamedType_ReturnsTrue()
     {
         string code = "public class MyClass {}";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         ClassDeclarationSyntax classSyntax = tree.GetRoot()
             .DescendantNodes().OfType<ClassDeclarationSyntax>().First();
         INamedTypeSymbol type = model.GetDeclaredSymbol(classSyntax)!;
@@ -235,7 +223,7 @@ public class C
         string code = @"
 public class A {}
 public class B {}";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         INamedTypeSymbol[] types = tree.GetRoot()
             .DescendantNodes().OfType<ClassDeclarationSyntax>()
             .Select(c => model.GetDeclaredSymbol(c)!)
@@ -248,7 +236,7 @@ public class B {}";
     public void IsInstanceOf_DefaultFallback_FieldSymbolMatching_ReturnsTrue()
     {
         string code = "public class C { public int F; }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         VariableDeclaratorSyntax fieldSyntax = tree.GetRoot()
             .DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
         IFieldSymbol field = (IFieldSymbol)model.GetDeclaredSymbol(fieldSyntax)!;
@@ -260,7 +248,7 @@ public class B {}";
     public void IsInstanceOf_DefaultFallback_FieldSymbolNotMatching_ReturnsFalse()
     {
         string code = "public class C { public int F1; public int F2; }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         IFieldSymbol[] fields = tree.GetRoot()
             .DescendantNodes().OfType<VariableDeclaratorSyntax>()
             .Select(v => (IFieldSymbol)model.GetDeclaredSymbol(v)!)
@@ -278,7 +266,7 @@ public class C
     public void M1() {}
     public void M2() {}
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         IMethodSymbol[] methods = GetMethodSymbols(model, tree)
             .Where(m => m.Name.StartsWith("M", StringComparison.Ordinal))
             .ToArray();
@@ -303,7 +291,7 @@ public class C
     public void M2() {}
     public void M3() {}
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         IMethodSymbol[] methods = GetMethodSymbols(model, tree)
             .Where(m => m.Name.StartsWith("M", StringComparison.Ordinal))
             .OrderBy(m => m.Name, StringComparer.Ordinal)
@@ -320,7 +308,7 @@ public class C
     public void IsInstanceOf_ImmutableArray_EmptyArray_ReturnsFalse()
     {
         string code = "public class C { public void M() {} }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
         ImmutableArray<IMethodSymbol> empty = ImmutableArray<IMethodSymbol>.Empty;
@@ -335,7 +323,7 @@ public class C
     public void IsInstanceOf_ImmutableArraySimple_MatchFound_ReturnsTrue()
     {
         string code = "public class C { public void M() {} }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
         ImmutableArray<IMethodSymbol> candidates = ImmutableArray.Create(method);
@@ -352,7 +340,7 @@ public class C
     public void M1() {}
     public void M2() {}
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         IMethodSymbol[] methods = GetMethodSymbols(model, tree)
             .Where(m => m.Name.StartsWith("M", StringComparison.Ordinal))
             .ToArray();
@@ -364,7 +352,7 @@ public class C
     [Fact]
     public void IsOverridable_StaticMethod_ReturnsFalse()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
             "public class C { public static void M() {} }");
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
@@ -374,7 +362,7 @@ public class C
     [Fact]
     public void IsOverridable_StaticProperty_ReturnsFalse()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
             "public class C { public static int P { get; set; } }");
         IPropertySymbol prop = tree.GetRoot()
             .DescendantNodes().OfType<PropertyDeclarationSyntax>()
@@ -387,7 +375,7 @@ public class C
     [Fact]
     public void IsOverridable_InterfaceMember_ReturnsTrue()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
             "public interface I { void M(); }");
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
@@ -397,7 +385,7 @@ public class C
     [Fact]
     public void IsOverridable_VirtualMethod_ReturnsTrue()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
             "public class C { public virtual void M() {} }");
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
@@ -407,7 +395,7 @@ public class C
     [Fact]
     public void IsOverridable_AbstractMethod_ReturnsTrue()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
             "public abstract class C { public abstract void M(); }");
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
@@ -420,7 +408,7 @@ public class C
         string code = @"
 public class Base { public virtual void M() {} }
 public class Derived : Base { public override void M() {} }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal) && m.IsOverride);
         Assert.True(((ISymbol)method).IsOverridable());
@@ -432,7 +420,7 @@ public class Derived : Base { public override void M() {} }";
         string code = @"
 public class Base { public virtual void M() {} }
 public class Derived : Base { public sealed override void M() {} }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal) && m.IsSealed);
         Assert.False(((ISymbol)method).IsOverridable());
@@ -441,7 +429,7 @@ public class Derived : Base { public sealed override void M() {} }";
     [Fact]
     public void IsOverridable_RegularNonVirtualMethod_ReturnsFalse()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
             "public class C { public void M() {} }");
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
@@ -451,7 +439,7 @@ public class Derived : Base { public sealed override void M() {} }";
     [Fact]
     public void IsOverridable_InterfaceProperty_ReturnsTrue()
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
             "public interface I { int P { get; } }");
         IPropertySymbol prop = tree.GetRoot()
             .DescendantNodes().OfType<PropertyDeclarationSyntax>()
@@ -525,7 +513,7 @@ public class C
         Task<int> t = Task.FromResult(42);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
@@ -549,7 +537,7 @@ public class C
 {{
     public {typeName} GetValue() => default!;
 }}";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         MethodDeclarationSyntax methodSyntax = tree.GetRoot()
             .DescendantNodes().OfType<MethodDeclarationSyntax>().First();
@@ -568,7 +556,7 @@ public class C
 {
     public int[] GetValues() => new[] { 1 };
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         MethodDeclarationSyntax methodSyntax = tree.GetRoot()
             .DescendantNodes().OfType<MethodDeclarationSyntax>().First();
@@ -806,7 +794,7 @@ public class C
     [Fact]
     public async Task IsMoqRaisesMethod_NonMethodSymbol_ReturnsFalse()
     {
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(@"
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(@"
 using Moq;
 public interface IService { int Value { get; } }
 public class C { }");
@@ -931,41 +919,9 @@ public class C
         Assert.True(symbol.IsMoqVerificationMethod(knownSymbols));
     }
 
-    private static (SemanticModel Model, SyntaxTree Tree) CreateCompilation(string code)
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            CoreReferences,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
-    }
-
-    private static async Task<(SemanticModel Model, SyntaxTree Tree)> CreateMoqCompilationAsync(string code)
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        MetadataReference[] references = await GetMoqReferencesAsync().ConfigureAwait(false);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
-    }
-
-    private static async Task<MetadataReference[]> GetMoqReferencesAsync()
-    {
-        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithNewMoq];
-        ImmutableArray<MetadataReference> resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
-        return [.. resolved];
-    }
-
     private static IMethodSymbol GetConstructor(string code, Accessibility expectedAccessibility)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         return GetMethodSymbols(model, tree)
             .First(m => m.MethodKind == MethodKind.Constructor
                         && m.DeclaredAccessibility == expectedAccessibility);
@@ -985,7 +941,7 @@ public class C
         string code,
         string propertyName)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CoreReferencesWithTasks);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         MemberAccessExpressionSyntax memberAccess = tree.GetRoot()
             .DescendantNodes().OfType<MemberAccessExpressionSyntax>()
@@ -998,7 +954,7 @@ public class C
         string code,
         string methodName)
     {
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code).ConfigureAwait(false);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code).ConfigureAwait(false);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync().ConfigureAwait(false);
         InvocationExpressionSyntax invocation = root

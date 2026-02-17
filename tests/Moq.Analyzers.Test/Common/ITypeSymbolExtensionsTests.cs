@@ -2,21 +2,6 @@ namespace Moq.Analyzers.Test.Common;
 
 public class ITypeSymbolExtensionsTests
 {
-    private static readonly MetadataReference CorlibReference;
-    private static readonly MetadataReference SystemRuntimeReference;
-
-#pragma warning disable S3963 // "static fields" should be initialized inline - conflicts with ECS1300
-    static ITypeSymbolExtensionsTests()
-    {
-        CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        SystemRuntimeReference = MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll"));
-    }
-#pragma warning restore S3963
-
-    private static MetadataReference[] CoreReferences =>
-        [CorlibReference, SystemRuntimeReference];
-
     [Fact]
     public void GetBaseTypesAndThis_ClassWithNoExplicitBase_ReturnsClassAndObject()
     {
@@ -60,13 +45,7 @@ public class Child : Parent { }";
 
     private static INamedTypeSymbol GetNamedTypeSymbol(string code, string typeName)
     {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            CoreReferences,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         return tree.GetRoot()
             .DescendantNodes()
             .OfType<TypeDeclarationSyntax>()

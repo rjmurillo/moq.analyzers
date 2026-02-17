@@ -4,20 +4,6 @@ namespace Moq.Analyzers.Test.Common;
 
 public class EventSyntaxExtensionsTests
 {
-    private static readonly MetadataReference CorlibReference;
-    private static readonly MetadataReference SystemRuntimeReference;
-
-#pragma warning disable S3963 // "static fields" should be initialized inline - conflicts with ECS1300
-    static EventSyntaxExtensionsTests()
-    {
-        CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        SystemRuntimeReference = MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll"));
-    }
-#pragma warning restore S3963
-
-    private static MetadataReference[] CoreReferences => [CorlibReference, SystemRuntimeReference];
-
     [Fact]
     public void GetEventParameterTypes_ActionDelegate_ReturnsTypeArguments()
     {
@@ -112,7 +98,7 @@ class C
 {
     int[] Field;
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         VariableDeclaratorSyntax fieldSyntax = tree.GetRoot()
             .DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
         IFieldSymbol field = (IFieldSymbol)model.GetDeclaredSymbol(fieldSyntax)!;
@@ -204,7 +190,7 @@ class C
 {
     int[] Field;
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         KnownSymbols knownSymbols = new KnownSymbols(model.Compilation);
         VariableDeclaratorSyntax fieldSyntax = tree.GetRoot()
             .DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
@@ -227,7 +213,7 @@ class C
     }
     void SomeMethod() {}
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
@@ -255,7 +241,7 @@ class C
     }
     void SomeMethod(int x) {}
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
@@ -283,7 +269,7 @@ class C
     }
     void SomeMethod(int x) {}
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
@@ -319,7 +305,7 @@ class C
 class C { event MyDelegate MyEvent; }",
             "MyEvent");
 
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
@@ -354,7 +340,7 @@ class C
 class C { event MyDelegate MyEvent; }",
             "MyEvent");
 
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
@@ -382,7 +368,7 @@ class C
     }
     void SomeMethod() {}
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         KnownSymbols knownSymbols = new KnownSymbols(model.Compilation);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
@@ -412,7 +398,7 @@ class C
     }
     void SomeMethod(int x) {}
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         KnownSymbols knownSymbols = new KnownSymbols(model.Compilation);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
@@ -450,7 +436,7 @@ delegate void MyDelegate(int x);
 class C { event MyDelegate MyEvent; }",
             "MyEvent");
 
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         KnownSymbols knownSymbols = new KnownSymbols(model.Compilation);
         InvocationExpressionSyntax invocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
@@ -474,22 +460,10 @@ class C { event MyDelegate MyEvent; }",
     // and RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests, which exercise all
     // branching logic (too few args, too many args, wrong type, matching types, with/without
     // eventName).
-    private static (SemanticModel Model, SyntaxTree Tree) CreateCompilation(string code)
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            CoreReferences,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
-    }
-
 #pragma warning disable ECS0900 // Boxing needed to cast to IEventSymbol from GetDeclaredSymbol
     private static ITypeSymbol GetEventFieldType(string code, string eventName)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         VariableDeclaratorSyntax variable = tree.GetRoot()
             .DescendantNodes()
             .OfType<VariableDeclaratorSyntax>()
@@ -503,7 +477,7 @@ class C { event MyDelegate MyEvent; }",
         string code,
         string eventName)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         KnownSymbols knownSymbols = new KnownSymbols(model.Compilation);
         VariableDeclaratorSyntax variable = tree.GetRoot()
             .DescendantNodes()

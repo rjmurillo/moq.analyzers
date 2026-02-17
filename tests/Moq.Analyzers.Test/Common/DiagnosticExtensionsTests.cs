@@ -4,9 +4,6 @@ namespace Moq.Analyzers.Test.Common;
 
 public class DiagnosticExtensionsTests
 {
-    private static readonly MetadataReference CorlibReference;
-    private static readonly MetadataReference SystemRuntimeReference;
-
 #pragma warning disable RS2008 // Enable analyzer release tracking (test-only descriptor)
 #pragma warning disable ECS1300 // Test-only descriptor; inline init is simpler than static constructor
     private static readonly DiagnosticDescriptor TestRule = new(
@@ -18,17 +15,6 @@ public class DiagnosticExtensionsTests
         isEnabledByDefault: true);
 #pragma warning restore ECS1300
 #pragma warning restore RS2008
-
-#pragma warning disable S3963 // Static fields should be initialized inline - conflicts with ECS1300
-    static DiagnosticExtensionsTests()
-    {
-        CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        SystemRuntimeReference = MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll"));
-    }
-#pragma warning restore S3963
-
-    private static MetadataReference[] CoreReferences => [CorlibReference, SystemRuntimeReference];
 
     // Overload #1: SyntaxNode + rule + messageArgs
     [Fact]
@@ -169,7 +155,7 @@ public class DiagnosticExtensionsTests
         CSharpCompilation compilation = CSharpCompilation.Create(
             "Test",
             new[] { tree },
-            CoreReferences,
+            CompilationHelper.CoreReferences,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         SemanticModel model = compilation.GetSemanticModel(tree);
         MethodDeclarationSyntax methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
@@ -189,7 +175,7 @@ public class DiagnosticExtensionsTests
         CSharpCompilation compilation = CSharpCompilation.Create(
             "Test",
             new[] { tree },
-            CoreReferences,
+            CompilationHelper.CoreReferences,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         SemanticModel model = compilation.GetSemanticModel(tree);
         MethodDeclarationSyntax methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
@@ -210,7 +196,7 @@ public class DiagnosticExtensionsTests
         CSharpCompilation compilation = CSharpCompilation.Create(
             "Test",
             new[] { tree },
-            CoreReferences,
+            CompilationHelper.CoreReferences,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         SemanticModel model = compilation.GetSemanticModel(tree);
         MethodDeclarationSyntax methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();

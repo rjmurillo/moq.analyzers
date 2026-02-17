@@ -2,20 +2,6 @@ namespace Moq.Analyzers.Test.Common;
 
 public class SyntaxNodeExtensionsTests
 {
-    private static readonly MetadataReference CorlibReference;
-    private static readonly MetadataReference SystemRuntimeReference;
-
-#pragma warning disable S3963 // "static fields" should be initialized inline - conflicts with ECS1300
-    static SyntaxNodeExtensionsTests()
-    {
-        CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        SystemRuntimeReference = MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll"));
-    }
-#pragma warning restore S3963
-
-    private static MetadataReference[] CoreReferences => [CorlibReference, SystemRuntimeReference];
-
     [Fact]
     public void FindLocation_MatchingDescendantFound_ReturnsLocationWithCorrectSpan()
     {
@@ -28,7 +14,7 @@ class C
     }
     static C Create() => new C();
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         SyntaxNode root = tree.GetRoot();
 
         // Get the constructor symbol from the first ObjectCreationExpressionSyntax
@@ -56,7 +42,7 @@ class D
 {
     D() { }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         SyntaxNode root = tree.GetRoot();
 
         // Get the D constructor symbol
@@ -88,7 +74,7 @@ class C
         var x = new C();
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
         SyntaxNode root = tree.GetRoot();
 
         // Get a real symbol to pass in
@@ -187,17 +173,5 @@ class C
         SyntaxNode? parent = root.GetParentSkippingParentheses();
 
         Assert.Null(parent);
-    }
-
-    private static (SemanticModel Model, SyntaxTree Tree) CreateCompilation(string code)
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            CoreReferences,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
     }
 }

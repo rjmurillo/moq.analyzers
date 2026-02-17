@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Testing;
 using Moq.Analyzers.Common.WellKnown;
 
 namespace Moq.Analyzers.Test.Common;
@@ -117,7 +115,7 @@ public class C
         mock.Setup(x => x.DoWork()).Raises(x => x.MyEvent += null, EventArgs.Empty);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         SyntaxNode root = await tree.GetRootAsync();
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
 
@@ -152,7 +150,7 @@ public class C
         mock.Setup(x => x.DoWork());
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         SyntaxNode root = await tree.GetRootAsync();
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
 
@@ -184,7 +182,7 @@ public class C
 
     private static void DoSomething() { }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         SyntaxNode root = await tree.GetRootAsync();
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
 
@@ -194,25 +192,5 @@ public class C
         bool result = invocation.IsRaisesMethodCall(model, knownSymbols);
 
         Assert.False(result);
-    }
-
-    private static async Task<(SemanticModel Model, SyntaxTree Tree)> CreateMoqCompilationAsync(string code)
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        MetadataReference[] references = await GetMoqReferencesAsync().ConfigureAwait(false);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
-    }
-
-    private static async Task<MetadataReference[]> GetMoqReferencesAsync()
-    {
-        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithNewMoq];
-        ImmutableArray<MetadataReference> resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
-        return [.. resolved];
     }
 }

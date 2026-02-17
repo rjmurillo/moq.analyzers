@@ -1,6 +1,4 @@
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Testing;
 using Moq.Analyzers.Common.WellKnown;
 using Moq.Analyzers.Test.Helpers;
 
@@ -11,25 +9,6 @@ public class SemanticModelExtensionsTests
     // Methods requiring Moq compilation reference (FindSetupMethodFromCallbackInvocation,
     // GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation, IsCallbackOrReturnInvocation,
     // IsRaisesInvocation) require Moq symbols and are covered by integration tests.
-    private static readonly MetadataReference CorlibReference;
-    private static readonly MetadataReference SystemRuntimeReference;
-    private static readonly MetadataReference SystemLinqReference;
-    private static readonly MetadataReference SystemLinqExpressionsReference;
-
-#pragma warning disable S3963 // "static fields" should be initialized inline - conflicts with ECS1300
-    static SemanticModelExtensionsTests()
-    {
-        CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        SystemRuntimeReference = MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll"));
-        SystemLinqReference = MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location);
-        SystemLinqExpressionsReference = MetadataReference.CreateFromFile(typeof(System.Linq.Expressions.Expression).Assembly.Location);
-    }
-#pragma warning restore S3963
-
-    private static MetadataReference[] CoreReferences =>
-        [CorlibReference, SystemRuntimeReference, SystemLinqReference, SystemLinqExpressionsReference];
-
     [Fact]
     public void HasConversion_IntToLong_ImplicitConversion_ReturnsTrue()
     {
@@ -241,7 +220,7 @@ class C
         int x = 42;
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CompilationHelper.CoreReferencesWithLinq);
 
         LiteralExpressionSyntax literal = tree.GetRoot()
             .DescendantNodes()
@@ -374,7 +353,7 @@ class C
         int x = 42;
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CompilationHelper.CoreReferencesWithLinq);
 
         LiteralExpressionSyntax literal = tree.GetRoot()
             .DescendantNodes()
@@ -470,7 +449,7 @@ public class C
         mock.Setup(x => x.Bar()).Returns(42);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax returnsInvocation = root
@@ -500,7 +479,7 @@ public class C
         mock.Setup(x => x.Bar());
     }
 }";
-        (SemanticModel model, _) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, _) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
 
         // Pass a non-invocation expression (a literal)
@@ -527,7 +506,7 @@ public class C
         mock.Setup(x => x.Bar()).Returns(42);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax returnsInvocation = root
@@ -555,7 +534,7 @@ public class C
         mock.Setup(x => x.Bar()).Returns(42);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax setupInvocation = root
             .DescendantNodes().OfType<InvocationExpressionSyntax>()
@@ -574,7 +553,7 @@ public class C
         const string code = @"
 using Moq;
 public class C { }";
-        (SemanticModel model, _) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, _) = await CompilationHelper.CreateMoqCompilationAsync(code);
 
         IEnumerable<IMethodSymbol> symbols = model.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(null);
 
@@ -596,7 +575,7 @@ public class C
         mock.Setup(x => x.Value);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax setupInvocation = root
             .DescendantNodes().OfType<InvocationExpressionSyntax>()
@@ -622,7 +601,7 @@ public class C
         mock.Setup(x => x.Bar()).Callback(() => { });
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax callbackInvocation = root
@@ -649,7 +628,7 @@ public class C
         mock.Setup(x => x.Bar()).Returns(42);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax returnsInvocation = root
@@ -676,7 +655,7 @@ public class C
         mock.Setup(x => x.Bar());
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax setupInvocation = root
@@ -703,7 +682,7 @@ public class C
         Foo();
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax fooInvocation = root
@@ -731,7 +710,7 @@ public class C
         mock.Setup(x => x.Bar()).Raises(x => x.MyEvent += null, EventArgs.Empty);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax raisesInvocation = root
@@ -757,7 +736,7 @@ public class C
         Raises();
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax raisesInvocation = root
@@ -787,7 +766,7 @@ public class C
         obj.Raises();
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CreateMoqCompilationAsync(code);
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync();
         InvocationExpressionSyntax raisesInvocation = root
@@ -800,24 +779,12 @@ public class C
         Assert.False(result);
     }
 
-    private static (SemanticModel Model, SyntaxTree Tree) CreateCompilation(string code)
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            CoreReferences,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
-    }
-
     private static (SemanticModel Model, ITypeSymbol FirstType, ITypeSymbol SecondType) GetTwoVariableTypes(
         string code,
         string firstName,
         string secondName)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CompilationHelper.CoreReferencesWithLinq);
         VariableDeclaratorSyntax[] declarators = tree.GetRoot()
             .DescendantNodes()
             .OfType<VariableDeclaratorSyntax>()
@@ -835,7 +802,7 @@ public class C
         string code,
         string variableName)
     {
-        (SemanticModel model, SyntaxTree tree) = CreateCompilation(code);
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code, CompilationHelper.CoreReferencesWithLinq);
         VariableDeclaratorSyntax declarator = tree.GetRoot()
             .DescendantNodes()
             .OfType<VariableDeclaratorSyntax>()
@@ -843,25 +810,5 @@ public class C
 
         ExpressionSyntax lambda = declarator.Initializer!.Value;
         return (model, lambda);
-    }
-
-    private static async Task<(SemanticModel Model, SyntaxTree Tree)> CreateMoqCompilationAsync(string code)
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        MetadataReference[] references = await GetMoqReferencesAsync().ConfigureAwait(false);
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        SemanticModel model = compilation.GetSemanticModel(tree);
-        return (model, tree);
-    }
-
-    private static async Task<MetadataReference[]> GetMoqReferencesAsync()
-    {
-        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithNewMoq];
-        ImmutableArray<MetadataReference> resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
-        return [.. resolved];
     }
 }

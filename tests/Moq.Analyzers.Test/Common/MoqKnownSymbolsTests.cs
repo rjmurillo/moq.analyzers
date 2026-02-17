@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Testing;
 using Moq.Analyzers.Common.WellKnown;
 using Moq.Analyzers.Test.Helpers;
 
@@ -7,24 +5,13 @@ namespace Moq.Analyzers.Test.Common;
 
 public class MoqKnownSymbolsTests
 {
-    private static readonly MetadataReference CorlibReference;
-    private static readonly MetadataReference SystemRuntimeReference;
-    private static readonly MetadataReference SystemThreadingTasksReference;
-    private static readonly MetadataReference SystemLinqReference;
+#pragma warning disable ECS1300 // Static field init is simpler than static constructor for single field
+    private static readonly MetadataReference SystemThreadingTasksReference =
+        MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).Assembly.Location);
+#pragma warning restore ECS1300
 
-#pragma warning disable S3963 // "static fields" should be initialized inline - conflicts with ECS1300
-    static MoqKnownSymbolsTests()
-    {
-        CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        string runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        SystemRuntimeReference = MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll"));
-        SystemThreadingTasksReference = MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).Assembly.Location);
-        SystemLinqReference = MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location);
-    }
-#pragma warning restore S3963
-
-    private static MetadataReference[] CoreReferences =>
-        [CorlibReference, SystemRuntimeReference, SystemThreadingTasksReference, SystemLinqReference];
+    private static MetadataReference[] CoreReferencesWithTasks =>
+        [CompilationHelper.CorlibReference, CompilationHelper.SystemRuntimeReference, SystemThreadingTasksReference, CompilationHelper.SystemLinqReference];
 
     [Fact]
     public void Constructor_WithCompilation_CreatesInstance()
@@ -997,12 +984,8 @@ public class MoqKnownSymbolsTests
 
     private static CSharpCompilation CreateMinimalCompilation()
     {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText("public class Empty { }");
-        return CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            CoreReferences,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        (SemanticModel model, _) = CompilationHelper.CreateCompilation("public class Empty { }", CoreReferencesWithTasks);
+        return (CSharpCompilation)model.Compilation;
     }
 
     private static MoqKnownSymbols CreateSymbolsWithoutMoq()
@@ -1017,19 +1000,7 @@ public class MoqKnownSymbolsTests
 
     private static async Task<CSharpCompilation> CreateMoqCompilationAsync()
     {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText("public class Empty { }");
-        MetadataReference[] references = await GetMoqReferencesAsync().ConfigureAwait(false);
-        return CSharpCompilation.Create(
-            "TestAssembly",
-            new[] { tree },
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-    }
-
-    private static async Task<MetadataReference[]> GetMoqReferencesAsync()
-    {
-        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithNewMoq];
-        ImmutableArray<MetadataReference> resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
-        return [.. resolved];
+        (SemanticModel model, _) = await CompilationHelper.CreateMoqCompilationAsync("public class Empty { }").ConfigureAwait(false);
+        return (CSharpCompilation)model.Compilation;
     }
 }
