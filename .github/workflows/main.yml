@@ -43,15 +43,7 @@ jobs:
       # For non-PR events, always run full pipeline; for PRs use paths-filter result.
       # When paths-filter is skipped, outputs are '' (empty), which is not 'true',
       # so the fallback 'true' is needed for non-PR events.
-      code-changed: >-
-        ${{
-          (github.event_name == 'push' && 'true')
-          || (github.event_name == 'merge_group' && 'true')
-          || (github.event_name == 'schedule' && 'true')
-          || (github.event_name == 'workflow_dispatch' && 'true')
-          || (github.event_name == 'workflow_call' && 'true')
-          || steps.filter.outputs.code
-        }}
+      code-changed: ${{ github.event_name != 'pull_request' || steps.filter.outputs.code }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
