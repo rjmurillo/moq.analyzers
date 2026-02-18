@@ -33,20 +33,78 @@ permissions:
   actions: read
 
 jobs:
+  # Detect whether expensive CI steps are needed based on changed file paths.
+  # All downstream jobs still run (required status checks) but skip their
+  # expensive steps when only docs/non-code files changed.
+  # Pattern: https://github.com/rjmurillo/ai-agents/blob/main/.github/workflows/codeql-analysis.yml
+  check-paths:
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      # For non-PR events, always run full pipeline; for PRs use paths-filter result.
+      # When paths-filter is skipped, outputs are '' (empty), which is not 'true',
+      # so the fallback 'true' is needed for non-PR events.
+      code-changed: >-
+        ${{
+          (github.event_name == 'push' && 'true')
+          || (github.event_name == 'merge_group' && 'true')
+          || (github.event_name == 'schedule' && 'true')
+          || (github.event_name == 'workflow_dispatch' && 'true')
+          || (github.event_name == 'workflow_call' && 'true')
+          || steps.filter.outputs.code
+        }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Check for code changes
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+        id: filter
+        if: github.event_name == 'pull_request'
+        with:
+          # SINGLE SOURCE OF TRUTH for paths that require the full CI pipeline.
+          # Everything not listed here is treated as docs-only (skips build/test/perf).
+          filters: |
+            code:
+              - 'src/**'
+              - 'tests/**'
+              - 'build/**'
+              - 'Directory.Build.props'
+              - 'Directory.Build.targets'
+              - 'Directory.Packages.props'
+              - 'global.json'
+              - 'version.json'
+              - 'nuget.config'
+              - '**/*.csproj'
+              - '**/*.sln'
+              - '.github/workflows/**'
+              - '.github/actions/**'
+              - '.editorconfig'
+
+      - name: Report path check result
+        run: |
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "Non-PR event (${{ github.event_name }}) -- running full pipeline"
+          else
+            echo "Code files changed: ${{ steps.filter.outputs.code }}"
+          fi
+
   # Build, validate, and package. Fast gate (~5 min).
   # Tests, analyzer-load-test, and perf run as separate downstream jobs.
   build:
+    needs: check-paths
     runs-on: ubuntu-24.04-arm
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      if: needs.check-paths.outputs.code-changed == 'true'
       with:
         fetch-depth: 0
 
     - name: Setup, Restore, and Build Solution
+      if: needs.check-paths.outputs.code-changed == 'true'
       uses: ./.github/actions/setup-restore-build
 
     - name: Validate analyzer host compatibility
+      if: needs.check-paths.outputs.code-changed == 'true'
       shell: pwsh
       run: |
         # Verify shipped analyzer DLLs don't reference assembly versions
@@ -79,22 +137,23 @@ jobs:
         if ($failed) { exit 1 }
 
     - name: Upload binlogs
-      uses: actions/upload-artifact@v6
-      if: success() || failure()
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
       with:
         name: binlogs
         path: ./artifacts/logs
         if-no-files-found: error
 
     - name: Upload SARIF files
-      uses: actions/upload-artifact@v6
-      if: success() || failure()
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
       with:
         name: SARIF files
         path: ./artifacts/obj/**/*.sarif
 
     - name: Upload packages
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      if: needs.check-paths.outputs.code-changed == 'true'
       with:
         name: packages
         path: |
@@ -102,16 +161,21 @@ jobs:
         if-no-files-found: error
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v6
-      if: success() || failure()
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
       with:
         name: artifacts
         path: ./artifacts
         if-no-files-found: error
 
+    - name: Skip notice
+      if: needs.check-paths.outputs.code-changed != 'true'
+      run: echo "Skipped -- no code changes detected"
+
   # Run unit tests on multiple platforms.
   # Build happens independently on each runner so tests use platform-native binaries.
   test:
+    needs: check-paths
     strategy:
       fail-fast: false
       matrix:
@@ -125,72 +189,90 @@ jobs:
       IS_TARGET_MAIN: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      if: needs.check-paths.outputs.code-changed == 'true'
       with:
         fetch-depth: 0
 
     - name: Setup, Restore, and Build Solution
+      if: needs.check-paths.outputs.code-changed == 'true'
       uses: ./.github/actions/setup-restore-build
 
     - name: Restore Code Coverage history
-      uses: actions/download-artifact@v7
+      if: needs.check-paths.outputs.code-changed == 'true'
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
       with:
         name: CoverageHistory-${{ matrix.os }}
         path: ./artifacts/TestResults/coveragehistory
       continue-on-error: true
 
     - name: Test
+      if: needs.check-paths.outputs.code-changed == 'true'
       run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
       env:
         REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
     - name: Upload coverage history
-      uses: actions/upload-artifact@v6
-      if: success() && env.IS_TARGET_MAIN == 'true'
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      if: >-
+        needs.check-paths.outputs.code-changed == 'true'
+        && success()
+        && env.IS_TARGET_MAIN == 'true'
       with:
         name: CoverageHistory-${{ matrix.os }}
         path: ./artifacts/TestResults/coveragehistory
 
     - name: Upload *.received.* files
-      uses: actions/upload-artifact@v6
-      if: failure()
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      if: needs.check-paths.outputs.code-changed == 'true' && failure()
       with:
         name: verify-test-results-${{ matrix.os }}
         path: |
           **/*.received.*
 
     - name: Upload Test Report
-      uses: actions/upload-artifact@v6
-      if: success() || failure()
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
       with:
         name: .NET Test Reports (${{ matrix.os }})
         path: "artifacts/TestResults/**/*.trx"
         if-no-files-found: error
 
     - name: Upload Code Coverage Report
-      uses: actions/upload-artifact@v6
-      if: success() || failure()
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
       with:
         name: .NET Code Coverage Reports (${{ matrix.os }})
         path: "artifacts/TestResults/coverage/**"
 
     - name: Publish coverage summary to GitHub
+      if: needs.check-paths.outputs.code-changed == 'true'
       run: cat artifacts/TestResults/coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
       shell: bash
 
     - name: Upload coverage data to Codacy
-      if: ${{ runner.os == 'Linux' && env.IS_CODACY_COVERAGE_ALLOWED == 'true' }}
-      uses: codacy/codacy-coverage-reporter-action@v1.3.0
+      if: >-
+        needs.check-paths.outputs.code-changed == 'true'
+        && runner.os == 'Linux'
+        && env.IS_CODACY_COVERAGE_ALLOWED == 'true'
+      uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1.3.0
       with:
         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
         coverage-reports: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
 
     - name: Upload coverage data to Qlty
-      if: ${{ runner.os == 'Linux' && env.IS_QLTY_COVERAGE_ALLOWED == 'true' }}
-      uses: qltysh/qlty-action/coverage@v2
+      if: >-
+        needs.check-paths.outputs.code-changed == 'true'
+        && runner.os == 'Linux'
+        && env.IS_QLTY_COVERAGE_ALLOWED == 'true'
+      uses: qltysh/qlty-action/coverage@a19242102d17e497f437d7466aa01b528537e899 # v2
       with:
         token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
         files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
+
+    - name: Skip notice
+      if: needs.check-paths.outputs.code-changed != 'true'
+      run: echo "Skipped -- no code changes detected"
 
   # Verify the shipped nupkg loads without CS8032 on every supported host.
   # This is the end-to-end integration test for issue #850.
@@ -199,7 +281,7 @@ jobs:
   #   1. dotnet CLI  - csc runs on .NET (8/9/10), tested on Linux ARM
   #   2. msbuild.exe - csc runs on .NET Framework (VS), tested on Windows x64
   analyzer-load-test:
-    needs: build
+    needs: [check-paths, build]
     runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
@@ -247,21 +329,24 @@ jobs:
 
     steps:
     - name: Setup .NET ${{ matrix.dotnet-version }}
-      uses: actions/setup-dotnet@v5
+      if: needs.check-paths.outputs.code-changed == 'true'
+      uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
 
     - name: Setup MSBuild
-      if: matrix.build-engine == 'msbuild'
-      uses: microsoft/setup-msbuild@v2
+      if: needs.check-paths.outputs.code-changed == 'true' && matrix.build-engine == 'msbuild'
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
 
     - name: Download nupkg artifact
-      uses: actions/download-artifact@v7
+      if: needs.check-paths.outputs.code-changed == 'true'
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
       with:
         name: packages
         path: ./local-feed
 
     - name: Create test project
+      if: needs.check-paths.outputs.code-changed == 'true'
       shell: pwsh
       run: |
         $pkg = Get-ChildItem ./local-feed -Recurse -Filter 'Moq.Analyzers.*.nupkg' |
@@ -310,7 +395,7 @@ jobs:
         "@ | Set-Content test-project/Placeholder.cs
 
     - name: Build with dotnet CLI
-      if: matrix.build-engine == 'dotnet'
+      if: needs.check-paths.outputs.code-changed == 'true' && matrix.build-engine == 'dotnet'
       shell: pwsh
       working-directory: test-project
       run: |
@@ -336,7 +421,7 @@ jobs:
         Write-Host "Analyzer loaded successfully (dotnet / ${{ matrix.tfm }})"
 
     - name: Build with MSBuild
-      if: matrix.build-engine == 'msbuild'
+      if: needs.check-paths.outputs.code-changed == 'true' && matrix.build-engine == 'msbuild'
       shell: pwsh
       working-directory: test-project
       run: |
@@ -361,10 +446,14 @@ jobs:
         Write-Host ""
         Write-Host "Analyzer loaded successfully (msbuild / ${{ matrix.tfm }})"
 
+    - name: Skip notice
+      if: needs.check-paths.outputs.code-changed != 'true'
+      run: echo "Skipped -- no code changes detected"
+
   # Performance validation runs last, after build and tests confirm correctness.
   # Builds from source on Linux ARM to get consistent benchmark results.
   perf:
-    needs: [build, test]
+    needs: [check-paths, build, test]
     runs-on: ubuntu-24.04-arm
 
     env:
@@ -372,14 +461,17 @@ jobs:
       FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }}
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      if: needs.check-paths.outputs.code-changed == 'true'
       with:
         fetch-depth: 0
 
     - name: Setup, Restore, and Build Solution
+      if: needs.check-paths.outputs.code-changed == 'true'
       uses: ./.github/actions/setup-restore-build
 
     - name: Get baseline SHA
+      if: needs.check-paths.outputs.code-changed == 'true'
       id: get-baseline-sha
       run: |
         if (-not (Test-Path build/perf/baseline.json)) {
@@ -392,22 +484,26 @@ jobs:
 
     # The baseline SHA may require a different .NET SDK version
     - name: Checkout baseline
-      uses: actions/checkout@v6
+      if: needs.check-paths.outputs.code-changed == 'true'
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with:
         ref: ${{ steps.get-baseline-sha.outputs.sha }}
         fetch-depth: 0
 
     - name: Setup .NET for performance baseline
-      uses: actions/setup-dotnet@v5
+      if: needs.check-paths.outputs.code-changed == 'true'
+      uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
       with:
         global-json-file: ./global.json
 
     - name: Restore checkout
-      uses: actions/checkout@v6
+      if: needs.check-paths.outputs.code-changed == 'true'
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with:
         fetch-depth: 0
 
     - name: Get performance test filter
+      if: needs.check-paths.outputs.code-changed == 'true'
       id: get-perf-filter
       run: |
         if ('${{ env.RUN_FULL_PERF }}' -eq 'true') {
@@ -418,11 +514,12 @@ jobs:
       shell: pwsh
 
     - name: Validate performance
+      if: needs.check-paths.outputs.code-changed == 'true'
       shell: pwsh
       run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter ${{ steps.get-perf-filter.outputs.filter }}
 
     - name: Publish baseline performance summaries to GitHub
-      if: success() || failure()
+      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
       shell: pwsh
       run: |
         $resultsDir = "artifacts/performance/perfResults/baseline/results"
@@ -437,7 +534,7 @@ jobs:
         }
 
     - name: Publish performance summaries to GitHub
-      if: success() || failure()
+      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
       shell: pwsh
       run: |
         $resultsDir = "artifacts/performance/perfResults/perfTest/results"
@@ -451,9 +548,13 @@ jobs:
         }
 
     - name: Upload performance files
-      uses: actions/upload-artifact@v6
-      if: success() || failure()
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
       with:
         name: performance
         path: |
           ./artifacts/performance/**
+
+    - name: Skip notice
+      if: needs.check-paths.outputs.code-changed != 'true'
+      run: echo "Skipped -- no code changes detected"
