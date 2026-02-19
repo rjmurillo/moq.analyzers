@@ -27,20 +27,24 @@ internal static class SyntaxNodeExtensions
     }
 
     /// <summary>
-    /// Returns the parent node, skipping any intermediate <see cref="ParenthesizedExpressionSyntax"/> wrappers.
-    /// This handles cases like <c>(mock.Setup(...)).Returns()</c> where parentheses wrap an invocation.
+    /// Walks an expression up through any <see cref="ParenthesizedExpressionSyntax"/> wrappers,
+    /// returning the outermost parenthesized wrapper (or the expression itself if not wrapped).
+    /// This handles cases like <c>(mock.Setup(...)).Returns()</c> when walking UP the syntax tree.
     /// </summary>
-    /// <param name="node">The node whose logical parent to find.</param>
-    /// <returns>The first non-parenthesized ancestor, or <see langword="null"/> if none exists.</returns>
-    internal static SyntaxNode? GetParentSkippingParentheses(this SyntaxNode node)
+    /// <param name="expression">The expression to walk up from.</param>
+    /// <returns>The outermost parenthesized wrapper, or <paramref name="expression"/> if not wrapped.</returns>
+    /// <remarks>
+    /// Forked from Roslyn ExpressionSyntaxExtensions.WalkUpParentheses.
+    /// See https://github.com/dotnet/roslyn/blob/main/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/Extensions/ExpressionSyntaxExtensions.cs.
+    /// </remarks>
+    internal static ExpressionSyntax? WalkUpParentheses(this ExpressionSyntax? expression)
     {
-        SyntaxNode? parent = node.Parent;
-        while (parent is ParenthesizedExpressionSyntax)
+        while (expression?.Parent is ParenthesizedExpressionSyntax parentExpr)
         {
-            parent = parent.Parent;
+            expression = parentExpr;
         }
 
-        return parent;
+        return expression;
     }
 
     /// <summary>
