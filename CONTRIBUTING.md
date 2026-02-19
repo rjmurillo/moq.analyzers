@@ -823,24 +823,166 @@ Maintainers will review PRs for:
 
 ## Release Process
 
-### Release Preparation
+This project uses [Nerdbank.GitVersioning](https://github.com/dotnet/Nerdbank.GitVersioning) (NBGV) for versioning. NBGV reads `version.json` at the repo root and derives the package version from the branch name and git height.
 
-Before a release:
+### How Versioning Works
 
-1. **Update release notes**: Move items from Unshipped.md to Shipped.md
-2. **Update version**: Ensure version.json is current
-3. **Run full test suite**: Ensure all tests pass
-4. **Performance validation**: Run benchmarks to ensure no regressions
-5. **Documentation review**: Ensure all documentation is current
+| Branch | `version.json` value | Produced version |
+|--------|---------------------|-----------------|
+| `main` | `0.4.0-alpha` | `0.4.0-alpha.{height}` (prerelease) |
+| `release/v0.4.0` | `0.4.0` | `0.4.0` (stable) |
+| `release/v0.4.1` | `0.4.1` | `0.4.1` (stable) |
+
+The `publicReleaseRefSpec` in `version.json` controls which branches produce public (non-local) versions. The actual configuration:
+
+```json
+{
+  "version": "0.4.0-alpha",
+  "publicReleaseRefSpec": [
+    "^refs/heads/main$",
+    "^refs/heads/v\\d+(?:\\.\\d+)?$",
+    "^refs/heads/release/v\\d+\\.\\d+\\.\\d+$",
+    "^refs/tags/v\\d+\\.\\d+\\.\\d+(-(alpha|beta|rc)(\\.\\d+)?)?$"
+  ]
+}
+```
+
+On a release branch, the `version` field is set to the stable version (e.g., `"0.4.0"` without the `-alpha` suffix).
+
+### Branch Strategy
+
+Release branches follow this naming convention: `release/v{major}.{minor}.{patch}`.
+
+**Major/minor releases** branch from `main`:
+
+```text
+main ──────────────────────────────────────
+        \
+         release/v0.4.0  (version.json: "0.4.0")
+```
+
+**Patch releases** branch from the prior release branch:
+
+```text
+release/v0.4.0 ────────────────────────────
+                 \
+                  release/v0.4.1  (version.json: "0.4.1")
+```
+
+### Creating a Major or Minor Release
+
+1. Create a branch from `main`:
+
+   ```bash
+   git checkout -b release/v{X}.{Y}.0 main
+   ```
+
+2. Update `version.json`, removing the `-alpha` suffix:
+
+   ```json
+   { "version": "{X}.{Y}.0" }
+   ```
+
+3. Move rules from `src/Analyzers/AnalyzerReleases.Unshipped.md` to `src/Analyzers/AnalyzerReleases.Shipped.md` under a new `## Release {X}.{Y}.0` section.
+
+4. Clear `AnalyzerReleases.Unshipped.md` back to the empty header:
+
+   ```text
+   ; Unshipped analyzer release
+   ; https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+
+   ### New Rules
+   Rule ID | Category | Severity | Notes
+   --------|----------|----------|-------
+   ```
+
+5. Commit and push:
+
+   ```bash
+   git add version.json src/Analyzers/AnalyzerReleases.Shipped.md src/Analyzers/AnalyzerReleases.Unshipped.md
+   git commit -m "chore(release): prepare v{X}.{Y}.0 release branch"
+   git push -u origin release/v{X}.{Y}.0
+   ```
+
+6. On `main`, bump `version.json` to the next development version (e.g., `"0.5.0-alpha"`).
+
+### Creating a Patch Release
+
+1. Create a branch from the prior release:
+
+   ```bash
+   git checkout -b release/v{X}.{Y}.{Z} origin/release/v{X}.{Y}.{Z-1}
+   ```
+
+2. Update `version.json` to the patch version:
+
+   ```json
+   { "version": "{X}.{Y}.{Z}" }
+   ```
+
+3. Move any unshipped rules to `AnalyzerReleases.Shipped.md` and clear `Unshipped.md` (same process as major/minor).
+
+4. Commit the version bump and AnalyzerReleases changes.
+
+5. Cherry-pick bug fixes from `main` (oldest first):
+
+   ```bash
+   git cherry-pick <commit-sha-1>
+   git cherry-pick <commit-sha-2>
+   ```
+
+   Resolve conflicts if needed. For CI workflow conflicts, prefer the incoming (fix) version since it represents the corrected state.
+
+6. Push:
+
+   ```bash
+   git push -u origin release/v{X}.{Y}.{Z}
+   ```
+
+### Publishing a Release
+
+1. Verify CI passes on the release branch.
+2. Create a GitHub Release targeting the release branch:
+   - Tag: `v{X}.{Y}.{Z}` (e.g., `v0.4.1`)
+   - Target: `release/v{X}.{Y}.{Z}`
+   - Title: `v{X}.{Y}.{Z}`
+   - Description: list of changes included
+3. The `release.yml` workflow triggers on GitHub Release events, builds the project, and publishes `.nupkg` files to NuGet.
+
+### Troubleshooting
+
+**`release.yml` does not trigger:**
+
+- Verify the GitHub Release event targets the correct branch (`release/v{X}.{Y}.{Z}`).
+- Check that the tag format matches `v{X}.{Y}.{Z}` exactly.
+- Confirm the workflow has `on: release` with `types: [published, edited, prereleased, released]` configured.
+
+**Version mismatch in built packages:**
+
+- Confirm `version.json` on the release branch has the stable version (no `-alpha` suffix).
+- Run `nbgv get-version` locally on the release branch to verify NBGV output matches expectations.
+
+**NuGet publish fails:**
+
+- Check the `.nupkg` artifacts in the workflow run to verify they were built.
+- Verify the `NUGET_API_KEY` secret is configured and has push permissions.
+- Review the release job logs for authentication or validation errors.
+
+**Tag and target mismatch:**
+
+- The tag (`v0.4.1`) must match the target branch version (`release/v0.4.1`). A mismatch causes incorrect version metadata.
 
 ### Release Checklist
 
+- [ ] Release branch created from correct base
+- [ ] `version.json` updated to stable version
+- [ ] `AnalyzerReleases.Shipped.md` updated, `Unshipped.md` cleared
+- [ ] All bug fixes cherry-picked (patch releases)
 - [ ] All tests pass
 - [ ] Performance benchmarks show no regressions
-- [ ] Documentation is current
-- [ ] Release notes are complete
-- [ ] Version is updated
-- [ ] CI/CD is green
+- [ ] CI/CD is green on the release branch
+- [ ] Release notes/description prepared
+- [ ] GitHub Release created with correct tag and target branch
 
 ## Roslyn Analyzer Development
 
