@@ -152,7 +152,12 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        ExpressionSyntax? current = setupSyntax as ExpressionSyntax;
+        if (setupSyntax is not ExpressionSyntax expressionSyntax)
+        {
+            return false;
+        }
+
+        ExpressionSyntax? current = expressionSyntax;
         while (current?.WalkUpParentheses()?.Parent is MemberAccessExpressionSyntax memberAccess)
         {
             cancellationToken.ThrowIfCancellationRequested();
