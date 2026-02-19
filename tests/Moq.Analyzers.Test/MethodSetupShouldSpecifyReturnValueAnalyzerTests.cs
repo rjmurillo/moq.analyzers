@@ -102,6 +102,12 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
 
             // Callback alone should still require return value specification
             ["""{|Moq1203:new Mock<IFoo>().Setup(x => x.GetValue())|}.Callback(() => { });"""],
+
+            // Variable mock + Callback-only, no return value (diagnostic expected)
+            ["""
+            var mock = new Mock<IFoo>();
+            {|Moq1203:mock.Setup(x => x.GetValue())|}.Callback(() => { });
+            """],
         ];
 
         return data.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
@@ -184,6 +190,207 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    // These semantic variations (variable mocks, MockBehavior parameters, variable
+    // arguments) produce different Roslyn operation trees than inline literal patterns.
+    // Tests ensure the analyzer's return-value detection handles them all.
+    public static IEnumerable<object[]> SemanticVariationSetupTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // Variable mock + ReturnsAsync on async method
+            ["""
+            var mock = new Mock<IFoo>();
+            mock.Setup(x => x.BarAsync()).ReturnsAsync(1);
+            """],
+
+            // Variable mock + Returns on sync method
+            ["""
+            var mock = new Mock<IFoo>();
+            mock.Setup(x => x.GetValue()).Returns(42);
+            """],
+
+            // MockBehavior.Loose inline + ReturnsAsync
+            ["""new Mock<IFoo>(MockBehavior.Loose).Setup(x => x.BarAsync()).ReturnsAsync(1);"""],
+
+            // MockBehavior.Strict inline + Returns
+            ["""new Mock<IFoo>(MockBehavior.Strict).Setup(x => x.GetValue()).Returns(42);"""],
+
+            // Variable argument with ReturnsAsync
+            ["""
+            var val = 1;
+            new Mock<IFoo>().Setup(x => x.BarAsync()).ReturnsAsync(val);
+            """],
+
+            // Variable mock + Callback chain + ReturnsAsync
+            ["""
+            var mock = new Mock<IFoo>();
+            mock.Setup(x => x.BarAsync()).Callback(() => { }).ReturnsAsync(1);
+            """],
+
+            // Variable mock + Callback chain + Returns
+            ["""
+            var mock = new Mock<IFoo>();
+            mock.Setup(x => x.GetValue()).Callback(() => { }).Returns(42);
+            """],
+
+            // Variable mock + Throws on sync method
+            ["""
+            var mock = new Mock<IFoo>();
+            mock.Setup(x => x.GetValue()).Throws<InvalidOperationException>();
+            """],
+
+            // Variable mock + ThrowsAsync on async method
+            ["""
+            var mock = new Mock<IFoo>();
+            mock.Setup(x => x.BarAsync()).ThrowsAsync(new InvalidOperationException());
+            """],
+
+            // Variable mock + Callback chain + ThrowsAsync
+            ["""
+            var mock = new Mock<IFoo>();
+            mock.Setup(x => x.BarAsync()).Callback(() => { }).ThrowsAsync(new InvalidOperationException());
+            """],
+
+            // #849 original report snippet 1: variable mock + MockBehavior.Strict + ReturnsAsync
+            ["""
+            var moq = new Mock<IFoo>(MockBehavior.Strict);
+            moq.Setup(x => x.BarAsync()).ReturnsAsync(1);
+            """],
+
+            // #849 original report snippet 2: variable mock + MockBehavior.Strict + Callback + Returns(Task.FromResult)
+            ["""
+            var moq = new Mock<IFoo>(MockBehavior.Strict);
+            moq.Setup(x => x.BarAsync()).Callback(() => { }).Returns(Task.FromResult(1));
+            """],
+
+            // #849 original report snippet 3 (was already OK): Returns(Task.FromResult) standalone on async method
+            ["""
+            var moq = new Mock<IFoo>(MockBehavior.Strict);
+            moq.Setup(x => x.BarAsync()).Returns(Task.FromResult(1));
+            """],
+
+            // #849 original report snippet 4 (was already OK): Returns before Callback on async method
+            ["""
+            var moq = new Mock<IFoo>(MockBehavior.Strict);
+            moq.Setup(x => x.BarAsync()).Returns(Task.FromResult(1)).Callback(() => { });
+            """],
+
+            // Variable mock + void method should not trigger Moq1203
+            ["""
+            var mock = new Mock<IFoo>();
+            mock.Setup(x => x.DoVoidMethod());
+            """],
+        ];
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    // Diagnostic counterpart to SemanticVariationSetupTestData: variable-based mocks
+    // without a return value specification, so Moq1203 should fire.
+    public static IEnumerable<object[]> SemanticVariationSetupWithDiagnosticTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // Variable mock, async, no return value
+            ["""
+            var mock = new Mock<IFoo>();
+            {|Moq1203:mock.Setup(x => x.BarAsync())|};
+            """],
+
+            // Variable mock, sync, no return value
+            ["""
+            var mock = new Mock<IFoo>();
+            {|Moq1203:mock.Setup(x => x.GetValue())|};
+            """],
+
+            // Variable mock + MockBehavior.Strict, no return value
+            ["""
+            var mock = new Mock<IFoo>(MockBehavior.Strict);
+            {|Moq1203:mock.Setup(x => x.GetValue())|};
+            """],
+
+            // MockBehavior.Strict inline, no return value
+            ["""{|Moq1203:new Mock<IFoo>(MockBehavior.Strict).Setup(x => x.GetValue())|};"""],
+
+            // MockBehavior.Loose inline, async, no return value
+            ["""{|Moq1203:new Mock<IFoo>(MockBehavior.Loose).Setup(x => x.BarAsync())|};"""],
+
+            // Variable mock + MockBehavior.Loose, no return value
+            ["""
+            var mock = new Mock<IFoo>(MockBehavior.Loose);
+            {|Moq1203:mock.Setup(x => x.GetValue())|};
+            """],
+        ];
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    // Reproduction of #849 (https://github.com/rjmurillo/moq.analyzers/issues/849#issuecomment-3913143509):
+    // custom record type with ReturnsAsync. Verifies ReturnsAsync is recognized when
+    // Task<T> has a custom type argument. Each entry includes the mock code, record
+    // declaration, and interface method to exercise different record shapes.
+    public static IEnumerable<object[]> CustomReturnTypeTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // Variable mock + ReturnsAsync with custom record type
+            ["""
+            var expectedValue = new MyValue("test");
+            var mock = new Mock<IDatabase>();
+            mock.Setup(x => x.GetAsync()).ReturnsAsync(expectedValue);
+            """, "public record MyValue(string Name);", "Task<MyValue> GetAsync();"],
+
+            // Same as above but with explicit MockBehavior.Loose, inspired by DamienCassou's #849 reproduction
+            ["""
+            var expectedValue = new MyValue("test");
+            var mock = new Mock<IDatabase>(MockBehavior.Loose);
+            mock.Setup(x => x.GetAsync()).ReturnsAsync(expectedValue);
+            """, "public record MyValue(string Name);", "Task<MyValue> GetAsync();"],
+
+            // Exact reproduction from DamienCassou's #849 report: parameterless record, MockBehavior.Loose, variable argument
+            // https://github.com/rjmurillo/moq.analyzers/issues/849#issuecomment-3913143509
+            ["""
+            var expectedValue = new MyValue();
+            var databaseMock = new Mock<IDatabase>(MockBehavior.Loose);
+            databaseMock.Setup(x => x.F()).ReturnsAsync(expectedValue);
+            """, "public record MyValue;", "Task<MyValue> F();"],
+
+            // Custom record type + ThrowsAsync on async method
+            ["""
+            var mock = new Mock<IDatabase>();
+            mock.Setup(x => x.GetAsync()).ThrowsAsync(new InvalidOperationException());
+            """, "public record MyValue(string Name);", "Task<MyValue> GetAsync();"],
+        ];
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    // Negative counterpart to CustomReturnTypeTestData: uses the same IDatabase/MyValue
+    // fixture but omits the return value specification, so Moq1203 should fire.
+    public static IEnumerable<object[]> CustomReturnTypeMissingReturnValueTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // Variable mock + custom record type, no return value (diagnostic expected)
+            ["""
+            var mock = new Mock<IDatabase>();
+            {|Moq1203:mock.Setup(x => x.GetAsync())|};
+            """, "public record MyValue(string Name);", "Task<MyValue> GetAsync();"],
+
+            // Parameterless record + no return value (diagnostic expected)
+            ["""
+            var mock = new Mock<IDatabase>();
+            {|Moq1203:mock.Setup(x => x.F())|};
+            """, "public record MyValue;", "Task<MyValue> F();"],
+        ];
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeMethodSetupReturnValue(string referenceAssemblyGroup, string @namespace, string mock)
@@ -242,6 +449,34 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         await VerifyMockIgnoringCompilerErrorsAsync(referenceAssemblyGroup, @namespace, mock);
     }
 
+    [Theory]
+    [MemberData(nameof(SemanticVariationSetupTestData))]
+    public async Task ShouldNotFlagSemanticVariationSetups(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await VerifyMockAsync(referenceAssemblyGroup, @namespace, mock);
+    }
+
+    [Theory]
+    [MemberData(nameof(SemanticVariationSetupWithDiagnosticTestData))]
+    public async Task ShouldFlagSemanticVariationSetupWithoutReturnValue(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await VerifyMockAsync(referenceAssemblyGroup, @namespace, mock);
+    }
+
+    [Theory]
+    [MemberData(nameof(CustomReturnTypeTestData))]
+    public async Task ShouldNotFlagSetupWithCustomReturnType(string referenceAssemblyGroup, string @namespace, string mock, string recordDeclaration, string interfaceMethod)
+    {
+        await VerifyCustomSourceMockAsync(referenceAssemblyGroup, @namespace, mock, recordDeclaration, interfaceMethod);
+    }
+
+    [Theory]
+    [MemberData(nameof(CustomReturnTypeMissingReturnValueTestData))]
+    public async Task ShouldFlagSetupWithCustomReturnTypeMissingReturnValue(string referenceAssemblyGroup, string @namespace, string mock, string recordDeclaration, string interfaceMethod)
+    {
+        await VerifyCustomSourceMockAsync(referenceAssemblyGroup, @namespace, mock, recordDeclaration, interfaceMethod);
+    }
+
     private static string BuildSource(string @namespace, string mock)
     {
         return $$"""
@@ -268,9 +503,41 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             """;
     }
 
+    private static string BuildCustomSource(string @namespace, string mock, string recordDeclaration, string interfaceMethod)
+    {
+        return $$"""
+            {{@namespace}}
+
+            {{recordDeclaration}}
+
+            public interface IDatabase
+            {
+                {{interfaceMethod}}
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    {{mock}}
+                }
+            }
+            """;
+    }
+
     private async Task VerifyMockAsync(string referenceAssemblyGroup, string @namespace, string mock)
     {
         string source = BuildSource(@namespace, mock);
+        output.WriteLine(source);
+
+        await Verifier.VerifyAnalyzerAsync(
+            source,
+            referenceAssemblyGroup).ConfigureAwait(false);
+    }
+
+    private async Task VerifyCustomSourceMockAsync(string referenceAssemblyGroup, string @namespace, string mock, string recordDeclaration, string interfaceMethod)
+    {
+        string source = BuildCustomSource(@namespace, mock, recordDeclaration, interfaceMethod);
         output.WriteLine(source);
 
         await Verifier.VerifyAnalyzerAsync(
