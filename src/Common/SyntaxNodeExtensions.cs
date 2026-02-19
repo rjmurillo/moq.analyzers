@@ -42,4 +42,24 @@ internal static class SyntaxNodeExtensions
 
         return parent;
     }
+
+    /// <summary>
+    /// Unwraps any <see cref="ParenthesizedExpressionSyntax"/> wrappers to get the inner expression.
+    /// This handles cases like <c>(mock.Setup(...)).Returns()</c> when walking DOWN the syntax tree.
+    /// </summary>
+    /// <param name="expression">The expression to unwrap.</param>
+    /// <returns>The innermost non-parenthesized expression.</returns>
+    /// <remarks>
+    /// Forked from Roslyn ExpressionSyntaxExtensions.WalkDownParentheses.
+    /// See https://github.com/dotnet/roslyn/blob/main/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/Extensions/ExpressionSyntaxExtensions.cs.
+    /// </remarks>
+    internal static ExpressionSyntax WalkDownParentheses(this ExpressionSyntax expression)
+    {
+        while (expression is ParenthesizedExpressionSyntax parenExpression)
+        {
+            expression = parenExpression.Expression;
+        }
+
+        return expression;
+    }
 }

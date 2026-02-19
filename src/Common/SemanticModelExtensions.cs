@@ -15,7 +15,8 @@ internal static class SemanticModelExtensions
     {
         while (true)
         {
-            InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
+            ExpressionSyntax unwrapped = expression.WalkDownParentheses();
+            InvocationExpressionSyntax? invocation = unwrapped as InvocationExpressionSyntax;
             if (invocation?.Expression is not MemberAccessExpressionSyntax method)
             {
                 return null;
