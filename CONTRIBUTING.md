@@ -955,7 +955,7 @@ release/v0.4.0 ─────────────────────�
 
 - Verify the GitHub Release event targets the correct branch (`release/v{X}.{Y}.{Z}`).
 - Check that the tag format matches `v{X}.{Y}.{Z}` exactly.
-- Confirm the workflow has `on: release` with `types: [published]` configured.
+- Confirm the workflow has `on: release` with `types: [published, edited, prereleased, released]` configured.
 
 **Version mismatch in built packages:**
 
