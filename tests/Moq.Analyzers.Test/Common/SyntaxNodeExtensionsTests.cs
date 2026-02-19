@@ -169,6 +169,21 @@ class C
     }
 
     [Fact]
+    public void WalkUpParentheses_ExpressionWithNoParent_ReturnsSameExpression()
+    {
+        // A factory-created expression has no parent node
+        LiteralExpressionSyntax literal = SyntaxFactory.LiteralExpression(
+            SyntaxKind.NumericLiteralExpression,
+            SyntaxFactory.Literal(42));
+
+        Assert.Null(literal.Parent);
+
+        ExpressionSyntax? result = literal.WalkUpParentheses();
+
+        Assert.Same(literal, result);
+    }
+
+    [Fact]
     public void WalkDownParentheses_NoParentheses_ReturnsSameExpression()
     {
         // In `1 + 2`, the BinaryExpression has no surrounding parentheses

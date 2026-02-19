@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
@@ -154,6 +155,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
         if (setupSyntax is not ExpressionSyntax expressionSyntax)
         {
+            Debug.Assert(false, "IInvocationOperation.Syntax should always be an ExpressionSyntax");
             return false;
         }
 
