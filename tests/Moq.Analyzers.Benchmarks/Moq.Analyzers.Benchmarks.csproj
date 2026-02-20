@@ -15,7 +15,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" />
     <!-- Benchmarks are not shipped. Allow higher SCI for TraceEvent dependency. -->
-    <PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.0" />
+    <PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.3" />
     <ProjectReference Include="$(RepoRoot)/tests/Moq.Analyzers.Test/Moq.Analyzers.Test.csproj" />
   </ItemGroup>
 
