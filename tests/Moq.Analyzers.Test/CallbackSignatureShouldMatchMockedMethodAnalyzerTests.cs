@@ -38,6 +38,12 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Complex multiple parameter with correct signatures
             ["""new Mock<IFoo>().Setup(x => x.ProcessMultiple(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback((int id, string name, DateTime timestamp) => { });"""],
+
+            // Parenthesized Setup with correct callback
+            ["""(new Mock<IFoo>().Setup(x => x.DoWork("test"))).Callback((string param) => { });"""],
+
+            // Double-parenthesized Setup with correct callback
+            ["""((new Mock<IFoo>().Setup(x => x.DoWork("test")))).Callback((string param) => { });"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         // Invalid patterns that SHOULD trigger the analyzer
@@ -51,6 +57,12 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Out parameter mismatch (missing out)
             ["""new Mock<IFoo>().Setup(m => m.DoOut(out It.Ref<int>.IsAny)).Callback(({|Moq1100:int result|}) => { });"""],
+
+            // Parenthesized Setup with wrong callback type
+            ["""(new Mock<IFoo>().Setup(x => x.DoWork("test"))).Callback(({|Moq1100:int wrongParam|}) => { });"""],
+
+            // Double-parenthesized Setup with wrong callback type
+            ["""((new Mock<IFoo>().Setup(x => x.DoWork("test")))).Callback(({|Moq1100:int wrongParam|}) => { });"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         return validPatterns.Concat(invalidPatterns);

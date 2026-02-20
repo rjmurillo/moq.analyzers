@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
@@ -152,8 +153,14 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        SyntaxNode? current = setupSyntax;
-        while (current?.GetParentSkippingParentheses() is MemberAccessExpressionSyntax memberAccess)
+        if (setupSyntax is not ExpressionSyntax expressionSyntax)
+        {
+            Debug.Assert(false, "IInvocationOperation.Syntax should always be an ExpressionSyntax");
+            return false;
+        }
+
+        ExpressionSyntax? current = expressionSyntax;
+        while (current?.WalkUpParentheses()?.Parent is MemberAccessExpressionSyntax memberAccess)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
