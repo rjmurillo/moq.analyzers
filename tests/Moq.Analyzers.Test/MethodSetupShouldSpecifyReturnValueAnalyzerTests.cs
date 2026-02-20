@@ -363,6 +363,18 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             var mock = new Mock<IDatabase>();
             mock.Setup(x => x.GetAsync()).ThrowsAsync(new InvalidOperationException());
             """, "public record MyValue(string Name);", "Task<MyValue> GetAsync();"],
+
+            // Delegate-based ReturnsAsync with parameter: DamienCassou's #849 follow-up
+            // https://github.com/rjmurillo/moq.analyzers/issues/849#issuecomment-3925720443
+            ["""
+            var databaseMock = new Mock<IDatabase>(MockBehavior.Strict);
+            databaseMock.Setup(mock => mock.SaveAsync(It.IsAny<MyValue>())).ReturnsAsync((MyValue val) => val);
+            """, "public record MyValue;", "Task<MyValue> SaveAsync(MyValue value);"],
+
+            // Delegate-based ReturnsAsync with default MockBehavior, no variable
+            ["""
+            new Mock<IDatabase>().Setup(x => x.SaveAsync(It.IsAny<MyValue>())).ReturnsAsync((MyValue val) => val);
+            """, "public record MyValue;", "Task<MyValue> SaveAsync(MyValue value);"],
         ];
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
@@ -386,6 +398,12 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             var mock = new Mock<IDatabase>();
             {|Moq1203:mock.Setup(x => x.F())|};
             """, "public record MyValue;", "Task<MyValue> F();"],
+
+            // SaveAsync with parameter, no return value (diagnostic expected)
+            ["""
+            var mock = new Mock<IDatabase>(MockBehavior.Strict);
+            {|Moq1203:mock.Setup(x => x.SaveAsync(It.IsAny<MyValue>()))|};
+            """, "public record MyValue;", "Task<MyValue> SaveAsync(MyValue value);"],
         ];
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
