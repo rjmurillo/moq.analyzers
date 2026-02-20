@@ -29,6 +29,12 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzerTests(ITestOutputHel
             // Callback chained before Returns: FindSetupInvocation returns null because
             // the expression before .Returns is Callback, not Setup
             ["""new Mock<AsyncClient>().Setup(c => c.GetAsync()).Callback(() => { }).Returns(async () => "value");"""],
+
+            // Parenthesized Setup with ReturnsAsync (valid)
+            ["""(new Mock<AsyncClient>().Setup(c => c.GetAsync())).ReturnsAsync("value");"""],
+
+            // Double-parenthesized Setup with ReturnsAsync (valid)
+            ["""((new Mock<AsyncClient>().Setup(c => c.GetAsync()))).ReturnsAsync("value");"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         // Invalid patterns that SHOULD trigger the analyzer
@@ -45,6 +51,12 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzerTests(ITestOutputHel
 
             // Async lambda in Returns for ValueTask method
             ["""new Mock<AsyncClient>().Setup(c => c.DoValueTaskAsync()).{|Moq1206:Returns(async () => { })|};"""],
+
+            // Parenthesized Setup with async Returns (invalid)
+            ["""(new Mock<AsyncClient>().Setup(c => c.GetAsync())).{|Moq1206:Returns(async () => "value")|};"""],
+
+            // Double-parenthesized Setup with async Returns (invalid)
+            ["""((new Mock<AsyncClient>().Setup(c => c.GetAsync()))).{|Moq1206:Returns(async () => "value")|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         return valid.Concat(invalid);

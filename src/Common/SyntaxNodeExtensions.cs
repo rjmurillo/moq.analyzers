@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Moq.Analyzers.Common;
 
 internal static class SyntaxNodeExtensions
@@ -27,19 +29,46 @@ internal static class SyntaxNodeExtensions
     }
 
     /// <summary>
-    /// Returns the parent node, skipping any intermediate <see cref="ParenthesizedExpressionSyntax"/> wrappers.
-    /// This handles cases like <c>(mock.Setup(...)).Returns()</c> where parentheses wrap an invocation.
+    /// Walks an expression up through any <see cref="ParenthesizedExpressionSyntax"/> wrappers,
+    /// returning the outermost parenthesized wrapper (or the expression itself if not wrapped).
+    /// This handles cases like <c>(mock.Setup(x => x.M())).Returns(42)</c> when walking UP
+    /// from the Setup invocation through enclosing parentheses.
     /// </summary>
-    /// <param name="node">The node whose logical parent to find.</param>
-    /// <returns>The first non-parenthesized ancestor, or <see langword="null"/> if none exists.</returns>
-    internal static SyntaxNode? GetParentSkippingParentheses(this SyntaxNode node)
+    /// <param name="expression">The expression to walk up from.</param>
+    /// <returns>The outermost parenthesized wrapper, or <paramref name="expression"/> if not wrapped.</returns>
+    /// <remarks>
+    /// Forked from Roslyn ExpressionSyntaxExtensions.WalkUpParentheses.
+    /// See https://github.com/dotnet/roslyn/blob/1a693dfd634d96d8226c14ead7992c4e24a2880f/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/Extensions/ExpressionSyntaxExtensions.cs.
+    /// </remarks>
+    [return: NotNullIfNotNull(nameof(expression))]
+    internal static ExpressionSyntax? WalkUpParentheses(this ExpressionSyntax? expression)
     {
-        SyntaxNode? parent = node.Parent;
-        while (parent is ParenthesizedExpressionSyntax)
+        while (expression?.Parent is ParenthesizedExpressionSyntax parentExpr)
         {
-            parent = parent.Parent;
+            expression = parentExpr;
         }
 
-        return parent;
+        return expression;
+    }
+
+    /// <summary>
+    /// Unwraps any <see cref="ParenthesizedExpressionSyntax"/> wrappers to get the inner expression.
+    /// This handles cases like <c>((mock.Setup(x => x.M()))).Callback(() => { })</c> when walking
+    /// DOWN from the parenthesized wrapper to find the inner Setup invocation.
+    /// </summary>
+    /// <param name="expression">The expression to unwrap.</param>
+    /// <returns>The innermost non-parenthesized expression.</returns>
+    /// <remarks>
+    /// Forked from Roslyn ExpressionSyntaxExtensions.WalkDownParentheses.
+    /// See https://github.com/dotnet/roslyn/blob/1a693dfd634d96d8226c14ead7992c4e24a2880f/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/Extensions/ExpressionSyntaxExtensions.cs.
+    /// </remarks>
+    internal static ExpressionSyntax WalkDownParentheses(this ExpressionSyntax expression)
+    {
+        while (expression is ParenthesizedExpressionSyntax parenExpression)
+        {
+            expression = parenExpression.Expression;
+        }
+
+        return expression;
     }
 }

@@ -99,7 +99,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         // The pattern is: mock.Setup(...).Returns(...)
         // The returnsInvocation is the entire chain, so we need to examine its structure
         if (returnsInvocation.Expression is MemberAccessExpressionSyntax memberAccess &&
-            memberAccess.Expression is InvocationExpressionSyntax setupInvocation &&
+            memberAccess.Expression.WalkDownParentheses() is InvocationExpressionSyntax setupInvocation &&
             setupInvocation.Expression is MemberAccessExpressionSyntax setupMemberAccess &&
             string.Equals(setupMemberAccess.Name.Identifier.ValueText, "Setup", StringComparison.Ordinal))
         {
