@@ -11,6 +11,11 @@
   ],
   "packageRules": [
     {
+      "description": "Label major updates for workflow detection",
+      "matchUpdateTypes": ["major"],
+      "labels": ["major"]
+    },
+    {
       "description": "Automerge non-major updates for development dependencies",
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["minor", "patch"],
