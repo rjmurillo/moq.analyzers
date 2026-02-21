@@ -21,6 +21,7 @@ These packages are bundled in the analyzer NuGet package and run inside the **us
 **Why this matters:** In v0.4.0, a transitive dependency bump pushed SCI to 10.0.0.0, causing CS8032 assembly load failures for every user on .NET 8 SDK. See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
 
 **Upgrade policy:**
+
 - `Microsoft.CodeAnalysis.*` core packages are **ignored** in the Renovate config (`ignoreDeps`). Dependabot does not manage NuGet packages. Update manually when raising the minimum supported SDK version.
 - `System.Collections.Immutable`, `System.Reflection.Metadata`, and `AnalyzerUtilities` have `automerge: false` and the `analyzer-compat` label. Every update requires manual validation that assembly versions stay within host bounds.
 - The `ValidateAnalyzerHostCompatibility` MSBuild target and `AnalyzerAssemblyCompatibilityTests` enforce this at build and test time.
