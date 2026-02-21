@@ -12,6 +12,8 @@
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.CommandLine.Rendering" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
+    <!-- PerfDiff is not shipped. Allow higher SCI for TraceEvent dependency. -->
+    <PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="BenchmarkDotNet" />

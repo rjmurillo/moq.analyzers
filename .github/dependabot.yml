@@ -10,18 +10,10 @@ updates:
     reviewers:
       - "rjmurillo"
       - "mattkotsenas"
-  - package-ecosystem: nuget
-    directory: "/"
-    schedule:
-      interval: "daily"
-      time: "08:30"
-    ignore:
-      # Microsoft.CodeAnalysis.* packages defined in the analyzer project can impact compatibility with older SDKs for
-      # our users. We don't want to bump these without first considering the user impact.
-      #
-      # We don't wildcard Microsoft.CodeAnalysis.* here though, as there are testing libraries and analyzers that
-      # can be upgraded without impacting our users.
-      - dependency-name: "Microsoft.CodeAnalysis.CSharp"
-      - dependency-name: "Microsoft.CodeAnalysis.CSharp.Workspaces"
-      - dependency-name: "Microsoft.CodeAnalysis.Common"
-      - dependency-name: "Microsoft.CodeAnalysis.Workspaces.Common"
+  # NuGet dependency management is handled by Renovate (see renovate.json).
+  # Dependabot NuGet PRs were disabled because:
+  #   1. PR titles use "Bump X from A to B" format, which fails the required
+  #      "Validate PR title" check (conventional commits required).
+  #   2. Both bots created duplicate PRs for every package update.
+  #   3. Renovate supports better grouping, automerge rules, and conventional
+  #      commit formatting out of the box.

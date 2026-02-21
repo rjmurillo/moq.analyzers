@@ -15,7 +15,8 @@ internal static class SemanticModelExtensions
     {
         while (true)
         {
-            InvocationExpressionSyntax? invocation = expression as InvocationExpressionSyntax;
+            ExpressionSyntax unwrapped = expression.WalkDownParentheses();
+            InvocationExpressionSyntax? invocation = unwrapped as InvocationExpressionSyntax;
             if (invocation?.Expression is not MemberAccessExpressionSyntax method)
             {
                 return null;
@@ -80,12 +81,20 @@ internal static class SemanticModelExtensions
         }
 
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(raisesMethod);
-        return symbolInfo.CandidateReason switch
+
+        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
         {
-            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(symbol => symbol.IsMoqRaisesMethod(knownSymbols)),
-            CandidateReason.None => IsRaisesSymbol(symbolInfo.Symbol, knownSymbols),
-            _ => false,
-        };
+            return symbolInfo.CandidateSymbols.Any(symbol => symbol.IsMoqRaisesMethod(knownSymbols));
+        }
+
+        if (symbolInfo.CandidateReason == CandidateReason.None)
+        {
+            return IsRaisesSymbol(symbolInfo.Symbol, knownSymbols);
+        }
+
+        // If symbol resolution failed for other reasons, return false.
+        // All valid Raises invocations should be detected via symbol-based analysis above.
+        return false;
     }
 
     /// <summary>

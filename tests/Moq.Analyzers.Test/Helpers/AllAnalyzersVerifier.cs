@@ -1,4 +1,5 @@
 using System.Reflection;
+using Microsoft.CodeAnalysis.Testing;
 
 namespace Moq.Analyzers.Test.Helpers;
 
@@ -57,19 +58,19 @@ internal static class AllAnalyzersVerifier
         // Create AnalyzerVerifier<TAnalyzer> using reflection
         Type analyzerVerifierType = typeof(AnalyzerVerifier<>).MakeGenericType(analyzerType);
 
-        // Get the VerifyAnalyzerAsync method
+        // Get the VerifyAnalyzerAsync method (5 params: source, group, configFileName, configContent, compilerDiagnostics?)
         MethodInfo? verifyMethod = analyzerVerifierType.GetMethod(
             nameof(AnalyzerVerifier<AsShouldBeUsedOnlyForInterfaceAnalyzer>.VerifyAnalyzerAsync),
             BindingFlags.Static | BindingFlags.Public,
-            new[] { typeof(string), typeof(string), typeof(string), typeof(string) });
+            new[] { typeof(string), typeof(string), typeof(string), typeof(string), typeof(CompilerDiagnostics?) });
 
         if (verifyMethod == null)
         {
             throw new InvalidOperationException($"Could not find VerifyAnalyzerAsync method for analyzer type {analyzerType.Name}");
         }
 
-        // Invoke the method
-        object? task = verifyMethod.Invoke(null, new object?[] { source, referenceAssemblyGroup, configFileName, configContent });
+        // Invoke the method (pass null for the optional compilerDiagnostics parameter)
+        object? task = verifyMethod.Invoke(null, new object?[] { source, referenceAssemblyGroup, configFileName, configContent, null });
         if (task is Task taskResult)
         {
             await taskResult.ConfigureAwait(false);

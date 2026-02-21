@@ -22,19 +22,35 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="4.14.0" />
+    <!--
+      AnalyzerUtilities is bundled in the shipped analyzer nupkg.
+      Version 4.14.0+ references System.Collections.Immutable 9.0.0.0,
+      which fails to load in .NET 8 SDK hosts (CS8032). Use 3.3.4, which
+      references System.Collections.Immutable 1.2.3.0 (compatible).
+      See: https://github.com/rjmurillo/moq.analyzers/issues/850
+    -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.3.4" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.13.12" />
     <PackageVersion Include="GetPackFromProject" Version="1.0.10" />
-    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.8.118" />
+    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.9.50" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta1.21216.1" />
     <PackageVersion Include="System.CommandLine.Rendering" Version="2.0.0-beta1.20074.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Perfolizer" Version="0.2.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.24" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.30" />
   </ItemGroup>
   <ItemGroup Label="Transitive pins">
-    <PackageVersion Include="System.Collections.Immutable" Version="9.0.9" />
-    <PackageVersion Include="System.Formats.Asn1" Version="9.0.9" />
+    <!--
+      CAUTION: Packages pinned here flow into the shipped analyzer DLL.
+      The analyzer runs in the USER's compiler host, not ours.
+      Versions must not exceed what the minimum supported SDK host provides.
+      Currently: .NET 8 SDK (assembly version 8.0.0.0).
+
+      Build target ValidateAnalyzerHostCompatibility enforces this constraint.
+      See: https://github.com/rjmurillo/moq.analyzers/issues/850
+    -->
+    <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageVersion Include="System.Formats.Asn1" Version="10.0.3" />
   </ItemGroup>
 </Project>

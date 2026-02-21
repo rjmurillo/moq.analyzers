@@ -1,16 +1,18 @@
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
 
 /// <summary>
-/// Method setups that return a value should specify a return value using Returns() or Throws().
+/// Method setups that return a value should specify a return value using
+/// Returns(), ReturnsAsync(), Throws(), or ThrowsAsync().
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Method setup should specify a return value";
     private static readonly LocalizableString Message = "Method setup for '{0}' should specify a return value";
-    private static readonly LocalizableString Description = "Method setups that return a value should use Returns() or Throws() to specify a return value.";
+    private static readonly LocalizableString Description = "Method setups that return a value should use Returns(), ReturnsAsync(), Throws(), or ThrowsAsync() to specify a return value.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.MethodSetupShouldSpecifyReturnValue,
@@ -19,10 +21,11 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: Description);
+        description: Description,
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.MethodSetupShouldSpecifyReturnValue}.md");
 
     /// <inheritdoc />
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
@@ -34,7 +37,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeInvocation(OperationAnalysisContext context)
     {
-        if (!TryGetSetupInvocation(context, out IInvocationOperation? setupInvocation, out _))
+        if (!TryGetSetupInvocation(context, out IInvocationOperation? setupInvocation, out MoqKnownSymbols? knownSymbols))
         {
             return;
         }
@@ -44,12 +47,11 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (HasReturnValueSpecification(setupInvocation))
+        if (HasReturnValueSpecification(setupInvocation, knownSymbols, context.CancellationToken))
         {
             return;
         }
 
-        // Report diagnostic for methods with return types that don't specify a return value
         Diagnostic diagnostic = setupInvocation.Syntax.CreateDiagnostic(Rule, mockedMethod.ToDisplayString());
         context.ReportDiagnostic(diagnostic);
     }
@@ -133,10 +135,15 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Checks if the setup invocation is followed by a Returns() or Throws() call.
-    /// This uses semantic analysis to verify the method being called.
+    /// Checks if the setup invocation is followed by a return value specification
+    /// anywhere in the method chain (e.g., .Setup().Callback().Returns()).
+    /// Uses semantic analysis to resolve method symbols, including candidate symbols
+    /// when overload resolution fails.
     /// </summary>
-    private static bool HasReturnValueSpecification(IInvocationOperation setupInvocation)
+    private static bool HasReturnValueSpecification(
+        IInvocationOperation setupInvocation,
+        MoqKnownSymbols knownSymbols,
+        CancellationToken cancellationToken)
     {
         SyntaxNode setupSyntax = setupInvocation.Syntax;
         SemanticModel? semanticModel = setupInvocation.SemanticModel;
@@ -146,17 +153,73 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        // Check if the setup call is the target of a member access (method chaining)
-        if (setupSyntax.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax memberAccess)
+        if (setupSyntax is not ExpressionSyntax expressionSyntax)
         {
-            // Get the symbol information for the method being accessed
-            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
+            Debug.Assert(false, "IInvocationOperation.Syntax should always be an ExpressionSyntax");
+            return false;
+        }
 
-            // Check if it's a method call and if the method name is Returns or Throws
-            return symbolInfo.Symbol is IMethodSymbol method &&
-                   (string.Equals(method.Name, "Returns", StringComparison.Ordinal) || string.Equals(method.Name, "Throws", StringComparison.Ordinal));
+        ExpressionSyntax? current = expressionSyntax;
+        while (current?.WalkUpParentheses()?.Parent is MemberAccessExpressionSyntax memberAccess)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            InvocationExpressionSyntax? invocation = memberAccess.Parent as InvocationExpressionSyntax;
+            SymbolInfo symbolInfo = invocation != null
+                ? semanticModel.GetSymbolInfo(invocation, cancellationToken)
+                : semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
+
+            // First try semantic symbol matching (exact). Then fall back to method
+            // name matching when Roslyn resolves a symbol that IsInstanceOf cannot
+            // match (e.g., delegate-based overloads with constructed generic types).
+            // The name-based fallback is safe because this walk only visits methods
+            // chained from a verified Setup() call, and we verify the named method
+            // exists in the Moq compilation.
+            if (HasReturnValueSymbol(symbolInfo, knownSymbols)
+                || IsKnownReturnValueMethodName(memberAccess.Name.Identifier.ValueText, knownSymbols))
+            {
+                return true;
+            }
+
+            current = memberAccess.Parent as InvocationExpressionSyntax;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Checks whether a method name corresponds to a known Moq return value specification
+    /// method that exists in the compilation. Used as a last-resort fallback when Roslyn
+    /// cannot resolve symbols at all (e.g., delegate-based overloads with failed type inference).
+    /// </summary>
+    private static bool IsKnownReturnValueMethodName(string methodName, MoqKnownSymbols knownSymbols)
+    {
+        return methodName switch
+        {
+            "Returns" => !knownSymbols.IReturnsReturns.IsEmpty
+                         || !knownSymbols.IReturns1Returns.IsEmpty
+                         || !knownSymbols.IReturns2Returns.IsEmpty,
+            "ReturnsAsync" => !knownSymbols.ReturnsExtensionsReturnsAsync.IsEmpty,
+            "Throws" => !knownSymbols.IThrowsThrows.IsEmpty,
+            "ThrowsAsync" => !knownSymbols.ReturnsExtensionsThrowsAsync.IsEmpty,
+            _ => false,
+        };
+    }
+
+    /// <summary>
+    /// Determines whether the given <see cref="SymbolInfo"/> resolves to a Moq return value
+    /// specification method. Checks the resolved symbol first, then falls back to scanning
+    /// candidate symbols when Roslyn cannot complete overload resolution.
+    /// </summary>
+    private static bool HasReturnValueSymbol(SymbolInfo symbolInfo, MoqKnownSymbols knownSymbols)
+    {
+        if (symbolInfo.Symbol is IMethodSymbol resolved)
+        {
+            return resolved.IsMoqReturnValueSpecificationMethod(knownSymbols);
+        }
+
+        return symbolInfo.CandidateSymbols
+            .OfType<IMethodSymbol>()
+            .Any(method => method.IsMoqReturnValueSpecificationMethod(knownSymbols));
     }
 }

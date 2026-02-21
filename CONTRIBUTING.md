@@ -597,6 +597,105 @@ When making CI/CD changes:
 3. **Update documentation**: Document new CI features or changes
 4. **Consider performance impact**: Ensure changes don't significantly impact CI duration
 
+### Running Workflows Locally with `gh act`
+
+[`gh act`](https://github.com/nektos/gh-act) runs GitHub Actions workflows locally using Docker.
+This is useful for verifying CI changes before pushing.
+
+**Install:**
+
+```bash
+gh extension install nektos/gh-act
+```
+
+**List available jobs:**
+
+```bash
+gh act -l                           # list jobs triggered by push
+gh act -l pull_request              # list jobs triggered by pull_request
+```
+
+**Run a specific job:**
+
+```bash
+gh act -j build                     # run the build job
+gh act -j analyzer-load-test        # run the analyzer load test
+```
+
+**Run a specific workflow file:**
+
+```bash
+gh act -W .github/workflows/main.yml
+```
+
+**Filter matrix entries:**
+
+```bash
+gh act -j analyzer-load-test --matrix tfm:net8.0
+gh act -j analyzer-load-test --matrix build-engine:msbuild
+gh act -j build --matrix os:ubuntu-24.04-arm
+```
+
+**Enable artifact passing between jobs:**
+
+Jobs that depend on artifacts from earlier jobs (like `analyzer-load-test` downloading
+the nupkg from `build`) require a local artifact server:
+
+```bash
+gh act -W .github/workflows/main.yml --artifact-server-path /tmp/artifacts
+```
+
+**Handle secrets:**
+
+The workflow references optional secrets (`CODACY_PROJECT_TOKEN`, `QLTY_COVERAGE_TOKEN`).
+These can be skipped locally, but if needed:
+
+```bash
+gh act -s GITHUB_TOKEN="$(gh auth token)"    # pass GitHub token
+gh act --secret-file .secrets                # load from file (one KEY=VALUE per line)
+```
+
+**Simulate `workflow_dispatch` with inputs:**
+
+```bash
+gh act workflow_dispatch --input run_performance=true --input force_baseline=false
+```
+
+**Container architecture:**
+
+The project uses ARM runners (`ubuntu-24.04-arm`, `windows-11-arm`). Docker defaults to the
+host architecture. To force a specific architecture:
+
+```bash
+gh act --container-architecture linux/amd64
+```
+
+**Create an `.actrc` file** in the repo root to set default flags (one per line):
+
+```text
+--artifact-server-path=/tmp/artifacts
+--container-architecture=linux/amd64
+```
+
+**Skip steps that only make sense in CI:**
+
+`act` sets the `ACT` environment variable automatically. Steps can check for it:
+
+```yaml
+if: ${{ !env.ACT }}
+```
+
+**Limitations:**
+
+- Windows-based jobs (`windows-latest`, `windows-11-arm`) do not run in `act`. Test those
+  through GitHub Actions directly.
+- ARM runner images may not match GitHub-hosted runners exactly.
+- The `microsoft/setup-msbuild` action requires Windows and will not work in `act`.
+- Composite actions (like `setup-restore-build`) work, but may need the action source
+  checked out locally.
+
+For full documentation, see [nektosact.com](https://nektosact.com/usage/).
+
 ### Performance Testing Guidelines
 
 **When Performance Testing is Required:**
@@ -724,24 +823,166 @@ Maintainers will review PRs for:
 
 ## Release Process
 
-### Release Preparation
+This project uses [Nerdbank.GitVersioning](https://github.com/dotnet/Nerdbank.GitVersioning) (NBGV) for versioning. NBGV reads `version.json` at the repo root and derives the package version from the branch name and git height.
 
-Before a release:
+### How Versioning Works
 
-1. **Update release notes**: Move items from Unshipped.md to Shipped.md
-2. **Update version**: Ensure version.json is current
-3. **Run full test suite**: Ensure all tests pass
-4. **Performance validation**: Run benchmarks to ensure no regressions
-5. **Documentation review**: Ensure all documentation is current
+| Branch | `version.json` value | Produced version |
+|--------|---------------------|-----------------|
+| `main` | `0.4.0-alpha` | `0.4.0-alpha.{height}` (prerelease) |
+| `release/v0.4.0` | `0.4.0` | `0.4.0` (stable) |
+| `release/v0.4.1` | `0.4.1` | `0.4.1` (stable) |
+
+The `publicReleaseRefSpec` in `version.json` controls which branches produce public (non-local) versions. The actual configuration:
+
+```json
+{
+  "version": "0.4.0-alpha",
+  "publicReleaseRefSpec": [
+    "^refs/heads/main$",
+    "^refs/heads/v\\d+(?:\\.\\d+)?$",
+    "^refs/heads/release/v\\d+\\.\\d+\\.\\d+$",
+    "^refs/tags/v\\d+\\.\\d+\\.\\d+(-(alpha|beta|rc)(\\.\\d+)?)?$"
+  ]
+}
+```
+
+On a release branch, the `version` field is set to the stable version (e.g., `"0.4.0"` without the `-alpha` suffix).
+
+### Branch Strategy
+
+Release branches follow this naming convention: `release/v{major}.{minor}.{patch}`.
+
+**Major/minor releases** branch from `main`:
+
+```text
+main ──────────────────────────────────────
+        \
+         release/v0.4.0  (version.json: "0.4.0")
+```
+
+**Patch releases** branch from the prior release branch:
+
+```text
+release/v0.4.0 ────────────────────────────
+                 \
+                  release/v0.4.1  (version.json: "0.4.1")
+```
+
+### Creating a Major or Minor Release
+
+1. Create a branch from `main`:
+
+   ```bash
+   git checkout -b release/v{X}.{Y}.0 main
+   ```
+
+2. Update `version.json`, removing the `-alpha` suffix:
+
+   ```json
+   { "version": "{X}.{Y}.0" }
+   ```
+
+3. Move rules from `src/Analyzers/AnalyzerReleases.Unshipped.md` to `src/Analyzers/AnalyzerReleases.Shipped.md` under a new `## Release {X}.{Y}.0` section.
+
+4. Clear `AnalyzerReleases.Unshipped.md` back to the empty header:
+
+   ```text
+   ; Unshipped analyzer release
+   ; https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+
+   ### New Rules
+   Rule ID | Category | Severity | Notes
+   --------|----------|----------|-------
+   ```
+
+5. Commit and push:
+
+   ```bash
+   git add version.json src/Analyzers/AnalyzerReleases.Shipped.md src/Analyzers/AnalyzerReleases.Unshipped.md
+   git commit -m "chore(release): prepare v{X}.{Y}.0 release branch"
+   git push -u origin release/v{X}.{Y}.0
+   ```
+
+6. On `main`, bump `version.json` to the next development version (e.g., `"0.5.0-alpha"`).
+
+### Creating a Patch Release
+
+1. Create a branch from the prior release:
+
+   ```bash
+   git checkout -b release/v{X}.{Y}.{Z} origin/release/v{X}.{Y}.{Z-1}
+   ```
+
+2. Update `version.json` to the patch version:
+
+   ```json
+   { "version": "{X}.{Y}.{Z}" }
+   ```
+
+3. Move any unshipped rules to `AnalyzerReleases.Shipped.md` and clear `Unshipped.md` (same process as major/minor).
+
+4. Commit the version bump and AnalyzerReleases changes.
+
+5. Cherry-pick bug fixes from `main` (oldest first):
+
+   ```bash
+   git cherry-pick <commit-sha-1>
+   git cherry-pick <commit-sha-2>
+   ```
+
+   Resolve conflicts if needed. For CI workflow conflicts, prefer the incoming (fix) version since it represents the corrected state.
+
+6. Push:
+
+   ```bash
+   git push -u origin release/v{X}.{Y}.{Z}
+   ```
+
+### Publishing a Release
+
+1. Verify CI passes on the release branch.
+2. Create a GitHub Release targeting the release branch:
+   - Tag: `v{X}.{Y}.{Z}` (e.g., `v0.4.1`)
+   - Target: `release/v{X}.{Y}.{Z}`
+   - Title: `v{X}.{Y}.{Z}`
+   - Description: list of changes included
+3. The `release.yml` workflow triggers on GitHub Release events, builds the project, and publishes `.nupkg` files to NuGet.
+
+### Troubleshooting
+
+**`release.yml` does not trigger:**
+
+- Verify the GitHub Release event targets the correct branch (`release/v{X}.{Y}.{Z}`).
+- Check that the tag format matches `v{X}.{Y}.{Z}` exactly.
+- Confirm the workflow has `on: release` with `types: [published, edited, prereleased, released]` configured.
+
+**Version mismatch in built packages:**
+
+- Confirm `version.json` on the release branch has the stable version (no `-alpha` suffix).
+- Run `nbgv get-version` locally on the release branch to verify NBGV output matches expectations.
+
+**NuGet publish fails:**
+
+- Check the `.nupkg` artifacts in the workflow run to verify they were built.
+- Verify the `NUGET_API_KEY` secret is configured and has push permissions.
+- Review the release job logs for authentication or validation errors.
+
+**Tag and target mismatch:**
+
+- The tag (`v0.4.1`) must match the target branch version (`release/v0.4.1`). A mismatch causes incorrect version metadata.
 
 ### Release Checklist
 
+- [ ] Release branch created from correct base
+- [ ] `version.json` updated to stable version
+- [ ] `AnalyzerReleases.Shipped.md` updated, `Unshipped.md` cleared
+- [ ] All bug fixes cherry-picked (patch releases)
 - [ ] All tests pass
 - [ ] Performance benchmarks show no regressions
-- [ ] Documentation is current
-- [ ] Release notes are complete
-- [ ] Version is updated
-- [ ] CI/CD is green
+- [ ] CI/CD is green on the release branch
+- [ ] Release notes/description prepared
+- [ ] GitHub Release created with correct tag and target branch
 
 ## Roslyn Analyzer Development
 
@@ -775,6 +1016,71 @@ If the answer to **ANY** question is "no" or "unsure," you **MUST STOP** and req
 - **No Trial-and-Error:**
   - Never guess which Roslyn API to use. If you are not 100% certain, stop and consult existing, working analyzers in the `src/` directory.
   - Never "fix" a failing test by slightly adjusting the code and re-running. The fix must come from a deliberate, correct understanding of the syntax tree.
+
+### Symbol-Based Detection Architecture
+
+This repository uses **symbol-based detection** for all Moq pattern matching:
+
+**Symbol Registry Pattern:**
+- Central registry: `src/Common/WellKnown/MoqKnownSymbols.cs`
+- Symbols loaded via `TypeProvider.GetOrCreateTypeByMetadataName()`
+- Method collections via `GetMembers("MethodName").OfType<IMethodSymbol>().ToImmutableArray()`
+
+**Example - Adding New Moq Interface:**
+```csharp
+// In MoqKnownSymbols.cs
+internal INamedTypeSymbol? IRaise1 => 
+    TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IRaise\`1");
+
+internal ImmutableArray<IMethodSymbol> IRaise1Raises => 
+    IRaise1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() 
+    ?? ImmutableArray<IMethodSymbol>.Empty;
+```
+
+**Detection Helper Pattern:**
+```csharp
+// In ISymbolExtensions.cs
+public static bool IsRaiseableMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+{
+    return knownSymbols.IRaise1Raises.Contains(symbol, SymbolEqualityComparer.Default)
+        || knownSymbols.IRaise1RaisesAsync.Contains(symbol, SymbolEqualityComparer.Default);
+}
+```
+
+### Moq Fluent API Understanding
+
+Moq uses **method chaining** with different return types at each stage:
+
+| Stage | Method | Returns Interface |
+|-------|--------|-------------------|
+| Setup | `Setup(x => x.Method())` | `ISetup<T>` |
+| Callback | `.Callback(...)` | `ICallback<T>` |
+| Event | `.Raises(...)` | `IRaise<T>` (generic) |
+| Return | `.Returns(...)` | `IReturns<T>` |
+
+**Critical**: Register ALL interfaces in the chain, not just the final return type.
+
+### Debugging Symbol Detection Issues
+
+**Symptom**: Tests fail after removing string-based fallback detection.
+
+**Root Cause**: Missing symbol registration in `MoqKnownSymbols`.
+
+**Solution Process**:
+1. Create temporary test to capture `SemanticModel.GetSymbolInfo()` output
+2. Identify the actual symbol type (e.g., `Moq.Language.IRaise<T>`)
+3. Add missing symbol to `MoqKnownSymbols` with proper metadata name
+4. Update detection helper to check new symbol collection
+5. Delete temporary diagnostic test
+
+**Example Investigation**:
+```csharp
+// Temporary diagnostic test
+var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression);
+Console.WriteLine($"Actual symbol: {symbolInfo.Symbol?.ContainingType}");
+// Output: "Moq.Language.IRaise<ITestInterface>" 
+// → Need to add IRaise`1 to MoqKnownSymbols!
+```
 
 ### Implementation Requirements
 

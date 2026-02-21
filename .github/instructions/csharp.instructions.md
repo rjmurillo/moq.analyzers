@@ -87,6 +87,40 @@ If you update guidance in copilot-instructions.md that affects C# development, e
 9. **If any diagnostic span or test fails more than once, STOP and escalate**
 10. **If uncertain about Roslyn APIs, Moq semantics, or workflow, escalate**
 
+## Diagnostic Investigation for Analyzer Failures
+
+### When Symbol-Based Detection Tests Fail
+
+If tests fail after adding/modifying symbol-based detection:
+
+1. **Create Temporary Diagnostic Test:**
+```csharp
+[TestMethod]
+public async Task DiagnosticSymbolTest()
+{
+    string code = """
+        var mock = new Mock<ITestInterface>();
+        mock.Setup(x => x.Method()).Raises(x => x.Event += null, EventArgs.Empty);
+        """;
+    
+    var (compilation, semanticModel, invocation) = await GetSemanticInfo(code);
+    var symbolInfo = semanticModel.GetSymbolInfo(invocation);
+    
+    // Output actual symbol type to understand what's missing
+    Console.WriteLine($"Symbol: {symbolInfo.Symbol?.ContainingType}");
+}
+```
+
+2. **Compare Against Registry:** Check if symbol type exists in `MoqKnownSymbols`
+3. **Add Missing Symbol:** Register in `MoqKnownSymbols` with proper generic arity
+4. **Delete Diagnostic Test:** Always clean up temporary investigation code
+
+### Common Symbol Detection Issues
+
+- **Generic vs Non-Generic**: `IRaise<T>` (generic) ≠ `IRaiseable` (non-generic)
+- **Method Chain Returns**: Different interfaces at each chain position
+- **Missing Symbol Registration**: String fallback masks missing symbols
+
 ## Test Data & Sample Inputs/Outputs
 
 ### What Constitutes Good Test Data?

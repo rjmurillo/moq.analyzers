@@ -5,4 +5,5 @@
   <Import Project="build/targets/versioning/Versioning.targets" />
   <Import Project="build/targets/tests/Tests.targets" />
   <Import Project="build/targets/codeanalysis/CodeAnalysis.targets" />
+  <Import Project="build/targets/packaging/Packaging.targets" />
 </Project>

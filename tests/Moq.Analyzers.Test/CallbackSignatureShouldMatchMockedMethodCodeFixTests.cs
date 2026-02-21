@@ -107,6 +107,14 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new StringDelegate((string s) => { }));""",
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new StringDelegate((string s) => { }));""",
             ],
+            [ // Parenthesized Setup with wrong callback type
+                """(new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>()))).Callback(({|Moq1100:int i|}) => { });""",
+                """(new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>()))).Callback((string s) => { });""",
+            ],
+            [ // Double-parenthesized Setup with wrong callback type
+                """((new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())))).Callback(({|Moq1100:int i|}) => { });""",
+                """((new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())))).Callback((string s) => { });""",
+            ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
