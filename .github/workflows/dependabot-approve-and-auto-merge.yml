@@ -1,33 +1,53 @@
-name: Dependabot Pull Request Approve and Merge
-on: pull_request_target
+name: Auto-Approve and Auto-Merge Bot PRs
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
 permissions:
-  pull-requests: write
   contents: write
+  pull-requests: write
+
 jobs:
   dependabot:
+    name: Dependabot (GitHub Actions)
     runs-on: ubuntu-24.04-arm
-    # Checking the actor will prevent your Action run failing on non-Dependabot
-    # PRs but also ensures that it only does work for Dependabot PRs.
-    if: ${{ github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]' }}
+    if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
     steps:
-      # This first step will fail if there's no metadata and so the approval
-      # will not occur.
-      - name: Dependabot metadata
+      - name: Fetch metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v2.5.0
         with:
           github-token: "${{ secrets.GH_ACTIONS_PR_WRITE }}"
-      # Here the PR gets approved.
-      - name: Approve a PR
+
+      - name: Approve PR
         run: gh pr review --approve "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
-      # Finally, this sets the PR to allow auto-merging for patch and minor
-      # updates if all checks pass
-      - name: Enable auto-merge for Dependabot PRs
-        if: ${{ steps.dependabot-metadata.outputs.update-type != 'version-update:semver-major' }}
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
+
+      - name: Enable auto-merge for non-major updates
+        if: steps.dependabot-metadata.outputs.update-type != 'version-update:semver-major'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
+
+  renovate:
+    name: Renovate (NuGet and GitHub Actions)
+    runs-on: ubuntu-24.04-arm
+    if: github.actor == 'renovate[bot]'
+    steps:
+      - name: Approve PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+
+      # Renovate controls which PRs are auto-mergeable via renovate.json
+      # packageRules. This step enables GitHub's auto-merge so that once
+      # all required checks pass, the PR merges automatically.
+      - name: Enable auto-merge
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
