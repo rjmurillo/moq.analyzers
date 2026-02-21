@@ -16,7 +16,7 @@ These packages are bundled in the analyzer NuGet package and run inside the **us
 | Microsoft.CodeAnalysis.CSharp.Workspaces | 4.8 | Same as above |
 | Microsoft.CodeAnalysis.AnalyzerUtilities | 3.3.4 | Must reference SCI <= 8.0.0.0 |
 | System.Collections.Immutable | 8.0.0 | Must not exceed .NET 8 SDK host assembly version |
-| System.Reflection.Metadata | (pinned) | Same as SCI |
+| System.Reflection.Metadata | (transitive) | Must not exceed .NET 8 SDK host assembly version |
 
 **Why this matters:** In v0.4.0, a transitive dependency bump pushed SCI to 10.0.0.0, causing CS8032 assembly load failures for every user on .NET 8 SDK. See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
 
@@ -107,4 +107,4 @@ This allows the central pin (8.0.0) to protect shipped analyzer DLLs while letti
 
 ## Workflow
 
-A single consolidated workflow (`.github/workflows/dependabot-approve-and-auto-merge.yml`) handles auto-approval and auto-merge for both Dependabot and Renovate PRs. Renovate's `packageRules` in `renovate.json` control which updates are eligible for automerge.
+A single consolidated workflow (`.github/workflows/dependabot-approve-and-auto-merge.yml`) handles auto-approval and auto-merge for both Dependabot and Renovate PRs. The workflow skips auto-merge for Renovate PRs labeled `analyzer-compat`, `benchmark-tooling`, or `major`, which Renovate applies based on `packageRules` in `renovate.json`. This ensures packages requiring manual review are never auto-merged.
