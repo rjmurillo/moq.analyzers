@@ -73,19 +73,21 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
 
     private static bool IsReturnsMethodCallWithAsyncLambda(InvocationExpressionSyntax invocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
     {
-        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+        if (invocation.Expression is not MemberAccessExpressionSyntax)
         {
             return false;
         }
 
-        // Check if this is a Returns method call
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
-        if (symbolInfo.Symbol is not IMethodSymbol method)
-        {
-            return false;
-        }
+        // Query the invocation (not the MemberAccessExpressionSyntax) so Roslyn has argument context
+        // for overload resolution. Fall back to CandidateSymbols for delegate overloads.
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation);
+        bool isReturnsMethod = symbolInfo.Symbol is IMethodSymbol method
+            ? method.IsMoqReturnsMethod(knownSymbols)
+            : symbolInfo.CandidateSymbols
+                .OfType<IMethodSymbol>()
+                .Any(m => m.IsMoqReturnsMethod(knownSymbols));
 
-        if (!method.IsMoqReturnsMethod(knownSymbols))
+        if (!isReturnsMethod)
         {
             return false;
         }
