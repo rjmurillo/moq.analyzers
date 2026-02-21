@@ -62,6 +62,19 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzerTests(ITestOutputHel
         return valid.Concat(invalid);
     }
 
+    // Delegate-typed async lambdas cause overload resolution failure in Roslyn.
+    // The analyzer must fall back to CandidateSymbols to detect Returns usage.
+    public static IEnumerable<object[]> DelegateOverloadTestData()
+    {
+        IEnumerable<object[]> data = new object[][]
+        {
+            // Async delegate lambda in Returns for Task<T> method with parameter (should flag)
+            ["""new Mock<AsyncClient>().Setup(c => c.ProcessAsync(It.IsAny<string>())).{|Moq1206:Returns(async (string x) => x)|};"""],
+        };
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeReturnsAsyncUsage(string referenceAssemblyGroup, string @namespace, string mock)
@@ -77,6 +90,40 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzerTests(ITestOutputHel
                   public virtual ValueTask DoValueTaskAsync() => ValueTask.CompletedTask;
                   public virtual ValueTask<string> GetValueTaskAsync() => ValueTask.FromResult(string.Empty);
                   public virtual string GetSync() => string.Empty;
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      {{mock}}
+                  }
+              }
+              """;
+
+        output.WriteLine(source);
+
+        await Verifier.VerifyAnalyzerAsync(
+                source,
+                referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(DelegateOverloadTestData))]
+    public async Task ShouldFlagAsyncDelegateLambdaInReturns(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        string source =
+            $$"""
+              {{@namespace}}
+
+              public class AsyncClient
+              {
+                  public virtual Task DoAsync() => Task.CompletedTask;
+                  public virtual Task<string> GetAsync() => Task.FromResult(string.Empty);
+                  public virtual ValueTask DoValueTaskAsync() => ValueTask.CompletedTask;
+                  public virtual ValueTask<string> GetValueTaskAsync() => ValueTask.FromResult(string.Empty);
+                  public virtual string GetSync() => string.Empty;
+                  public virtual Task<string> ProcessAsync(string input) => Task.FromResult(input);
               }
 
               internal class UnitTest
