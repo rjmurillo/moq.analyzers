@@ -13,7 +13,7 @@
     {
       "description": "Label major updates for workflow detection",
       "matchUpdateTypes": ["major"],
-      "labels": ["major"]
+      "addLabels": ["major"]
     },
     {
       "description": "Automerge non-major updates for development dependencies",
@@ -40,7 +40,7 @@
         "Microsoft.CodeAnalysis.AnalyzerUtilities"
       ],
       "automerge": false,
-      "labels": ["analyzer-compat"]
+      "addLabels": ["analyzer-compat"]
     },
     {
       "description": "Benchmark tooling (BenchmarkDotNet, Perfolizer) requires coordinated updates due to transitive dependency constraints. See docs/dependency-management.md.",
@@ -50,7 +50,7 @@
       ],
       "groupName": "benchmark-tooling",
       "automerge": false,
-      "labels": ["benchmark-tooling"]
+      "addLabels": ["benchmark-tooling"]
     },
     {
       "description": "System.CommandLine requires PerfDiff code changes when updated. See: https://github.com/rjmurillo/moq.analyzers/issues/914",
