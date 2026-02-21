@@ -185,6 +185,31 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> IReturns2Returns => IReturns2?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the interface <c>Moq.Language.IThrows</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IThrows => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IThrows");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IThrows.Throws</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IThrowsThrows => IThrows?.GetMembers("Throws").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the class <c>Moq.ReturnsExtensions</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ReturnsExtensions => TypeProvider.GetOrCreateTypeByMetadataName("Moq.ReturnsExtensions");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.ReturnsExtensions.ReturnsAsync</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ReturnsExtensionsReturnsAsync => ReturnsExtensions?.GetMembers("ReturnsAsync").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.ReturnsExtensions.ThrowsAsync</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ReturnsExtensionsThrowsAsync => ReturnsExtensions?.GetMembers("ThrowsAsync").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the methods for <c>Moq.Language.ICallback.Callback</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> ICallbackCallback => ICallback?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
@@ -215,6 +240,26 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> ICallback2Raises => ICallback2?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the interface <c>Moq.Language.ISetupGetter{TMock, TProperty}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ISetupGetter => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ISetupGetter`2");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ISetupGetter{TMock, TProperty}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ISetupGetterRaises => ISetupGetter?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.ISetupSetter{TMock, TProperty}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ISetupSetter => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.ISetupSetter`2");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.ISetupSetter{TMock, TProperty}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ISetupSetterRaises => ISetupSetter?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the methods for <c>Moq.Language.IReturns.Raises</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> IReturnsRaises => IReturns?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
@@ -228,6 +273,66 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.Language.IReturns{TMock, TResult}.Raises</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> IReturns2Raises => IReturns2?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.Flow.ISetup{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ISetup1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.ISetup`1");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.Flow.ISetupPhrase{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ISetupPhrase1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.ISetupPhrase`1");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.Flow.ISetupGetter{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ISetupGetter1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.ISetupGetter`1");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.Flow.ISetupSetter{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ISetupSetter1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.ISetupSetter`1");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.Flow.ISetup{T}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ISetup1Raises => ISetup1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.Flow.ISetupPhrase{T}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ISetupPhrase1Raises => ISetupPhrase1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.Flow.ISetupGetter{T}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ISetupGetter1Raises => ISetupGetter1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.Flow.ISetupSetter{T}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ISetupSetter1Raises => ISetupSetter1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the concrete fluent setup phrase class <c>Moq.Language.Flow.VoidSetupPhrase{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? VoidSetupPhrase1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.VoidSetupPhrase`1");
+
+    /// <summary>
+    /// Gets the concrete fluent setup phrase class <c>Moq.Language.Flow.NonVoidSetupPhrase{T,TResult}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? NonVoidSetupPhrase2 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.NonVoidSetupPhrase`2");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.Flow.VoidSetupPhrase{T}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> VoidSetupPhrase1Raises => VoidSetupPhrase1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.Flow.NonVoidSetupPhrase{T,TResult}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> NonVoidSetupPhrase2Raises => NonVoidSetupPhrase2?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
     /// Gets the class <c>Moq.It</c>.
@@ -250,6 +355,11 @@ internal class MoqKnownSymbols : KnownSymbols
     internal INamedTypeSymbol? IRaiseableAsync => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IRaiseableAsync");
 
     /// <summary>
+    /// Gets the interface <c>Moq.Language.IRaise{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IRaise1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.IRaise`1");
+
+    /// <summary>
     /// Gets the methods for <c>Moq.Language.IRaiseable.Raises</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> IRaiseableRaises => IRaiseable?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
@@ -258,6 +368,16 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.Language.IRaiseableAsync.RaisesAsync</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> IRaiseableAsyncRaisesAsync => IRaiseableAsync?.GetMembers("RaisesAsync").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IRaise{T}.Raises</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IRaise1Raises => IRaise1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Language.IRaise{T}.RaisesAsync</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IRaise1RaisesAsync => IRaise1?.GetMembers("RaisesAsync").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
     /// Gets the struct <c>Moq.Times</c>.

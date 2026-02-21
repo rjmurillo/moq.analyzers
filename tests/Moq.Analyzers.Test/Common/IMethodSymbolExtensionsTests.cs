@@ -3,184 +3,292 @@ namespace Moq.Analyzers.Test.Common;
 public class IMethodSymbolExtensionsTests
 {
     [Fact]
-    public void Overloads_ReturnsAllOverloadsExceptSelf()
+    public void Overloads_MethodWithOverloads_ReturnsOnlyOtherOverloads()
     {
-        // Arrange
         const string code = @"
 class C
 {
-    void Method() { }
-    void Method(int x) { }
-    void Method(string x) { }
+    void M(int x) { }
+    void M(string x) { }
+    void M(int x, string y) { }
 }";
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create("Test", new[] { tree });
-        SemanticModel model = compilation.GetSemanticModel(tree);
+        (IMethodSymbol targetMethod, _) = GetMethodAndOverloads(code, "M", 0);
 
-        MethodDeclarationSyntax? firstMethod = tree.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First(m => string.Equals(m.Identifier.Text, "Method", StringComparison.Ordinal));
+        IMethodSymbol[] result = targetMethod.Overloads().ToArray();
 
-        IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(firstMethod);
-        Assert.NotNull(methodSymbol);
-
-        // Act
-        List<IMethodSymbol> overloads = methodSymbol!.Overloads().ToList();
-
-        // Assert
-        Assert.Equal(2, overloads.Count);
-        Assert.Contains(overloads, m => m.Parameters.Length == 1 && string.Equals(m.Parameters[0].Type.Name, "Int32", StringComparison.Ordinal));
-        Assert.Contains(overloads, m => m.Parameters.Length == 1 && string.Equals(m.Parameters[0].Type.Name, "String", StringComparison.Ordinal));
-        Assert.DoesNotContain(overloads, m => m.Parameters.Length == 0);
+        Assert.Equal(2, result.Length);
+        Assert.DoesNotContain(targetMethod, result, SymbolEqualityComparer.Default);
+        Assert.All(result, m => Assert.Equal("M", m.Name));
     }
 
     [Fact]
-    public void Overloads_WithNullMethod_ReturnsEmpty()
+    public void Overloads_MethodWithNoOverloads_ReturnsEmpty()
     {
-        // Act
-        IEnumerable<IMethodSymbol> overloads = ((IMethodSymbol?)null).Overloads();
-
-        // Assert
-        Assert.Empty(overloads);
-    }
-
-    [Fact]
-    public void TryGetOverloadWithParameterOfType_FindsMatchingOverload()
-    {
-        // Arrange
         const string code = @"
 class C
 {
-    void Method() { }
-    void Method(int x) { }
-    void Method(string x) { }
+    void M(int x) { }
+    void N(string x) { }
 }";
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create("Test", new[] { tree }, new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
-        SemanticModel model = compilation.GetSemanticModel(tree);
+        (IMethodSymbol targetMethod, _) = GetMethodAndOverloads(code, "M", 0);
 
-        MethodDeclarationSyntax? firstMethod = tree.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First(m => string.Equals(m.Identifier.Text, "Method", StringComparison.Ordinal));
+        IMethodSymbol[] result = targetMethod.Overloads().ToArray();
 
-        IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(firstMethod);
-        Assert.NotNull(methodSymbol);
+        Assert.Empty(result);
+    }
 
-        INamedTypeSymbol? stringType = compilation.GetSpecialType(SpecialType.System_String);
-        Assert.NotNull(stringType);
+    [Fact]
+    public void Overloads_NullMethod_ReturnsEmpty()
+    {
+        IMethodSymbol? nullMethod = null;
 
-        // Act
-        bool result = methodSymbol!.TryGetOverloadWithParameterOfType(stringType!, out IMethodSymbol? methodMatch, out IParameterSymbol? parameterMatch);
+        IMethodSymbol[] result = nullMethod.Overloads().ToArray();
 
-        // Assert
-        Assert.True(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void Overloads_CustomComparer_UsesProvidedComparer()
+    {
+        const string code = @"
+class C
+{
+    void M(int x) { }
+    void M(string x) { }
+    void M(int x, string y) { }
+}";
+        (IMethodSymbol targetMethod, _) = GetMethodAndOverloads(code, "M", 0);
+
+        // SymbolEqualityComparer.IncludeNullability behaves the same as Default for non-nullable types,
+        // but this verifies the comparer parameter is threaded through.
+        IMethodSymbol[] result = targetMethod.Overloads(SymbolEqualityComparer.IncludeNullability).ToArray();
+
+        Assert.Equal(2, result.Length);
+        Assert.DoesNotContain(targetMethod, result, SymbolEqualityComparer.Default);
+    }
+
+    [Fact]
+    public void TryGetOverloadWithParameterOfType_OverloadHasMatchingParameter_ReturnsTrueWithMatches()
+    {
+        const string code = @"
+class C
+{
+    void M(int x) { }
+    void M(string x) { }
+    void M(int x, string y) { }
+}";
+        (SemanticModel model, IMethodSymbol intMethod, IReadOnlyList<IMethodSymbol> allMethods) =
+            GetMethodContextWithAllOverloads(code, "M", 0);
+        INamedTypeSymbol stringType = model.Compilation.GetSpecialType(SpecialType.System_String);
+
+        bool found = intMethod.TryGetOverloadWithParameterOfType(
+            allMethods,
+            stringType,
+            out IMethodSymbol? methodMatch,
+            out IParameterSymbol? parameterMatch);
+
+        Assert.True(found);
         Assert.NotNull(methodMatch);
         Assert.NotNull(parameterMatch);
-#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
-        Assert.Single(methodMatch!.Parameters);
-#pragma warning restore ECS0900
-        Assert.Equal("String", parameterMatch!.Type.Name);
+        Assert.True(SymbolEqualityComparer.Default.Equals(parameterMatch!.Type, stringType));
     }
 
     [Fact]
-    public void TryGetOverloadWithParameterOfType_NoMatch_ReturnsFalse()
+    public void TryGetOverloadWithParameterOfType_NoOverloadHasMatchingParameter_ReturnsFalse()
     {
-        // Arrange
         const string code = @"
 class C
 {
-    void Method() { }
-    void Method(int x) { }
+    void M(int x) { }
+    void M(string x) { }
 }";
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create("Test", new[] { tree }, new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
-        SemanticModel model = compilation.GetSemanticModel(tree);
+        (SemanticModel model, IMethodSymbol intMethod, IReadOnlyList<IMethodSymbol> allMethods) =
+            GetMethodContextWithAllOverloads(code, "M", 0);
+        INamedTypeSymbol doubleType = model.Compilation.GetSpecialType(SpecialType.System_Double);
 
-        MethodDeclarationSyntax? firstMethod = tree.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First(m => string.Equals(m.Identifier.Text, "Method", StringComparison.Ordinal));
+        bool found = intMethod.TryGetOverloadWithParameterOfType(
+            allMethods,
+            doubleType,
+            out IMethodSymbol? methodMatch,
+            out IParameterSymbol? parameterMatch);
 
-        IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(firstMethod);
-        Assert.NotNull(methodSymbol);
-
-        INamedTypeSymbol? stringType = compilation.GetSpecialType(SpecialType.System_String);
-        Assert.NotNull(stringType);
-
-        // Act
-        bool result = methodSymbol!.TryGetOverloadWithParameterOfType(stringType!, out IMethodSymbol? methodMatch, out IParameterSymbol? parameterMatch);
-
-        // Assert
-        Assert.False(result);
+        Assert.False(found);
         Assert.Null(methodMatch);
         Assert.Null(parameterMatch);
     }
 
     [Fact]
-    public void TryGetParameterOfType_FindsMatchingParameter()
+    public void TryGetOverloadWithParameterOfType_CurrentMethodInOverloadsList_SkipsSelf()
     {
-        // Arrange
         const string code = @"
 class C
 {
-    void Method(int x, string y, double z) { }
+    void M(int x) { }
 }";
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create("Test", new[] { tree }, new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
-        SemanticModel model = compilation.GetSemanticModel(tree);
+        (SemanticModel model, IMethodSymbol intMethod, _) =
+            GetMethodContextWithAllOverloads(code, "M", 0);
+        INamedTypeSymbol intType = model.Compilation.GetSpecialType(SpecialType.System_Int32);
 
-        MethodDeclarationSyntax? method = tree.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
+        // Pass the method itself in the overloads list. It should be skipped via comparer.Equals.
+        bool found = intMethod.TryGetOverloadWithParameterOfType(
+            new[] { intMethod },
+            intType,
+            out IMethodSymbol? methodMatch,
+            out IParameterSymbol? parameterMatch);
 
-        IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(method);
-        Assert.NotNull(methodSymbol);
-
-        INamedTypeSymbol? stringType = compilation.GetSpecialType(SpecialType.System_String);
-        Assert.NotNull(stringType);
-
-        // Act
-        bool result = methodSymbol!.TryGetParameterOfType(stringType!, out IParameterSymbol? match);
-
-        // Assert
-        Assert.True(result);
-        Assert.NotNull(match);
-        Assert.Equal("y", match!.Name);
-        Assert.Equal("String", match.Type.Name);
+        Assert.False(found);
+        Assert.Null(methodMatch);
+        Assert.Null(parameterMatch);
     }
 
     [Fact]
-    public void TryGetParameterOfType_NoMatch_ReturnsFalse()
+    public void TryGetOverloadWithParameterOfType_CancellationRequested_ThrowsOperationCanceledException()
     {
-        // Arrange
         const string code = @"
 class C
 {
-    void Method(int x, double y) { }
+    void M(int x) { }
+    void M(string x) { }
 }";
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create("Test", new[] { tree }, new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
-        SemanticModel model = compilation.GetSemanticModel(tree);
+        (SemanticModel model, IMethodSymbol intMethod, IReadOnlyList<IMethodSymbol> allMethods) =
+            GetMethodContextWithAllOverloads(code, "M", 0);
+        INamedTypeSymbol stringType = model.Compilation.GetSpecialType(SpecialType.System_String);
 
-        MethodDeclarationSyntax? method = tree.GetRoot()
+        using CancellationTokenSource cts = new();
+        cts.Cancel();
+
+        Assert.Throws<OperationCanceledException>(() =>
+        {
+            intMethod.TryGetOverloadWithParameterOfType(
+                allMethods,
+                stringType,
+                out _,
+                out _,
+                cancellationToken: cts.Token);
+        });
+    }
+
+    [Fact]
+    public void TryGetOverloadWithParameterOfType_ConvenienceOverload_DelegatesToFullVersion()
+    {
+        const string code = @"
+class C
+{
+    void M(int x) { }
+    void M(string x) { }
+    void M(int x, string y) { }
+}";
+        (SemanticModel model, IMethodSymbol intMethod, _) =
+            GetMethodContextWithAllOverloads(code, "M", 0);
+        INamedTypeSymbol stringType = model.Compilation.GetSpecialType(SpecialType.System_String);
+
+        bool found = intMethod.TryGetOverloadWithParameterOfType(
+            stringType,
+            out IMethodSymbol? methodMatch,
+            out IParameterSymbol? parameterMatch);
+
+        Assert.True(found);
+        Assert.NotNull(methodMatch);
+        Assert.NotNull(parameterMatch);
+        Assert.True(SymbolEqualityComparer.Default.Equals(parameterMatch!.Type, stringType));
+    }
+
+    [Fact]
+    public void TryGetParameterOfType_MethodHasParameterOfType_ReturnsTrueWithMatch()
+    {
+        const string code = @"
+class C
+{
+    void M(int x, string y) { }
+}";
+        (SemanticModel model, IMethodSymbol method, _) =
+            GetMethodContextWithAllOverloads(code, "M", 0);
+        INamedTypeSymbol stringType = model.Compilation.GetSpecialType(SpecialType.System_String);
+
+        bool found = method.TryGetParameterOfType(stringType, out IParameterSymbol? match);
+
+        Assert.True(found);
+        Assert.NotNull(match);
+        Assert.Equal("y", match!.Name);
+        Assert.True(SymbolEqualityComparer.Default.Equals(match.Type, stringType));
+    }
+
+    [Fact]
+    public void TryGetParameterOfType_MethodHasNoParameterOfType_ReturnsFalse()
+    {
+        const string code = @"
+class C
+{
+    void M(int x) { }
+}";
+        (SemanticModel model, IMethodSymbol method, _) =
+            GetMethodContextWithAllOverloads(code, "M", 0);
+        INamedTypeSymbol doubleType = model.Compilation.GetSpecialType(SpecialType.System_Double);
+
+        bool found = method.TryGetParameterOfType(doubleType, out IParameterSymbol? match);
+
+        Assert.False(found);
+        Assert.Null(match);
+    }
+
+    [Fact]
+    public void TryGetParameterOfType_CancellationRequested_ThrowsOperationCanceledException()
+    {
+        const string code = @"
+class C
+{
+    void M(int x, string y) { }
+}";
+        (SemanticModel model, IMethodSymbol method, _) =
+            GetMethodContextWithAllOverloads(code, "M", 0);
+        INamedTypeSymbol stringType = model.Compilation.GetSpecialType(SpecialType.System_String);
+
+        using CancellationTokenSource cts = new();
+        cts.Cancel();
+
+        Assert.Throws<OperationCanceledException>(() =>
+        {
+            method.TryGetParameterOfType(stringType, out _, cancellationToken: cts.Token);
+        });
+    }
+
+    private static (IMethodSymbol TargetMethod, IReadOnlyList<IMethodSymbol> AllOverloads) GetMethodAndOverloads(
+        string code,
+        string methodName,
+        int index)
+    {
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
+        MethodDeclarationSyntax[] methods = tree.GetRoot()
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
-            .First();
+            .Where(m => string.Equals(m.Identifier.Text, methodName, StringComparison.Ordinal))
+            .ToArray();
 
-        IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(method);
-        Assert.NotNull(methodSymbol);
+        IMethodSymbol target = model.GetDeclaredSymbol(methods[index])!;
+        IMethodSymbol[] allOverloads = methods
+            .Select(m => model.GetDeclaredSymbol(m)!)
+            .ToArray();
 
-        INamedTypeSymbol? stringType = compilation.GetSpecialType(SpecialType.System_String);
-        Assert.NotNull(stringType);
+        return (target, allOverloads);
+    }
 
-        // Act
-        bool result = methodSymbol!.TryGetParameterOfType(stringType!, out IParameterSymbol? match);
+    private static (SemanticModel Model, IMethodSymbol TargetMethod, IReadOnlyList<IMethodSymbol> AllMethods) GetMethodContextWithAllOverloads(
+        string code,
+        string methodName,
+        int index)
+    {
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
+        MethodDeclarationSyntax[] methods = tree.GetRoot()
+            .DescendantNodes()
+            .OfType<MethodDeclarationSyntax>()
+            .Where(m => string.Equals(m.Identifier.Text, methodName, StringComparison.Ordinal))
+            .ToArray();
 
-        // Assert
-        Assert.False(result);
-        Assert.Null(match);
+        IMethodSymbol target = model.GetDeclaredSymbol(methods[index])!;
+        IMethodSymbol[] allMethods = methods
+            .Select(m => model.GetDeclaredSymbol(m)!)
+            .ToArray();
+
+        return (model, target, allMethods);
     }
 }

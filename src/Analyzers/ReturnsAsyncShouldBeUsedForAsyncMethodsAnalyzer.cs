@@ -73,19 +73,21 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
 
     private static bool IsReturnsMethodCallWithAsyncLambda(InvocationExpressionSyntax invocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
     {
-        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+        if (invocation.Expression is not MemberAccessExpressionSyntax)
         {
             return false;
         }
 
-        // Check if this is a Returns method call
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
-        if (symbolInfo.Symbol is not IMethodSymbol method)
-        {
-            return false;
-        }
+        // Query the invocation (not the MemberAccessExpressionSyntax) so Roslyn has argument context
+        // for overload resolution. Fall back to CandidateSymbols for delegate overloads.
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation);
+        bool isReturnsMethod = symbolInfo.Symbol is IMethodSymbol method
+            ? method.IsMoqReturnsMethod(knownSymbols)
+            : symbolInfo.CandidateSymbols
+                .OfType<IMethodSymbol>()
+                .Any(m => m.IsMoqReturnsMethod(knownSymbols));
 
-        if (!method.IsMoqReturnsMethod(knownSymbols))
+        if (!isReturnsMethod)
         {
             return false;
         }
@@ -99,7 +101,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         // The pattern is: mock.Setup(...).Returns(...)
         // The returnsInvocation is the entire chain, so we need to examine its structure
         if (returnsInvocation.Expression is MemberAccessExpressionSyntax memberAccess &&
-            memberAccess.Expression is InvocationExpressionSyntax setupInvocation &&
+            memberAccess.Expression.WalkDownParentheses() is InvocationExpressionSyntax setupInvocation &&
             setupInvocation.Expression is MemberAccessExpressionSyntax setupMemberAccess &&
             string.Equals(setupMemberAccess.Name.Identifier.ValueText, "Setup", StringComparison.Ordinal))
         {

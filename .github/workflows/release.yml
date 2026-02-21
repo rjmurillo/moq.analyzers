@@ -24,11 +24,10 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Download packages
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           path: packages
-          pattern: packages-ubuntu-*
-          merge-multiple: true
+          name: packages
       - name: Publish NuGet package
         shell: pwsh
         run: |

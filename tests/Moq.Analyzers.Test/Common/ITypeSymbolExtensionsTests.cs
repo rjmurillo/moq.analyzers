@@ -3,89 +3,54 @@ namespace Moq.Analyzers.Test.Common;
 public class ITypeSymbolExtensionsTests
 {
     [Fact]
-    public void GetBaseTypesAndThis_ReturnsTypeAndBaseTypes()
+    public void GetBaseTypesAndThis_ClassWithNoExplicitBase_ReturnsClassAndObject()
     {
-        // Arrange
-        const string code = @"
-class Base { }
-class Derived : Base { }
-class MostDerived : Derived { }
-";
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create("Test", new[] { tree }, new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
-        SemanticModel model = compilation.GetSemanticModel(tree);
+        INamedTypeSymbol classSymbol = GetNamedTypeSymbol("public class MyClass { }", "MyClass");
 
-        ClassDeclarationSyntax? mostDerivedClass = tree.GetRoot()
-            .DescendantNodes()
-            .OfType<ClassDeclarationSyntax>()
-            .First(c => string.Equals(c.Identifier.Text, "MostDerived", StringComparison.Ordinal));
+        List<ITypeSymbol> result = classSymbol.GetBaseTypesAndThis().ToList();
 
-        INamedTypeSymbol? typeSymbol = model.GetDeclaredSymbol(mostDerivedClass);
-        Assert.NotNull(typeSymbol);
-
-        // Act
-        List<ITypeSymbol> baseTypes = typeSymbol!.GetBaseTypesAndThis().ToList();
-
-        // Assert
-        Assert.Equal(4, baseTypes.Count); // MostDerived, Derived, Base, object
-        Assert.Equal("MostDerived", baseTypes[0].Name);
-        Assert.Equal("Derived", baseTypes[1].Name);
-        Assert.Equal("Base", baseTypes[2].Name);
-        Assert.Equal("Object", baseTypes[3].Name);
+        Assert.Equal(2, result.Count);
+        Assert.Equal("MyClass", result[0].Name);
+        Assert.Equal("Object", result[1].Name);
     }
 
     [Fact]
-    public void GetBaseTypesAndThis_WithNoBaseClass_ReturnsTypeAndObject()
+    public void GetBaseTypesAndThis_ClassWithInheritanceChain_ReturnsAllTypesInOrder()
     {
-        // Arrange
-        const string code = @"
-class SimpleClass { }
-";
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create("Test", new[] { tree }, new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
-        SemanticModel model = compilation.GetSemanticModel(tree);
+        string code = @"
+public class GrandParent { }
+public class Parent : GrandParent { }
+public class Child : Parent { }";
+        INamedTypeSymbol classSymbol = GetNamedTypeSymbol(code, "Child");
 
-        ClassDeclarationSyntax? simpleClass = tree.GetRoot()
-            .DescendantNodes()
-            .OfType<ClassDeclarationSyntax>()
-            .First(c => string.Equals(c.Identifier.Text, "SimpleClass", StringComparison.Ordinal));
+        List<ITypeSymbol> result = classSymbol.GetBaseTypesAndThis().ToList();
 
-        INamedTypeSymbol? typeSymbol = model.GetDeclaredSymbol(simpleClass);
-        Assert.NotNull(typeSymbol);
-
-        // Act
-        List<ITypeSymbol> baseTypes = typeSymbol!.GetBaseTypesAndThis().ToList();
-
-        // Assert
-        Assert.Equal(2, baseTypes.Count); // SimpleClass, object
-        Assert.Equal("SimpleClass", baseTypes[0].Name);
-        Assert.Equal("Object", baseTypes[1].Name);
+        Assert.Equal(4, result.Count);
+        Assert.Equal("Child", result[0].Name);
+        Assert.Equal("Parent", result[1].Name);
+        Assert.Equal("GrandParent", result[2].Name);
+        Assert.Equal("Object", result[3].Name);
     }
 
     [Fact]
-    public void GetBaseTypesAndThis_WithInterface_ReturnsOnlyInterface()
+    public void GetBaseTypesAndThis_Interface_ReturnsOnlyInterface()
     {
-        // Arrange
-        const string code = @"
-interface IMyInterface { }
-";
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        CSharpCompilation compilation = CSharpCompilation.Create("Test", new[] { tree });
-        SemanticModel model = compilation.GetSemanticModel(tree);
+        INamedTypeSymbol interfaceSymbol = GetNamedTypeSymbol("public interface IMyInterface { }", "IMyInterface");
 
-        InterfaceDeclarationSyntax? interfaceDecl = tree.GetRoot()
+        List<ITypeSymbol> result = interfaceSymbol.GetBaseTypesAndThis().ToList();
+
+        Assert.Single(result);
+        Assert.Equal("IMyInterface", result[0].Name);
+    }
+
+    private static INamedTypeSymbol GetNamedTypeSymbol(string code, string typeName)
+    {
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
+        return tree.GetRoot()
             .DescendantNodes()
-            .OfType<InterfaceDeclarationSyntax>()
-            .First();
-
-        INamedTypeSymbol? typeSymbol = model.GetDeclaredSymbol(interfaceDecl);
-        Assert.NotNull(typeSymbol);
-
-        // Act
-        List<ITypeSymbol> baseTypes = typeSymbol!.GetBaseTypesAndThis().ToList();
-
-        // Assert
-        Assert.Single(baseTypes); // Only the interface itself, no base type
-        Assert.Equal("IMyInterface", baseTypes[0].Name);
+            .OfType<TypeDeclarationSyntax>()
+            .Select(t => model.GetDeclaredSymbol(t))
+            .OfType<INamedTypeSymbol>()
+            .First(t => string.Equals(t.Name, typeName, StringComparison.Ordinal));
     }
 }

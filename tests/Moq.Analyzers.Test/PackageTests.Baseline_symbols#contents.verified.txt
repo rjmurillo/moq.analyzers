@@ -1,0 +1,12 @@
+﻿/
+|-- Moq.Analyzers.nuspec
+|-- README.md
+|-- analyzers
+|   |-- dotnet
+|   |   |-- cs
+|   |   |   |-- Microsoft.CodeAnalysis.AnalyzerUtilities.dll
+|   |   |   |-- Moq.Analyzers.dll
+|   |   |   |-- Moq.CodeFixes.dll
+|-- tools
+|   |-- install.ps1
+|   |-- uninstall.ps1
