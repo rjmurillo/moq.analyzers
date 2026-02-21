@@ -33,36 +33,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
 
   renovate:
-    name: Renovate (NuGet and GitHub Actions)
+    name: Renovate
     runs-on: ubuntu-24.04-arm
     if: github.actor == 'renovate[bot]'
     steps:
+      # Renovate handles auto-merge decisions via platformAutomerge and
+      # per-package automerge rules in renovate.json. This workflow only
+      # provides the required approval. Packages with automerge: false
+      # (analyzer-compat, benchmark-tooling) will not have auto-merge
+      # enabled by Renovate, so they require manual merge after review.
       - name: Approve PR
         run: gh pr review --approve "$PR_URL"
-        env:
-          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-
-      - name: Get PR labels
-        id: pr-labels
-        run: |
-          labels=$(gh pr view "$PR_URL" --json labels --jq '.labels[].name' | tr '\n' ',')
-          echo "labels=$labels" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-
-      # Enable auto-merge only for PRs that Renovate has marked as auto-mergeable.
-      # Skip auto-merge for:
-      # - analyzer-compat packages (CS8032 risk, see issue #850)
-      # - benchmark-tooling packages (coordinated updates required)
-      # - major version updates (require manual review)
-      - name: Enable auto-merge
-        if: |
-          !contains(steps.pr-labels.outputs.labels, 'analyzer-compat') &&
-          !contains(steps.pr-labels.outputs.labels, 'benchmark-tooling') &&
-          !contains(steps.pr-labels.outputs.labels, 'major')
-        run: gh pr merge --auto --squash "$PR_URL"
         env:
           GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
           PR_URL: ${{ github.event.pull_request.html_url }}

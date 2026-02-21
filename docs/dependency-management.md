@@ -16,18 +16,20 @@ These packages are bundled in the analyzer NuGet package and run inside the **us
 | Microsoft.CodeAnalysis.CSharp.Workspaces | 4.8 | Same as above |
 | Microsoft.CodeAnalysis.AnalyzerUtilities | 3.3.4 | Must reference SCI <= 8.0.0.0 |
 | System.Collections.Immutable | 8.0.0 | Must not exceed .NET 8 SDK host assembly version |
-| System.Reflection.Metadata | (transitive) | Must not exceed .NET 8 SDK host assembly version |
+| System.Reflection.Metadata | (transitive, no central pin) | Must not exceed .NET 8 SDK host assembly version |
 
 **Why this matters:** In v0.4.0, a transitive dependency bump pushed SCI to 10.0.0.0, causing CS8032 assembly load failures for every user on .NET 8 SDK. See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
 
 **Upgrade policy:**
-- `Microsoft.CodeAnalysis.*` core packages are **ignored** in both Renovate and Dependabot configs. Update manually when raising the minimum supported SDK version.
+- `Microsoft.CodeAnalysis.*` core packages are **ignored** in the Renovate config (`ignoreDeps`). Dependabot does not manage NuGet packages. Update manually when raising the minimum supported SDK version.
 - `System.Collections.Immutable`, `System.Reflection.Metadata`, and `AnalyzerUtilities` have `automerge: false` and the `analyzer-compat` label. Every update requires manual validation that assembly versions stay within host bounds.
 - The `ValidateAnalyzerHostCompatibility` MSBuild target and `AnalyzerAssemblyCompatibilityTests` enforce this at build and test time.
 
 ### Build-time Code Analysis - SAFE
 
-These run only during builds and are not shipped. Updates do not affect end users.
+These run only during builds and are not shipped. Updates do not affect end users. See [`build/targets/codeanalysis/Packages.props`](../build/targets/codeanalysis/Packages.props) for the full list.
+
+Representative packages:
 
 | Package | Location |
 |---------|----------|
@@ -41,7 +43,9 @@ These run only during builds and are not shipped. Updates do not affect end user
 
 ### Test Framework - SAFE
 
-Test-only dependencies with no shipped impact.
+Test-only dependencies with no shipped impact. See [`build/targets/tests/Packages.props`](../build/targets/tests/Packages.props) for the full list.
+
+Representative packages:
 
 | Package | Location |
 |---------|----------|
@@ -61,7 +65,7 @@ BenchmarkDotNet and Perfolizer have intertwined version requirements. BenchmarkD
 | BenchmarkDotNet | Directory.Packages.props | Transitive dep on Perfolizer and Roslyn |
 | Perfolizer | Directory.Packages.props | Used directly by PerfDiff tool |
 
-**Upgrade policy:** Grouped in Renovate as `benchmark-tooling` with `automerge: false`. Both packages must be updated together. The benchmark project uses `VersionOverride` for packages whose central pins are constrained by shipped analyzer compatibility (e.g., `System.Collections.Immutable`, `Microsoft.CodeAnalysis.CSharp`).
+**Upgrade policy:** Grouped in Renovate as `benchmark-tooling` with `automerge: false`. Both packages must be updated together. The benchmark project uses `VersionOverride` for packages whose central pins are constrained by shipped analyzer compatibility (e.g., `System.Collections.Immutable`).
 
 ### PerfDiff Tool - SPECIAL HANDLING
 
@@ -70,7 +74,7 @@ The PerfDiff tool (`src/tools/PerfDiff/`) uses System.CommandLine, which had bre
 | Package | Status |
 |---------|--------|
 | System.CommandLine | **Disabled** in Renovate until PerfDiff is rewritten |
-| System.CommandLine.Rendering | **Disabled** (removed in stable release) |
+| System.CommandLine.Rendering | **Disabled** (folded into main package in stable release) |
 
 **Why disabled:** The perf CI check builds PerfDiff on-demand. It is excluded from the normal build/test matrix. Updates that break PerfDiff only surface as `perf` check failures, which are a required status check.
 
@@ -107,4 +111,7 @@ This allows the central pin (8.0.0) to protect shipped analyzer DLLs while letti
 
 ## Workflow
 
-A single consolidated workflow (`.github/workflows/dependabot-approve-and-auto-merge.yml`) handles auto-approval and auto-merge for both Dependabot and Renovate PRs. The workflow skips auto-merge for Renovate PRs labeled `analyzer-compat`, `benchmark-tooling`, or `major`, which Renovate applies based on `packageRules` in `renovate.json`. This ensures packages requiring manual review are never auto-merged.
+A single consolidated workflow (`.github/workflows/dependabot-approve-and-auto-merge.yml`) handles auto-approval for both Dependabot and Renovate PRs.
+
+- **Dependabot** (GitHub Actions only): The workflow approves the PR and enables auto-merge for non-major updates. Major version gating uses `dependabot/fetch-metadata` output.
+- **Renovate** (NuGet): The workflow only approves the PR. Auto-merge is controlled entirely by Renovate via `platformAutomerge: true` and per-package `automerge` rules in `renovate.json`. Packages with `automerge: false` (e.g., `analyzer-compat`, `benchmark-tooling`) require manual merge after review.

@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended"
   ],
+  "enabledManagers": ["nuget"],
   "ignoreDeps": [
     "Microsoft.CodeAnalysis.CSharp",
     "Microsoft.CodeAnalysis.CSharp.Workspaces",
@@ -10,11 +11,6 @@
     "Microsoft.CodeAnalysis.Workspaces.Common"
   ],
   "packageRules": [
-    {
-      "description": "Label major updates for workflow detection",
-      "matchUpdateTypes": ["major"],
-      "addLabels": ["major"]
-    },
     {
       "description": "Automerge non-major updates for development dependencies",
       "matchDepTypes": ["devDependencies"],
