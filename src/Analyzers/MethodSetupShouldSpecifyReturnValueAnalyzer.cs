@@ -164,9 +164,19 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
+            InvocationExpressionSyntax? invocation = memberAccess.Parent as InvocationExpressionSyntax;
+            SymbolInfo symbolInfo = invocation != null
+                ? semanticModel.GetSymbolInfo(invocation, cancellationToken)
+                : semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
 
-            if (HasReturnValueSymbol(symbolInfo, knownSymbols))
+            // First try semantic symbol matching (exact). Then fall back to method
+            // name matching when Roslyn resolves a symbol that IsInstanceOf cannot
+            // match (e.g., delegate-based overloads with constructed generic types).
+            // The name-based fallback is safe because this walk only visits methods
+            // chained from a verified Setup() call, and we verify the named method
+            // exists in the Moq compilation.
+            if (HasReturnValueSymbol(symbolInfo, knownSymbols)
+                || IsKnownReturnValueMethodName(memberAccess.Name.Identifier.ValueText, knownSymbols))
             {
                 return true;
             }
@@ -175,6 +185,25 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Checks whether a method name corresponds to a known Moq return value specification
+    /// method that exists in the compilation. Used as a last-resort fallback when Roslyn
+    /// cannot resolve symbols at all (e.g., delegate-based overloads with failed type inference).
+    /// </summary>
+    private static bool IsKnownReturnValueMethodName(string methodName, MoqKnownSymbols knownSymbols)
+    {
+        return methodName switch
+        {
+            "Returns" => !knownSymbols.IReturnsReturns.IsEmpty
+                         || !knownSymbols.IReturns1Returns.IsEmpty
+                         || !knownSymbols.IReturns2Returns.IsEmpty,
+            "ReturnsAsync" => !knownSymbols.ReturnsExtensionsReturnsAsync.IsEmpty,
+            "Throws" => !knownSymbols.IThrowsThrows.IsEmpty,
+            "ThrowsAsync" => !knownSymbols.ReturnsExtensionsThrowsAsync.IsEmpty,
+            _ => false,
+        };
     }
 
     /// <summary>
