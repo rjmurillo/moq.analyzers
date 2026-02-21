@@ -37,7 +37,7 @@
     <PackageVersion Include="System.CommandLine.Rendering" Version="2.0.0-beta1.20074.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Perfolizer" Version="0.6.7" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.30" />
   </ItemGroup>
   <ItemGroup Label="Transitive pins">
@@ -51,6 +51,6 @@
       See: https://github.com/rjmurillo/moq.analyzers/issues/850
     -->
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
-    <PackageVersion Include="System.Formats.Asn1" Version="10.0.0" />
+    <PackageVersion Include="System.Formats.Asn1" Version="10.0.3" />
   </ItemGroup>
 </Project>

@@ -16,7 +16,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" />
     <!-- Benchmarks are not shipped. Allow higher versions for BenchmarkDotNet/TraceEvent dependencies. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.14.0" />
-    <PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.0" />
+    <PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.3" />
     <ProjectReference Include="$(RepoRoot)/tests/Moq.Analyzers.Test/Moq.Analyzers.Test.csproj" />
   </ItemGroup>
 
