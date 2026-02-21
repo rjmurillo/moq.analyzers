@@ -16,7 +16,7 @@ These packages are bundled in the analyzer NuGet package and run inside the **us
 | Microsoft.CodeAnalysis.CSharp.Workspaces | 4.8 | Same as above |
 | Microsoft.CodeAnalysis.AnalyzerUtilities | 3.3.4 | Must reference SCI <= 8.0.0.0 |
 | System.Collections.Immutable | 8.0.0 | Must not exceed .NET 8 SDK host assembly version |
-| System.Formats.Asn1 | 10.0.0 | Must not exceed .NET 8 SDK host assembly version |
+| System.Formats.Asn1 | 10.0.0 | Transitive pin in shipped section; flagged for host compat review |
 | System.Reflection.Metadata | (transitive, no central pin) | Must not exceed .NET 8 SDK host assembly version |
 
 **Why this matters:** In v0.4.0, a transitive dependency bump pushed SCI to 10.0.0.0, causing CS8032 assembly load failures for every user on .NET 8 SDK. See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
