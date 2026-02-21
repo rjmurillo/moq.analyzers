@@ -18,11 +18,16 @@ dotnet_diagnostic.SA1601.severity = suggestion
 
 #### Code quality ####
 
+# CA1016: Mark assemblies with AssemblyVersionAttribute
+# Test assemblies are not distributed; this also fires as a false positive in
+# Codacy which compiles files outside the project context.
+dotnet_diagnostic.CA1016.severity = none
+
 # MA0051: Method is too long
 dotnet_diagnostic.MA0051.severity = suggestion
 
 #### Naming conventions ####
 
 # VSTHRD200: Use "Async" suffix for async methods
-# Just about every test method is async, doesn't provide any real value and clustters up test window
+# Just about every test method is async, doesn't provide any real value and clutters up test window
 dotnet_diagnostic.VSTHRD200.severity = none
