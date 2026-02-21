@@ -32,6 +32,7 @@
       "description": "Analyzer-shipped BCL packages must match minimum supported SDK host. Manual review required. See: https://github.com/rjmurillo/moq.analyzers/issues/850",
       "matchPackageNames": [
         "System.Collections.Immutable",
+        "System.Formats.Asn1",
         "System.Reflection.Metadata",
         "Microsoft.CodeAnalysis.AnalyzerUtilities"
       ],
