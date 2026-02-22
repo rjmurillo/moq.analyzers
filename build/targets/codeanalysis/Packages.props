@@ -1,6 +1,6 @@
 <Project>
   <ItemGroup>    
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.12" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.13" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="3.11.0-beta1.26057.1" />
