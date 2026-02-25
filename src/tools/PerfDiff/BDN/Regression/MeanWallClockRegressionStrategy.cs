@@ -12,16 +12,13 @@ public sealed class MeanWallClockRegressionStrategy : IBenchmarkRegressionStrate
     /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
     {
-        Threshold displayThreshold = Threshold.Parse("100ms");
-        double thresholdValueNs = 100D * TimeUnitConstants.NanoSecondsToMilliseconds;
-        return RegressionStrategyHelper.HasRegression(
-            comparison,
-            logger,
-            displayThreshold,
-            thresholdValueNs,
-            b => b.Statistics?.Mean,
-            r => r.DiffResult.Statistics!.Mean / TimeUnitConstants.NanoSecondsToMilliseconds,
-            "Mean",
-            out details);
+        RegressionMetricConfig config = new(
+            DisplayThreshold: Threshold.Parse("100ms"),
+            ThresholdValueNs: 100D * TimeUnitConstants.NanoSecondsToMilliseconds,
+            MetricSelector: b => b.Statistics?.Mean,
+            DisplayValueSelector: r => r.DiffResult.Statistics!.Mean / TimeUnitConstants.NanoSecondsToMilliseconds,
+            MetricName: "Mean");
+
+        return RegressionStrategyHelper.HasRegression(comparison, logger, config, out details);
     }
 }

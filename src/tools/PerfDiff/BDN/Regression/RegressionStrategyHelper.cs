@@ -13,14 +13,10 @@ public static class RegressionStrategyHelper
     public static bool HasRegression(
         BdnComparisonResult[] comparison,
         ILogger logger,
-        Threshold displayThreshold,
-        double thresholdValueNs,
-        Func<Benchmark, double?> metricSelector,
-        Func<RegressionResult, double> displayValueSelector,
-        string metricName,
+        RegressionMetricConfig config,
         out RegressionDetectionResult details)
     {
-        RegressionResult[] notSame = FindRegressions(comparison, thresholdValueNs, metricSelector);
+        RegressionResult[] notSame = FindRegressions(comparison, config.ThresholdValueNs, config.MetricSelector);
         List<RegressionResult> better = notSame.Where(result => result.Conclusion == ComparisonResult.Greater).OrderBy(k => k.Id).ToList();
         List<RegressionResult> worse = notSame.Where(result => result.Conclusion == ComparisonResult.Lesser).OrderBy(k => k.Id).ToList();
         int betterCount = better.Count;
@@ -30,27 +26,27 @@ public static class RegressionStrategyHelper
         {
             foreach (RegressionResult betterResult in better)
             {
-                double value = displayValueSelector(betterResult);
-                logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; better than the threshold {Threshold}", betterResult.Id, metricName, value, displayThreshold);
+                double value = config.DisplayValueSelector(betterResult);
+                logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; better than the threshold {Threshold}", betterResult.Id, config.MetricName, value, config.DisplayThreshold);
             }
 
             double betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(better[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / betterCount);
-            logger.LogInformation("========== {MetricName} {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", metricName, betterCount, betterGeoMean);
+            logger.LogInformation("========== {MetricName} {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", config.MetricName, betterCount, betterGeoMean);
         }
 
         if (worseCount > 0)
         {
             foreach (RegressionResult worseResult in worse)
             {
-                double value = displayValueSelector(worseResult);
-                logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; worse than the threshold {Threshold}", worseResult.Id, metricName, value, displayThreshold);
+                double value = config.DisplayValueSelector(worseResult);
+                logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; worse than the threshold {Threshold}", worseResult.Id, config.MetricName, value, config.DisplayThreshold);
             }
 
             double worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(worse[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / worseCount);
-            logger.LogInformation("========== {MetricName} {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", metricName, worseCount, worseGeoMean);
+            logger.LogInformation("========== {MetricName} {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", config.MetricName, worseCount, worseGeoMean);
         }
 
-        details = new RegressionDetectionResult(metricName, displayThreshold);
+        details = new RegressionDetectionResult(config.MetricName, config.DisplayThreshold);
         return worseCount > 0;
     }
 
