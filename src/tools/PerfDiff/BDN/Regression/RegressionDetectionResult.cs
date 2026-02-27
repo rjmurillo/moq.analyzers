@@ -1,4 +1,4 @@
-using Perfolizer.Mathematics.Thresholds;
+using Perfolizer.Metrology;
 
 namespace PerfDiff.BDN.Regression;
 

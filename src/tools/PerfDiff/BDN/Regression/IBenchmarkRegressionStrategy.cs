@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
-using Perfolizer.Mathematics.Thresholds;
+using Perfolizer.Metrology;
 
 namespace PerfDiff.BDN.Regression;
 

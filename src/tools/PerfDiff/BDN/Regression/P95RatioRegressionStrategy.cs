@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
-using Perfolizer.Mathematics.Thresholds;
+using Perfolizer.Mathematics.Common;
+using Perfolizer.Metrology;
 
 namespace PerfDiff.BDN.Regression;
 
@@ -12,15 +13,13 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
         const string metricName = "P95 ratio";
 
         // There are two thresholds here: one is a relative 5%, the other is an absolute 0.5ms. Both must be exceeded to trigger a regression.
-        Threshold relativeThreshold = Threshold.Create(ThresholdUnit.Ratio, 0.05);
-        Threshold absoluteThreshold = Threshold.Create(ThresholdUnit.Milliseconds, 0.5D);
-
-        double absoluteThresholdValue = absoluteThreshold.GetValue([0]);
+        Threshold relativeThreshold = Threshold.Parse("5%");
+        double absoluteThresholdValueNs = 0.5D * TimeUnitConstants.NanoSecondsToMilliseconds;
 
         RegressionResult[] notSame = BenchmarkDotNetDiffer.FindRegressions(comparison, relativeThreshold);
 
-        List<RegressionResult> better = notSame.Where(result => result.Conclusion == Perfolizer.Mathematics.SignificanceTesting.EquivalenceTestConclusion.Faster).ToList();
-        List<RegressionResult> worse = notSame.Where(result => result.Conclusion == Perfolizer.Mathematics.SignificanceTesting.EquivalenceTestConclusion.Slower).ToList();
+        List<RegressionResult> better = notSame.Where(result => result.Conclusion == ComparisonResult.Greater).ToList();
+        List<RegressionResult> worse = notSame.Where(result => result.Conclusion == ComparisonResult.Lesser).ToList();
         int betterCount = better.Count;
         int betterCountExceedingThreshold = 0;
         int worseCount = worse.Count;
@@ -37,7 +36,7 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
                 double medianRatio = BenchmarkDotNetDiffer.GetMedianRatio(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
                 double p95Delta = BenchmarkDotNetDiffer.GetP95Delta(betterResult.Conclusion, betterResult.BaseResult, betterResult.DiffResult);
 
-                if (p95Delta <= absoluteThresholdValue)
+                if (p95Delta <= absoluteThresholdValueNs)
                 {
                     continue;
                 }
@@ -66,7 +65,7 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
                 double medianRatio = BenchmarkDotNetDiffer.GetMedianRatio(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
                 double p95Delta = BenchmarkDotNetDiffer.GetP95Delta(worseResult.Conclusion, worseResult.BaseResult, worseResult.DiffResult);
 
-                if (p95Delta <= absoluteThresholdValue)
+                if (p95Delta <= absoluteThresholdValueNs)
                 {
                     continue;
                 }

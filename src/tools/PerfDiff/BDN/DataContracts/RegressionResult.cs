@@ -1,4 +1,4 @@
-using Perfolizer.Mathematics.SignificanceTesting;
+using Perfolizer.Mathematics.Common;
 
 namespace PerfDiff.BDN.DataContracts;
 
@@ -9,4 +9,4 @@ namespace PerfDiff.BDN.DataContracts;
 /// <param name="BaseResult">The benchmark result used as the baseline for comparison.</param>
 /// <param name="DiffResult">The benchmark result being compared against the baseline.</param>
 /// <param name="Conclusion">The outcome of the equivalence test between the two benchmarks.</param>
-public record RegressionResult(string Id, Benchmark BaseResult, Benchmark DiffResult, EquivalenceTestConclusion Conclusion);
+public record RegressionResult(string Id, Benchmark BaseResult, Benchmark DiffResult, ComparisonResult Conclusion);
