@@ -45,7 +45,7 @@ jobs:
       # so the fallback 'true' is needed for non-PR events.
       code-changed: ${{ github.event_name != 'pull_request' || steps.filter.outputs.code }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
 
       - name: Check for code changes
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
@@ -181,7 +181,7 @@ jobs:
       IS_TARGET_MAIN: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
@@ -453,7 +453,7 @@ jobs:
       FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }}
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
@@ -477,7 +477,7 @@ jobs:
       # The baseline SHA may require a different .NET SDK version
       - name: Checkout baseline
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
         with:
           ref: ${{ steps.get-baseline-sha.outputs.sha }}
           fetch-depth: 0
@@ -490,7 +490,7 @@ jobs:
 
       - name: Restore checkout
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
         with:
           fetch-depth: 0
 
