@@ -84,9 +84,13 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        SemanticModel semanticModel = invocationOperation.SemanticModel!;
-        ISymbol? mockedMethodSymbol = semanticModel.GetSymbolInfo(mockedMethodCall, context.CancellationToken).Symbol;
+        SemanticModel? semanticModel = invocationOperation.SemanticModel;
+        if (semanticModel == null)
+        {
+            return;
+        }
 
+        ISymbol? mockedMethodSymbol = semanticModel.GetSymbolInfo(mockedMethodCall, context.CancellationToken).Symbol;
         if (mockedMethodSymbol == null)
         {
             return;
