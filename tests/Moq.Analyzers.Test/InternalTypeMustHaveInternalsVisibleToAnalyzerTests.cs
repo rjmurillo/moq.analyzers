@@ -263,4 +263,77 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                 """,
                 referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
     }
+
+    [Fact]
+    public async Task ShouldNotFlagWhenMultipleAttributesIncludeDynamicProxy()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using System.Runtime.CompilerServices;
+
+                [assembly: InternalsVisibleTo("SomeOtherAssembly")]
+                [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+
+                internal class InternalClass { public virtual void DoWork() { } }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var mock = new Mock<InternalClass>();
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
+
+    [Fact]
+    public async Task ShouldFlagInternalTypeWithSimilarButWrongAssemblyName()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using System.Runtime.CompilerServices;
+
+                [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2Extra")]
+
+                internal class InternalClass { public virtual void DoWork() { } }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var mock = new Mock<{|Moq1003:InternalClass|}>();
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
+
+    [Fact]
+    public async Task ShouldFlagProtectedInternalNestedType()
+    {
+        // protected internal nested type requires InternalsVisibleTo because
+        // DynamicProxy does not derive from the containing type and cannot
+        // access the type via the protected path.
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+
+                public class PublicBase
+                {
+                    protected internal class ProtectedInternalNested { public virtual void DoWork() { } }
+                }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var mock = new Mock<{|Moq1003:PublicBase.ProtectedInternalNested|}>();
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+    }
 }

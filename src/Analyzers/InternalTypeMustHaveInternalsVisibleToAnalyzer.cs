@@ -59,7 +59,9 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
             OperationKind.Invocation);
     }
 
-    private static void Analyze(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
+    private static void Analyze(
+        OperationAnalysisContext context,
+        MoqKnownSymbols knownSymbols)
     {
         ITypeSymbol? mockedType = null;
         Location? diagnosticLocation = null;
@@ -79,9 +81,12 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (mockedType != null && diagnosticLocation != null && ShouldReportDiagnostic(mockedType))
+        if (mockedType != null && diagnosticLocation != null &&
+            ShouldReportDiagnostic(mockedType, knownSymbols.InternalsVisibleToAttribute))
         {
-            context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(Rule, mockedType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
+            context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(
+                Rule,
+                mockedType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
         }
     }
 
@@ -109,8 +114,8 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
 
         IMethodSymbol targetMethod = invocation.TargetMethod;
 
-        // Mock.Of<T>()
-        if (IsMockOfMethod(targetMethod, knownSymbols))
+        // Mock.Of<T>() -- use symbol-based comparison via MoqKnownSymbols.MockOf
+        if (targetMethod.IsInstanceOf(knownSymbols.MockOf))
         {
             if (targetMethod.TypeArguments.Length == 1)
             {
@@ -122,7 +127,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
         }
 
         // MockRepository.Create<T>()
-        if (IsMockRepositoryCreateMethod(targetMethod, knownSymbols))
+        if (targetMethod.IsInstanceOf(knownSymbols.MockRepositoryCreate))
         {
             if (targetMethod.TypeArguments.Length == 1)
             {
@@ -134,27 +139,6 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
         }
 
         return false;
-    }
-
-    private static bool IsMockOfMethod(IMethodSymbol targetMethod, MoqKnownSymbols knownSymbols)
-    {
-        if (!targetMethod.IsStatic)
-        {
-            return false;
-        }
-
-        if (!string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return targetMethod.ContainingType is not null &&
-               targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default);
-    }
-
-    private static bool IsMockRepositoryCreateMethod(IMethodSymbol targetMethod, MoqKnownSymbols knownSymbols)
-    {
-        return targetMethod.IsInstanceOf(knownSymbols.MockRepositoryCreate);
     }
 
     private static bool TryGetMockedTypeFromGeneric(ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? mockedType)
@@ -171,31 +155,47 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Determines whether the mocked type is internal and its assembly lacks InternalsVisibleTo for DynamicProxy.
+    /// Determines whether the mocked type is effectively internal and its assembly
+    /// lacks InternalsVisibleTo for DynamicProxy.
     /// </summary>
-    private static bool ShouldReportDiagnostic(ITypeSymbol mockedType)
+    private static bool ShouldReportDiagnostic(
+        ITypeSymbol mockedType,
+        INamedTypeSymbol? internalsVisibleToAttribute)
     {
         if (!IsEffectivelyInternal(mockedType))
         {
             return false;
         }
 
-        return !HasInternalsVisibleToDynamicProxy(mockedType.ContainingAssembly);
+        return !HasInternalsVisibleToDynamicProxy(mockedType.ContainingAssembly, internalsVisibleToAttribute);
     }
 
     /// <summary>
-    /// Checks if the type has <see langword="internal"/> effective accessibility.
-    /// A nested public type inside an internal type is also effectively internal.
+    /// Checks if the type (or any containing type) has accessibility that requires
+    /// InternalsVisibleTo for DynamicProxy to access it. DynamicProxy resides in a
+    /// separate assembly and does not derive from containing types, so it relies on
+    /// assembly-level access. Any of the following accessibility levels on the type
+    /// or its containers make it inaccessible to DynamicProxy without InternalsVisibleTo:
+    /// <list type="bullet">
+    /// <item><see cref="Accessibility.Internal"/> (internal)</item>
+    /// <item><see cref="Accessibility.ProtectedAndInternal"/> (private protected)</item>
+    /// <item><see cref="Accessibility.ProtectedOrInternal"/> (protected internal) on
+    /// a containing type, because DynamicProxy does not derive from the container</item>
+    /// <item><see cref="Accessibility.Private"/> on a nested type</item>
+    /// </list>
     /// </summary>
     private static bool IsEffectivelyInternal(ITypeSymbol type)
     {
         ITypeSymbol? current = type;
         while (current != null)
         {
-            if (current.DeclaredAccessibility == Accessibility.Internal ||
-                current.DeclaredAccessibility == Accessibility.Friend)
+            switch (current.DeclaredAccessibility)
             {
-                return true;
+                case Accessibility.Internal:
+                case Accessibility.ProtectedAndInternal:
+                case Accessibility.ProtectedOrInternal:
+                case Accessibility.Private:
+                    return true;
             }
 
             current = current.ContainingType;
@@ -204,11 +204,24 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool HasInternalsVisibleToDynamicProxy(IAssemblySymbol? assembly)
+    /// <summary>
+    /// Checks the assembly's attributes for InternalsVisibleTo targeting DynamicProxy,
+    /// using symbol-based comparison for the attribute type.
+    /// </summary>
+    private static bool HasInternalsVisibleToDynamicProxy(
+        IAssemblySymbol? assembly,
+        INamedTypeSymbol? internalsVisibleToAttribute)
     {
         if (assembly is null)
         {
             return false;
+        }
+
+        // If we cannot resolve InternalsVisibleToAttribute (highly unlikely), bail out
+        // conservatively by not reporting a diagnostic (avoiding false positives).
+        if (internalsVisibleToAttribute is null)
+        {
+            return true;
         }
 
         foreach (AttributeData attribute in assembly.GetAttributes())
@@ -218,17 +231,15 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
                 continue;
             }
 
-            if (!string.Equals(
-                    attribute.AttributeClass.ToDisplayString(),
-                    "System.Runtime.CompilerServices.InternalsVisibleToAttribute",
-                    StringComparison.Ordinal))
+            // Symbol-based comparison instead of string-based ToDisplayString()
+            if (!SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, internalsVisibleToAttribute))
             {
                 continue;
             }
 
             if (attribute.ConstructorArguments.Length == 1 &&
                 attribute.ConstructorArguments[0].Value is string assemblyName &&
-                AssemblyNameStartsWithDynamicProxy(assemblyName))
+                IsDynamicProxyAssemblyName(assemblyName))
             {
                 return true;
             }
@@ -238,15 +249,26 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Checks if the assembly name starts with the DynamicProxy assembly name.
-    /// The InternalsVisibleTo attribute value can include a public key, so we
-    /// check for a prefix match rather than an exact match.
+    /// Checks if the assembly name matches DynamicProxy. The InternalsVisibleTo attribute
+    /// value can be either the simple name ("DynamicProxyGenAssembly2") or include a
+    /// public key token ("DynamicProxyGenAssembly2, PublicKey=..."). We match the exact
+    /// name followed by either end-of-string or a comma separator.
     /// </summary>
-    private static bool AssemblyNameStartsWithDynamicProxy(string assemblyName)
+    private static bool IsDynamicProxyAssemblyName(string assemblyName)
     {
-        return assemblyName.StartsWith(DynamicProxyAssemblyName, StringComparison.Ordinal);
+        if (!assemblyName.StartsWith(DynamicProxyAssemblyName, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        // Must be exact match or followed by comma (for public key suffix)
+        return assemblyName.Length == DynamicProxyAssemblyName.Length ||
+               assemblyName[DynamicProxyAssemblyName.Length] == ',';
     }
 
+    /// <summary>
+    /// Attempts to locate the type argument in the syntax tree for precise diagnostic reporting.
+    /// </summary>
     private static Location GetDiagnosticLocation(IOperation operation, SyntaxNode fallbackSyntax)
     {
         TypeSyntax? typeArgument = operation.Syntax
