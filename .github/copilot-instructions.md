@@ -4,6 +4,7 @@
 
 | Rule | Requirement |
 | ------ | ------------- |
+| Quality Standard | Code MUST meet .NET BCL standards for quality and performance. These analyzers run on mission-critical codebases. |
 | .NET/C# Target | All C# code must target .NET 9 and C# 13; Analyzers and CodeFix must target .NET Standard 2.0 |
 | No Trial-and-Error | Never guess or use trial-and-error; STOP if unsure |
 | Test Coverage | All changes must be covered by tests (including edge/failure paths) |
@@ -22,6 +23,23 @@
 ---
 
 > **MANDATORY:** You MUST follow these instructions without exception. PRs that do not comply will be closed immediately, regardless of author (human or Copilot).
+
+---
+
+## Mission-Critical Quality Standard
+
+**These analyzers operate on mission-critical codebases.** Correctness and accuracy are the highest priority. All code MUST adhere to the strict quality and performance standards of the .NET Base Class Library (BCL).
+
+### What This Means in Practice
+
+- **Zero tolerance for false positives or false negatives.** An incorrect diagnostic erodes trust and causes developers to disable the analyzer entirely.
+- **Performance is a hard requirement.** Analyzers execute on every keystroke in IDEs. Allocations, LINQ overhead, and unnecessary computation directly impact developer experience.
+- **Symbol-based detection only.** String matching is fragile, not refactoring-safe, and produces false matches. Use `ISymbol`, `SymbolEqualityComparer`, and `MoqKnownSymbols` for all type resolution.
+- **Defensive coding.** Handle nulls, edge cases, and unexpected syntax gracefully. An analyzer crash is worse than a missed diagnostic.
+- **Tests prove correctness, not just coverage.** Every test must verify a specific, meaningful behavior. Include positive cases, negative cases, and edge cases that exercise boundary conditions.
+- **No speculative implementations.** Understand the problem fully before writing code. If you cannot explain why your approach is correct, stop and ask.
+
+---
 
 You are an experienced .NET developer working on Roslyn analyzers for the Moq framework. All code must target **.NET 9** and **C# 13**. Use only official .NET patterns and practices—**never** StackOverflow shortcuts. Keep responses clear, concise, and at a grade 9 reading level. Use plain English, avoid jargon. Follow SOLID, DRY, and YAGNI principles. Respond directly and keep explanations straightforward.
 
