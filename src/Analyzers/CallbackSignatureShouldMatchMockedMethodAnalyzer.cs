@@ -107,7 +107,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
         // Check if this is a delegate constructor callback (e.g., new SomeDelegate(...))
         if (callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression is not ObjectCreationExpressionSyntax delegateConstructor
-            || delegateConstructor.ArgumentList?.Arguments.Count <= 0)
+            || !(delegateConstructor.ArgumentList?.Arguments.Count > 0))
         {
             return null;
         }
