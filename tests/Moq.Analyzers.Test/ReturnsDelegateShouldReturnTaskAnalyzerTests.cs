@@ -59,6 +59,28 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
 
             // Block-bodied lambda returning Task (correct)
             ["""new Mock<AsyncService>().Setup(c => c.GetValueAsync()).Returns(() => { return Task.FromResult(42); });"""],
+
+            // Generic non-Task return type (IList<int> is generic but not Task/ValueTask)
+            ["""new Mock<AsyncService>().Setup(c => c.GetItems()).Returns(() => new List<int>());"""],
+
+            // Property setup (resolves to IPropertySymbol, not IMethodSymbol)
+            ["""new Mock<AsyncService>().Setup(c => c.Value).Returns(() => Task.FromResult(42));"""],
+
+            // Split setup/returns (FindSetupInvocation can't walk past variable reference)
+            [
+                """
+                var setup = new Mock<AsyncService>().Setup(c => c.GetValueAsync());
+                setup.Returns(() => Task.FromResult(42));
+                """,
+            ],
+
+            // Expression variable setup (Setup argument is not a lambda, so mocked member can't be extracted)
+            [
+                """
+                System.Linq.Expressions.Expression<Func<AsyncService, Task<int>>> expr = c => c.GetValueAsync();
+                new Mock<AsyncService>().Setup(expr).Returns(() => Task.FromResult(42));
+                """,
+            ],
         };
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
@@ -121,11 +143,34 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    /// <summary>
+    /// Valid patterns that produce compiler errors (CS0029/CS1662) but should not trigger the analyzer.
+    /// We suppress compiler diagnostics to isolate the analyzer.
+    /// </summary>
+    /// <returns>Test data with compiler diagnostic suppression.</returns>
+    public static IEnumerable<object[]> ValidWithCompilerSuppression()
+    {
+        IEnumerable<object[]> data = new object[][]
+        {
+            // Void anonymous delegate on async method (delegate return type is null, no mismatch to report)
+            ["""new Mock<AsyncService>().Setup(c => c.GetValueAsync()).Returns(delegate { });"""],
+        };
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(ValidTestData))]
     public async Task ShouldNotTriggerOnValidPatterns(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await VerifyAsync(referenceAssemblyGroup, @namespace, mock);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidWithCompilerSuppression))]
+    public async Task ShouldNotTriggerOnValidPatternsWithCompilerSuppression(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await VerifyAsync(referenceAssemblyGroup, @namespace, mock, CompilerDiagnostics.None);
     }
 
     [Theory]
@@ -165,6 +210,8 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
                   public virtual Task DoAsync() => Task.CompletedTask;
                   public virtual int GetSync() => 0;
                   public virtual Task<int> ProcessAsync(string input) => Task.FromResult(input.Length);
+                  public virtual IList<int> GetItems() => new List<int>();
+                  public virtual Task<int> Value { get; set; } = Task.FromResult(0);
               }
 
               internal class UnitTest
@@ -172,6 +219,9 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
                   private static int GetInt() => 42;
                   private static string GetString() => "hello";
                   private static Task<int> GetIntAsync() => Task.FromResult(42);
+
+                  // Non-MemberAccess invocation exercises analyzer's early-exit path
+                  private static int CallHelper() => GetInt();
 
                   private void Test()
                   {

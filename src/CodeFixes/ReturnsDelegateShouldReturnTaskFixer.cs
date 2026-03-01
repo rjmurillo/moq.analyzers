@@ -61,15 +61,7 @@ public sealed class ReturnsDelegateShouldReturnTaskFixer : CodeFixProvider
         MemberAccessExpressionSyntax memberAccess)
     {
         SimpleNameSyntax oldName = memberAccess.Name;
-
-        // Preserve generic type arguments if present (e.g., Returns<int>(...) -> ReturnsAsync<int>(...))
-        SimpleNameSyntax newName = oldName is GenericNameSyntax genericName
-            ? SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier("ReturnsAsync"),
-                genericName.TypeArgumentList)
-            : (SimpleNameSyntax)SyntaxFactory.IdentifierName("ReturnsAsync");
-
-        newName = newName
+        SimpleNameSyntax newName = SyntaxFactory.IdentifierName("ReturnsAsync")
             .WithLeadingTrivia(oldName.GetLeadingTrivia())
             .WithTrailingTrivia(oldName.GetTrailingTrivia());
 
