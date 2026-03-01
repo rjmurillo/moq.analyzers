@@ -6,7 +6,7 @@ applyTo: '**/*.{csproj,sln}'
 
 > **MANDATORY:** You MUST follow these instructions when editing any project file (.csproj, .sln) in this repository.
 
-# Project File Instructions (Quick Reference)
+## Project File Instructions (Quick Reference)
 
 - **Read this file before editing any .csproj or .sln file**
 - **Cross-reference with related instruction files**
@@ -16,12 +16,14 @@ applyTo: '**/*.{csproj,sln}'
 ## Context Loading for Copilot
 
 When working on this file type, you MUST:
+
 1. Read this entire instruction file before making any changes
 2. Cross-reference with related instruction files (listed below)
 3. Validate your understanding by checking the "Validation Checklist" section
 4. If uncertain about any requirement, stop and request clarification
 
 **Related Instruction Files:**
+
 - [csharp.instructions.md](csharp.instructions.md) - For C# code changes
 - [json.instructions.md](json.instructions.md) - For configuration files
 - [yaml.instructions.md](yaml.instructions.md) - For CI/CD workflows
@@ -31,6 +33,7 @@ When working on this file type, you MUST:
 Before submitting any changes, verify:
 
 **Build & Dependency Management:**
+
 - [ ] Target .NET 8, C# 12 by default; Analyzers and Code Fixes target .NET Standard 2.0
 - [ ] All build and dependency requirements met
 - [ ] No warnings or errors in build
@@ -38,6 +41,7 @@ Before submitting any changes, verify:
 - [ ] Security scan completed after dependency changes
 
 **Process:**
+
 - [ ] Conventional commit format used
 - [ ] PR description includes validation evidence
 - [ ] All checklist items completed
@@ -46,11 +50,13 @@ Before submitting any changes, verify:
 ## Decision Trees
 
 ### When to Request Human Review
+
 - Is this a new project or build configuration? → Yes → Request expert guidance
 - Is this a breaking change to build or dependencies? → Yes → Document thoroughly and request review
 - Are you uncertain about MSBuild or dependency management? → Yes → Stop and request guidance
 
 ### When to Stop and Ask for Help
+
 - Uncertain about build or dependency requirements
 - Major changes to project structure
 - Security or legal implications
@@ -58,11 +64,13 @@ Before submitting any changes, verify:
 ## Common Mistakes to Avoid
 
 **DO NOT:**
+
 - Skip validation steps
 - Ignore security scanning after dependency changes
 - Submit changes without validation evidence
 
 **ALWAYS:**
+
 - Read the entire instruction file first
 - Validate all build and dependency changes
 - Include comprehensive documentation updates
@@ -71,16 +79,19 @@ Before submitting any changes, verify:
 ## Context Management
 
 **Before Starting:**
+
 - Read the complete instruction file
 - Understand the current file's purpose and structure
 - Identify all related files that may need updates
 
 **During Editing:**
+
 - Keep track of all changes made
 - Validate each change against requirements
 - Maintain consistency with existing patterns
 
 **After Completing:**
+
 - Review all changes against the validation checklist
 - Ensure all requirements are met
 - Prepare comprehensive PR description with evidence
@@ -88,12 +99,14 @@ Before submitting any changes, verify:
 ## Handling Uncertainty
 
 **Stop and Request Help When:**
+
 - You cannot explain your approach clearly
 - You're making "educated guesses" about build or dependency management
 - You're uncertain about project structure
 - You cannot trace the logic in configuration without narration
 
 **Escalation Process:**
+
 1. Stop all work immediately
 2. Document what you were trying to accomplish
 3. Explain what specific aspect is unclear
@@ -103,6 +116,7 @@ Before submitting any changes, verify:
 ## Success Criteria
 
 Your changes are successful when:
+
 - All builds pass without warnings
 - All tests pass
 - No linting errors
@@ -123,6 +137,7 @@ Your changes are successful when:
 ### Dependency Update Guidelines
 
 **For Renovate/Dependabot PRs:**
+
 - Review changelog and release notes
 - Test locally to ensure compatibility
 - Check for breaking changes
@@ -130,6 +145,7 @@ Your changes are successful when:
 - Include testing evidence in PR description
 
 **For Manual Dependency Updates:**
+
 - Follow the same process as automated updates
 - Document the reason for the update
 - Include compatibility testing results
@@ -200,7 +216,7 @@ Before submitting a PR, ensure your changes pass all quality checks:
 
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -209,6 +225,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 ```
 
 **Types:**
+
 - `feat`: New features
 - `fix`: Bug fixes
 - `docs`: Documentation changes
@@ -228,6 +245,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 Follow conventional commit format: `type(scope): description`
 
 **Description Requirements:**
+
 1. **Clear summary** of changes
 2. **Problem statement** (what issue does this solve?)
 3. **Solution description** (how does this solve the problem?)
@@ -250,12 +268,14 @@ Before submitting a PR, ensure:
 ### Validation Evidence Requirements
 
 **What Constitutes Validation Evidence:**
+
 - Test execution logs showing all tests pass
 - Build output showing successful compilation
 - Screenshots of successful CI runs
 - Dependency compatibility test results
 
 **Evidence Format:**
+
 - Include logs, screenshots, or links to CI runs
 - Provide clear, readable evidence
 - Ensure evidence is recent and relevant
@@ -282,4 +302,4 @@ Maintainers will review PRs for:
 
 ## Code of Conduct
 
-This project adheres to the [Contributor Covenant Code of Conduct](../../CODE-OF-CONDUCT.md). By participating, you are expected to uphold this code. 
+This project adheres to the [Contributor Covenant Code of Conduct](../../CODE-OF-CONDUCT.md). By participating, you are expected to uphold this code.

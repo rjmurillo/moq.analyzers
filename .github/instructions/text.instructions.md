@@ -12,12 +12,14 @@ applyTo: '**/*.txt'
 ## Context Loading for Copilot
 
 When working on this file type, you MUST:
+
 1. Read this entire instruction file before making any changes
 2. Cross-reference with related instruction files (listed below)
 3. Validate your understanding by checking the "Validation Checklist" section
 4. If uncertain about any requirement, stop and request clarification
 
 **Related Instruction Files:**
+
 - [markdown.instructions.md](markdown.instructions.md) - For documentation files
 - [project.instructions.md](project.instructions.md) - For build configuration
 - [json.instructions.md](json.instructions.md) - For configuration files
@@ -27,12 +29,14 @@ When working on this file type, you MUST:
 Before submitting any changes, verify:
 
 **Text Quality & Documentation:**
+
 - [ ] Text formatting is consistent
 - [ ] Content is accurate and complete
 - [ ] Documentation is updated
 - [ ] Changes work as expected
 
 **Process:**
+
 - [ ] Conventional commit format used
 - [ ] PR description includes validation evidence
 - [ ] All checklist items completed
@@ -41,11 +45,13 @@ Before submitting any changes, verify:
 ## Decision Trees
 
 ### When to Request Human Review
+
 - Is this a new documentation or configuration standard? → Yes → Request expert guidance
 - Is this a breaking change to documentation or configuration? → Yes → Document thoroughly and request review
 - Are you uncertain about text file requirements? → Yes → Stop and request guidance
 
 ### When to Stop and Ask for Help
+
 - Uncertain about text file requirements
 - Major changes to project documentation or configuration
 - Security or legal implications
@@ -53,10 +59,12 @@ Before submitting any changes, verify:
 ## Common Mistakes to Avoid
 
 **DO NOT:**
+
 - Skip validation steps
 - Submit changes without validation evidence
 
 **ALWAYS:**
+
 - Read the entire instruction file first
 - Validate all text and documentation changes
 - Include comprehensive documentation updates
@@ -65,16 +73,19 @@ Before submitting any changes, verify:
 ## Context Management
 
 **Before Starting:**
+
 - Read the complete instruction file
 - Understand the current file's purpose and structure
 - Identify all related files that may need updates
 
 **During Editing:**
+
 - Keep track of all changes made
 - Validate each change against requirements
 - Maintain consistency with existing patterns
 
 **After Completing:**
+
 - Review all changes against the validation checklist
 - Ensure all requirements are met
 - Prepare comprehensive PR description with evidence
@@ -82,12 +93,14 @@ Before submitting any changes, verify:
 ## Handling Uncertainty
 
 **Stop and Request Help When:**
+
 - You cannot explain your approach clearly
 - You're making "educated guesses" about documentation or configuration
 - You're uncertain about project documentation or configuration
 - You cannot trace the logic in text file without narration
 
 **Escalation Process:**
+
 1. Stop all work immediately
 2. Document what you were trying to accomplish
 3. Explain what specific aspect is unclear
@@ -97,6 +110,7 @@ Before submitting any changes, verify:
 ## Success Criteria
 
 Your changes are successful when:
+
 - All text and documentation validation checks pass
 - PR description is complete and accurate
 - All checklist items completed
@@ -194,7 +208,7 @@ Before submitting a PR, ensure your changes pass all quality checks:
 
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -203,6 +217,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 ```
 
 **Types:**
+
 - `feat`: New features
 - `fix`: Bug fixes
 - `docs`: Documentation changes
@@ -222,6 +237,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 Follow conventional commit format: `type(scope): description`
 
 **Description Requirements:**
+
 1. **Clear summary** of changes
 2. **Problem statement** (what issue does this solve?)
 3. **Solution description** (how does this solve the problem?)
@@ -243,6 +259,7 @@ Before submitting a PR, ensure:
 ### Validation Evidence Requirements
 
 **What Constitutes Validation Evidence:**
+
 - Text validation output
 - Content accuracy verification
 - Formatting consistency checks
@@ -250,6 +267,7 @@ Before submitting a PR, ensure:
 - Manual verification of text file changes
 
 **Evidence Format:**
+
 - Include validation logs, screenshots, or links to CI runs
 - Provide clear, readable evidence
 - Ensure evidence is recent and relevant
@@ -276,6 +294,7 @@ Maintainers will review PRs for:
 ### Common Review Feedback
 
 **Frequently Requested Changes:**
+
 - Fix formatting inconsistencies
 - Improve content accuracy
 - Update documentation quality
@@ -283,6 +302,7 @@ Maintainers will review PRs for:
 - Clarify PR description or validation evidence
 
 **PRs That May Be Rejected:**
+
 - Inconsistent formatting
 - Missing validation evidence
 - Inaccurate or incomplete content
@@ -324,4 +344,4 @@ Maintainers will review PRs for:
 
 ## Code of Conduct
 
-This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDUCT.md). By participating, you are expected to uphold this code. 
+This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDUCT.md). By participating, you are expected to uphold this code.

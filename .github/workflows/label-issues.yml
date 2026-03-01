@@ -22,16 +22,16 @@ jobs:
             // Get the issue body and title
             const body = context.payload.issue.body
             let title = context.payload.issue.title
-            
+
             // Define the labels array
             let labels = ["triage"]
-            
+
             // Check if the body or the title contains the word 'PowerShell' (case-insensitive)
             if ((body != null && body.match(/powershell/i)) || (title != null && title.match(/powershell/i))) {
               // Add the 'powershell' label to the array
               labels.push("powershell")
             }
-            
+
             // Check if the body or the title contains the words 'dotnet', '.net', 'c#' or 'csharp' (case-insensitive)
             if ((body != null && body.match(/.net/i)) || (title != null && title.match(/.net/i)) ||
                 (body != null && body.match(/dotnet/i)) || (title != null && title.match(/dotnet/i)) ||

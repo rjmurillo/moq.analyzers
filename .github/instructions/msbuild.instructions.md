@@ -13,6 +13,7 @@ applyTo: '**/*.{props,targets}'
 ## Context Loading for Copilot
 
 When working on this file, you MUST:
+
 1. Read this entire instruction file before making any changes
 2. Validate your understanding by checking the "Validation Checklist" section
 3. If uncertain about any requirement, stop and request clarification
@@ -23,6 +24,7 @@ If you (AI or human) are blocked or cannot proceed, leave a comment in the PR de
 ## Validation Checklist
 
 Before submitting any changes, verify:
+
 - [ ] All property/target changes are compatible with project build requirements
 - [ ] No breaking changes to build or packaging
 - [ ] All affected projects build and test successfully
@@ -30,6 +32,7 @@ Before submitting any changes, verify:
 - [ ] PR description includes validation evidence and checklist
 
 ## Validation Evidence Requirements
+
 - Attach a log section titled `## MSBuild Validation Log` showing the output of `dotnet build` and `dotnet test` for all affected projects
 - Include a checklist like:
   - [x] All projects build
@@ -37,11 +40,13 @@ Before submitting any changes, verify:
 - Paste CI run link under `## CI Evidence`
 
 ## MSBuild Guidance
+
 - .props and .targets files control build, packaging, and deployment
 - Only update when necessary and after confirming with maintainers
 - After changes, run `dotnet build` and `dotnet test` for all affected projects
 - Document any changes in the PR description
 
 ## Related Instruction Files
+
 - [project.instructions.md](project.instructions.md) - For project/solution files
-- [shell.instructions.md](shell.instructions.md) - For build scripts 
+- [shell.instructions.md](shell.instructions.md) - For build scripts

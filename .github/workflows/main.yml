@@ -86,83 +86,83 @@ jobs:
     runs-on: ubuntu-24.04-arm
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      if: needs.check-paths.outputs.code-changed == 'true'
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        if: needs.check-paths.outputs.code-changed == 'true'
+        with:
+          fetch-depth: 0
 
-    - name: Setup, Restore, and Build Solution
-      if: needs.check-paths.outputs.code-changed == 'true'
-      uses: ./.github/actions/setup-restore-build
+      - name: Setup, Restore, and Build Solution
+        if: needs.check-paths.outputs.code-changed == 'true'
+        uses: ./.github/actions/setup-restore-build
 
-    - name: Validate analyzer host compatibility
-      if: needs.check-paths.outputs.code-changed == 'true'
-      shell: pwsh
-      run: |
-        # Verify shipped analyzer DLLs don't reference assembly versions
-        # exceeding what the minimum supported SDK host (.NET 8) provides.
-        # See: https://github.com/rjmurillo/moq.analyzers/issues/850
-        $maxVersions = @{
-          'System.Collections.Immutable' = [Version]'8.0.0.0'
-          'System.Reflection.Metadata'   = [Version]'8.0.0.0'
-        }
-        $shippedDlls = @(
-          'artifacts/bin/Moq.Analyzers/release/Moq.Analyzers.dll',
-          'artifacts/bin/Moq.Analyzers/release/Moq.CodeFixes.dll',
-          'artifacts/bin/Moq.Analyzers/release/Microsoft.CodeAnalysis.AnalyzerUtilities.dll'
-        )
-        $failed = $false
-        foreach ($dll in $shippedDlls) {
-          $name = [System.IO.Path]::GetFileName($dll)
-          $bytes = [System.IO.File]::ReadAllBytes($dll)
-          $asm = [System.Reflection.Assembly]::Load($bytes)
-          $dllFailed = $false
-          foreach ($ref in $asm.GetReferencedAssemblies()) {
-            if ($maxVersions.ContainsKey($ref.Name) -and $ref.Version -gt $maxVersions[$ref.Name]) {
-              Write-Error "$name references $($ref.Name) $($ref.Version), max allowed is $($maxVersions[$ref.Name])"
-              $failed = $true
-              $dllFailed = $true
-            }
+      - name: Validate analyzer host compatibility
+        if: needs.check-paths.outputs.code-changed == 'true'
+        shell: pwsh
+        run: |
+          # Verify shipped analyzer DLLs don't reference assembly versions
+          # exceeding what the minimum supported SDK host (.NET 8) provides.
+          # See: https://github.com/rjmurillo/moq.analyzers/issues/850
+          $maxVersions = @{
+            'System.Collections.Immutable' = [Version]'8.0.0.0'
+            'System.Reflection.Metadata'   = [Version]'8.0.0.0'
           }
-          if (-not $dllFailed) { Write-Host "$name - OK" }
-        }
-        if ($failed) { exit 1 }
+          $shippedDlls = @(
+            'artifacts/bin/Moq.Analyzers/release/Moq.Analyzers.dll',
+            'artifacts/bin/Moq.Analyzers/release/Moq.CodeFixes.dll',
+            'artifacts/bin/Moq.Analyzers/release/Microsoft.CodeAnalysis.AnalyzerUtilities.dll'
+          )
+          $failed = $false
+          foreach ($dll in $shippedDlls) {
+            $name = [System.IO.Path]::GetFileName($dll)
+            $bytes = [System.IO.File]::ReadAllBytes($dll)
+            $asm = [System.Reflection.Assembly]::Load($bytes)
+            $dllFailed = $false
+            foreach ($ref in $asm.GetReferencedAssemblies()) {
+              if ($maxVersions.ContainsKey($ref.Name) -and $ref.Version -gt $maxVersions[$ref.Name]) {
+                Write-Error "$name references $($ref.Name) $($ref.Version), max allowed is $($maxVersions[$ref.Name])"
+                $failed = $true
+                $dllFailed = $true
+              }
+            }
+            if (-not $dllFailed) { Write-Host "$name - OK" }
+          }
+          if ($failed) { exit 1 }
 
-    - name: Upload binlogs
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
-      with:
-        name: binlogs
-        path: ./artifacts/logs
-        if-no-files-found: error
+      - name: Upload binlogs
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
+        with:
+          name: binlogs
+          path: ./artifacts/logs
+          if-no-files-found: error
 
-    - name: Upload SARIF files
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
-      with:
-        name: SARIF files
-        path: ./artifacts/obj/**/*.sarif
+      - name: Upload SARIF files
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
+        with:
+          name: SARIF files
+          path: ./artifacts/obj/**/*.sarif
 
-    - name: Upload packages
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      if: needs.check-paths.outputs.code-changed == 'true'
-      with:
-        name: packages
-        path: |
-          ./artifacts/package
-        if-no-files-found: error
+      - name: Upload packages
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: needs.check-paths.outputs.code-changed == 'true'
+        with:
+          name: packages
+          path: |
+            ./artifacts/package
+          if-no-files-found: error
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
-      with:
-        name: artifacts
-        path: ./artifacts
-        if-no-files-found: error
+      - name: Upload artifacts
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
+        with:
+          name: artifacts
+          path: ./artifacts
+          if-no-files-found: error
 
-    - name: Skip notice
-      if: needs.check-paths.outputs.code-changed != 'true'
-      run: echo "Skipped -- no code changes detected"
+      - name: Skip notice
+        if: needs.check-paths.outputs.code-changed != 'true'
+        run: echo "Skipped -- no code changes detected"
 
   # Run unit tests on multiple platforms.
   # Build happens independently on each runner so tests use platform-native binaries.
@@ -181,90 +181,90 @@ jobs:
       IS_TARGET_MAIN: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      if: needs.check-paths.outputs.code-changed == 'true'
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        if: needs.check-paths.outputs.code-changed == 'true'
+        with:
+          fetch-depth: 0
 
-    - name: Setup, Restore, and Build Solution
-      if: needs.check-paths.outputs.code-changed == 'true'
-      uses: ./.github/actions/setup-restore-build
+      - name: Setup, Restore, and Build Solution
+        if: needs.check-paths.outputs.code-changed == 'true'
+        uses: ./.github/actions/setup-restore-build
 
-    - name: Restore Code Coverage history
-      if: needs.check-paths.outputs.code-changed == 'true'
-      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
-      with:
-        name: CoverageHistory-${{ matrix.os }}
-        path: ./artifacts/TestResults/coveragehistory
-      continue-on-error: true
+      - name: Restore Code Coverage history
+        if: needs.check-paths.outputs.code-changed == 'true'
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: CoverageHistory-${{ matrix.os }}
+          path: ./artifacts/TestResults/coveragehistory
+        continue-on-error: true
 
-    - name: Test
-      if: needs.check-paths.outputs.code-changed == 'true'
-      run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
-      env:
-        REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
+      - name: Test
+        if: needs.check-paths.outputs.code-changed == 'true'
+        run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
+        env:
+          REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
-    - name: Upload coverage history
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      if: >-
-        needs.check-paths.outputs.code-changed == 'true'
-        && success()
-        && env.IS_TARGET_MAIN == 'true'
-      with:
-        name: CoverageHistory-${{ matrix.os }}
-        path: ./artifacts/TestResults/coveragehistory
+      - name: Upload coverage history
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: >-
+          needs.check-paths.outputs.code-changed == 'true'
+          && success()
+          && env.IS_TARGET_MAIN == 'true'
+        with:
+          name: CoverageHistory-${{ matrix.os }}
+          path: ./artifacts/TestResults/coveragehistory
 
-    - name: Upload *.received.* files
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      if: needs.check-paths.outputs.code-changed == 'true' && failure()
-      with:
-        name: verify-test-results-${{ matrix.os }}
-        path: |
-          **/*.received.*
+      - name: Upload *.received.* files
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: needs.check-paths.outputs.code-changed == 'true' && failure()
+        with:
+          name: verify-test-results-${{ matrix.os }}
+          path: |
+            **/*.received.*
 
-    - name: Upload Test Report
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
-      with:
-        name: .NET Test Reports (${{ matrix.os }})
-        path: "artifacts/TestResults/**/*.trx"
-        if-no-files-found: error
+      - name: Upload Test Report
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
+        with:
+          name: .NET Test Reports (${{ matrix.os }})
+          path: "artifacts/TestResults/**/*.trx"
+          if-no-files-found: error
 
-    - name: Upload Code Coverage Report
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
-      with:
-        name: .NET Code Coverage Reports (${{ matrix.os }})
-        path: "artifacts/TestResults/coverage/**"
+      - name: Upload Code Coverage Report
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
+        with:
+          name: .NET Code Coverage Reports (${{ matrix.os }})
+          path: "artifacts/TestResults/coverage/**"
 
-    - name: Publish coverage summary to GitHub
-      if: needs.check-paths.outputs.code-changed == 'true'
-      run: cat artifacts/TestResults/coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
-      shell: bash
+      - name: Publish coverage summary to GitHub
+        if: needs.check-paths.outputs.code-changed == 'true'
+        run: cat artifacts/TestResults/coverage/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
 
-    - name: Upload coverage data to Codacy
-      if: >-
-        needs.check-paths.outputs.code-changed == 'true'
-        && runner.os == 'Linux'
-        && env.IS_CODACY_COVERAGE_ALLOWED == 'true'
-      uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1.3.0
-      with:
-        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        coverage-reports: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
+      - name: Upload coverage data to Codacy
+        if: >-
+          needs.check-paths.outputs.code-changed == 'true'
+          && runner.os == 'Linux'
+          && env.IS_CODACY_COVERAGE_ALLOWED == 'true'
+        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1.3.0
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
 
-    - name: Upload coverage data to Qlty
-      if: >-
-        needs.check-paths.outputs.code-changed == 'true'
-        && runner.os == 'Linux'
-        && env.IS_QLTY_COVERAGE_ALLOWED == 'true'
-      uses: qltysh/qlty-action/coverage@a19242102d17e497f437d7466aa01b528537e899 # v2
-      with:
-        token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-        files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
+      - name: Upload coverage data to Qlty
+        if: >-
+          needs.check-paths.outputs.code-changed == 'true'
+          && runner.os == 'Linux'
+          && env.IS_QLTY_COVERAGE_ALLOWED == 'true'
+        uses: qltysh/qlty-action/coverage@a19242102d17e497f437d7466aa01b528537e899 # v2
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
 
-    - name: Skip notice
-      if: needs.check-paths.outputs.code-changed != 'true'
-      run: echo "Skipped -- no code changes detected"
+      - name: Skip notice
+        if: needs.check-paths.outputs.code-changed != 'true'
+        run: echo "Skipped -- no code changes detected"
 
   # Verify the shipped nupkg loads without CS8032 on every supported host.
   # This is the end-to-end integration test for issue #850.
@@ -320,127 +320,127 @@ jobs:
             build-engine: msbuild
 
     steps:
-    - name: Setup .NET ${{ matrix.dotnet-version }}
-      if: needs.check-paths.outputs.code-changed == 'true'
-      uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
-      with:
-        dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Setup .NET ${{ matrix.dotnet-version }}
+        if: needs.check-paths.outputs.code-changed == 'true'
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
 
-    - name: Setup MSBuild
-      if: needs.check-paths.outputs.code-changed == 'true' && matrix.build-engine == 'msbuild'
-      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
+      - name: Setup MSBuild
+        if: needs.check-paths.outputs.code-changed == 'true' && matrix.build-engine == 'msbuild'
+        uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
 
-    - name: Download nupkg artifact
-      if: needs.check-paths.outputs.code-changed == 'true'
-      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
-      with:
-        name: packages
-        path: ./local-feed
+      - name: Download nupkg artifact
+        if: needs.check-paths.outputs.code-changed == 'true'
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: packages
+          path: ./local-feed
 
-    - name: Create test project
-      if: needs.check-paths.outputs.code-changed == 'true'
-      shell: pwsh
-      run: |
-        $pkg = Get-ChildItem ./local-feed -Recurse -Filter 'Moq.Analyzers.*.nupkg' |
-               Where-Object { $_.Name -notlike '*.symbols.*' } |
-               Select-Object -First 1
-        if (-not $pkg) {
-          Write-Error "Could not find Moq.Analyzers.*.nupkg (excluding symbols) in ./local-feed"
-          exit 1
-        }
-        $version = $pkg.Name -replace '^Moq\.Analyzers\.' -replace '\.nupkg$'
-        $feedDir = (Resolve-Path $pkg.DirectoryName).Path
-        Write-Host "Testing Moq.Analyzers $version with ${{ matrix.build-engine }} / ${{ matrix.tfm }}"
-        echo "ANALYZER_VERSION=$version" >> $env:GITHUB_ENV
-        echo "FEED_DIR=$feedDir" >> $env:GITHUB_ENV
+      - name: Create test project
+        if: needs.check-paths.outputs.code-changed == 'true'
+        shell: pwsh
+        run: |
+          $pkg = Get-ChildItem ./local-feed -Recurse -Filter 'Moq.Analyzers.*.nupkg' |
+                 Where-Object { $_.Name -notlike '*.symbols.*' } |
+                 Select-Object -First 1
+          if (-not $pkg) {
+            Write-Error "Could not find Moq.Analyzers.*.nupkg (excluding symbols) in ./local-feed"
+            exit 1
+          }
+          $version = $pkg.Name -replace '^Moq\.Analyzers\.' -replace '\.nupkg$'
+          $feedDir = (Resolve-Path $pkg.DirectoryName).Path
+          Write-Host "Testing Moq.Analyzers $version with ${{ matrix.build-engine }} / ${{ matrix.tfm }}"
+          echo "ANALYZER_VERSION=$version" >> $env:GITHUB_ENV
+          echo "FEED_DIR=$feedDir" >> $env:GITHUB_ENV
 
-        New-Item -ItemType Directory -Path test-project | Out-Null
+          New-Item -ItemType Directory -Path test-project | Out-Null
 
-        @"
-        <?xml version="1.0" encoding="utf-8"?>
-        <configuration>
-          <packageSources>
-            <clear />
-            <add key="local" value="$feedDir" />
-            <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-          </packageSources>
-        </configuration>
-        "@ | Set-Content test-project/nuget.config
+          @"
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <clear />
+              <add key="local" value="$feedDir" />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+            </packageSources>
+          </configuration>
+          "@ | Set-Content test-project/nuget.config
 
-        @"
-        <Project Sdk="Microsoft.NET.Sdk">
-          <PropertyGroup>
-            <OutputType>Library</OutputType>
-            <TargetFramework>${{ matrix.tfm }}</TargetFramework>
-            <LangVersion>latest</LangVersion>
-          </PropertyGroup>
-          <ItemGroup>
-            <PackageReference Include="Moq.Analyzers" Version="$version" />
-            <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
-          </ItemGroup>
-        </Project>
-        "@ | Set-Content test-project/TestAnalyzerLoad.csproj
+          @"
+          <Project Sdk="Microsoft.NET.Sdk">
+            <PropertyGroup>
+              <OutputType>Library</OutputType>
+              <TargetFramework>${{ matrix.tfm }}</TargetFramework>
+              <LangVersion>latest</LangVersion>
+            </PropertyGroup>
+            <ItemGroup>
+              <PackageReference Include="Moq.Analyzers" Version="$version" />
+              <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+            </ItemGroup>
+          </Project>
+          "@ | Set-Content test-project/TestAnalyzerLoad.csproj
 
-        @"
-        namespace TestAnalyzerLoad;
-        public class Placeholder { }
-        "@ | Set-Content test-project/Placeholder.cs
+          @"
+          namespace TestAnalyzerLoad;
+          public class Placeholder { }
+          "@ | Set-Content test-project/Placeholder.cs
 
-    - name: Build with dotnet CLI
-      if: needs.check-paths.outputs.code-changed == 'true' && matrix.build-engine == 'dotnet'
-      shell: pwsh
-      working-directory: test-project
-      run: |
-        $output = dotnet build -v n 2>&1 | Out-String
-        $buildExitCode = $LASTEXITCODE
-        Write-Host $output
+      - name: Build with dotnet CLI
+        if: needs.check-paths.outputs.code-changed == 'true' && matrix.build-engine == 'dotnet'
+        shell: pwsh
+        working-directory: test-project
+        run: |
+          $output = dotnet build -v n 2>&1 | Out-String
+          $buildExitCode = $LASTEXITCODE
+          Write-Host $output
 
-        if ($buildExitCode -ne 0) {
-          Write-Host "::error::Build failed with exit code $buildExitCode (dotnet / ${{ matrix.tfm }})"
-          exit $buildExitCode
-        }
+          if ($buildExitCode -ne 0) {
+            Write-Host "::error::Build failed with exit code $buildExitCode (dotnet / ${{ matrix.tfm }})"
+            exit $buildExitCode
+          }
 
-        if ($output -match 'CS8032') {
-          Write-Host "::error::CS8032: analyzer failed to load (dotnet / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
-          exit 1
-        }
-        if ($output -match '(?i)could not load file or assembly') {
-          Write-Host "::error::Assembly binding failure (dotnet / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
-          exit 1
-        }
+          if ($output -match 'CS8032') {
+            Write-Host "::error::CS8032: analyzer failed to load (dotnet / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
+            exit 1
+          }
+          if ($output -match '(?i)could not load file or assembly') {
+            Write-Host "::error::Assembly binding failure (dotnet / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
+            exit 1
+          }
 
-        Write-Host ""
-        Write-Host "Analyzer loaded successfully (dotnet / ${{ matrix.tfm }})"
+          Write-Host ""
+          Write-Host "Analyzer loaded successfully (dotnet / ${{ matrix.tfm }})"
 
-    - name: Build with MSBuild
-      if: needs.check-paths.outputs.code-changed == 'true' && matrix.build-engine == 'msbuild'
-      shell: pwsh
-      working-directory: test-project
-      run: |
-        $output = msbuild TestAnalyzerLoad.csproj -restore -p:Configuration=Release -v:n 2>&1 | Out-String
-        $buildExitCode = $LASTEXITCODE
-        Write-Host $output
+      - name: Build with MSBuild
+        if: needs.check-paths.outputs.code-changed == 'true' && matrix.build-engine == 'msbuild'
+        shell: pwsh
+        working-directory: test-project
+        run: |
+          $output = msbuild TestAnalyzerLoad.csproj -restore -p:Configuration=Release -v:n 2>&1 | Out-String
+          $buildExitCode = $LASTEXITCODE
+          Write-Host $output
 
-        if ($buildExitCode -ne 0) {
-          Write-Host "::error::Build failed with exit code $buildExitCode (msbuild / ${{ matrix.tfm }})"
-          exit $buildExitCode
-        }
+          if ($buildExitCode -ne 0) {
+            Write-Host "::error::Build failed with exit code $buildExitCode (msbuild / ${{ matrix.tfm }})"
+            exit $buildExitCode
+          }
 
-        if ($output -match 'CS8032') {
-          Write-Host "::error::CS8032: analyzer failed to load (msbuild / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
-          exit 1
-        }
-        if ($output -match '(?i)could not load file or assembly') {
-          Write-Host "::error::Assembly binding failure (msbuild / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
-          exit 1
-        }
+          if ($output -match 'CS8032') {
+            Write-Host "::error::CS8032: analyzer failed to load (msbuild / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
+            exit 1
+          }
+          if ($output -match '(?i)could not load file or assembly') {
+            Write-Host "::error::Assembly binding failure (msbuild / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
+            exit 1
+          }
 
-        Write-Host ""
-        Write-Host "Analyzer loaded successfully (msbuild / ${{ matrix.tfm }})"
+          Write-Host ""
+          Write-Host "Analyzer loaded successfully (msbuild / ${{ matrix.tfm }})"
 
-    - name: Skip notice
-      if: needs.check-paths.outputs.code-changed != 'true'
-      run: echo "Skipped -- no code changes detected"
+      - name: Skip notice
+        if: needs.check-paths.outputs.code-changed != 'true'
+        run: echo "Skipped -- no code changes detected"
 
   # Performance validation runs last, after build and tests confirm correctness.
   # Builds from source on Linux ARM to get consistent benchmark results.
@@ -453,100 +453,100 @@ jobs:
       FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }}
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      if: needs.check-paths.outputs.code-changed == 'true'
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        if: needs.check-paths.outputs.code-changed == 'true'
+        with:
+          fetch-depth: 0
 
-    - name: Setup, Restore, and Build Solution
-      if: needs.check-paths.outputs.code-changed == 'true'
-      uses: ./.github/actions/setup-restore-build
+      - name: Setup, Restore, and Build Solution
+        if: needs.check-paths.outputs.code-changed == 'true'
+        uses: ./.github/actions/setup-restore-build
 
-    - name: Get baseline SHA
-      if: needs.check-paths.outputs.code-changed == 'true'
-      id: get-baseline-sha
-      run: |
-        if (-not (Test-Path build/perf/baseline.json)) {
-          Write-Error "baseline.json not found - aborting performance job."
-          exit 1
-        }
-        $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
-        echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
-      shell: pwsh
-
-    # The baseline SHA may require a different .NET SDK version
-    - name: Checkout baseline
-      if: needs.check-paths.outputs.code-changed == 'true'
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      with:
-        ref: ${{ steps.get-baseline-sha.outputs.sha }}
-        fetch-depth: 0
-
-    - name: Setup .NET for performance baseline
-      if: needs.check-paths.outputs.code-changed == 'true'
-      uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
-      with:
-        global-json-file: ./global.json
-
-    - name: Restore checkout
-      if: needs.check-paths.outputs.code-changed == 'true'
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      with:
-        fetch-depth: 0
-
-    - name: Get performance test filter
-      if: needs.check-paths.outputs.code-changed == 'true'
-      id: get-perf-filter
-      run: |
-        if ('${{ env.RUN_FULL_PERF }}' -eq 'true') {
-          echo "filter='*'" >> $env:GITHUB_OUTPUT
-        } else {
-          echo "filter='*(FileCount: 1)'" >> $env:GITHUB_OUTPUT
-        }
-      shell: pwsh
-
-    - name: Validate performance
-      if: needs.check-paths.outputs.code-changed == 'true'
-      shell: pwsh
-      run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter ${{ steps.get-perf-filter.outputs.filter }}
-
-    - name: Publish baseline performance summaries to GitHub
-      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
-      shell: pwsh
-      run: |
-        $resultsDir = "artifacts/performance/perfResults/baseline/results"
-        if (Test-Path $resultsDir) {
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Baseline Performance Results"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Baseline SHA: ${{ steps.get-baseline-sha.outputs.sha }}"
-          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
-          foreach ($file in $files) {
-            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+      - name: Get baseline SHA
+        if: needs.check-paths.outputs.code-changed == 'true'
+        id: get-baseline-sha
+        run: |
+          if (-not (Test-Path build/perf/baseline.json)) {
+            Write-Error "baseline.json not found - aborting performance job."
+            exit 1
           }
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
-        }
+          $baseline = Get-Content build/perf/baseline.json | ConvertFrom-Json
+          echo "sha=$($baseline.sha)" >> $env:GITHUB_OUTPUT
+        shell: pwsh
 
-    - name: Publish performance summaries to GitHub
-      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
-      shell: pwsh
-      run: |
-        $resultsDir = "artifacts/performance/perfResults/perfTest/results"
-        if (Test-Path $resultsDir) {
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Current Performance Results"
-          $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
-          foreach ($file in $files) {
-            Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+      # The baseline SHA may require a different .NET SDK version
+      - name: Checkout baseline
+        if: needs.check-paths.outputs.code-changed == 'true'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ steps.get-baseline-sha.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Setup .NET for performance baseline
+        if: needs.check-paths.outputs.code-changed == 'true'
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
+        with:
+          global-json-file: ./global.json
+
+      - name: Restore checkout
+        if: needs.check-paths.outputs.code-changed == 'true'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Get performance test filter
+        if: needs.check-paths.outputs.code-changed == 'true'
+        id: get-perf-filter
+        run: |
+          if ('${{ env.RUN_FULL_PERF }}' -eq 'true') {
+            echo "filter='*'" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "filter='*(FileCount: 1)'" >> $env:GITHUB_OUTPUT
           }
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
-        }
+        shell: pwsh
 
-    - name: Upload performance files
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
-      with:
-        name: performance
-        path: |
-          ./artifacts/performance/**
+      - name: Validate performance
+        if: needs.check-paths.outputs.code-changed == 'true'
+        shell: pwsh
+        run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter ${{ steps.get-perf-filter.outputs.filter }}
 
-    - name: Skip notice
-      if: needs.check-paths.outputs.code-changed != 'true'
-      run: echo "Skipped -- no code changes detected"
+      - name: Publish baseline performance summaries to GitHub
+        if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
+        shell: pwsh
+        run: |
+          $resultsDir = "artifacts/performance/perfResults/baseline/results"
+          if (Test-Path $resultsDir) {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Baseline Performance Results"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Baseline SHA: ${{ steps.get-baseline-sha.outputs.sha }}"
+            $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
+            foreach ($file in $files) {
+              Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+            }
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
+          }
+
+      - name: Publish performance summaries to GitHub
+        if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
+        shell: pwsh
+        run: |
+          $resultsDir = "artifacts/performance/perfResults/perfTest/results"
+          if (Test-Path $resultsDir) {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Current Performance Results"
+            $files = Get-ChildItem -Path $resultsDir -Filter "*-report-github.md" | Sort-Object Name
+            foreach ($file in $files) {
+              Get-Content $file.FullName | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+            }
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "---"
+          }
+
+      - name: Upload performance files
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
+        with:
+          name: performance
+          path: |
+            ./artifacts/performance/**
+
+      - name: Skip notice
+        if: needs.check-paths.outputs.code-changed != 'true'
+        run: echo "Skipped -- no code changes detected"
