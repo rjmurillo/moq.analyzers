@@ -1,3 +1,7 @@
+# Prevent PowerShell from glob-expanding wildcard characters (e.g., * in --filter)
+# when passing arguments to native commands via the & operator.
+$PSNativeCommandArgumentPassing = 'Standard'
+
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [string] $projects,           # semicolon separated list of relative paths to benchmark projects to run
