@@ -108,6 +108,11 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
 
     private static bool HasSyncDelegateArgument(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
     {
+        if (invocation.ArgumentList.Arguments.Count == 0)
+        {
+            return false;
+        }
+
         ExpressionSyntax firstArgument = invocation.ArgumentList.Arguments[0].Expression;
 
         // Lambdas and anonymous methods share AnonymousFunctionExpressionSyntax,
@@ -224,6 +229,11 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
 
     private static ITypeSymbol? GetDelegateReturnType(InvocationExpressionSyntax returnsInvocation, SemanticModel semanticModel)
     {
+        if (returnsInvocation.ArgumentList.Arguments.Count == 0)
+        {
+            return null;
+        }
+
         ExpressionSyntax firstArgument = returnsInvocation.ArgumentList.Arguments[0].Expression;
 
         // For anonymous methods, prefer body analysis. Roslyn may infer the return type

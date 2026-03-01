@@ -61,7 +61,19 @@ public sealed class ReturnsDelegateShouldReturnTaskFixer : CodeFixProvider
         MemberAccessExpressionSyntax memberAccess)
     {
         SimpleNameSyntax oldName = memberAccess.Name;
-        SimpleNameSyntax newName = SyntaxFactory.IdentifierName("ReturnsAsync")
+        SimpleNameSyntax newName;
+        if (oldName is GenericNameSyntax genericName)
+        {
+            newName = SyntaxFactory.GenericName(
+                SyntaxFactory.Identifier("ReturnsAsync"),
+                genericName.TypeArgumentList);
+        }
+        else
+        {
+            newName = SyntaxFactory.IdentifierName("ReturnsAsync");
+        }
+
+        newName = newName
             .WithLeadingTrivia(oldName.GetLeadingTrivia())
             .WithTrailingTrivia(oldName.GetTrailingTrivia());
 
