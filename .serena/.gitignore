@@ -1,2 +1,6 @@
 /cache
 /logs
+
+# Memories are tracked in git intentionally for cross-session continuity.
+# Do NOT commit secrets, tokens, or internal URLs to memory files.
+# Review memory diffs before committing.
