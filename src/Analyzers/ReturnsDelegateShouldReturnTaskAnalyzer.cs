@@ -9,7 +9,7 @@ namespace Moq.Analyzers;
 public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Returns() delegate type mismatch on async method";
-    private static readonly LocalizableString Message = "Returns() delegate for async method '{0}' should return a Task type, not '{1}'. Use ReturnsAsync() or return Task.FromResult().";
+    private static readonly LocalizableString Message = "Returns() delegate for async method '{0}' should return '{2}', not '{1}'. Use ReturnsAsync() or wrap with Task.FromResult().";
     private static readonly LocalizableString Description = "Returns() delegate on async method setup should return Task/ValueTask. Use ReturnsAsync() or wrap with Task.FromResult().";
 
     private static readonly DiagnosticDescriptor Rule = new(
@@ -50,7 +50,7 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (!TryGetMismatchInfo(setupInvocation, invocation, context.SemanticModel, knownSymbols, out string? methodName, out ITypeSymbol? delegateReturnType))
+        if (!TryGetMismatchInfo(setupInvocation, invocation, context.SemanticModel, knownSymbols, out string? methodName, out ITypeSymbol? expectedReturnType, out ITypeSymbol? delegateReturnType))
         {
             return;
         }
@@ -62,7 +62,9 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
         Microsoft.CodeAnalysis.Text.TextSpan span = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(startPos, endPos);
         Location location = Location.Create(invocation.SyntaxTree, span);
 
-        Diagnostic diagnostic = location.CreateDiagnostic(Rule, methodName, delegateReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        string actualDisplay = delegateReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+        string expectedDisplay = expectedReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+        Diagnostic diagnostic = location.CreateDiagnostic(Rule, methodName, actualDisplay, expectedDisplay);
         context.ReportDiagnostic(diagnostic);
     }
 
@@ -157,9 +159,11 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
         SemanticModel semanticModel,
         MoqKnownSymbols knownSymbols,
         [NotNullWhen(true)] out string? methodName,
+        [NotNullWhen(true)] out ITypeSymbol? expectedReturnType,
         [NotNullWhen(true)] out ITypeSymbol? delegateReturnType)
     {
         methodName = null;
+        expectedReturnType = null;
         delegateReturnType = null;
 
         // Get the mocked method from the Setup lambda
@@ -202,6 +206,7 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
         }
 
         methodName = mockedMethod.Name;
+        expectedReturnType = returnType;
         return true;
     }
 
@@ -219,38 +224,11 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
             return null;
         }
 
-        // Expression-bodied lambda: () => 42
-        if (lambda.Body is ExpressionSyntax bodyExpression)
+        // Use the lambda's semantic symbol to get its return type.
+        // This handles both expression-bodied (() => 42) and block-bodied (() => { return 42; }) lambdas.
+        if (semanticModel.GetSymbolInfo(lambda).Symbol is IMethodSymbol lambdaSymbol)
         {
-            TypeInfo typeInfo = semanticModel.GetTypeInfo(bodyExpression);
-            return typeInfo.Type;
-        }
-
-        // Block-bodied lambda with explicit return statement
-        if (lambda.Body is BlockSyntax block)
-        {
-            ReturnStatementSyntax? returnStatement = FindFirstReturnStatement(block);
-
-            if (returnStatement?.Expression == null)
-            {
-                return null;
-            }
-
-            TypeInfo returnTypeInfo = semanticModel.GetTypeInfo(returnStatement.Expression);
-            return returnTypeInfo.Type;
-        }
-
-        return null;
-    }
-
-    private static ReturnStatementSyntax? FindFirstReturnStatement(BlockSyntax block)
-    {
-        foreach (StatementSyntax statement in block.Statements)
-        {
-            if (statement is ReturnStatementSyntax returnStatement)
-            {
-                return returnStatement;
-            }
+            return lambdaSymbol.ReturnType;
         }
 
         return null;
