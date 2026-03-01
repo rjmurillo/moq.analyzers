@@ -51,6 +51,21 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> Mock1Setup => Mock1?.GetMembers("Setup").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
 
     /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.SetupGet</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1SetupGet => Mock1?.GetMembers("SetupGet").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.SetupSet</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1SetupSet => Mock1?.GetMembers("SetupSet").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Mock{T}.SetupProperty</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> Mock1SetupProperty => Mock1?.GetMembers("SetupProperty").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
     /// Gets the methods for <c>Moq.Mock{T}.SetupAdd</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> Mock1SetupAdd => Mock1?.GetMembers("SetupAdd").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
@@ -403,4 +418,15 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.Times.Exactly</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> TimesExactly => Times?.GetMembers("Exactly").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+
+    /// <summary>
+    /// Gets the interface <c>Microsoft.Extensions.Logging.ILogger</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ILogger => TypeProvider.GetOrCreateTypeByMetadataName("Microsoft.Extensions.Logging.ILogger");
+
+    /// <summary>
+    /// Gets the interface <c>Microsoft.Extensions.Logging.ILogger{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ILogger1 => TypeProvider.GetOrCreateTypeByMetadataName("Microsoft.Extensions.Logging.ILogger`1");
+
 }
