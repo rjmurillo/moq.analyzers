@@ -25,6 +25,11 @@ public static class ReferenceAssemblyCatalog
     public static string Net80WithNewMoq => nameof(Net80WithNewMoq);
 
     /// <summary>
+    /// Gets the name of the reference assembly group for .NET 8.0 with Moq (4.18.4) and Microsoft.Extensions.Logging.Abstractions.
+    /// </summary>
+    public static string Net80WithNewMoqAndLogging => nameof(Net80WithNewMoqAndLogging);
+
+    /// <summary>
     /// Gets the catalog of reference assemblies.
     /// </summary>
     /// <remarks>
@@ -39,5 +44,15 @@ public static class ReferenceAssemblyCatalog
         // This must be 4.12.0 or later in order to have the new `Mock.Of<T>(MockBehavior)` method (see https://github.com/devlooped/moq/commit/1561c006c87a0894c5257a1e541da44e40e33dd3).
         // 4.18.4 is currently the most downloaded version of Moq.
         { nameof(Net80WithNewMoq), ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]) },
+
+        // Moq 4.18.4 with Microsoft.Extensions.Logging.Abstractions for ILogger-related analyzer tests.
+        {
+            nameof(Net80WithNewMoqAndLogging),
+            ReferenceAssemblies.Net.Net80.AddPackages(
+            [
+                new PackageIdentity("Moq", "4.18.4"),
+                new PackageIdentity("Microsoft.Extensions.Logging.Abstractions", "8.0.0"),
+            ])
+        },
     };
 }
