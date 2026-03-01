@@ -83,7 +83,7 @@ try {
     } else {
         # Checkout SHA
         $baselineFolder = Join-Path $Temp "perfBaseline"
-        Invoke-Expression "git worktree add $baselineFolder $baselineSHA -f"
+        & git worktree add $baselineFolder $baselineSHA -f
 
         $baselineCommandArgs = @{
             perftestRootFolder = $baselineFolder

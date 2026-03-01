@@ -24,29 +24,29 @@ try {
         $projectFullPath = Join-Path $perftestRootFolder $project
         & dotnet restore $projectFullPath
         & dotnet build -c Release --no-incremental $projectFullPath
-        $commandArguments = "run -c Release --no-build --project $projectFullPath -- --outliers DontRemove --memory --threading --exceptions --exporters JSON --artifacts $output"
+        $commandArguments = @("run", "-c", "Release", "--no-build", "--project", $projectFullPath, "--", "--outliers", "DontRemove", "--memory", "--threading", "--exceptions", "--exporters", "JSON", "--artifacts", $output)
         if ($ci) {
-            $commandArguments = "$commandArguments --stopOnFirstError --keepFiles"
+            $commandArguments += @("--stopOnFirstError", "--keepFiles")
         }
         if ($etl) {
-            $commandArguments = "$commandArguments --profiler ETW"
+            $commandArguments += @("--profiler", "ETW")
         }
 
-        $commandArguments = "$commandArguments --filter ""$filter"""
+        $commandArguments += @("--filter", $filter)
 
         Write-Host "Invoking: dotnet $commandArguments"
 
         if ($etl -and $IsWindows) {
-            # Note: Using Start-Process with -Verb RunAs to ensure it runs with elevated permissions for 
+            # Note: Using Start-Process with -Verb RunAs to ensure it runs with elevated permissions for
             # 1. ETL, if it's enabled
             # 2. To allow BenchmarkDotNet to set the power profile for the CPU
             # The `-Verb RunAs` is only supported on Windows
             Write-Warning "Running with elevated permissions will no longer capture stdout"
 
-            Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList "$commandArguments"
+            Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $commandArguments
         } else {
-            # On non-Windows platforms, we can run without elevation
-            Invoke-Expression "dotnet $commandArguments"
+            # On non-Windows platforms, run without elevation
+            & dotnet @commandArguments
         }
     }
 }
