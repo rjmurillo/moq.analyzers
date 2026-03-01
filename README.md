@@ -28,6 +28,7 @@ something is wrong with your Moq configuration.
 | [Moq1205](docs/rules/Moq1205.md) | Correctness   | Event setup handler type should match event delegate type                               |
 | [Moq1206](docs/rules/Moq1206.md) | Correctness   | Async method setups should use ReturnsAsync instead of Returns with async lambda        |
 | [Moq1207](docs/rules/Moq1207.md) | Correctness   | SetupSequence should be used only for overridable members                               |
+| [Moq1208](docs/rules/Moq1208.md) | Correctness   | Returns() delegate type mismatch on async method setup                                  |
 | [Moq1210](docs/rules/Moq1210.md) | Correctness   | Verify should be used only for overridable members                                      |
 | [Moq1300](docs/rules/Moq1300.md) | Usage         | `Mock.As()` should take interfaces only                                                 |
 | [Moq1301](docs/rules/Moq1301.md) | Usage         | Mock.Get() should not take literals                                                     |

@@ -8,6 +8,7 @@ internal static class DiagnosticIds
     internal const string NoConstructorArgumentsForInterfaceMockRuleId = "Moq1001";
     internal const string NoMatchingConstructorRuleId = "Moq1002";
     internal const string InternalTypeMustHaveInternalsVisibleTo = "Moq1003";
+    internal const string LoggerShouldNotBeMocked = "Moq1004";
     internal const string BadCallbackParameters = "Moq1100";
     internal const string PropertySetupUsedForMethod = "Moq1101";
     internal const string SetupOnlyUsedForOverridableMembers = "Moq1200";
@@ -18,6 +19,7 @@ internal static class DiagnosticIds
     internal const string EventSetupHandlerShouldMatchEventType = "Moq1205";
     internal const string ReturnsAsyncShouldBeUsedForAsyncMethods = "Moq1206";
     internal const string SetupSequenceOnlyUsedForOverridableMembers = "Moq1207";
+    internal const string ReturnsDelegateMismatchOnAsyncMethod = "Moq1208";
     internal const string VerifyOnlyUsedForOverridableMembers = "Moq1210";
     internal const string AsShouldOnlyBeUsedForInterfacesRuleId = "Moq1300";
     internal const string MockGetShouldNotTakeLiterals = "Moq1301";

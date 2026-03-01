@@ -77,12 +77,13 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
 
         // Handle static method invocation: Mock.Of{T}()
         else if (context.Operation is IInvocationOperation invocation &&
-                 IsValidMockOfInvocation(invocation, knownSymbols, out mockedType))
+                 MockDetectionHelpers.IsValidMockOfInvocation(invocation, knownSymbols, out mockedType))
         {
             diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, invocation.Syntax);
         }
         else
         {
+            // Operation is neither a Mock object creation nor a Mock.Of invocation that we need to analyze
             return;
         }
 
@@ -90,32 +91,6 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         {
             context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(Rule, mockedType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
         }
-    }
-
-    /// <summary>
-    /// Determines if the operation is a valid Mock.Of{T}() invocation and extracts the mocked type.
-    /// </summary>
-    private static bool IsValidMockOfInvocation(
-        IInvocationOperation invocation,
-        MoqKnownSymbols knownSymbols,
-        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ITypeSymbol? mockedType)
-    {
-        mockedType = null;
-
-        // Check if this is a static method call to Mock.Of{T}()
-        if (!MockDetectionHelpers.IsMockOfMethod(invocation.TargetMethod, knownSymbols))
-        {
-            return false;
-        }
-
-        // Get the type argument from Mock.Of{T}()
-        if (invocation.TargetMethod.TypeArguments.Length == 1)
-        {
-            mockedType = invocation.TargetMethod.TypeArguments[0];
-            return true;
-        }
-
-        return false;
     }
 
     /// <summary>
