@@ -413,5 +413,4 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the interface <c>Microsoft.Extensions.Logging.ILogger{T}</c>.
     /// </summary>
     internal INamedTypeSymbol? ILogger1 => TypeProvider.GetOrCreateTypeByMetadataName("Microsoft.Extensions.Logging.ILogger`1");
-
 }
