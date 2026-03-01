@@ -19,6 +19,7 @@ try {
         $etl = $false
     }
 
+    $anyFailed = $false
     $projectsList = $projects -split ";"
     foreach ($project in $projectsList) {
         $projectFullPath = Join-Path $perftestRootFolder $project
@@ -51,7 +52,11 @@ try {
             $quotedArgs = $commandArguments | ForEach-Object {
                 if ($_ -match '\s') { "`"$_`"" } else { $_ }
             }
-            Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $quotedArgs
+            $proc = Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $quotedArgs -PassThru
+            if ($proc.ExitCode -ne 0) {
+                Write-Warning "dotnet exited with code $($proc.ExitCode) for project $project"
+                $anyFailed = $true
+            }
         } else {
             # Use ProcessStartInfo to invoke dotnet directly.
             # PowerShell glob-expands * in splatted arguments to native commands
@@ -64,9 +69,14 @@ try {
             $proc = [System.Diagnostics.Process]::Start($psi)
             $proc.WaitForExit()
             if ($proc.ExitCode -ne 0) {
-                throw "dotnet exited with code $($proc.ExitCode)"
+                Write-Warning "dotnet exited with code $($proc.ExitCode) for project $project"
+                $anyFailed = $true
             }
         }
+    }
+
+    if ($anyFailed) {
+        throw "One or more benchmark projects failed"
     }
 }
 catch {
