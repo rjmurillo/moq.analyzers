@@ -44,7 +44,8 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         }
 
         // Find the Setup call that this Returns is chained from
-        InvocationExpressionSyntax? setupInvocation = FindSetupInvocation(invocation);
+        MemberAccessExpressionSyntax memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
+        InvocationExpressionSyntax? setupInvocation = memberAccess.Expression.FindSetupInvocation(context.SemanticModel, knownSymbols);
         if (setupInvocation == null)
         {
             return;
@@ -58,9 +59,6 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         }
 
         // Report diagnostic on just the Returns(...) method call
-        // We can safely cast here because IsReturnsMethodCallWithAsyncLambda already verified this is a MemberAccessExpressionSyntax
-        MemberAccessExpressionSyntax memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
-
         // Create a span from the Returns identifier through the end of the invocation
         int startPos = memberAccess.Name.SpanStart;
         int endPos = invocation.Span.End;
@@ -94,21 +92,6 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
 
         // Check if the Returns call has an async lambda argument
         return HasAsyncLambdaArgument(invocation);
-    }
-
-    private static InvocationExpressionSyntax? FindSetupInvocation(InvocationExpressionSyntax returnsInvocation)
-    {
-        // The pattern is: mock.Setup(...).Returns(...)
-        // The returnsInvocation is the entire chain, so we need to examine its structure
-        if (returnsInvocation.Expression is MemberAccessExpressionSyntax memberAccess &&
-            memberAccess.Expression.WalkDownParentheses() is InvocationExpressionSyntax setupInvocation &&
-            setupInvocation.Expression is MemberAccessExpressionSyntax setupMemberAccess &&
-            string.Equals(setupMemberAccess.Name.Identifier.ValueText, "Setup", StringComparison.Ordinal))
-        {
-            return setupInvocation;
-        }
-
-        return null;
     }
 
     private static bool HasAsyncLambdaArgument(InvocationExpressionSyntax invocation)

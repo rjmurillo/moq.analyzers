@@ -96,7 +96,7 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        setupInvocation = FindSetupInvocation(access.Expression, semanticModel, knownSymbols);
+        setupInvocation = access.Expression.FindSetupInvocation(semanticModel, knownSymbols);
         if (setupInvocation == null)
         {
             return false;
@@ -143,37 +143,6 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
         // Method groups with overloads fail resolution when no single overload matches the expected delegate type
         return symbolInfo.CandidateReason is CandidateReason.OverloadResolutionFailure or CandidateReason.MemberGroup
             && symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().Any();
-    }
-
-    private static InvocationExpressionSyntax? FindSetupInvocation(ExpressionSyntax receiver, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
-    {
-        // Walk up the fluent chain to find Setup. Handles patterns like:
-        // mock.Setup(...).Returns(...)
-        // mock.Setup(...).Callback(...).Returns(...)
-        ExpressionSyntax current = receiver;
-
-        // Moq fluent chains are short (Setup.Callback.Returns at most 3-4 deep).
-        // Guard against pathological syntax trees.
-        for (int depth = 0; depth < 10; depth++)
-        {
-            ExpressionSyntax unwrapped = current.WalkDownParentheses();
-
-            if (unwrapped is not InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax candidateMemberAccess } candidateInvocation)
-            {
-                return null;
-            }
-
-            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(candidateInvocation);
-            if (symbolInfo.Symbol != null && symbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
-            {
-                return candidateInvocation;
-            }
-
-            // Continue walking up the chain (past Callback, etc.)
-            current = candidateMemberAccess.Expression;
-        }
-
-        return null;
     }
 
     private static bool TryGetMismatchInfo(
