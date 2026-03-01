@@ -18,10 +18,7 @@ function Test-ToolAvailable {
     }
 
     if ($InstallHint) {
-        Write-Warning "  $Command not found. Install: $InstallHint"
-    }
-    else {
-        Write-Warning "  $Command not found. Skipping."
+        Write-Warning "$Command not found. Install: $InstallHint"
     }
 
     return $false
@@ -47,16 +44,12 @@ function Get-StagedFiles {
         return @()
     }
 
-    # Return as array even for single match
     return @($matched)
 }
 
 function Invoke-AutoFix {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)]
-        [string]$Label,
-
         [Parameter(Mandatory)]
         [scriptblock]$FixCommand,
 
@@ -66,40 +59,20 @@ function Invoke-AutoFix {
 
     & $FixCommand
 
-    # Check if any staged files were modified by the fix
     $modified = git diff --name-only -- $Files
     if ($modified) {
-        Write-Host "  Auto-fixed and re-staging: $($modified -join ', ')"
+        Write-Host "Auto-fixed: $($modified -join ', ')"
         git add $modified
     }
 }
 
-function Write-Section {
+function Set-HookFailed {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$Title
+        [string]$Check
     )
 
-    Write-Host ""
-    Write-Host "--- $Title ---" -ForegroundColor Cyan
-}
-
-function Write-Result {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [string]$Check,
-
-        [Parameter(Mandatory)]
-        [bool]$Passed
-    )
-
-    if ($Passed) {
-        Write-Host "  PASS: $Check" -ForegroundColor Green
-    }
-    else {
-        Write-Host "  FAIL: $Check" -ForegroundColor Red
-        $script:HookExitCode = 1
-    }
+    Write-Host "FAIL: $Check" -ForegroundColor Red
+    $script:HookExitCode = 1
 }
