@@ -418,15 +418,4 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.Times.Exactly</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> TimesExactly => Times?.GetMembers("Exactly").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
-
-    /// <summary>
-    /// Gets the interface <c>Microsoft.Extensions.Logging.ILogger</c>.
-    /// </summary>
-    internal INamedTypeSymbol? ILogger => TypeProvider.GetOrCreateTypeByMetadataName("Microsoft.Extensions.Logging.ILogger");
-
-    /// <summary>
-    /// Gets the interface <c>Microsoft.Extensions.Logging.ILogger{T}</c>.
-    /// </summary>
-    internal INamedTypeSymbol? ILogger1 => TypeProvider.GetOrCreateTypeByMetadataName("Microsoft.Extensions.Logging.ILogger`1");
-
 }
