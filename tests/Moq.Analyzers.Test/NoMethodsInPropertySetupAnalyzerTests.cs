@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis.Testing;
+
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoMethodsInPropertySetupAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -83,7 +85,8 @@ public class NoMethodsInPropertySetupAnalyzerTests
                 }
             }
             """,
-            ReferenceAssemblyCatalog.Net80);
+            ReferenceAssemblyCatalog.Net80,
+            CompilerDiagnostics.None);
     }
 
     [Fact]
