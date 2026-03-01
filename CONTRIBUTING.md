@@ -1161,17 +1161,7 @@ Console.WriteLine($"Actual symbol: {symbolInfo.Symbol?.ContainingType}");
 
 ## Rule ID Range Allocation
 
-Each diagnostic rule ID follows a range allocation scheme defined in `src/Common/DiagnosticIds.cs`. When adding a new rule, pick an ID within the correct range for its category.
-
-| Range | Category |
-| --------------- | ----------------------------- |
-| Moq1000-1099 | Setup/Verification rules |
-| Moq1100-1199 | Mock instance rules |
-| Moq1200-1299 | Callback/Returns rules |
-| Moq1300-1399 | As/Behavior rules |
-| Moq1400-1499 | General/Miscellaneous rules |
-| Moq1500-1599 | Mock repository rules |
-| Moq1600-1999 | Reserved for future use |
+Each diagnostic rule ID follows a range allocation scheme defined in `src/Common/DiagnosticIds.cs`. When adding a new rule, pick an ID within the correct range for its category. The allocation scheme is documented in detail in [docs/rules/README.md](docs/rules/README.md#diagnostic-id-ranges).
 
 Use the next available ID within the appropriate range. Do not reuse or skip IDs without reason. If a new category is needed, propose a range in your pull request.
 
