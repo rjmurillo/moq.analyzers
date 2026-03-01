@@ -34,7 +34,10 @@ try {
 
         $commandArguments += @("--filter", $filter)
 
-        Write-Host "Invoking: dotnet $commandArguments"
+        $formattedArgs = ($commandArguments | ForEach-Object {
+            if ($_ -match '\s') { "`"$_`"" } else { $_ }
+        }) -join ' '
+        Write-Host "Invoking: dotnet $formattedArgs"
 
         if ($etl -and $isWindowsPlatform) {
             # Note: Using Start-Process with -Verb RunAs to ensure it runs with elevated permissions for
