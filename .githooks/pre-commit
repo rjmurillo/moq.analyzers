@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+command -v pwsh >/dev/null 2>&1 || { echo "pwsh not found. Install PowerShell Core: https://aka.ms/powershell"; exit 1; }
+exec pwsh -NoProfile -NonInteractive -File "$REPO_ROOT/.githooks/hooks/Invoke-PreCommit.ps1"

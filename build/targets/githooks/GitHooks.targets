@@ -1,0 +1,22 @@
+<Project>
+  <!--
+    Automatically configure git to use .githooks/ as the hooks directory.
+    Runs once per clone via sentinel file. Degrades gracefully in CI or non-git contexts.
+  -->
+  <Target
+    Name="ConfigureGitHooks"
+    BeforeTargets="Restore;Build"
+    Condition=" '$(DesignTimeBuild)' != 'true' AND Exists('$(RepoRoot).git') AND !Exists('$(RepoRoot).git/hooks/.githooks-configured') ">
+
+    <Exec
+      Command="git config core.hooksPath .githooks"
+      WorkingDirectory="$(RepoRoot)"
+      IgnoreExitCode="true" />
+
+    <Touch
+      Files="$(RepoRoot).git/hooks/.githooks-configured"
+      AlwaysCreate="true" />
+
+    <Message Importance="high" Text="Git hooks configured. Run 'git config --unset core.hooksPath' to disable." />
+  </Target>
+</Project>

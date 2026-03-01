@@ -115,3 +115,6 @@
 
 # Fix syntax highlighting on GitHub to allow comments
 .vscode/*.json linguist-language=JSON-with-Comments
+
+# Git hooks must use LF line endings (Git Bash on Windows requires it)
+.githooks/** text eol=lf

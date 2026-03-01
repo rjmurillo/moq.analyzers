@@ -50,6 +50,37 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
    - [yamllint](https://yamllint.readthedocs.io/) (Python): `pip install yamllint`
    - [markdownlint-cli](https://github.com/igorshubovych/markdownlint-cli) (Node.js): `npm install -g markdownlint-cli`
 
+6. **Git hooks** auto-configure on first `dotnet build` or `dotnet restore`.
+   Hooks require [PowerShell Core](https://aka.ms/powershell) (`pwsh`).
+
+   **What each hook checks:**
+
+   | Hook | Check | Mode | Tool |
+   |------|-------|------|------|
+   | pre-commit | C# formatting | Auto-fix + re-stage | `dotnet format` |
+   | pre-commit | Markdown lint | Auto-fix + re-stage | `markdownlint-cli2` |
+   | pre-commit | YAML lint | Lint only | `yamllint` |
+   | pre-commit | JSON validation | Lint only | `python3 -m json.tool` |
+   | pre-commit | Shell scripts | Lint only | `shellcheck` |
+   | pre-commit | GitHub Actions | Lint only | `actionlint` |
+   | pre-push | Build | Fail on error | `dotnet build` |
+   | pre-push | Tests | Fail on error | `dotnet test` |
+
+   **Optional tool installation:**
+
+   ```bash
+   npm install -g markdownlint-cli2   # Markdown auto-fix
+   pip install yamllint               # YAML lint
+   # shellcheck: apt install shellcheck / brew install shellcheck
+   # actionlint: go install github.com/rhysd/actionlint/cmd/actionlint@latest
+   ```
+
+   Missing optional tools are skipped with a warning. C# formatting via `dotnet format` is always available.
+
+   Bypass hooks for WIP commits: `git commit --no-verify`
+
+   Manual setup (if auto-configure fails): `git config core.hooksPath .githooks`
+
 ## Universal Agent Success Principles for Project Maintainers
 
 > **IMPORTANT:** These guidelines help project maintainers create environments where AI agents can be more successful, regardless of the specific agent platform or tools being used.

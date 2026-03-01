@@ -6,4 +6,5 @@
   <Import Project="build/targets/tests/Tests.targets" />
   <Import Project="build/targets/codeanalysis/CodeAnalysis.targets" />
   <Import Project="build/targets/packaging/Packaging.targets" />
+  <Import Project="build/targets/githooks/GitHooks.targets" />
 </Project>
