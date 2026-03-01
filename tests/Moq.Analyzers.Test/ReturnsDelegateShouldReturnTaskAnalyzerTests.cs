@@ -37,6 +37,9 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
 
             // Parenthesized Setup with ReturnsAsync (valid)
             ["""(new Mock<AsyncService>().Setup(c => c.GetValueAsync())).ReturnsAsync(42);"""],
+
+            // Block-bodied lambda returning Task (correct)
+            ["""new Mock<AsyncService>().Setup(c => c.GetValueAsync()).Returns(() => { return Task.FromResult(42); });"""],
         };
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
@@ -60,6 +63,9 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
 
             // Chained Callback then Returns with sync delegate mismatch
             ["""new Mock<AsyncService>().Setup(c => c.GetValueAsync()).Callback(() => { }).{|Moq1208:Returns(() => 42)|};"""],
+
+            // Block-bodied lambda returning wrong type on Task<int> method
+            ["""new Mock<AsyncService>().Setup(c => c.GetValueAsync()).{|Moq1208:Returns(() => { return 42; })|};"""],
         };
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();

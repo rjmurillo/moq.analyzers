@@ -119,9 +119,12 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
             return null;
         }
 
+        // Moq fluent chains are short (Setup.Callback.Returns at most 3-4 deep).
+        // Guard against pathological syntax trees.
+        const int maxChainDepth = 10;
         ExpressionSyntax current = memberAccess.Expression;
 
-        while (true)
+        for (int depth = 0; depth < maxChainDepth; depth++)
         {
             ExpressionSyntax unwrapped = current.WalkDownParentheses();
 
@@ -144,6 +147,8 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
             // Continue walking up the chain (past Callback, etc.)
             current = candidateMemberAccess.Expression;
         }
+
+        return null;
     }
 
     private static bool TryGetMismatchInfo(
@@ -214,14 +219,40 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
             return null;
         }
 
-        // Get the type info of the lambda's body expression to determine what type it returns
-        ExpressionSyntax? bodyExpression = lambda.Body as ExpressionSyntax;
-        if (bodyExpression == null)
+        // Expression-bodied lambda: () => 42
+        if (lambda.Body is ExpressionSyntax bodyExpression)
         {
-            return null;
+            TypeInfo typeInfo = semanticModel.GetTypeInfo(bodyExpression);
+            return typeInfo.Type;
         }
 
-        TypeInfo typeInfo = semanticModel.GetTypeInfo(bodyExpression);
-        return typeInfo.Type;
+        // Block-bodied lambda with explicit return statement
+        if (lambda.Body is BlockSyntax block)
+        {
+            ReturnStatementSyntax? returnStatement = FindFirstReturnStatement(block);
+
+            if (returnStatement?.Expression == null)
+            {
+                return null;
+            }
+
+            TypeInfo returnTypeInfo = semanticModel.GetTypeInfo(returnStatement.Expression);
+            return returnTypeInfo.Type;
+        }
+
+        return null;
+    }
+
+    private static ReturnStatementSyntax? FindFirstReturnStatement(BlockSyntax block)
+    {
+        foreach (StatementSyntax statement in block.Statements)
+        {
+            if (statement is ReturnStatementSyntax returnStatement)
+            {
+                return returnStatement;
+            }
+        }
+
+        return null;
     }
 }

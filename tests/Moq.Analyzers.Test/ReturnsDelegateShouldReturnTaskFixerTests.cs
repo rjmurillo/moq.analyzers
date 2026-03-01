@@ -2,15 +2,8 @@ using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.Return
 
 namespace Moq.Analyzers.Test;
 
-public class ReturnsDelegateShouldReturnTaskFixerTests
+public class ReturnsDelegateShouldReturnTaskFixerTests(ITestOutputHelper output)
 {
-    private readonly ITestOutputHelper _output;
-
-    public ReturnsDelegateShouldReturnTaskFixerTests(ITestOutputHelper output)
-    {
-        _output = output;
-    }
-
     public static IEnumerable<object[]> TestData()
     {
         return new object[][]
@@ -44,6 +37,12 @@ public class ReturnsDelegateShouldReturnTaskFixerTests
                 """(new Mock<AsyncService>().Setup(s => s.GetValueAsync())).{|Moq1208:Returns(() => 42)|};""",
                 """(new Mock<AsyncService>().Setup(s => s.GetValueAsync())).ReturnsAsync(() => 42);""",
             ],
+
+            // Block-bodied lambda returning wrong type
+            [
+                """new Mock<AsyncService>().Setup(s => s.GetValueAsync()).{|Moq1208:Returns(() => { return 42; })|};""",
+                """new Mock<AsyncService>().Setup(s => s.GetValueAsync()).ReturnsAsync(() => { return 42; });""",
+            ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -75,11 +74,11 @@ public class ReturnsDelegateShouldReturnTaskFixerTests
         string o = Template(@namespace, original);
         string f = Template(@namespace, quickFix);
 
-        _output.WriteLine("Original:");
-        _output.WriteLine(o);
-        _output.WriteLine(string.Empty);
-        _output.WriteLine("Fixed:");
-        _output.WriteLine(f);
+        output.WriteLine("Original:");
+        output.WriteLine(o);
+        output.WriteLine(string.Empty);
+        output.WriteLine("Fixed:");
+        output.WriteLine(f);
 
         await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
     }
