@@ -84,7 +84,7 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
 
         // Handle static method invocation: Mock.Of{T}() or MockRepository.Create{T}()
         else if (context.Operation is IInvocationOperation invocation &&
-                 IsValidMockInvocation(invocation, knownSymbols, out mockedType))
+                 MockDetectionHelpers.IsValidMockInvocation(invocation, knownSymbols, out mockedType))
         {
             diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, invocation.Syntax);
         }
@@ -98,32 +98,6 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
         {
             context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(Rule));
         }
-    }
-
-    /// <summary>
-    /// Determines if the operation is a valid Mock.Of{T}() or MockRepository.Create{T}() invocation
-    /// and extracts the mocked type.
-    /// </summary>
-    private static bool IsValidMockInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
-    {
-        mockedType = null;
-
-        bool isMockOf = MockDetectionHelpers.IsValidMockOfMethod(invocation.TargetMethod, knownSymbols);
-        bool isMockRepositoryCreate = !isMockOf && invocation.TargetMethod.IsInstanceOf(knownSymbols.MockRepositoryCreate);
-
-        if (!isMockOf && !isMockRepositoryCreate)
-        {
-            return false;
-        }
-
-        // Both Mock.Of{T}() and MockRepository.Create{T}() use a single type argument
-        if (invocation.TargetMethod.TypeArguments.Length == 1)
-        {
-            mockedType = invocation.TargetMethod.TypeArguments[0];
-            return true;
-        }
-
-        return false;
     }
 
     /// <summary>

@@ -72,7 +72,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
             diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, creation.Syntax);
         }
         else if (context.Operation is IInvocationOperation invocation &&
-                 IsValidMockInvocation(invocation, knownSymbols, out mockedType))
+                 MockDetectionHelpers.IsValidMockInvocation(invocation, knownSymbols, out mockedType))
         {
             diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, invocation.Syntax);
         }
@@ -88,42 +88,6 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
                 Rule,
                 mockedType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
         }
-    }
-
-    private static bool IsValidMockInvocation(
-        IInvocationOperation invocation,
-        MoqKnownSymbols knownSymbols,
-        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ITypeSymbol? mockedType)
-    {
-        mockedType = null;
-
-        IMethodSymbol targetMethod = invocation.TargetMethod;
-
-        // Mock.Of<T>() -- use symbol-based comparison via MoqKnownSymbols.MockOf
-        if (targetMethod.IsInstanceOf(knownSymbols.MockOf))
-        {
-            if (targetMethod.TypeArguments.Length == 1)
-            {
-                mockedType = targetMethod.TypeArguments[0];
-                return true;
-            }
-
-            return false;
-        }
-
-        // MockRepository.Create<T>()
-        if (targetMethod.IsInstanceOf(knownSymbols.MockRepositoryCreate))
-        {
-            if (targetMethod.TypeArguments.Length == 1)
-            {
-                mockedType = targetMethod.TypeArguments[0];
-                return true;
-            }
-
-            return false;
-        }
-
-        return false;
     }
 
     /// <summary>
