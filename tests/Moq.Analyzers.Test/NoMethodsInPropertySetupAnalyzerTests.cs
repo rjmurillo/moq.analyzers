@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis.Testing;
+
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoMethodsInPropertySetupAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -59,6 +61,32 @@ public class NoMethodsInPropertySetupAnalyzerTests
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldNotAnalyzeWhenMoqNotReferenced()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            namespace Test
+            {
+                public interface IFoo
+                {
+                    string Prop1 { get; set; }
+                    string Method();
+                }
+
+                public class UnitTest
+                {
+                    private void Test()
+                    {
+                        var x = new object();
+                    }
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80,
+            CompilerDiagnostics.None);
     }
 
     [Fact]

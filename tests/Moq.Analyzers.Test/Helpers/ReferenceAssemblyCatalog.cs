@@ -15,6 +15,12 @@ namespace Moq.Analyzers.Test.Helpers;
 public static class ReferenceAssemblyCatalog
 {
     /// <summary>
+    /// Gets the name of the reference assembly group for .NET 8.0 without Moq.
+    /// Used to test analyzer behavior when Moq is not referenced.
+    /// </summary>
+    public static string Net80 => nameof(Net80);
+
+    /// <summary>
     /// Gets the name of the reference assembly group for .NET 8.0 with an older version of Moq (4.8.2).
     /// </summary>
     public static string Net80WithOldMoq => nameof(Net80WithOldMoq);
@@ -37,6 +43,9 @@ public static class ReferenceAssemblyCatalog
     /// </remarks>
     public static IReadOnlyDictionary<string, ReferenceAssemblies> Catalog { get; } = new Dictionary<string, ReferenceAssemblies>(StringComparer.Ordinal)
     {
+        // .NET 8.0 without Moq, used to verify analyzers short-circuit when Moq is not referenced.
+        { nameof(Net80), ReferenceAssemblies.Net.Net80 },
+
         // 4.8.2 was one of the first popular versions of Moq. Ensure this version is prior to 4.13.1, as it changed the internal
         // implementation of `.As<T>()` (see https://github.com/devlooped/moq/commit/b552aeddd82090ee0f4743a1ab70a16f3e6d2d11).
         { nameof(Net80WithOldMoq), ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.8.2")]) },

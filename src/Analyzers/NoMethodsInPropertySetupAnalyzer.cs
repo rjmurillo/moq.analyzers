@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
 namespace Moq.Analyzers;
 
 /// <summary>
@@ -28,23 +31,70 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
+
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private static void Analyze(SyntaxNodeAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
-        InvocationExpressionSyntax setupGetOrSetInvocation = (InvocationExpressionSyntax)context.Node;
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
 
-        if (setupGetOrSetInvocation.Expression is not MemberAccessExpressionSyntax setupGetOrSetMethod) return;
-        if (!string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupGet", StringComparison.Ordinal)
-            && !string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupSet", StringComparison.Ordinal)
-            && !string.Equals(setupGetOrSetMethod.Name.ToFullString(), "SetupProperty", StringComparison.Ordinal)) return;
+        if (!knownSymbols.IsMockReferenced())
+        {
+            return;
+        }
 
-        InvocationExpressionSyntax? mockedMethodCall = setupGetOrSetInvocation.FindMockedMethodInvocationFromSetupMethod();
-        if (mockedMethodCall == null) return;
+        ImmutableArray<IMethodSymbol> propertySetupMethods = ImmutableArray.CreateRange([
+            ..knownSymbols.Mock1SetupGet,
+            ..knownSymbols.Mock1SetupSet,
+            ..knownSymbols.Mock1SetupProperty]);
 
-        ISymbol? mockedMethodSymbol = context.SemanticModel.GetSymbolInfo(mockedMethodCall, context.CancellationToken).Symbol;
-        if (mockedMethodSymbol == null) return;
+        if (propertySetupMethods.IsEmpty)
+        {
+            return;
+        }
+
+        context.RegisterOperationAction(
+            operationAnalysisContext => Analyze(operationAnalysisContext, propertySetupMethods),
+            OperationKind.Invocation);
+    }
+
+    private static void Analyze(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> propertySetupMethods)
+    {
+        Debug.Assert(context.Operation is IInvocationOperation, "Expected IInvocationOperation");
+
+        if (context.Operation is not IInvocationOperation invocationOperation)
+        {
+            return;
+        }
+
+        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
+        if (!targetMethod.IsInstanceOf(propertySetupMethods))
+        {
+            return;
+        }
+
+        // The lambda argument to SetupGet/SetupSet/SetupProperty contains the mocked member access.
+        // If the lambda body is an invocation (method call), that is invalid for property setup.
+        InvocationExpressionSyntax? mockedMethodCall =
+            (invocationOperation.Syntax as InvocationExpressionSyntax).FindMockedMethodInvocationFromSetupMethod();
+
+        if (mockedMethodCall == null)
+        {
+            return;
+        }
+
+        SemanticModel? semanticModel = invocationOperation.SemanticModel;
+        if (semanticModel == null)
+        {
+            return;
+        }
+
+        ISymbol? mockedMethodSymbol = semanticModel.GetSymbolInfo(mockedMethodCall, context.CancellationToken).Symbol;
+        if (mockedMethodSymbol == null)
+        {
+            return;
+        }
 
         Diagnostic diagnostic = mockedMethodCall.CreateDiagnostic(Rule, mockedMethodSymbol.Name);
         context.ReportDiagnostic(diagnostic);
