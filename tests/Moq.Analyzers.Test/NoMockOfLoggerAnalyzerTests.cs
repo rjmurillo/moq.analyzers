@@ -89,6 +89,29 @@ public class NoMockOfLoggerAnalyzerTests
     }
 
     [Fact]
+    public async Task ShouldDetectMockRepositoryCreate()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using Microsoft.Extensions.Logging;
+
+                internal class MyService { }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var repository = new MockRepository(MockBehavior.Strict);
+                        var mock1 = repository.Create<{|Moq1004:ILogger|}>();
+                        var mock2 = repository.Create<{|Moq1004:ILogger<MyService>|}>();
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
+    }
+
+    [Fact]
     public async Task ShouldNotFlagNonLoggerMocks()
     {
         await Verifier.VerifyAnalyzerAsync(
@@ -104,6 +127,28 @@ public class NoMockOfLoggerAnalyzerTests
                     {
                         var mock = new Mock<IMyService>();
                         var of = Mock.Of<IMyService>();
+                    }
+                }
+                """,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
+    }
+
+    [Fact]
+    public async Task ShouldNotFlagNonLoggerMockRepositoryCreate()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using Microsoft.Extensions.Logging;
+
+                internal interface IMyService { }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var repository = new MockRepository(MockBehavior.Strict);
+                        var mock = repository.Create<IMyService>();
                     }
                 }
                 """,
