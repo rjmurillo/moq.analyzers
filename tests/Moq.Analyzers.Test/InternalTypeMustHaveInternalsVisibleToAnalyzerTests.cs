@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.Testing;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.InternalTypeMustHaveInternalsVisibleToAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -12,6 +13,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
             ["""new Mock<{|Moq1003:InternalClass|}>(MockBehavior.Strict)"""],
             ["""Mock.Of<{|Moq1003:InternalClass|}>()"""],
             ["""var mock = new Mock<{|Moq1003:InternalClass|}>()"""],
+            ["""var repo = new MockRepository(MockBehavior.Strict); repo.Create<{|Moq1003:InternalClass|}>()"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -23,6 +25,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
             ["""new Mock<PublicClass>(MockBehavior.Strict)"""],
             ["""Mock.Of<PublicClass>()"""],
             ["""var mock = new Mock<PublicClass>()"""],
+            ["""var repo = new MockRepository(MockBehavior.Strict); repo.Create<PublicClass>()"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -170,6 +173,8 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                     {
                         var mock = new Mock<InternalClass>();
                         var of = Mock.Of<InternalClass>();
+                        var repo = new MockRepository(MockBehavior.Strict);
+                        repo.Create<InternalClass>();
                     }
                 }
                 """,
@@ -226,6 +231,9 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
     [Fact]
     public async Task ShouldNotAnalyzeWhenMoqNotReferenced()
     {
+        // Use Net80 (no Moq) so IsMockReferenced() returns false and the analyzer
+        // bails out early. CompilerDiagnostics.None suppresses errors caused by the
+        // global "using Moq;" that the test harness injects.
         await Verifier.VerifyAnalyzerAsync(
                 """
                 namespace Test
@@ -241,7 +249,8 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80,
+                CompilerDiagnostics.None);
     }
 
     [Fact]

@@ -25,10 +25,15 @@ public static class ReferenceAssemblyCatalog
     public static string Net80WithNewMoq => nameof(Net80WithNewMoq);
 
     /// <summary>
+    /// Gets the name of the reference assembly group for .NET 8.0 without Moq.
+    /// </summary>
+    public static string Net80 => nameof(Net80);
+
+    /// <summary>
     /// Gets the catalog of reference assemblies.
     /// </summary>
     /// <remarks>
-    /// The key is the name of the reference assembly group (<see cref="Net80WithOldMoq"/> and <see cref="Net80WithNewMoq"/>).
+    /// The key is the name of the reference assembly group (<see cref="Net80WithOldMoq"/>, <see cref="Net80WithNewMoq"/>, and <see cref="Net80"/>).
     /// </remarks>
     public static IReadOnlyDictionary<string, ReferenceAssemblies> Catalog { get; } = new Dictionary<string, ReferenceAssemblies>(StringComparer.Ordinal)
     {
@@ -39,5 +44,8 @@ public static class ReferenceAssemblyCatalog
         // This must be 4.12.0 or later in order to have the new `Mock.Of<T>(MockBehavior)` method (see https://github.com/devlooped/moq/commit/1561c006c87a0894c5257a1e541da44e40e33dd3).
         // 4.18.4 is currently the most downloaded version of Moq.
         { nameof(Net80WithNewMoq), ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]) },
+
+        // .NET 8.0 without Moq, used to verify analyzers bail out gracefully when Moq is not referenced.
+        { nameof(Net80), ReferenceAssemblies.Net.Net80 },
     };
 }
