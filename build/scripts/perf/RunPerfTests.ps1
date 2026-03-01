@@ -43,7 +43,12 @@ try {
             # The `-Verb RunAs` is only supported on Windows
             Write-Warning "Running with elevated permissions will no longer capture stdout"
 
-            Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $commandArguments
+            # Start-Process -ArgumentList joins array elements with spaces without quoting,
+            # so we must explicitly quote arguments that may contain spaces.
+            $quotedArgs = $commandArguments | ForEach-Object {
+                if ($_ -match '\s') { "`"$_`"" } else { $_ }
+            }
+            Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $quotedArgs
         } else {
             # On non-Windows platforms, run without elevation
             & dotnet @commandArguments
