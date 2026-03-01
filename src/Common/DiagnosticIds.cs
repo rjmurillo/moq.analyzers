@@ -1,4 +1,4 @@
-﻿namespace Moq.Analyzers.Common;
+namespace Moq.Analyzers.Common;
 
 #pragma warning disable ECS0200 // Consider using readonly instead of const for flexibility
 
@@ -7,7 +7,6 @@ internal static class DiagnosticIds
     internal const string SealedClassCannotBeMocked = "Moq1000";
     internal const string NoConstructorArgumentsForInterfaceMockRuleId = "Moq1001";
     internal const string NoMatchingConstructorRuleId = "Moq1002";
-    internal const string InternalTypeMustHaveInternalsVisibleTo = "Moq1003";
     internal const string LoggerShouldNotBeMocked = "Moq1004";
     internal const string BadCallbackParameters = "Moq1100";
     internal const string PropertySetupUsedForMethod = "Moq1101";
