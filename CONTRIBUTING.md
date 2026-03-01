@@ -18,6 +18,7 @@ Thank you for your interest in contributing to Moq.Analyzers! This document prov
 - [Review Process](#review-process)
 - [Release Process](#release-process)
 - [Roslyn Analyzer Development](#roslyn-analyzer-development)
+- [Rule ID Range Allocation](#rule-id-range-allocation)
 - [Git Commit Messages](#git-commit-messages)
 
 ## Code of Conduct
@@ -1157,6 +1158,12 @@ Console.WriteLine($"Actual symbol: {symbolInfo.Symbol?.ContainingType}");
 - `tests/` – unit tests and benchmarks
 - `docs/` – rule documentation
 - `build/` – build scripts and shared targets
+
+## Rule ID Range Allocation
+
+Each diagnostic rule ID follows a range allocation scheme defined in `src/Common/DiagnosticIds.cs`. When adding a new rule, pick an ID within the correct range for its category. The allocation scheme is documented in detail in [docs/rules/README.md](docs/rules/README.md#diagnostic-id-ranges).
+
+Use the next available ID within the appropriate range. Do not reuse or skip IDs without reason. If a new category is needed, propose a range in your pull request.
 
 ## Git Commit Messages
 
