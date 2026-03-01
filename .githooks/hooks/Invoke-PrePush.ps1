@@ -4,6 +4,9 @@ param()
 $repoRoot = git rev-parse --show-toplevel
 . "$PSScriptRoot/../lib/LintHelpers.ps1"
 
+# Allow newer .NET runtimes to run tests targeting older TFMs
+$env:DOTNET_ROLL_FORWARD = "LatestMajor"
+
 Write-Host "Running pre-push checks..." -ForegroundColor Cyan
 
 try {

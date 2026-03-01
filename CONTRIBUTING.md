@@ -48,7 +48,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 
 5. **Install linting tools** (for local validation):
    - [yamllint](https://yamllint.readthedocs.io/) (Python): `pip install yamllint`
-   - [markdownlint-cli](https://github.com/igorshubovych/markdownlint-cli) (Node.js): `npm install -g markdownlint-cli`
+   - [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2) (Node.js): `npm install -g markdownlint-cli2`
 
 6. **Git hooks** auto-configure on first `dotnet build` or `dotnet restore`.
    Hooks require [PowerShell Core](https://aka.ms/powershell) (`pwsh`).
@@ -56,7 +56,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
    **What each hook checks:**
 
    | Hook | Check | Mode | Tool |
-   |------|-------|------|------|
+   | ------ | ------- | ------ | ------ |
    | pre-commit | C# formatting | Auto-fix + re-stage | `dotnet format` |
    | pre-commit | Markdown lint | Auto-fix + re-stage | `markdownlint-cli2` |
    | pre-commit | YAML lint | Lint only | `yamllint` |
