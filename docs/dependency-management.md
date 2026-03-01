@@ -10,14 +10,14 @@ Dependencies fall into distinct categories with different upgrade policies.
 
 These packages are bundled in the analyzer NuGet package and run inside the **user's** compiler host (Visual Studio, dotnet CLI). Version constraints are critical because users may run older SDKs.
 
-| Package | Central Pin | Constraint |
-|---------|------------|------------|
-| Microsoft.CodeAnalysis.CSharp | 4.8 | Minimum supported VS/SDK version |
-| Microsoft.CodeAnalysis.CSharp.Workspaces | 4.8 | Same as above |
-| Microsoft.CodeAnalysis.AnalyzerUtilities | 3.3.4 | Must reference SCI <= 8.0.0.0 |
-| System.Collections.Immutable | 8.0.0 | Must not exceed .NET 8 SDK host assembly version |
-| System.Formats.Asn1 | 10.0.0 | Transitive pin in shipped section; flagged for host compat review |
-| System.Reflection.Metadata | (transitive, no central pin) | Must not exceed .NET 8 SDK host assembly version |
+| Package                                  | Central Pin                  | Constraint                                                        |
+| ---------------------------------------- | ---------------------------- | ----------------------------------------------------------------- |
+| Microsoft.CodeAnalysis.CSharp            | 4.8                          | Minimum supported VS/SDK version                                  |
+| Microsoft.CodeAnalysis.CSharp.Workspaces | 4.8                          | Same as above                                                     |
+| Microsoft.CodeAnalysis.AnalyzerUtilities | 3.3.4                        | Must reference SCI <= 8.0.0.0                                     |
+| System.Collections.Immutable             | 8.0.0                        | Must not exceed .NET 8 SDK host assembly version                  |
+| System.Formats.Asn1                      | 10.0.0                       | Transitive pin in shipped section; flagged for host compat review |
+| System.Reflection.Metadata               | (transitive, no central pin) | Must not exceed .NET 8 SDK host assembly version                  |
 
 **Why this matters:** In v0.4.0, a transitive dependency bump pushed SCI to 10.0.0.0, causing CS8032 assembly load failures for every user on .NET 8 SDK. See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
 
@@ -33,12 +33,12 @@ These run only during builds and are not shipped. Updates do not affect end user
 
 Representative packages:
 
-| Package | Location |
-|---------|----------|
-| Meziantou.Analyzer | build/targets/codeanalysis/Packages.props |
-| SonarAnalyzer.CSharp | build/targets/codeanalysis/Packages.props |
-| Roslynator.Analyzers | build/targets/codeanalysis/Packages.props |
-| StyleCop.Analyzers | build/targets/codeanalysis/Packages.props |
+| Package                          | Location                                  |
+| -------------------------------- | ----------------------------------------- |
+| Meziantou.Analyzer               | build/targets/codeanalysis/Packages.props |
+| SonarAnalyzer.CSharp             | build/targets/codeanalysis/Packages.props |
+| Roslynator.Analyzers             | build/targets/codeanalysis/Packages.props |
+| StyleCop.Analyzers               | build/targets/codeanalysis/Packages.props |
 | Microsoft.CodeAnalysis.Analyzers | build/targets/codeanalysis/Packages.props |
 
 **Upgrade policy:** Automerge minor/patch. Major versions may introduce new warnings that break the build (warnings are errors). Review new rules before merging major bumps.
@@ -49,12 +49,12 @@ Test-only dependencies with no shipped impact. See [`build/targets/tests/Package
 
 Representative packages:
 
-| Package | Location |
-|---------|----------|
-| Verify.Xunit | build/targets/tests/Packages.props |
-| xunit | build/targets/tests/Packages.props |
-| Microsoft.NET.Test.Sdk | build/targets/tests/Packages.props |
-| coverlet.msbuild | build/targets/tests/Packages.props |
+| Package                | Location                             |
+| ---------------------- | ------------------------------------ |
+| Verify.Xunit           | build/targets/tests/Packages.props   |
+| xunit                  | build/targets/tests/Packages.props   |
+| Microsoft.NET.Test.Sdk | build/targets/tests/Packages.props   |
+| coverlet.msbuild       | build/targets/tests/Packages.props   |
 
 **Upgrade policy:** Automerge minor/patch. CI validates compatibility.
 
@@ -62,10 +62,10 @@ Representative packages:
 
 BenchmarkDotNet and Perfolizer have intertwined version requirements. BenchmarkDotNet declares a minimum Perfolizer version and a minimum Microsoft.CodeAnalysis.CSharp version.
 
-| Package | Central Pin | Notes |
-|---------|------------|-------|
+| Package         | Central Pin              | Notes                                   |
+| --------------- | ------------------------ | --------------------------------------- |
 | BenchmarkDotNet | Directory.Packages.props | Transitive dep on Perfolizer and Roslyn |
-| Perfolizer | Directory.Packages.props | Used directly by PerfDiff tool |
+| Perfolizer      | Directory.Packages.props | Used directly by PerfDiff tool          |
 
 **Upgrade policy:** Grouped in Renovate as `benchmark-tooling` with `automerge: false`. Both packages must be updated together. The benchmark project uses `VersionOverride` for packages whose central pins are constrained by shipped analyzer compatibility (e.g., `System.Collections.Immutable`).
 
@@ -73,32 +73,32 @@ BenchmarkDotNet and Perfolizer have intertwined version requirements. BenchmarkD
 
 The PerfDiff tool (`src/tools/PerfDiff/`) uses System.CommandLine, which had breaking API changes between beta and stable releases. The `IConsole` interface was removed in 2.0.3.
 
-| Package | Status |
-|---------|--------|
-| System.CommandLine | **Disabled** in Renovate until PerfDiff is rewritten |
+| Package                      | Status                                                    |
+| ---------------------------- | --------------------------------------------------------- |
+| System.CommandLine           | **Disabled** in Renovate until PerfDiff is rewritten      |
 | System.CommandLine.Rendering | **Disabled** (folded into main package in stable release) |
 
 **Why disabled:** The perf CI check builds PerfDiff on-demand. It is excluded from the normal build/test matrix. Updates that break PerfDiff only surface as `perf` check failures, which are a required status check.
 
 ### Build Infrastructure - MODERATE CAUTION
 
-| Package | Location | Notes |
-|---------|----------|-------|
-| Polyfill | build/targets/compiler/Packages.props | Compiler polyfills |
-| DotNet.ReproducibleBuilds | build/targets/reproducible/Packages.props | Build reproducibility |
-| DotNet.ReproducibleBuilds.Isolated | global.json (msbuild-sdks) | MSBuild SDK isolation |
-| Nerdbank.GitVersioning | Directory.Packages.props | Version calculation |
+| Package                            | Location                                     | Notes                    |
+| ---------------------------------- | -------------------------------------------- | ------------------------ |
+| Polyfill                           | build/targets/compiler/Packages.props        | Compiler polyfills       |
+| DotNet.ReproducibleBuilds          | build/targets/reproducible/Packages.props    | Build reproducibility    |
+| DotNet.ReproducibleBuilds.Isolated | global.json (msbuild-sdks)                   | MSBuild SDK isolation    |
+| Nerdbank.GitVersioning             | Directory.Packages.props                     | Version calculation      |
 
 **Upgrade policy:** Automerge minor/patch for stable versions. ReproducibleBuilds and Isolated should be updated together (same release cadence).
 
 ## Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `renovate.json` | Renovate bot configuration (primary dependency bot) |
-| `.github/dependabot.yml` | Dependabot configuration (GitHub Actions only) |
-| `Directory.Packages.props` | Central package version management |
-| `build/targets/*/Packages.props` | Category-specific package versions |
+| File                             | Purpose                                             |
+| -------------------------------- | --------------------------------------------------- |
+| `renovate.json`                  | Renovate bot configuration (primary dependency bot) |
+| `.github/dependabot.yml`         | Dependabot configuration (GitHub Actions only)      |
+| `Directory.Packages.props`       | Central package version management                  |
+| `build/targets/*/Packages.props` | Category-specific package versions                  |
 
 ## VersionOverride Pattern
 

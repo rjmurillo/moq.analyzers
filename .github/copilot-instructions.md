@@ -3,7 +3,7 @@
 ## 🚩 Quick Reference: Critical Rules for AI Agents
 
 | Rule | Requirement |
-|------|-------------|
+| ------ | ------------- |
 | .NET/C# Target | All C# code must target .NET 9 and C# 13; Analyzers and CodeFix must target .NET Standard 2.0 |
 | No Trial-and-Error | Never guess or use trial-and-error; STOP if unsure |
 | Test Coverage | All changes must be covered by tests (including edge/failure paths) |
@@ -49,7 +49,6 @@ If any of these are missing, the PR will not be reviewed.
 
 ### 1. Pre-Implementation Expertise Validation
 
-
 ---
 
 ## Escalation and Stop Conditions
@@ -65,15 +64,18 @@ If you encounter a diagnostic span test failure, or are unsure about any Roslyn 
 ### Symbol-Based Detection (MANDATORY)
 
 **Always prefer symbol-based detection over string matching:**
+
 - ✅ Use `ISymbol` and `SemanticModel.GetSymbolInfo()` for type-safe detection
 - ✅ Register types in `MoqKnownSymbols` using `TypeProvider.GetOrCreateTypeByMetadataName()`
 - ❌ Avoid string-based method name matching (fragile, not refactoring-safe)
 
 **Generic Type Handling:**
+
 - Use backtick notation for generic arity: `"Moq.Language.IRaise\`1"` for `IRaise<T>`
 - Collect method overloads: `GetMembers("MethodName").OfType<IMethodSymbol>().ToImmutableArray()`
 
 **Moq Fluent API Chain Pattern:**
+
 - Moq methods return different interfaces at different chain positions
 - Example: `Setup()` → `ISetup<T>` → `.Raises()` → `IRaise<T>` → `.Returns()` → `IReturns<T>`
 - **Register ALL interfaces in the chain**, not just endpoint types
@@ -81,6 +83,7 @@ If you encounter a diagnostic span test failure, or are unsure about any Roslyn 
 ### Diagnostic Investigation Pattern
 
 When tests fail after removing string-based detection:
+
 1. Create temporary diagnostic test using `SemanticModel.GetSymbolInfo()`
 2. Capture actual symbol type at runtime
 3. Compare against `MoqKnownSymbols` registry to find missing entries
@@ -89,6 +92,7 @@ When tests fail after removing string-based detection:
 ### Context Preservation
 
 Use appropriate analysis contexts to maintain compilation access:
+
 - `SyntaxNodeAnalysisContext` - For syntax tree analysis with semantic model
 - `SemanticModelAnalysisContext` - For semantic analysis
 - `SyntaxTreeAnalysisContext` - For whole-file analysis
@@ -169,6 +173,7 @@ These tools enforce the project's "No Trial-and-Error" policy by requiring struc
 ---
 
 **Implementation:**
+
 - Answer domain-specific technical questions before coding
 - Provide concrete examples of your understanding
 - Request expert guidance if uncertain about any concept
@@ -184,6 +189,7 @@ These tools enforce the project's "No Trial-and-Error" policy by requiring struc
 - **Stop progression** if any required step is incomplete
 
 **Implementation:**
+
 - Read and understand project-specific instructions first
 - Follow established patterns and conventions
 - Verify each workflow step was completed successfully
@@ -192,12 +198,14 @@ These tools enforce the project's "No Trial-and-Error" policy by requiring struc
 ### 3. Critical Failure Recognition
 
 **You MUST establish clear stop conditions:**
+
 - **Immediate halt** for uncertainty or lack of understanding
 - **Specific criteria** for when to request expert guidance
 - **No trial-and-error tolerance** - require deliberate, correct understanding
 - **Clear escalation paths** when encountering complex situations
 
 **Implementation:**
+
 - Stop immediately if you cannot explain your approach
 - Request expert guidance when uncertain about domain concepts
 - Never attempt to "figure out" solutions through guessing
@@ -206,12 +214,14 @@ These tools enforce the project's "No Trial-and-Error" policy by requiring struc
 ### 4. Tool Usage Reliability
 
 **You MUST use available tools consistently and reliably:**
+
 - **Consistent, reliable use** of available tools regardless of platform
 - **Graceful handling** of tool failures and interruptions
 - **Validation** that tools were used correctly and effectively
 - **Retry mechanisms** for interrupted operations
 
 **Implementation:**
+
 - Use tools systematically and consistently
 - Handle tool failures gracefully with clear error messages
 - Validate tool outputs before proceeding
@@ -220,12 +230,14 @@ These tools enforce the project's "No Trial-and-Error" policy by requiring struc
 ### 5. Context and State Management
 
 **You MUST preserve context and maintain state:**
+
 - **Preserve context** across task interruptions or resumptions
 - **Maintain state** during complex multi-step operations
 - **Automatic recovery** of context after interruptions
 - **Clear state transitions** between different phases of work
 
 **Implementation:**
+
 - Maintain clear state throughout complex operations
 - Recover context automatically after interruptions
 - Document state transitions clearly
@@ -234,12 +246,14 @@ These tools enforce the project's "No Trial-and-Error" policy by requiring struc
 ### 6. Documentation and Configuration Awareness
 
 **You MUST check and understand project context:**
+
 - **Check relevant files** before making changes
 - **Read and understand** project-specific instructions
 - **Follow established patterns** and conventions
 - **Respect existing architecture** and design decisions
 
 **Implementation:**
+
 - Always read configuration files and documentation first
 - Understand project structure and conventions
 - Follow established naming and architectural patterns
@@ -248,12 +262,14 @@ These tools enforce the project's "No Trial-and-Error" policy by requiring struc
 ### 7. Validation and Verification
 
 **You MUST verify work through appropriate means:**
+
 - **Verify work** through appropriate means (tests, analysis, etc.)
 - **Confirm changes** meet requirements before considering tasks complete
 - **Run validation checks** after modifications
 - **Ensure quality** through systematic verification
 
 **Implementation:**
+
 - Run tests and validation checks after changes
 - Verify that modifications meet stated requirements
 - Use appropriate verification methods for the domain
@@ -262,12 +278,14 @@ These tools enforce the project's "No Trial-and-Error" policy by requiring struc
 ### 8. No Trial-and-Error Tolerance
 
 **You MUST require deliberate understanding:**
+
 - **Require deliberate understanding** before implementation
 - **No guessing** at solutions or approaches
 - **Clear escalation paths** when uncertain
 - **Expert guidance triggers** for complex or unclear situations
 
 **Implementation:**
+
 - Never implement solutions you don't fully understand
 - Stop and request clarification when uncertain
 - Establish clear criteria for when to seek expert guidance
@@ -352,7 +370,6 @@ When working with task lists, the AI must:
 5. **Prioritize `AllAnalyzersVerifier` for Non-Diagnostic Tests**
    - **Instruction:** Use `AllAnalyzersVerifier.VerifyAllAnalyzersAsync()` for "no diagnostics" tests.
 
-
 ### AI Agent Workflow
 
 When making changes, follow this workflow:
@@ -377,7 +394,6 @@ All formatting, linting, and static analysis feedback from bots must be addresse
 
 ---
 
-
 ### AI Agent Specific Output Checklist
 
 - Output only complete, compiling code (classes or methods) with all required `using` directives.
@@ -393,7 +409,7 @@ All formatting, linting, and static analysis feedback from bots must be addresse
 
 All commits must use the [Conventional Commits](https://www.conventionalcommits.org/) format:
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -408,6 +424,7 @@ All commits must use the [Conventional Commits](https://www.conventionalcommits.
 - `docs(readme): update installation instructions`
 
 **Bad:**
+
 - `fixed bug on landing page`
 - `oops`
 - `I think I fixed it this time?`
@@ -429,6 +446,7 @@ All commits must use the [Conventional Commits](https://www.conventionalcommits.
 Before writing a single line of code, you must internally verify you can make the following declaration. If not, you must halt immediately.
 
 > "I declare that I have expert-level, demonstrable expertise in:
+>
 > - Roslyn syntax tree navigation from `SyntaxNode` down to `SyntaxToken` and `SyntaxTrivia`.
 > - Precise, character-level diagnostic span calculation and verification.
 > - The distinction and correct application of `IOperation` vs. `ISyntaxNode` analysis.
@@ -508,13 +526,13 @@ If you encounter:
 
 ---
 
-
 ## AI Agent Code Review
 
 I need your help tracking down and fixing some bugs that have been reported in this codebase.
 
 I suspect the bugs are related to:
-- Incorrect handling of edge cases 
+
+- Incorrect handling of edge cases
 - Off-by-one errors in loops or array indexing
 - Unexpected data types
 - Uncaught exceptions
@@ -522,17 +540,19 @@ I suspect the bugs are related to:
 - Improper configuration settings
 
 To diagnose:
-1. Review the code carefully and systematically 
-2. Trace the relevant code paths 
+
+1. Review the code carefully and systematically
+2. Trace the relevant code paths
 3. Consider boundary conditions and potential error states
 4. Look for antipatterns that tend to cause bugs
-5. Run the code mentally with example inputs 
+5. Run the code mentally with example inputs
 6. Think about interactions between components
 
 When you find potential bugs, for each one provide:
+
 1. File path and line number(s)
 2. Description of the issue and why it's a bug
-3. Example input that would trigger the bug 
+3. Example input that would trigger the bug
 4. Suggestions for how to fix it
 
 After analysis, please update the code with your proposed fixes. Try to match the existing code style. Add regression tests if possible, to prevent the bugs from recurring.
@@ -600,6 +620,7 @@ The following instruction files provide comprehensive, self-contained guidance f
 5. **Test coverage** - Ensure all file types have appropriate instruction coverage
 
 **Common areas requiring updates across multiple files:**
+
 - Git commit message guidelines
 - Pull request requirements
 - Code quality standards
@@ -616,6 +637,7 @@ The following instruction files provide comprehensive, self-contained guidance f
 ## Reference to General Guidelines
 
 For comprehensive contributor guidance including:
+
 - Development workflow requirements
 - Code quality standards
 - Testing requirements and patterns

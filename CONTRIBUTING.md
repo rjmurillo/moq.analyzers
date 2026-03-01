@@ -45,6 +45,10 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
    dotnet test --settings ./build/targets/tests/test.runsettings
    ```
 
+5. **Install linting tools** (for local validation):
+   - [yamllint](https://yamllint.readthedocs.io/) (Python): `pip install yamllint`
+   - [markdownlint-cli](https://github.com/igorshubovych/markdownlint-cli) (Node.js): `npm install -g markdownlint-cli`
+
 ## Universal Agent Success Principles for Project Maintainers
 
 > **IMPORTANT:** These guidelines help project maintainers create environments where AI agents can be more successful, regardless of the specific agent platform or tools being used.
@@ -355,6 +359,28 @@ Before submitting a PR, ensure your code passes all quality checks:
 - If a bot's feedback is not addressed and a human reviewer must repeat the request, the PR will be closed until all automated feedback is resolved.
 - All documentation and markdown reports must pass formatting checks. Use a markdown linter if available.
 
+### Local Linting
+
+The repository uses [super-linter](https://github.com/super-linter/super-linter) in CI to validate YAML, Markdown, JSON, shell scripts, and GitHub Actions workflows. You can run the same checks locally:
+
+**YAML** (uses `.yamllint.yml` config):
+
+```bash
+yamllint -c .yamllint.yml .github/ .codacy/
+```
+
+**Markdown** (uses `.markdownlint.json` config):
+
+```bash
+npx markdownlint-cli --config .markdownlint.json "**/*.md"
+```
+
+**All linters via Docker** (exact CI match):
+
+```bash
+docker run --rm -e RUN_LOCAL=true -v "$(pwd):/tmp/lint" ghcr.io/super-linter/super-linter:v8.5.0
+```
+
 ## Testing Requirements
 
 ### Unit Tests
@@ -387,13 +413,14 @@ When testing code fixes that modify a class member (method, property, etc.), you
 
 Define a `public static IEnumerable<object[]>` method to provide test cases.
 
--   **Signature:** `public static IEnumerable<object[]> YourDataSourceMethod()`
--   **Content:** Return a `new object[][] { ... }`. Each inner `object[]` must contain two strings:
-    1.  The original code snippet that triggers the analyzer (`brokenCode`).
-    2.  The target code snippet after the code fix is applied (`fixedCode`).
--   **Helpers:** You **MUST** chain `.WithNamespaces().WithMoqReferenceAssemblyGroups()` to the collection to automatically generate test variations.
+- **Signature:** `public static IEnumerable<object[]> YourDataSourceMethod()`
+- **Content:** Return a `new object[][] { ... }`. Each inner `object[]` must contain two strings:
+    1. The original code snippet that triggers the analyzer (`brokenCode`).
+    2. The target code snippet after the code fix is applied (`fixedCode`).
+- **Helpers:** You **MUST** chain `.WithNamespaces().WithMoqReferenceAssemblyGroups()` to the collection to automatically generate test variations.
 
 **Example:**
+
 ```csharp
 public static IEnumerable<object[]> MakesNonVirtualMethodVirtualData()
 {
@@ -411,9 +438,10 @@ public static IEnumerable<object[]> MakesNonVirtualMethodVirtualData()
 
 Create an `async Task` method decorated with `[Theory]` and `[MemberData]`.
 
--   **Signature:** The signature **MUST** match the data source output: `async Task YourTestMethod(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)`
+- **Signature:** The signature **MUST** match the data source output: `async Task YourTestMethod(string referenceAssemblyGroup, string @namespace, string brokenCode, string fixedCode)`
 
 **Example:**
+
 ```csharp
 [Theory]
 [MemberData(nameof(MakesNonVirtualMethodVirtualData))]
@@ -427,11 +455,12 @@ public async Task MakesNonVirtualMethodVirtual(string referenceAssemblyGroup, st
 
 Inside the test method, define a `static` local function named `Template` that builds the full source code using a raw string literal.
 
--   **Placeholders:** The template **MUST** use `{{ns}}` for the namespace and `{{code}}` for the code snippet.
--   **Context:** The template **MUST** include all necessary `using` statements and class structures to create a valid, compilable test case. Note that `tests\Moq.Analyzers.Test\Helpers\Test.cs` inserts global usings common for tests.
--   **Diagnostic Marker:** The code that triggers the analyzer **MUST** be wrapped with `{|DIAGNOSTIC_ID: ... |}` (e.g., `{|Moq1210:...|}`). This is non-negotiable for the test verifier to work.
+- **Placeholders:** The template **MUST** use `{{ns}}` for the namespace and `{{code}}` for the code snippet.
+- **Context:** The template **MUST** include all necessary `using` statements and class structures to create a valid, compilable test case. Note that `tests\Moq.Analyzers.Test\Helpers\Test.cs` inserts global usings common for tests.
+- **Diagnostic Marker:** The code that triggers the analyzer **MUST** be wrapped with `{|DIAGNOSTIC_ID: ... |}` (e.g., `{|Moq1210:...|}`). This is non-negotiable for the test verifier to work.
 
 **Example:**
+
 ```csharp
 static string Template(string ns, string code) =>
 $$"""
@@ -454,11 +483,12 @@ public class MyTest
 """;
 ```
 
-**4. Verify the Code Fix**
+#### 4. Verify the Code Fix
 
 Use the `Template` function to generate the "before" and "after" source files and pass them to `Verify.VerifyCodeFixAsync`.
 
 **Example:**
+
 ```csharp
 string originalSource = Template(@namespace, brokenCode);
 string fixedSource = Template(@namespace, fixedCode);
@@ -475,6 +505,7 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
 ```
 
 **Key Benefits:**
+
 - **Automatic Discovery**: Uses reflection to find all `DiagnosticAnalyzer` types in the `Moq.Analyzers` namespace
 - **No Manual Maintenance**: New analyzers are automatically included without code changes
 - **Comprehensive Coverage**: Tests against ALL analyzers simultaneously to ensure no false positives
@@ -484,12 +515,14 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
 ### Moq-Specific Testing Guidelines
 
 **Test Data Grouping:**
+
 - When adding or updating test data, group tests by Moq version compatibility:
   - Place tests for features only available in Moq 4.18.4+ in a "new" group.
   - Place tests for features available in both 4.8.2 and 4.18.4 in a "both" or "old" group.
   - Do not include tests for features/APIs that do not exist in the targeted Moq version.
 
 **Moq Version Compatibility:**
+
 - **Moq 4.8.2:**
   - Does _not_ support `SetupAdd`, `SetupRemove`, or `.Protected().Setup`.
   - Indexer setups are supported only for virtual or interface indexers.
@@ -503,6 +536,7 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
   - When in doubt, consult the official Moq documentation and changelogs for feature support.
 
 **Required Moq Testing Patterns:**
+
 - **Overridable Members Only:** Only set up or verify virtual, abstract, or interface members. Do **not** attempt to set up or verify non-virtual, static, or sealed members.
 - **Events and Indexers:** Use `SetupAdd` and `SetupRemove` **only** for virtual events, and only in Moq 4.18.4+.
 - **Explicit Interface Implementations:** Setups for explicit interface implementations must use the correct cast syntax (e.g., `((IMyInterface)x).Method()`).
@@ -525,6 +559,7 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
 ### When Documentation is Required
 
 Documentation updates are required for:
+
 - New analyzers or fixers
 - Changes to existing analyzer behavior
 - API changes or additions
@@ -564,6 +599,7 @@ Documentation updates are required for:
   - ❌ Bad: `x => x.Method()`
 
 **Examples:**
+
 ```csharp
 /// <summary>
 /// Determines whether a member symbol is either overridable or represents a 
@@ -581,6 +617,7 @@ Documentation updates are required for:
 ```
 
 **Validation:**
+
 - All public APIs must have complete XML documentation
 - All type references must use `<see cref=".." />` tags
 - All C# keywords must use `<see langword=".." />` tags
@@ -699,18 +736,21 @@ For full documentation, see [nektosact.com](https://nektosact.com/usage/).
 ### Performance Testing Guidelines
 
 **When Performance Testing is Required:**
+
 - New analyzers or fixers
 - Changes to existing analyzer logic
 - Dependency updates that might affect performance
 - CI/CD changes that impact build times
 
 **Performance Testing Process:**
+
 1. Run benchmarks locally using `dotnet run --project tests/Moq.Analyzers.Benchmarks/`
 2. Compare results against baseline
 3. Document any performance regressions or improvements
 4. Include benchmark results in PR description
 
 **Performance Validation Evidence:**
+
 - Benchmark output showing no significant regressions
 - Comparison with previous baseline results
 - Explanation of any performance changes
@@ -720,6 +760,7 @@ For full documentation, see [nektosact.com](https://nektosact.com/usage/).
 ### Dependency Update Guidelines
 
 **For Renovate/Dependabot PRs:**
+
 - Review changelog and release notes
 - Test locally to ensure compatibility
 - Check for breaking changes
@@ -727,6 +768,7 @@ For full documentation, see [nektosact.com](https://nektosact.com/usage/).
 - Include testing evidence in PR description
 
 **For Manual Dependency Updates:**
+
 - Follow the same process as automated updates
 - Document the reason for the update
 - Include compatibility testing results
@@ -746,6 +788,7 @@ For full documentation, see [nektosact.com](https://nektosact.com/usage/).
 Follow conventional commit format: `type(scope): description`
 
 **Description Requirements:**
+
 1. **Clear summary** of changes
 2. **Problem statement** (what issue does this solve?)
 3. **Solution description** (how does this solve the problem?)
@@ -768,6 +811,7 @@ Before submitting a PR, ensure:
 ### Validation Evidence Requirements
 
 **What Constitutes Validation Evidence:**
+
 - Test execution logs showing all tests pass
 - **Code coverage report summary and/or screenshots showing coverage for changed code**
 - Performance benchmark results (if applicable)
@@ -775,6 +819,7 @@ Before submitting a PR, ensure:
 - Manual testing results for UI changes
 
 **Evidence Format:**
+
 - Include logs, screenshots, or links to CI runs
 - Provide clear, readable evidence
 - Ensure evidence is recent and relevant
@@ -808,6 +853,7 @@ Maintainers will review PRs for:
 ### Common Review Feedback
 
 **Frequently Requested Changes:**
+
 - Add missing tests for edge cases
 - Update documentation for new features
 - Improve error handling and logging
@@ -815,6 +861,7 @@ Maintainers will review PRs for:
 - Clarify PR description or validation evidence
 
 **PRs That May Be Rejected:**
+
 - Missing validation evidence
 - Incomplete test coverage
 - Performance regressions without justification
@@ -828,7 +875,7 @@ This project uses [Nerdbank.GitVersioning](https://github.com/dotnet/Nerdbank.Gi
 ### How Versioning Works
 
 | Branch | `version.json` value | Produced version |
-|--------|---------------------|-----------------|
+| -------- | --------------------- | ----------------- |
 | `main` | `0.4.0-alpha` | `0.4.0-alpha.{height}` (prerelease) |
 | `release/v0.4.0` | `0.4.0` | `0.4.0` (stable) |
 | `release/v0.4.1` | `0.4.1` | `0.4.1` (stable) |
@@ -1022,11 +1069,13 @@ If the answer to **ANY** question is "no" or "unsure," you **MUST STOP** and req
 This repository uses **symbol-based detection** for all Moq pattern matching:
 
 **Symbol Registry Pattern:**
+
 - Central registry: `src/Common/WellKnown/MoqKnownSymbols.cs`
 - Symbols loaded via `TypeProvider.GetOrCreateTypeByMetadataName()`
 - Method collections via `GetMembers("MethodName").OfType<IMethodSymbol>().ToImmutableArray()`
 
 **Example - Adding New Moq Interface:**
+
 ```csharp
 // In MoqKnownSymbols.cs
 internal INamedTypeSymbol? IRaise1 => 
@@ -1038,6 +1087,7 @@ internal ImmutableArray<IMethodSymbol> IRaise1Raises =>
 ```
 
 **Detection Helper Pattern:**
+
 ```csharp
 // In ISymbolExtensions.cs
 public static bool IsRaiseableMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
@@ -1052,7 +1102,7 @@ public static bool IsRaiseableMethod(this ISymbol symbol, MoqKnownSymbols knownS
 Moq uses **method chaining** with different return types at each stage:
 
 | Stage | Method | Returns Interface |
-|-------|--------|-------------------|
+| ------- | -------- | ------------------- |
 | Setup | `Setup(x => x.Method())` | `ISetup<T>` |
 | Callback | `.Callback(...)` | `ICallback<T>` |
 | Event | `.Raises(...)` | `IRaise<T>` (generic) |
@@ -1067,6 +1117,7 @@ Moq uses **method chaining** with different return types at each stage:
 **Root Cause**: Missing symbol registration in `MoqKnownSymbols`.
 
 **Solution Process**:
+
 1. Create temporary test to capture `SemanticModel.GetSymbolInfo()` output
 2. Identify the actual symbol type (e.g., `Moq.Language.IRaise<T>`)
 3. Add missing symbol to `MoqKnownSymbols` with proper metadata name
@@ -1074,6 +1125,7 @@ Moq uses **method chaining** with different return types at each stage:
 5. Delete temporary diagnostic test
 
 **Example Investigation**:
+
 ```csharp
 // Temporary diagnostic test
 var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression);
@@ -1147,7 +1199,7 @@ In filmmaking, it is often quoted "show, don't tell" using visuals as the commun
 
 In our case, "tell, don't [just] show" – though we have some visuals at our disposal such as the browser, most of the specifics come from reading the physical code.
 
-When writing the commit, imagine how useful this could be in troubleshooting a bug or back-tracing changes made. 
+When writing the commit, imagine how useful this could be in troubleshooting a bug or back-tracing changes made.
 
 Where possible, use **Conventional Commits**
 
@@ -1155,7 +1207,7 @@ Where possible, use **Conventional Commits**
 
 Conventional Commit is a formatting convention that provides a set of rules to formulate a consistent commit message structure like so:
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -1187,10 +1239,10 @@ The footer is also optional. We use the footer to link the GitHub issue that wou
 
 Example:
 
-```
+```text
 fix: fix foo to enable bar
 
-This fixes the broken behavior of the component by doing xyz. 
+This fixes the broken behavior of the component by doing xyz.
 
 BREAKING CHANGE
 Before this fix foo wasn't enabled at all, behavior changes from <old> to <new>
@@ -1200,20 +1252,20 @@ Closes #12345
 
 #### Commit Message Examples
 
-**Good**
+#### Good
 
 - `feat: improve performance with lazy load implementation for images`
 - `chore: update npm dependency to latest version`
 - `Fix bug preventing users from submitting the subscribe form`
 - `Update incorrect client phone number within footer body per client request`
 
-**Bad**
+#### Bad
 
 - `fixed bug on landing page`
 - `Changed style`
 - `oops`
 - `I think I fixed it this time?`
-- *empty commit messages*
+- _empty commit messages_
 
 ## Getting Help
 
@@ -1227,9 +1279,9 @@ If you need help with any aspect of contributing:
 ## Recognition
 
 Contributors will be recognized in:
+
 - Release notes for significant contributions
 - Project README for major contributors
 - GitHub contributors list
 
 Thank you for contributing to Moq.Analyzers!
-

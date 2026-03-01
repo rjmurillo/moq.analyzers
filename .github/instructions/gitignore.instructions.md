@@ -13,6 +13,7 @@ applyTo: '.gitignore'
 ## Context Loading for Copilot
 
 When working on this file, you MUST:
+
 1. Read this entire instruction file before making any changes
 2. Validate your understanding by checking the "Validation Checklist" section
 3. If uncertain about any requirement, stop and request clarification
@@ -23,6 +24,7 @@ If you (AI or human) are blocked or cannot proceed, leave a comment in the PR de
 ## Validation Checklist
 
 Before submitting any changes, verify:
+
 - [ ] Only files that should not be tracked are ignored
 - [ ] No source, config, or required files are ignored
 - [ ] All new build artifacts, logs, and secrets are ignored
@@ -30,6 +32,7 @@ Before submitting any changes, verify:
 - [ ] PR description includes validation evidence and checklist
 
 ## Validation Evidence Requirements
+
 - Attach a log section titled `## Gitignore Validation Log` showing the output of `git status` before and after changes
 - Include a checklist like:
   - [x] No required files ignored
@@ -37,6 +40,7 @@ Before submitting any changes, verify:
 - Paste CI run link under `## CI Evidence`
 
 ## .gitignore Guidance
+
 - Only ignore files that are not needed in the repository (build output, logs, secrets, etc.)
 - Never ignore source code, configuration, or documentation files
 - Review changes with maintainers if unsure
@@ -44,5 +48,6 @@ Before submitting any changes, verify:
 - Document any changes in the PR description
 
 ## Related Instruction Files
+
 - [project.instructions.md](project.instructions.md) - For build artifacts
-- [text.instructions.md](text.instructions.md) - For text file patterns 
+- [text.instructions.md](text.instructions.md) - For text file patterns

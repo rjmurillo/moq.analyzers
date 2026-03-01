@@ -6,5 +6,5 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Execute the PowerShell script with CI parameters and all passed arguments
-pwsh -ExecutionPolicy ByPass -NoProfile -command "& \"$SCRIPT_DIR/PerfCore.ps1\" -v diag -diff -ci \"$@\""
+pwsh -ExecutionPolicy ByPass -NoProfile -File "$SCRIPT_DIR/PerfCore.ps1" -v diag -diff -ci "$@"
 exit $?

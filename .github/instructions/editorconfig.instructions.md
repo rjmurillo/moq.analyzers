@@ -13,6 +13,7 @@ applyTo: '.editorconfig'
 ## Context Loading for Copilot
 
 When working on this file, you MUST:
+
 1. Read this entire instruction file before making any changes
 2. Validate your understanding by checking the "Validation Checklist" section
 3. If uncertain about any requirement, stop and request clarification
@@ -23,6 +24,7 @@ If you (AI or human) are blocked or cannot proceed, leave a comment in the PR de
 ## Validation Checklist
 
 Before submitting any changes, verify:
+
 - [ ] All formatting and linting rules are correct and documented
 - [ ] All changes are compatible with project coding standards
 - [ ] All affected files are re-formatted and linted
@@ -30,6 +32,7 @@ Before submitting any changes, verify:
 - [ ] PR description includes validation evidence and checklist
 
 ## Validation Evidence Requirements
+
 - Attach a log section titled `## EditorConfig Validation Log` showing the output of `dotnet format` or equivalent
 - Include a checklist like:
   - [x] All files formatted
@@ -37,6 +40,7 @@ Before submitting any changes, verify:
 - Paste CI run link under `## CI Evidence`
 
 ## .editorconfig Guidance
+
 - .editorconfig controls code formatting and linting for the repository
 - Changes may affect build results, code reviews, and CI
 - Only update rules when necessary and after confirming with maintainers
@@ -44,6 +48,7 @@ Before submitting any changes, verify:
 - Document any rule changes in the PR description
 
 ## Related Instruction Files
+
 - [csharp.instructions.md](csharp.instructions.md) - For C# code formatting
 - [markdown.instructions.md](markdown.instructions.md) - For markdown formatting
-- [project.instructions.md](project.instructions.md) - For build configuration 
+- [project.instructions.md](project.instructions.md) - For build configuration

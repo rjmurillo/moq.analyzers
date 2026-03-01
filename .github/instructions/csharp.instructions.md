@@ -8,9 +8,10 @@ applyTo: '**/*.cs'
 
 - **For complex changes, see the Decision Trees section below**
 
-**MANDATORY: Only Valid C# Code in All Tests**
+## MANDATORY: Only Valid C# Code in All Tests
 
 > **You MUST NEVER write or include code in analyzer or code fix tests that produces C# compiler errors.**
+>
 > - All test code must be valid, compilable C#.
 > - Do not write tests for static, const, readonly, or event members if the code would not compile.
 > - Do not include code that triggers CSxxxx errors (e.g., invalid member access, missing members, or illegal syntax).
@@ -18,6 +19,7 @@ applyTo: '**/*.cs'
 > - Any test that fails to compile is an immediate failure and must be removed or rewritten.
 
 **Rationale:**
+
 - Roslyn analyzers and code fixes only operate on valid, successfully parsed C# code. Compiler errors prevent analyzers from running and invalidate the test scenario.
 - Writing invalid code in tests causes build failures, test failures, and wastes review/CI resources.
 - This is a non-negotiable rule. If you are unsure whether a test is valid C#, STOP and request expert guidance.
@@ -94,22 +96,23 @@ If you update guidance in copilot-instructions.md that affects C# development, e
 If tests fail after adding/modifying symbol-based detection:
 
 1. **Create Temporary Diagnostic Test:**
-```csharp
-[TestMethod]
-public async Task DiagnosticSymbolTest()
-{
-    string code = """
-        var mock = new Mock<ITestInterface>();
-        mock.Setup(x => x.Method()).Raises(x => x.Event += null, EventArgs.Empty);
-        """;
-    
-    var (compilation, semanticModel, invocation) = await GetSemanticInfo(code);
-    var symbolInfo = semanticModel.GetSymbolInfo(invocation);
-    
-    // Output actual symbol type to understand what's missing
-    Console.WriteLine($"Symbol: {symbolInfo.Symbol?.ContainingType}");
-}
-```
+
+   ```csharp
+   [TestMethod]
+   public async Task DiagnosticSymbolTest()
+   {
+       string code = """
+           var mock = new Mock<ITestInterface>();
+           mock.Setup(x => x.Method()).Raises(x => x.Event += null, EventArgs.Empty);
+           """;
+
+       var (compilation, semanticModel, invocation) = await GetSemanticInfo(code);
+       var symbolInfo = semanticModel.GetSymbolInfo(invocation);
+
+       // Output actual symbol type to understand what's missing
+       Console.WriteLine($"Symbol: {symbolInfo.Symbol?.ContainingType}");
+   }
+   ```
 
 2. **Compare Against Registry:** Check if symbol type exists in `MoqKnownSymbols`
 3. **Add Missing Symbol:** Register in `MoqKnownSymbols` with proper generic arity
@@ -124,6 +127,7 @@ public async Task DiagnosticSymbolTest()
 ## Test Data & Sample Inputs/Outputs
 
 ### What Constitutes Good Test Data?
+
 - Cover all code paths: positive, negative, and edge cases
 - Include both minimal and complex/realistic examples
 - Test for invalid inputs, exceptions, and boundary conditions
@@ -131,6 +135,7 @@ public async Task DiagnosticSymbolTest()
 - For analyzers/code fixes: test all diagnostic locations, fix applications, and no-fix scenarios
 
 ### Coverage Strategy
+
 - For every new analyzer/code fix, include:
   - At least one positive, one negative, and one edge case test
   - Data-driven tests for all fixable patterns

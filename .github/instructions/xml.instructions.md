@@ -12,12 +12,14 @@ applyTo: '**/*.xml'
 ## Context Loading for Copilot
 
 When working on this file type, you MUST:
+
 1. Read this entire instruction file before making any changes
 2. Cross-reference with related instruction files (listed below)
 3. Validate your understanding by checking the "Validation Checklist" section
 4. If uncertain about any requirement, stop and request clarification
 
 **Related Instruction Files:**
+
 - [project.instructions.md](project.instructions.md) - For project and build configuration
 - [csharp.instructions.md](csharp.instructions.md) - For C# code changes
 - [text.instructions.md](text.instructions.md) - For plain text documentation
@@ -27,12 +29,14 @@ When working on this file type, you MUST:
 Before submitting any changes, verify:
 
 **XML Quality & Documentation:**
+
 - [ ] XML syntax is valid
 - [ ] Schema compliance is maintained
 - [ ] Documentation is updated
 - [ ] Changes work as expected
 
 **Process:**
+
 - [ ] Conventional commit format used
 - [ ] PR description includes validation evidence
 - [ ] All checklist items completed
@@ -41,11 +45,13 @@ Before submitting any changes, verify:
 ## Decision Trees
 
 ### When to Request Human Review
+
 - Is this a new XML schema or documentation standard? → Yes → Request expert guidance
 - Is this a breaking change to XML structure or documentation? → Yes → Document thoroughly and request review
 - Are you uncertain about XML schema or documentation? → Yes → Stop and request guidance
 
 ### When to Stop and Ask for Help
+
 - Uncertain about XML requirements
 - Major changes to project configuration
 - Security or legal implications
@@ -53,10 +59,12 @@ Before submitting any changes, verify:
 ## Common Mistakes to Avoid
 
 **DO NOT:**
+
 - Skip validation steps
 - Submit changes without validation evidence
 
 **ALWAYS:**
+
 - Read the entire instruction file first
 - Validate all XML and documentation changes
 - Include comprehensive documentation updates
@@ -65,16 +73,19 @@ Before submitting any changes, verify:
 ## Context Management
 
 **Before Starting:**
+
 - Read the complete instruction file
 - Understand the current file's purpose and structure
 - Identify all related files that may need updates
 
 **During Editing:**
+
 - Keep track of all changes made
 - Validate each change against requirements
 - Maintain consistency with existing patterns
 
 **After Completing:**
+
 - Review all changes against the validation checklist
 - Ensure all requirements are met
 - Prepare comprehensive PR description with evidence
@@ -82,12 +93,14 @@ Before submitting any changes, verify:
 ## Handling Uncertainty
 
 **Stop and Request Help When:**
+
 - You cannot explain your approach clearly
 - You're making "educated guesses" about XML or documentation
 - You're uncertain about project configuration
 - You cannot trace the logic in XML without narration
 
 **Escalation Process:**
+
 1. Stop all work immediately
 2. Document what you were trying to accomplish
 3. Explain what specific aspect is unclear
@@ -97,6 +110,7 @@ Before submitting any changes, verify:
 ## Success Criteria
 
 Your changes are successful when:
+
 - All XML and documentation validation checks pass
 - PR description is complete and accurate
 - All checklist items completed
@@ -128,36 +142,38 @@ This repository contains several types of XML files:
 **Required for all public APIs:**
 
 - **Use `<see cref=".." />` tags for all type references** instead of plain text
-  - ✅ Good: `<see cref="Task{T}"/>` or `<see cref="MoqKnownSymbols"/>`
-  - ❌ Bad: `Task<T>` or `MoqKnownSymbols`
+  - Good: `<see cref="Task{T}"/>` or `<see cref="MoqKnownSymbols"/>`
+  - Bad: `Task<T>` or `MoqKnownSymbols`
 - **Use `<see langword=".." />` for C# keywords**
-  - ✅ Good: `<see langword="true"/>` or `<see langword="null"/>`
-  - ❌ Bad: `true` or `null`
+  - Good: `<see langword="true"/>` or `<see langword="null"/>`
+  - Bad: `true` or `null`
 - **Use `<paramref name=".." />` for parameter references**
-  - ✅ Good: `<paramref name="mockedMemberSymbol"/>`
-  - ❌ Bad: `mockedMemberSymbol`
+  - Good: `<paramref name="mockedMemberSymbol"/>`
+  - Bad: `mockedMemberSymbol`
 - **Use `<c>..</c>` for inline code snippets**
-  - ✅ Good: `<c>x => x.Method()</c>`
-  - ❌ Bad: `x => x.Method()`
+  - Good: `<c>x => x.Method()</c>`
+  - Bad: `x => x.Method()`
 
 **Examples:**
+
 ```xml
 /// <summary>
-/// Determines whether a member symbol is either overridable or represents a 
+/// Determines whether a member symbol is either overridable or represents a
 /// <see cref="Task{T}"/>/<see cref="ValueTask{T}"/> Result property
-/// that Moq allows to be setup even if the underlying <see cref="Task{T}"/> 
+/// that Moq allows to be setup even if the underlying <see cref="Task{T}"/>
 /// property is not overridable.
 /// </summary>
 /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
 /// <param name="knownSymbols">A <see cref="MoqKnownSymbols"/> instance for resolving well-known types.</param>
 /// <returns>
-/// Returns <see langword="true"/> when the member is overridable or is a 
-/// <see cref="Task{T}"/>/<see cref="ValueTask{T}"/> Result property; 
+/// Returns <see langword="true"/> when the member is overridable or is a
+/// <see cref="Task{T}"/>/<see cref="ValueTask{T}"/> Result property;
 /// otherwise <see langword="false" />.
 /// </returns>
 ```
 
 **Validation:**
+
 - All public APIs must have complete XML documentation
 - All type references must use `<see cref=".." />` tags
 - All C# keywords must use `<see langword=".." />` tags
@@ -215,7 +231,7 @@ Before submitting a PR, ensure your changes pass all quality checks:
 
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -224,6 +240,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 ```
 
 **Types:**
+
 - `feat`: New features
 - `fix`: Bug fixes
 - `docs`: Documentation changes
@@ -243,6 +260,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 Follow conventional commit format: `type(scope): description`
 
 **Description Requirements:**
+
 1. **Clear summary** of changes
 2. **Problem statement** (what issue does this solve?)
 3. **Solution description** (how does this solve the problem?)
@@ -264,6 +282,7 @@ Before submitting a PR, ensure:
 ### Validation Evidence Requirements
 
 **What Constitutes Validation Evidence:**
+
 - XML validation output
 - Schema compliance verification
 - Documentation accuracy checks
@@ -271,6 +290,7 @@ Before submitting a PR, ensure:
 - Manual testing results for XML changes
 
 **Evidence Format:**
+
 - Include validation logs, screenshots, or links to CI runs
 - Provide clear, readable evidence
 - Ensure evidence is recent and relevant
@@ -297,6 +317,7 @@ Maintainers will review PRs for:
 ### Common Review Feedback
 
 **Frequently Requested Changes:**
+
 - Fix XML syntax errors
 - Improve documentation quality
 - Update schema compliance
@@ -304,6 +325,7 @@ Maintainers will review PRs for:
 - Clarify PR description or validation evidence
 
 **PRs That May Be Rejected:**
+
 - Invalid XML syntax
 - Missing validation evidence
 - Schema compliance issues
@@ -337,4 +359,4 @@ Maintainers will review PRs for:
 
 ## Code of Conduct
 
-This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDUCT.md). By participating, you are expected to uphold this code. 
+This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDUCT.md). By participating, you are expected to uphold this code.
