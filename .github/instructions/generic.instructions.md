@@ -14,6 +14,7 @@ applyTo: '**/*'
 ## Context Loading for Copilot
 
 When working on this file, you MUST:
+
 1. Read this entire instruction file before making any changes
 2. Validate your understanding by checking the "Validation Checklist" section
 3. If uncertain about any requirement, stop and request clarification
@@ -24,26 +25,30 @@ If you (AI or human) are blocked or cannot proceed, leave a comment in the PR de
 ## Validation Checklist
 
 Before submitting any changes, verify:
+
 - [ ] All changes are compatible with project requirements
 - [ ] No breaking changes to build, test, or deployment
 - [ ] Machine-readable evidence is attached (see below)
 - [ ] PR description includes validation evidence and checklist
 
 ## Validation Evidence Requirements
+
 - Attach a log section titled `## Validation Log` showing the output of any relevant validation commands (build, test, lint, etc.)
 - Include a checklist like:
   - [x] No errors or warnings
 - Paste CI run link under `## CI Evidence`
 
 ## Guidance
+
 - If you are unsure how to edit this file type, consult maintainers before proceeding
 - Document any changes in the PR description
 
 ## Related Instruction Files
+
 - [project.instructions.md](project.instructions.md) - For project/solution files
 - [csharp.instructions.md](csharp.instructions.md) - For C# files
 - [markdown.instructions.md](markdown.instructions.md) - For documentation
-- [shell.instructions.md](shell.instructions.md) - For scripts 
+- [shell.instructions.md](shell.instructions.md) - For scripts
 
 ## Decision Trees for Complex Scenarios
 
@@ -80,16 +85,18 @@ Before submitting any changes, verify:
 6. **Run all validations (build, test, lint, Codacy, etc.)**
 7. **Prepare PR with validation evidence for each file type**
 8. **If any diagnostic span or test fails more than once, STOP and escalate**
-9. **If uncertain about Roslyn APIs, Moq semantics, or workflow, escalate** 
+9. **If uncertain about Roslyn APIs, Moq semantics, or workflow, escalate**
 
 ## Test Data & Sample Inputs/Outputs
 
 ### What Constitutes Good Test Data for Unknown File Types?
+
 - Validate file with any available tool (lint, build, CI, etc.)
 - Include both valid and invalid examples if possible
 - Test for missing required content, invalid formats, and edge cases
 - Document test data rationale in comments or PR description
 
 ### Coverage Strategy
+
 - For every change, validate with available tools and test both valid and invalid cases
-- Document test data rationale in comments or PR description 
+- Document test data rationale in comments or PR description

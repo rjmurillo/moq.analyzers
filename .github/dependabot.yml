@@ -10,10 +10,10 @@ updates:
     reviewers:
       - "rjmurillo"
       - "mattkotsenas"
-  # NuGet dependency management is handled by Renovate (see renovate.json).
-  # Dependabot NuGet PRs were disabled because:
-  #   1. PR titles use "Bump X from A to B" format, which fails the required
-  #      "Validate PR title" check (conventional commits required).
-  #   2. Both bots created duplicate PRs for every package update.
-  #   3. Renovate supports better grouping, automerge rules, and conventional
-  #      commit formatting out of the box.
+# NuGet dependency management is handled by Renovate (see renovate.json).
+# Dependabot NuGet PRs were disabled because:
+#   1. PR titles use "Bump X from A to B" format, which fails the required
+#      "Validate PR title" check (conventional commits required).
+#   2. Both bots created duplicate PRs for every package update.
+#   3. Renovate supports better grouping, automerge rules, and conventional
+#      commit formatting out of the box.

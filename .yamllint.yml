@@ -1,0 +1,10 @@
+extends: default
+rules:
+  truthy:
+    check-keys: false
+  line-length:
+    max: 320
+    allow-non-breakable-inline-mappings: true
+  document-start: disable
+  comments:
+    min-spaces-from-content: 1
