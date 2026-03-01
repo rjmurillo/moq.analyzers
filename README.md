@@ -32,8 +32,10 @@ something is wrong with your Moq configuration.
 | [Moq1210](docs/rules/Moq1210.md) | Correctness   | Verify should be used only for overridable members                                      |
 | [Moq1300](docs/rules/Moq1300.md) | Usage         | `Mock.As()` should take interfaces only                                                 |
 | [Moq1301](docs/rules/Moq1301.md) | Usage         | Mock.Get() should not take literals                                                     |
+| [Moq1302](docs/rules/Moq1302.md) | Usage         | LINQ to Mocks expression should be valid                                                |
 | [Moq1400](docs/rules/Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
 | [Moq1410](docs/rules/Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              |
+| [Moq1420](docs/rules/Moq1420.md) | Best Practice | Redundant `Times.AtLeastOnce()` specification can be removed                            |
 | [Moq1500](docs/rules/Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                |
 
 See [docs/rules/README.md](docs/rules/README.md) for full documentation.
