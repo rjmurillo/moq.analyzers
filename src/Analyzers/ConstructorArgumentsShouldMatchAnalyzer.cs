@@ -455,7 +455,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         ArgumentSyntax[] arguments)
     {
         IMethodSymbol[] constructors = mockedClass
-            .GetMembers(".ctor")
+            .GetMembers(WellKnownMemberNames.InstanceConstructorName)
             .OfType<IMethodSymbol>()
             .Where(methodSymbol => methodSymbol.IsConstructor())
             .ToArray();
