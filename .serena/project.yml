@@ -1,0 +1,53 @@
+# Serena project configuration for moq.analyzers
+# C# Roslyn analyzer project for the Moq framework
+
+# Languages for which language servers are started.
+# csharp requires the presence of a .sln file in the project folder.
+languages:
+- csharp
+- markdown
+- yaml
+- bash
+
+# the encoding used by text files in the project
+encoding: "utf-8"
+
+# whether to use the project's gitignore file to ignore files
+ignore_all_files_in_gitignore: true
+
+# list of additional paths to ignore
+ignored_paths:
+- "**/bin/**"
+- "**/obj/**"
+- "**/artifacts/**"
+- "**/.vs/**"
+- "**/BenchmarkDotNet.Artifacts/**"
+- "**/TestResults/**"
+
+# whether the project is in read-only mode
+read_only: false
+
+# list of tool names to exclude
+excluded_tools: []
+
+# initial prompt for the project
+initial_prompt: "This is a Roslyn analyzer project for the Moq mocking framework. The solution file is Moq.Analyzers.sln. Key directories: src/Analyzers/ (analyzers), src/CodeFixes/ (code fixes), src/Common/ (shared logic), tests/Moq.Analyzers.Test/ (tests). Always use symbol-based detection over string matching."
+
+# project name
+project_name: "moq-analyzers"
+
+# list of tools to include that would otherwise be disabled
+included_optional_tools: []
+
+# mode configuration
+base_modes:
+default_modes:
+
+# fixed tools
+fixed_tools: []
+
+# symbol info budget override
+symbol_info_budget:
+
+# language backend override
+language_backend:
