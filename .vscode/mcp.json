@@ -55,6 +55,19 @@
             "env": {
                 "CODACY_ACCOUNT_TOKEN": "${input:CODACY_ACCOUNT_TOKEN}"
             }
+        },
+        "serena": {
+            "command": "uvx",
+            "args": [
+                "--from",
+                "git+https://github.com/oraios/serena@v0.1.4",
+                "serena",
+                "start-mcp-server",
+                "--context",
+                "ide-assistant",
+                "--project",
+                "${workspaceFolder}"
+            ]
         }
     }
 }
