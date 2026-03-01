@@ -57,12 +57,27 @@ function Invoke-AutoFix {
         [string[]]$Files
     )
 
+    # Detect files with pre-existing unstaged changes (e.g., from partial staging via git add -p).
+    # These files should NOT be auto-staged to avoid inadvertently including changes the developer
+    # deliberately excluded from the commit.
+    $preExistingUnstaged = @(git diff --name-only -- $Files)
+
     & $FixCommand
 
     $modified = git diff --name-only -- $Files
     if ($modified) {
-        Write-Host "Auto-fixed: $($modified -join ', ')"
-        git add $modified
+        $safeToStage = @($modified | Where-Object { $_ -notin $preExistingUnstaged })
+        $unsafeToStage = @($modified | Where-Object { $_ -in $preExistingUnstaged })
+
+        if ($safeToStage) {
+            Write-Host "Auto-fixed: $($safeToStage -join ', ')"
+            git add $safeToStage
+        }
+
+        if ($unsafeToStage) {
+            Write-Warning "Auto-fixed but NOT staged (had pre-existing unstaged changes): $($unsafeToStage -join ', ')"
+            Write-Warning "Please review and stage these files manually."
+        }
     }
 }
 

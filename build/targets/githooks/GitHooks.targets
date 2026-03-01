@@ -11,12 +11,22 @@
     <Exec
       Command="git config core.hooksPath .githooks"
       WorkingDirectory="$(RepoRoot)"
-      IgnoreExitCode="true" />
+      IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="_GitHooksExitCode" />
+    </Exec>
 
     <Touch
+      Condition=" '$(_GitHooksExitCode)' == '0' "
       Files="$(RepoRoot).git/hooks/.githooks-configured"
       AlwaysCreate="true" />
 
-    <Message Importance="high" Text="Git hooks configured. Run 'git config --unset core.hooksPath' to disable." />
+    <Message
+      Condition=" '$(_GitHooksExitCode)' == '0' "
+      Importance="high"
+      Text="Git hooks configured. Run 'git config --unset core.hooksPath' to disable." />
+
+    <Warning
+      Condition=" '$(_GitHooksExitCode)' != '0' "
+      Text="Failed to configure git hooks (exit code $(_GitHooksExitCode)). Run 'git config core.hooksPath .githooks' manually." />
   </Target>
 </Project>
