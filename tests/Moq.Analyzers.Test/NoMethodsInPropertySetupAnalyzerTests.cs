@@ -62,6 +62,31 @@ public class NoMethodsInPropertySetupAnalyzerTests
     }
 
     [Fact]
+    public async Task ShouldNotAnalyzeWhenMoqNotReferenced()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            namespace Test
+            {
+                public interface IFoo
+                {
+                    string Prop1 { get; set; }
+                    string Method();
+                }
+
+                public class UnitTest
+                {
+                    private void Test()
+                    {
+                        var x = new object();
+                    }
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80);
+    }
+
+    [Fact]
     public async Task ShouldIncludeMethodNameInDiagnosticMessage()
     {
         await Verifier.VerifyAnalyzerAsync(
