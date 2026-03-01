@@ -95,6 +95,79 @@ Use appropriate analysis contexts to maintain compilation access:
 
 ---
 
+## Serena MCP Server Integration
+
+### Overview
+
+This project uses [Serena](https://github.com/oraios/serena) as an MCP server for LSP-powered code navigation and persistent memory. Serena provides symbol-based code understanding that aligns with the project's mandate for symbol-based detection over string matching.
+
+### Prerequisites
+
+Serena requires `uvx` (from [uv](https://docs.astral.sh/uv/)) to be installed. The MCP server configuration is in `.vscode/mcp.json` (VS Code, Copilot CLI) and `.mcp.json` (Claude Code CLI). The project must be registered in `~/.serena/serena_config.yml`.
+
+### Session Startup
+
+At the start of each session, agents should:
+
+1. Call `mcp__serena__check_onboarding_performed` to verify the project is onboarded.
+2. If onboarding has not been performed, run `mcp__serena__onboarding`.
+3. Call `mcp__serena__list_memories` to load relevant project context.
+
+### When Serena Is Not Available
+
+If the Serena MCP server is not running or MCP tools are unavailable:
+
+1. Note that the MCP server is not available in your response.
+2. Read memory files directly from `.serena/memories/` using standard file read tools.
+3. Use standard text search (grep, ripgrep) as a fallback for code navigation.
+4. Write any new findings to `.serena/memories/` as markdown files so they persist for future sessions.
+
+### Code Navigation (Prefer Over Text Search)
+
+Use Serena's LSP tools for code navigation instead of grep or text search:
+
+- **`find_symbol`**: Search for symbols by name (classes, methods, properties). Use this to locate analyzers, code fixes, and Moq types.
+- **`find_referencing_symbols`**: Find all references to a symbol. Use this to trace Moq API chains and analyzer registrations.
+- **`get_symbols_overview`**: Get top-level symbols in a file. Use this to understand file structure before making changes.
+
+These tools provide the same semantic precision as `SemanticModel.GetSymbolInfo()` and are preferred over string-based search for:
+
+- Locating analyzer and code fix implementations
+- Tracing diagnostic registrations
+- Understanding Moq fluent API chains
+- Finding symbol usages across the codebase
+
+### Memory System
+
+Serena provides project-scoped persistent memory for cross-session continuity:
+
+- **`write_memory`**: Save architectural decisions, patterns discovered, or session progress
+- **`read_memory`**: Retrieve previously saved knowledge
+- **`list_memories`**: Browse available memories
+- **`edit_memory`**: Update existing memories with new findings
+- **`delete_memory`**: Remove outdated memories
+
+Use memories to persist:
+
+- Architectural patterns and conventions discovered during analysis
+- Debugging insights and solutions to recurring issues
+- Key file paths and their purposes
+- Moq version compatibility notes
+
+Do NOT store secrets, tokens, or internal URLs in memory files. Memory files in `.serena/memories/` are tracked in git.
+
+### Structured Reasoning Tools
+
+Use Serena's thinking tools for deliberate reasoning:
+
+- **`think_about_collected_information`**: Evaluate whether you have enough context before proceeding
+- **`think_about_task_adherence`**: Check if you are still on track with the assigned task
+- **`think_about_whether_you_are_done`**: Verify task completion before marking done
+
+These tools enforce the project's "No Trial-and-Error" policy by requiring structured deliberation.
+
+---
+
 **Implementation:**
 - Answer domain-specific technical questions before coding
 - Provide concrete examples of your understanding
