@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Download packages
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: packages
           name: packages
