@@ -57,5 +57,10 @@ internal class KnownSymbols
     /// </summary>
     public INamedTypeSymbol? Action1 => TypeProvider.GetOrCreateTypeByMetadataName("System.Action`1");
 
+    /// <summary>
+    /// Gets the class <see cref="System.Runtime.CompilerServices.InternalsVisibleToAttribute"/>.
+    /// </summary>
+    public INamedTypeSymbol? InternalsVisibleToAttribute => TypeProvider.GetOrCreateTypeByMetadataName("System.Runtime.CompilerServices.InternalsVisibleToAttribute");
+
     protected WellKnownTypeProvider TypeProvider { get; }
 }
