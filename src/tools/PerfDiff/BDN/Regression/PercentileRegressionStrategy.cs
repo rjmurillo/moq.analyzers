@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
-using Perfolizer.Mathematics.Thresholds;
+using Perfolizer.Metrology;
 
 namespace PerfDiff.BDN.Regression;
 
@@ -12,14 +12,13 @@ public sealed class PercentileRegressionStrategy : IBenchmarkRegressionStrategy
     /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
     {
-        Threshold testThreshold = Threshold.Create(ThresholdUnit.Milliseconds, 250D);
-        return RegressionStrategyHelper.HasRegression(
-            comparison,
-            logger,
-            testThreshold,
-            b => b.Statistics?.Percentiles?.P95,
-            r => r.DiffResult.Statistics!.Percentiles!.P95 / TimeUnitConstants.NanoSecondsToMilliseconds,
-            "P95",
-            out details);
+        RegressionMetricConfig config = new(
+            DisplayThreshold: Threshold.Parse("250ms"),
+            ThresholdValueNs: 250D * TimeUnitConstants.NanoSecondsToMilliseconds,
+            MetricSelector: b => b.Statistics?.Percentiles?.P95,
+            DisplayValueSelector: r => r.DiffResult.Statistics!.Percentiles!.P95 / TimeUnitConstants.NanoSecondsToMilliseconds,
+            MetricName: "P95");
+
+        return RegressionStrategyHelper.HasRegression(comparison, logger, config, out details);
     }
 }

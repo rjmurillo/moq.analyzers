@@ -3,7 +3,11 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
+using Perfolizer.Mathematics.Common;
 using Perfolizer.Mathematics.SignificanceTesting;
+using Perfolizer.Mathematics.SignificanceTesting.MannWhitney;
+using Perfolizer.Metrology;
+using Pragmastat;
 
 namespace PerfDiff.BDN;
 
@@ -104,23 +108,29 @@ public static class BenchmarkDotNetDiffer
     /// <param name="comparison">Array of comparison results.</param>
     /// <param name="testThreshold">Threshold for regression detection.</param>
     /// <returns>An array of <see cref="RegressionResult"/> representing detected regressions.</returns>
-    public static RegressionResult[] FindRegressions(BdnComparisonResult[] comparison, Perfolizer.Mathematics.Thresholds.Threshold testThreshold)
+    public static RegressionResult[] FindRegressions(BdnComparisonResult[] comparison, Threshold testThreshold)
     {
+        SimpleEquivalenceTest equivalenceTest = new(new MannWhitneyTest());
         List<RegressionResult> results = [];
+
         foreach (BdnComparisonResult result in comparison
             .Where(result => result.BaseResult.Statistics != null && result.DiffResult.Statistics != null))
         {
             double[] baseValues = result.BaseResult.GetOriginalValues();
             double[] diffValues = result.DiffResult.GetOriginalValues();
 
-            TostResult<MannWhitneyResult>? userThresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, testThreshold);
+            ComparisonResult conclusion = equivalenceTest.Perform(
+                new Sample(baseValues),
+                new Sample(diffValues),
+                testThreshold,
+                SignificanceLevel.P05);
 
-            if (userThresholdResult.Conclusion == EquivalenceTestConclusion.Same)
+            if (conclusion == ComparisonResult.Indistinguishable)
             {
                 continue;
             }
 
-            results.Add(new RegressionResult(result.Id, result.BaseResult, result.DiffResult, userThresholdResult.Conclusion));
+            results.Add(new RegressionResult(result.Id, result.BaseResult, result.DiffResult, conclusion));
         }
 
         return results.ToArray();
@@ -137,18 +147,18 @@ public static class BenchmarkDotNetDiffer
     /// <summary>
     /// Gets the ratio of median values for the specified benchmarks and conclusion.
     /// </summary>
-    /// <param name="conclusion">The equivalence test conclusion.</param>
+    /// <param name="conclusion">The comparison result.</param>
     /// <param name="baseResult">The baseline benchmark.</param>
     /// <param name="diffResult">The diff benchmark.</param>
     /// <returns>The ratio of median values.</returns>
-    public static double GetMedianRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
+    public static double GetMedianRatio(ComparisonResult conclusion, Benchmark baseResult, Benchmark diffResult)
     {
         if (baseResult.Statistics == null || diffResult.Statistics == null)
         {
             return double.NaN;
         }
 
-        return conclusion == EquivalenceTestConclusion.Faster
+        return conclusion == ComparisonResult.Greater
             ? baseResult.Statistics.Median / diffResult.Statistics.Median
             : diffResult.Statistics.Median / baseResult.Statistics.Median;
     }
@@ -156,18 +166,18 @@ public static class BenchmarkDotNetDiffer
     /// <summary>
     /// Gets the ratio of mean values for the specified benchmarks and conclusion.
     /// </summary>
-    /// <param name="conclusion">The equivalence test conclusion.</param>
+    /// <param name="conclusion">The comparison result.</param>
     /// <param name="baseResult">The baseline benchmark.</param>
     /// <param name="diffResult">The diff benchmark.</param>
     /// <returns>The ratio of mean values.</returns>
-    public static double GetMeanRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
+    public static double GetMeanRatio(ComparisonResult conclusion, Benchmark baseResult, Benchmark diffResult)
     {
         if (baseResult.Statistics == null || diffResult.Statistics == null)
         {
             return double.NaN;
         }
 
-        return conclusion == EquivalenceTestConclusion.Faster
+        return conclusion == ComparisonResult.Greater
             ? baseResult.Statistics.Mean / diffResult.Statistics.Mean
             : diffResult.Statistics.Mean / baseResult.Statistics.Mean;
     }
@@ -175,18 +185,18 @@ public static class BenchmarkDotNetDiffer
     /// <summary>
     /// Gets the delta of mean values for the specified benchmarks and conclusion.
     /// </summary>
-    /// <param name="conclusion">The equivalence test conclusion.</param>
+    /// <param name="conclusion">The comparison result.</param>
     /// <param name="baseResult">The baseline benchmark.</param>
     /// <param name="diffResult">The diff benchmark.</param>
     /// <returns>The delta of mean values.</returns>
-    public static double GetMeanDelta(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
+    public static double GetMeanDelta(ComparisonResult conclusion, Benchmark baseResult, Benchmark diffResult)
     {
         if (baseResult.Statistics == null || diffResult.Statistics == null)
         {
             return double.NaN;
         }
 
-        return conclusion == EquivalenceTestConclusion.Faster
+        return conclusion == ComparisonResult.Greater
             ? baseResult.Statistics.Mean - diffResult.Statistics.Mean
             : diffResult.Statistics.Mean - baseResult.Statistics.Mean;
     }
@@ -194,11 +204,11 @@ public static class BenchmarkDotNetDiffer
     /// <summary>
     /// Gets the delta of P95 values for the specified benchmarks and conclusion.
     /// </summary>
-    /// <param name="conclusion">The equivalence test conclusion.</param>
+    /// <param name="conclusion">The comparison result.</param>
     /// <param name="baseResult">The baseline benchmark.</param>
     /// <param name="diffResult">The diff benchmark.</param>
     /// <returns>The delta of P95 values.</returns>
-    public static double GetP95Delta(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
+    public static double GetP95Delta(ComparisonResult conclusion, Benchmark baseResult, Benchmark diffResult)
     {
         if (baseResult.Statistics == null || diffResult.Statistics == null
             || baseResult.Statistics.Percentiles == null || diffResult.Statistics.Percentiles == null)
@@ -206,7 +216,7 @@ public static class BenchmarkDotNetDiffer
             return double.NaN;
         }
 
-        return conclusion == EquivalenceTestConclusion.Faster
+        return conclusion == ComparisonResult.Greater
             ? baseResult.Statistics.Percentiles.P95 - diffResult.Statistics.Percentiles.P95
             : diffResult.Statistics.Percentiles.P95 - baseResult.Statistics.Percentiles.P95;
     }

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
-using Perfolizer.Mathematics.Thresholds;
+using Perfolizer.Metrology;
 
 namespace PerfDiff.BDN.Regression;
 
@@ -12,14 +12,13 @@ public sealed class MeanWallClockRegressionStrategy : IBenchmarkRegressionStrate
     /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
     {
-        Threshold testThreshold = Threshold.Create(ThresholdUnit.Milliseconds, 100D);
-        return RegressionStrategyHelper.HasRegression(
-            comparison,
-            logger,
-            testThreshold,
-            b => b.Statistics?.Mean,
-            r => r.DiffResult.Statistics!.Mean / TimeUnitConstants.NanoSecondsToMilliseconds,
-            "Mean",
-            out details);
+        RegressionMetricConfig config = new(
+            DisplayThreshold: Threshold.Parse("100ms"),
+            ThresholdValueNs: 100D * TimeUnitConstants.NanoSecondsToMilliseconds,
+            MetricSelector: b => b.Statistics?.Mean,
+            DisplayValueSelector: r => r.DiffResult.Statistics!.Mean / TimeUnitConstants.NanoSecondsToMilliseconds,
+            MetricName: "Mean");
+
+        return RegressionStrategyHelper.HasRegression(comparison, logger, config, out details);
     }
 }

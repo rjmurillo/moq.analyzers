@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
-using Perfolizer.Mathematics.Thresholds;
+using Perfolizer.Mathematics.Common;
+using Perfolizer.Metrology;
 
 namespace PerfDiff.BDN.Regression;
 
@@ -14,11 +15,11 @@ public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
     {
         const string metricName = "Median ratio";
 
-        Threshold testThreshold = Threshold.Create(ThresholdUnit.Ratio, 0.35);
+        Threshold testThreshold = Threshold.Parse("35%");
         RegressionResult[] notSame = BenchmarkDotNetDiffer.FindRegressions(comparison, testThreshold);
 
-        List<RegressionResult> better = notSame.Where(result => result.Conclusion == Perfolizer.Mathematics.SignificanceTesting.EquivalenceTestConclusion.Faster).ToList();
-        List<RegressionResult> worse = notSame.Where(result => result.Conclusion == Perfolizer.Mathematics.SignificanceTesting.EquivalenceTestConclusion.Slower).ToList();
+        List<RegressionResult> better = notSame.Where(result => result.Conclusion == ComparisonResult.Greater).ToList();
+        List<RegressionResult> worse = notSame.Where(result => result.Conclusion == ComparisonResult.Lesser).ToList();
 
         // Exclude Infinity ratios
         better = better.Where(x => !double.IsPositiveInfinity(BenchmarkDotNetDiffer.GetMedianRatio(x))).ToList();
