@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
 namespace Moq.Analyzers;
 
 /// <summary>
@@ -28,55 +31,112 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
+
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private static void Analyze(SyntaxNodeAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
-        MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
 
-        InvocationExpressionSyntax callbackOrReturnsInvocation = (InvocationExpressionSyntax)context.Node;
-
-        SeparatedSyntaxList<ArgumentSyntax> callbackOrReturnsMethodArguments = callbackOrReturnsInvocation.ArgumentList.Arguments;
-
-        // Ignoring Callback() and Return() calls without lambda arguments
-        if (callbackOrReturnsMethodArguments.Count == 0) return;
-
-        if (!context.SemanticModel.IsCallbackOrReturnInvocation(callbackOrReturnsInvocation, knownSymbols)) return;
-
-        ParenthesizedLambdaExpressionSyntax? callbackLambda = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ParenthesizedLambdaExpressionSyntax;
-
-        // Check if this is a delegate constructor callback (e.g., new SomeDelegate(...))
-        if (callbackLambda == null)
+        if (!knownSymbols.IsMockReferenced())
         {
-            ObjectCreationExpressionSyntax? delegateConstructor = callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression as ObjectCreationExpressionSyntax;
-            if (delegateConstructor?.ArgumentList?.Arguments.Count > 0)
-            {
-                // Extract the lambda from the delegate constructor (support both parenthesized and simple lambdas)
-                LambdaExpressionSyntax? lambdaExpression = delegateConstructor.ArgumentList.Arguments[0]?.Expression as LambdaExpressionSyntax;
-                callbackLambda = lambdaExpression as ParenthesizedLambdaExpressionSyntax;
-
-                // If it's not a parenthesized lambda, it might be a simple lambda - convert for consistency
-                if (callbackLambda == null && lambdaExpression is SimpleLambdaExpressionSyntax)
-                {
-                    // We need to handle simple lambdas differently since they don't have ParameterList.Parameters.
-                    // Simple lambdas are currently skipped to avoid handling edge cases and maintain simplicity.
-                    // TODO: Implement support for SimpleLambdaExpressionSyntax in delegate constructors.
-                    return;
-                }
-            }
+            return;
         }
 
-        // Ignoring callbacks without lambda
-        if (callbackLambda == null) return;
+        context.RegisterOperationAction(
+            operationAnalysisContext => Analyze(operationAnalysisContext, knownSymbols),
+            OperationKind.Invocation);
+    }
+
+    private static void Analyze(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
+    {
+        Debug.Assert(context.Operation is IInvocationOperation, "Expected IInvocationOperation");
+
+        if (context.Operation is not IInvocationOperation invocationOperation)
+        {
+            return;
+        }
+
+        if (invocationOperation.Syntax is not InvocationExpressionSyntax callbackOrReturnsInvocation)
+        {
+            return;
+        }
+
+        SemanticModel? semanticModel = invocationOperation.SemanticModel;
+        if (semanticModel is null)
+        {
+            return;
+        }
+
+        // Ignoring Callback() and Return() calls without lambda arguments
+        if (callbackOrReturnsInvocation.ArgumentList.Arguments.Count == 0)
+        {
+            return;
+        }
+
+        if (!semanticModel.IsCallbackOrReturnInvocation(callbackOrReturnsInvocation, knownSymbols))
+        {
+            return;
+        }
+
+        ParenthesizedLambdaExpressionSyntax? callbackLambda = TryGetCallbackLambda(callbackOrReturnsInvocation);
+        if (callbackLambda == null)
+        {
+            return;
+        }
 
         // Ignoring calls with no arguments because those are valid in Moq
         SeparatedSyntaxList<ParameterSyntax> lambdaParameters = callbackLambda.ParameterList.Parameters;
-        if (lambdaParameters.Count == 0) return;
+        if (lambdaParameters.Count == 0)
+        {
+            return;
+        }
 
-        InvocationExpressionSyntax? setupInvocation = context.SemanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, callbackOrReturnsInvocation, context.CancellationToken);
+        InvocationExpressionSyntax? setupInvocation = semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, callbackOrReturnsInvocation, context.CancellationToken);
+
+        ValidateCallbackAgainstSetup(context, semanticModel, setupInvocation, callbackLambda, lambdaParameters);
+    }
+
+    private static ParenthesizedLambdaExpressionSyntax? TryGetCallbackLambda(InvocationExpressionSyntax callbackOrReturnsInvocation)
+    {
+        if (callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression is ParenthesizedLambdaExpressionSyntax directLambda)
+        {
+            return directLambda;
+        }
+
+        // Check if this is a delegate constructor callback (e.g., new SomeDelegate(...))
+        if (callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression is not ObjectCreationExpressionSyntax delegateConstructor
+            || delegateConstructor.ArgumentList?.Arguments.Count <= 0)
+        {
+            return null;
+        }
+
+        // Extract the lambda from the delegate constructor (support both parenthesized and simple lambdas)
+        LambdaExpressionSyntax? lambdaExpression = delegateConstructor.ArgumentList!.Arguments[0]?.Expression as LambdaExpressionSyntax;
+
+        // Simple lambdas are currently skipped to avoid handling edge cases and maintain simplicity.
+        // TODO: Implement support for SimpleLambdaExpressionSyntax in delegate constructors.
+        if (lambdaExpression is SimpleLambdaExpressionSyntax)
+        {
+            return null;
+        }
+
+        return lambdaExpression as ParenthesizedLambdaExpressionSyntax;
+    }
+
+    private static void ValidateCallbackAgainstSetup(
+        OperationAnalysisContext context,
+        SemanticModel semanticModel,
+        InvocationExpressionSyntax? setupInvocation,
+        ParenthesizedLambdaExpressionSyntax callbackLambda,
+        SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
+    {
         InvocationExpressionSyntax? mockedMethodInvocation = setupInvocation.FindMockedMethodInvocationFromSetupMethod();
-        if (mockedMethodInvocation == null) return;
+        if (mockedMethodInvocation == null)
+        {
+            return;
+        }
 
         string methodName = GetMethodName(mockedMethodInvocation);
         SeparatedSyntaxList<ArgumentSyntax> mockedMethodArguments = mockedMethodInvocation.ArgumentList.Arguments;
@@ -88,29 +148,26 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         }
         else
         {
-            // Get the actual mocked method symbols to access parameter information including ref/out/in modifiers
-            IEnumerable<IMethodSymbol> mockedMethodSymbols = context.SemanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupInvocation);
-            ValidateParameters(context, mockedMethodSymbols, lambdaParameters, methodName);
+            IEnumerable<IMethodSymbol> mockedMethodSymbols = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupInvocation);
+            ValidateParameters(context, semanticModel, mockedMethodSymbols, lambdaParameters, methodName);
         }
     }
 
     private static void ValidateParameters(
-        SyntaxNodeAnalysisContext context,
+        OperationAnalysisContext context,
+        SemanticModel semanticModel,
         IEnumerable<IMethodSymbol> mockedMethodSymbols,
         SeparatedSyntaxList<ParameterSyntax> lambdaParameters,
         string methodName)
     {
-        // Check if the lambda parameters match any of the mocked method overloads
         foreach (IMethodSymbol mockedMethod in mockedMethodSymbols)
         {
-            if (ParametersMatch(context, mockedMethod, lambdaParameters))
+            if (ParametersMatch(semanticModel, mockedMethod, lambdaParameters, context.CancellationToken))
             {
-                // Found a matching overload, no diagnostic needed
                 return;
             }
         }
 
-        // No matching overload found, report diagnostic on the first parameter
         if (lambdaParameters.Count > 0)
         {
             Diagnostic diagnostic = lambdaParameters[0].CreateDiagnostic(Rule, methodName);
@@ -118,7 +175,11 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         }
     }
 
-    private static bool ParametersMatch(SyntaxNodeAnalysisContext context, IMethodSymbol mockedMethod, SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
+    private static bool ParametersMatch(
+        SemanticModel semanticModel,
+        IMethodSymbol mockedMethod,
+        SeparatedSyntaxList<ParameterSyntax> lambdaParameters,
+        CancellationToken cancellationToken)
     {
         if (mockedMethod.Parameters.Length != lambdaParameters.Count)
         {
@@ -130,7 +191,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
             IParameterSymbol mockedMethodParameter = mockedMethod.Parameters[parameterIndex];
             ParameterSyntax lambdaParameter = lambdaParameters[parameterIndex];
 
-            if (!ParameterTypesMatch(context, mockedMethodParameter, lambdaParameter))
+            if (!ParameterTypesMatch(semanticModel, mockedMethodParameter, lambdaParameter, cancellationToken))
             {
                 return false;
             }
@@ -139,7 +200,11 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         return true;
     }
 
-    private static bool ParameterTypesMatch(SyntaxNodeAnalysisContext context, IParameterSymbol mockedParameter, ParameterSyntax lambdaParameter)
+    private static bool ParameterTypesMatch(
+        SemanticModel semanticModel,
+        IParameterSymbol mockedParameter,
+        ParameterSyntax lambdaParameter,
+        CancellationToken cancellationToken)
     {
         TypeSyntax? lambdaParameterTypeSyntax = lambdaParameter.Type;
         if (lambdaParameterTypeSyntax is null)
@@ -147,25 +212,22 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
             return true; // Can't validate, assume ok
         }
 
-        TypeInfo lambdaParameterType = context.SemanticModel.GetTypeInfo(lambdaParameterTypeSyntax, context.CancellationToken);
+        TypeInfo lambdaParameterType = semanticModel.GetTypeInfo(lambdaParameterTypeSyntax, cancellationToken);
         ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
 
-        if (lambdaParameterTypeSymbol is null) return true; // Can't validate, assume ok
+        if (lambdaParameterTypeSymbol is null)
+        {
+            return true; // Can't validate, assume ok
+        }
 
-        // Get the underlying type for the mocked parameter (without ref/out/in modifiers)
         ITypeSymbol mockedParameterType = mockedParameter.Type;
 
-        // Check if the basic types match (allowing for conversions)
-        if (!HasConversion(context.SemanticModel, mockedParameterType, lambdaParameterTypeSymbol))
+        if (!semanticModel.HasConversion(mockedParameterType, lambdaParameterTypeSymbol))
         {
             return false;
         }
 
-        // Check ref/out/in modifiers
-        RefKind mockedRefKind = mockedParameter.RefKind;
-        RefKind lambdaRefKind = GetRefKind(lambdaParameter);
-
-        return mockedRefKind == lambdaRefKind;
+        return mockedParameter.RefKind == GetRefKind(lambdaParameter);
     }
 
     private static RefKind GetRefKind(ParameterSyntax parameter)
@@ -175,40 +237,13 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
             return RefKind.None;
         }
 
-        string? firstModifierText = parameter.Modifiers[0].ValueText;
-
-        return firstModifierText switch
+        return parameter.Modifiers[0].ValueText switch
         {
             "ref" => RefKind.Ref,
             "out" => RefKind.Out,
             "in" => RefKind.In,
             _ => RefKind.None,
         };
-    }
-
-    private static bool HasConversion(SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
-    {
-        // This condition checks whether a valid type conversion exists between the parameter in the mocked method
-        // and the corresponding parameter in the callback lambda expression.
-        //
-        // - `conversion.Exists` checks if there is any type conversion possible between the two types
-        //
-        // The second part ensures that the conversion is either:
-        // 1. an implicit conversion,
-        // 2. an identity conversion (meaning the types are exactly the same), or
-        // 3. an explicit conversion.
-        //
-        // If the conversion exists, and it is one of these types (implicit, identity, or explicit), the analyzer will
-        // skip the diagnostic check, as the callback parameter type is considered compatible with the mocked method's
-        // parameter type.
-        //
-        // There are circumstances where the syntax tree will present an item with an explicit conversion, but the
-        // ITypeSymbol instance passed in here is reduced to the same type. For example, we have a test that has
-        // an explicit conversion operator from a string to a custom type. That is presented here as two instances
-        // of CustomType, which is an implicit identity conversion, not an explicit
-        Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
-
-        return conversion.Exists && (conversion.IsImplicit || conversion.IsExplicit || conversion.IsIdentity);
     }
 
     private static string GetMethodName(InvocationExpressionSyntax mockedMethodInvocation)
