@@ -17,6 +17,7 @@ Moq1204 | Usage | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyze
 Moq1205 | Usage | Warning | EventSetupHandlerShouldMatchEventTypeAnalyzer (updated category from Moq to Usage)
 Moq1206 | Usage | Warning | ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer (updated category from Moq to Usage)
 Moq1207 | Usage | Error | SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
+Moq1208 | Usage | Warning | ReturnsDelegateShouldReturnTaskAnalyzer
 Moq1210 | Usage | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
 Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated category from Moq to Usage)
 Moq1301 | Usage | Warning | Mock.Get() should not take literals (updated category from Moq to Usage)

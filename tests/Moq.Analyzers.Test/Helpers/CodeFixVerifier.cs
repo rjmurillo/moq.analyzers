@@ -7,15 +7,22 @@ internal static class CodeFixVerifier<TAnalyzer, TCodeFixProvider>
     where TAnalyzer : DiagnosticAnalyzer, new()
     where TCodeFixProvider : CodeFixProvider, new()
 {
-    public static async Task VerifyCodeFixAsync(string originalSource, string fixedSource, string referenceAssemblyGroup)
+    public static async Task VerifyCodeFixAsync(string originalSource, string fixedSource, string referenceAssemblyGroup, CompilerDiagnostics? compilerDiagnostics = null)
     {
         ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[referenceAssemblyGroup];
 
-        await new Test<TAnalyzer, TCodeFixProvider>
+        Test<TAnalyzer, TCodeFixProvider> test = new Test<TAnalyzer, TCodeFixProvider>
         {
             TestCode = originalSource,
             FixedCode = fixedSource,
             ReferenceAssemblies = referenceAssemblies,
-        }.RunAsync().ConfigureAwait(false);
+        };
+
+        if (compilerDiagnostics.HasValue)
+        {
+            test.CompilerDiagnostics = compilerDiagnostics.Value;
+        }
+
+        await test.RunAsync().ConfigureAwait(false);
     }
 }
