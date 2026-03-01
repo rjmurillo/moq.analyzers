@@ -1,6 +1,5 @@
 # Prevent PowerShell from glob-expanding wildcard characters (e.g., * in --filter)
 # when passing arguments to native commands via the & operator.
-$PSNativeCommandArgumentPassing = 'Standard'
 
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -11,6 +10,8 @@ Param(
     [bool]   $etl=$false,         # capture etl traces for performance tests
     [bool]   $ci=$false           # run in ci mode (fail fast an keep all partial artifacts)
   )
+
+$PSNativeCommandArgumentPassing = 'Standard'
 
 Push-Location $perftestRootFolder
 Write-Host "Running performance tests in folder: $perftestRootFolder"
