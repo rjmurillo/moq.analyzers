@@ -105,8 +105,8 @@ This project uses [Serena](https://github.com/oraios/serena) as an MCP server fo
 
 At the start of each session, agents should:
 1. Call `mcp__serena__check_onboarding_performed` to verify the project is onboarded
-2. Call `mcp__serena__list_memories` to load relevant project context
-3. If onboarding has not been performed, run `mcp__serena__onboarding`
+2. If onboarding has not been performed, run `mcp__serena__onboarding`
+3. Call `mcp__serena__list_memories` to load relevant project context
 
 ### Code Navigation (Prefer Over Text Search)
 
