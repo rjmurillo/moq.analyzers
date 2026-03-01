@@ -128,6 +128,12 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
 
     private static bool IsMethodGroupExpression(ExpressionSyntax expression, SemanticModel semanticModel)
     {
+        // Invocations (e.g., GetInt()) resolve to IMethodSymbol but are values, not method groups.
+        if (expression is InvocationExpressionSyntax)
+        {
+            return false;
+        }
+
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
         if (symbolInfo.Symbol is IMethodSymbol)
         {
@@ -267,9 +273,11 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
     private static ITypeSymbol? GetReturnTypeFromBlock(BlockSyntax block, SemanticModel semanticModel)
     {
         // Find the first return statement in this block,
-        // pruning nested anonymous functions so we don't pick up their returns.
+        // pruning nested functions so we don't pick up their returns.
         ReturnStatementSyntax? returnStatement = block
-            .DescendantNodes(node => node is not AnonymousFunctionExpressionSyntax)
+            .DescendantNodes(node =>
+                node is not AnonymousFunctionExpressionSyntax
+                && node is not LocalFunctionStatementSyntax)
             .OfType<ReturnStatementSyntax>()
             .FirstOrDefault();
 

@@ -154,6 +154,12 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
         {
             // Void anonymous delegate on async method (delegate return type is null, no mismatch to report)
             ["""new Mock<AsyncService>().Setup(c => c.GetValueAsync()).Returns(delegate { });"""],
+
+            // Anonymous delegate with local function: outer returns Task.FromResult, local returns int (GH PR #942 review thread)
+            ["""new Mock<AsyncService>().Setup(c => c.GetValueAsync()).Returns(delegate { int Local() { return 1; } return Task.FromResult(Local()); });"""],
+
+            // Invocation as value, not delegate: GetInt() is a call, not a method group (GH PR #942 review thread)
+            ["""new Mock<AsyncService>().Setup(c => c.GetValueAsync()).Returns(GetInt());"""],
         };
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
