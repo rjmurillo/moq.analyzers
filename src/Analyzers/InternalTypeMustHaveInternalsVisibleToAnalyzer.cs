@@ -150,13 +150,14 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
     /// or its containers make it inaccessible to DynamicProxy without InternalsVisibleTo:
     /// <list type="bullet">
     /// <item><see cref="Accessibility.Internal"/> (internal)</item>
-    /// <item><see cref="Accessibility.ProtectedAndInternal"/> (private protected)</item>
     /// <item><see cref="Accessibility.ProtectedOrInternal"/> (protected internal) on
     /// a containing type, because DynamicProxy does not derive from the container</item>
     /// </list>
-    /// Note: <see cref="Accessibility.Private"/> and <see cref="Accessibility.Protected"/>
-    /// are excluded because InternalsVisibleTo cannot help with those - private types are
-    /// only accessible within their declaring type, and protected types require inheritance.
+    /// Note: <see cref="Accessibility.Private"/>, <see cref="Accessibility.Protected"/>,
+    /// and <see cref="Accessibility.ProtectedAndInternal"/> (private protected) are excluded
+    /// because InternalsVisibleTo cannot help with those - private types are only accessible
+    /// within their declaring type, and protected/private protected types require inheritance
+    /// from the containing type, which DynamicProxy does not provide.
     /// </summary>
     private static bool IsEffectivelyInternal(ITypeSymbol type)
     {
@@ -166,7 +167,6 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
             switch (current.DeclaredAccessibility)
             {
                 case Accessibility.Internal:
-                case Accessibility.ProtectedAndInternal:
                 case Accessibility.ProtectedOrInternal:
                     return true;
             }
