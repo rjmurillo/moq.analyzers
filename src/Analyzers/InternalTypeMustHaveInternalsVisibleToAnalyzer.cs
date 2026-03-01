@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Moq.Analyzers.Common;
 
 namespace Moq.Analyzers;
 
@@ -67,14 +67,14 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
         Location? diagnosticLocation = null;
 
         if (context.Operation is IObjectCreationOperation creation &&
-            IsValidMockCreation(creation, knownSymbols, out mockedType))
+            MockDetectionHelpers.IsValidMockCreation(creation, knownSymbols, out mockedType))
         {
-            diagnosticLocation = GetDiagnosticLocation(context.Operation, creation.Syntax);
+            diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, creation.Syntax);
         }
         else if (context.Operation is IInvocationOperation invocation &&
                  IsValidMockInvocation(invocation, knownSymbols, out mockedType))
         {
-            diagnosticLocation = GetDiagnosticLocation(context.Operation, invocation.Syntax);
+            diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, invocation.Syntax);
         }
         else
         {
@@ -90,25 +90,10 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static bool IsValidMockCreation(
-        IObjectCreationOperation creation,
-        MoqKnownSymbols knownSymbols,
-        [NotNullWhen(true)] out ITypeSymbol? mockedType)
-    {
-        mockedType = null;
-
-        if (creation.Type is null || creation.Constructor is null || !creation.Type.IsInstanceOf(knownSymbols.Mock1))
-        {
-            return false;
-        }
-
-        return TryGetMockedTypeFromGeneric(creation.Type, out mockedType);
-    }
-
     private static bool IsValidMockInvocation(
         IInvocationOperation invocation,
         MoqKnownSymbols knownSymbols,
-        [NotNullWhen(true)] out ITypeSymbol? mockedType)
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
 
@@ -139,19 +124,6 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
         }
 
         return false;
-    }
-
-    private static bool TryGetMockedTypeFromGeneric(ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? mockedType)
-    {
-        mockedType = null;
-
-        if (type is not INamedTypeSymbol namedType || namedType.TypeArguments.Length != 1)
-        {
-            return false;
-        }
-
-        mockedType = namedType.TypeArguments[0];
-        return true;
     }
 
     /// <summary>
@@ -264,21 +236,5 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
         // Must be exact match or followed by comma (for public key suffix)
         return assemblyName.Length == DynamicProxyAssemblyName.Length ||
                assemblyName[DynamicProxyAssemblyName.Length] == ',';
-    }
-
-    /// <summary>
-    /// Attempts to locate the type argument in the syntax tree for precise diagnostic reporting.
-    /// </summary>
-    private static Location GetDiagnosticLocation(IOperation operation, SyntaxNode fallbackSyntax)
-    {
-        TypeSyntax? typeArgument = operation.Syntax
-            .DescendantNodes()
-            .OfType<GenericNameSyntax>()
-            .FirstOrDefault()?
-            .TypeArgumentList?
-            .Arguments
-            .FirstOrDefault();
-
-        return typeArgument?.GetLocation() ?? fallbackSyntax.GetLocation();
     }
 }

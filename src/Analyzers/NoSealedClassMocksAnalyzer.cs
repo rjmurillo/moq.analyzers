@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Moq.Analyzers.Common;
 
 namespace Moq.Analyzers;
 
@@ -70,20 +70,19 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
 
         // Handle object creation: new Mock{T}()
         if (context.Operation is IObjectCreationOperation creation &&
-            IsValidMockCreation(creation, knownSymbols, out mockedType))
+            MockDetectionHelpers.IsValidMockCreation(creation, knownSymbols, out mockedType))
         {
-            diagnosticLocation = GetDiagnosticLocationForObjectCreation(context.Operation, creation);
+            diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, creation.Syntax);
         }
 
         // Handle static method invocation: Mock.Of{T}()
         else if (context.Operation is IInvocationOperation invocation &&
                  IsValidMockOfInvocation(invocation, knownSymbols, out mockedType))
         {
-            diagnosticLocation = GetDiagnosticLocationForInvocation(context.Operation, invocation);
+            diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, invocation.Syntax);
         }
         else
         {
-            // Operation is neither a Mock object creation nor a Mock.Of invocation that we need to analyze
             return;
         }
 
@@ -94,29 +93,17 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Determines if the operation is a valid Mock{T} object creation and extracts the mocked type.
-    /// </summary>
-    private static bool IsValidMockCreation(IObjectCreationOperation creation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
-    {
-        mockedType = null;
-
-        if (creation.Type is null || creation.Constructor is null || !creation.Type.IsInstanceOf(knownSymbols.Mock1))
-        {
-            return false;
-        }
-
-        return TryGetMockedTypeFromGeneric(creation.Type, out mockedType);
-    }
-
-    /// <summary>
     /// Determines if the operation is a valid Mock.Of{T}() invocation and extracts the mocked type.
     /// </summary>
-    private static bool IsValidMockOfInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
+    private static bool IsValidMockOfInvocation(
+        IInvocationOperation invocation,
+        MoqKnownSymbols knownSymbols,
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
 
         // Check if this is a static method call to Mock.Of{T}()
-        if (!IsValidMockOfMethod(invocation.TargetMethod, knownSymbols))
+        if (!MockDetectionHelpers.IsMockOfMethod(invocation.TargetMethod, knownSymbols))
         {
             return false;
         }
@@ -129,41 +116,6 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Checks if the method symbol represents a static Mock.Of{T}() method.
-    /// </summary>
-    private static bool IsValidMockOfMethod(IMethodSymbol? targetMethod, MoqKnownSymbols knownSymbols)
-    {
-        if (targetMethod is null || !targetMethod.IsStatic)
-        {
-            return false;
-        }
-
-        if (!string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return targetMethod.ContainingType is not null &&
-               targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default);
-    }
-
-    /// <summary>
-    /// Attempts to extract the mocked type argument from a generic Mock{T} type.
-    /// </summary>
-    private static bool TryGetMockedTypeFromGeneric(ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? mockedType)
-    {
-        mockedType = null;
-
-        if (type is not INamedTypeSymbol namedType || namedType.TypeArguments.Length != 1)
-        {
-            return false;
-        }
-
-        mockedType = namedType.TypeArguments[0];
-        return true;
     }
 
     /// <summary>
@@ -197,39 +149,5 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
 
         // For reference types, report if sealed
         return mockedType.IsSealed;
-    }
-
-    /// <summary>
-    /// Gets the diagnostic location for a Mock{T} object creation.
-    /// </summary>
-    private static Location GetDiagnosticLocationForObjectCreation(IOperation operation, IObjectCreationOperation creation)
-    {
-        return GetDiagnosticLocation(operation, creation.Syntax);
-    }
-
-    /// <summary>
-    /// Gets the diagnostic location for a Mock.Of{T}() invocation.
-    /// </summary>
-    private static Location GetDiagnosticLocationForInvocation(IOperation operation, IInvocationOperation invocation)
-    {
-        return GetDiagnosticLocation(operation, invocation.Syntax);
-    }
-
-    /// <summary>
-    /// Attempts to locate the type argument in the syntax tree for precise diagnostic reporting.
-    /// </summary>
-    private static Location GetDiagnosticLocation(IOperation operation, SyntaxNode fallbackSyntax)
-    {
-        // Try to locate the type argument in the syntax tree to report the diagnostic at the correct location.
-        // If that fails for any reason, report the diagnostic on the fallback syntax.
-        TypeSyntax? typeArgument = operation.Syntax
-            .DescendantNodes()
-            .OfType<GenericNameSyntax>()
-            .FirstOrDefault()?
-            .TypeArgumentList?
-            .Arguments
-            .FirstOrDefault();
-
-        return typeArgument?.GetLocation() ?? fallbackSyntax.GetLocation();
     }
 }
