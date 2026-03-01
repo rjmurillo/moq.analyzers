@@ -53,15 +53,14 @@ try {
             }
             Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $quotedArgs
         } else {
-            # Use ProcessStartInfo.ArgumentList to invoke dotnet directly.
+            # Use ProcessStartInfo to invoke dotnet directly.
             # PowerShell glob-expands * in splatted arguments to native commands
             # even with $PSNativeCommandArgumentPassing = 'Standard' (PowerShell bug).
-            # ProcessStartInfo.ArgumentList bypasses PowerShell's argument handling entirely.
+            # ProcessStartInfo bypasses PowerShell's argument handling entirely.
+            # Use Arguments (string) instead of ArgumentList (collection) for PS 5.1 compatibility.
             $psi = [System.Diagnostics.ProcessStartInfo]::new("dotnet")
             $psi.UseShellExecute = $false
-            foreach ($arg in $commandArguments) {
-                $psi.ArgumentList.Add($arg)
-            }
+            $psi.Arguments = $formattedArgs
             $proc = [System.Diagnostics.Process]::Start($psi)
             $proc.WaitForExit()
             if ($proc.ExitCode -ne 0) {
