@@ -1,6 +1,3 @@
-# Prevent PowerShell from glob-expanding wildcard characters (e.g., * in --filter)
-# when passing arguments to native commands via the & operator.
-
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [string] $projects,           # semicolon separated list of relative paths to benchmark projects to run
@@ -10,8 +7,6 @@ Param(
     [bool]   $etl=$false,         # capture etl traces for performance tests
     [bool]   $ci=$false           # run in ci mode (fail fast an keep all partial artifacts)
   )
-
-$PSNativeCommandArgumentPassing = 'Standard'
 
 Push-Location $perftestRootFolder
 Write-Host "Running performance tests in folder: $perftestRootFolder"
@@ -58,8 +53,20 @@ try {
             }
             Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $quotedArgs
         } else {
-            # On non-Windows platforms, run without elevation
-            & dotnet @commandArguments
+            # Use ProcessStartInfo.ArgumentList to invoke dotnet directly.
+            # PowerShell glob-expands * in splatted arguments to native commands
+            # even with $PSNativeCommandArgumentPassing = 'Standard' (PowerShell bug).
+            # ProcessStartInfo.ArgumentList bypasses PowerShell's argument handling entirely.
+            $psi = [System.Diagnostics.ProcessStartInfo]::new("dotnet")
+            $psi.UseShellExecute = $false
+            foreach ($arg in $commandArguments) {
+                $psi.ArgumentList.Add($arg)
+            }
+            $proc = [System.Diagnostics.Process]::Start($psi)
+            $proc.WaitForExit()
+            if ($proc.ExitCode -ne 0) {
+                throw "dotnet exited with code $($proc.ExitCode)"
+            }
         }
     }
 }
