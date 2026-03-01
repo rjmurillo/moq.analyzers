@@ -6,7 +6,7 @@
   <Target
     Name="ConfigureGitHooks"
     BeforeTargets="Restore;Build"
-    Condition=" '$(DesignTimeBuild)' != 'true' AND Exists('$(RepoRoot).git') AND !Exists('$(RepoRoot).git/hooks/.githooks-configured') ">
+    Condition=" '$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND Exists('$(RepoRoot).git') AND !Exists('$(RepoRoot).git/hooks/.githooks-configured') ">
 
     <Exec
       Command="git config core.hooksPath .githooks"

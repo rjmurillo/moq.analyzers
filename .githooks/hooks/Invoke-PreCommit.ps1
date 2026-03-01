@@ -77,9 +77,8 @@ try {
         }
     }
 
-    # GitHub Actions linting (lint only)
-    $workflowFiles = Get-StagedFiles -Extensions @('.yml', '.yaml')
-    $workflowFiles = $workflowFiles | Where-Object { $_ -match '^\.github/workflows/' }
+    # GitHub Actions linting (lint only, reuses $yamlFiles from YAML lint step)
+    $workflowFiles = $yamlFiles | Where-Object { $_ -match '^\.github/workflows/' }
     if ($workflowFiles.Count -gt 0) {
         if (Test-ToolAvailable -Command "actionlint" -InstallHint "https://github.com/rhysd/actionlint#install") {
             $fullPaths = $workflowFiles | ForEach-Object { Join-Path $repoRoot $_ }
