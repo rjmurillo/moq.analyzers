@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.Testing;
 using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.ReturnsDelegateShouldReturnTaskAnalyzer, Moq.CodeFixes.ReturnsDelegateShouldReturnTaskFixer>;
 
 namespace Moq.Analyzers.Test;
@@ -46,31 +47,74 @@ public class ReturnsDelegateShouldReturnTaskFixerTests(ITestOutputHelper output)
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    /// <summary>
+    /// Anonymous methods and method groups with type mismatches produce compiler errors
+    /// (CS0029/CS1662), unlike lambdas. We suppress compiler diagnostics to isolate the fixer.
+    /// </summary>
+    /// <returns>Test data with compiler diagnostic suppression for anonymous delegate and method group cases.</returns>
+    public static IEnumerable<object[]> AnonymousDelegateAndMethodGroupTestData()
+    {
+        return new object[][]
+        {
+            // Anonymous method returning int on Task<int> method
+            [
+                """new Mock<AsyncService>().Setup(s => s.GetValueAsync()).{|Moq1208:Returns(delegate { return 42; })|};""",
+                """new Mock<AsyncService>().Setup(s => s.GetValueAsync()).ReturnsAsync(delegate { return 42; });""",
+            ],
+
+            // Anonymous method with parameter returning wrong type on Task<int> method
+            [
+                """new Mock<AsyncService>().Setup(s => s.ProcessAsync(It.IsAny<string>())).{|Moq1208:Returns(delegate (string x) { return x.Length; })|};""",
+                """new Mock<AsyncService>().Setup(s => s.ProcessAsync(It.IsAny<string>())).ReturnsAsync(delegate (string x) { return x.Length; });""",
+            ],
+
+            // Method group returning int on Task<int> method
+            [
+                """new Mock<AsyncService>().Setup(s => s.GetValueAsync()).{|Moq1208:Returns(GetInt)|};""",
+                """new Mock<AsyncService>().Setup(s => s.GetValueAsync()).ReturnsAsync(GetInt);""",
+            ],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldReplaceReturnsWithReturnsAsync(string referenceAssemblyGroup, string @namespace, string original, string quickFix)
     {
-        static string Template(string ns, string mock) =>
-            $$"""
-            {{ns}}
+        await VerifyAsync(referenceAssemblyGroup, @namespace, original, quickFix);
+    }
 
-            public class AsyncService
+    [Theory]
+    [MemberData(nameof(AnonymousDelegateAndMethodGroupTestData))]
+    public async Task ShouldReplaceReturnsWithReturnsAsyncForAnonymousDelegateAndMethodGroup(string referenceAssemblyGroup, string @namespace, string original, string quickFix)
+    {
+        await VerifyAsync(referenceAssemblyGroup, @namespace, original, quickFix, CompilerDiagnostics.None);
+    }
+
+    private static string Template(string ns, string mock) =>
+        $$"""
+        {{ns}}
+
+        public class AsyncService
+        {
+            public virtual Task<int> GetValueAsync() => Task.FromResult(0);
+            public virtual Task<string> GetNameAsync() => Task.FromResult(string.Empty);
+            public virtual ValueTask<int> GetValueTaskAsync() => new ValueTask<int>(0);
+            public virtual Task<int> ProcessAsync(string input) => Task.FromResult(input.Length);
+        }
+
+        internal class UnitTest
+        {
+            private static int GetInt() => 42;
+
+            private void Test()
             {
-                public virtual Task<int> GetValueAsync() => Task.FromResult(0);
-                public virtual Task<string> GetNameAsync() => Task.FromResult(string.Empty);
-                public virtual ValueTask<int> GetValueTaskAsync() => new ValueTask<int>(0);
-                public virtual Task<int> ProcessAsync(string input) => Task.FromResult(input.Length);
+                {{mock}}
             }
+        }
+        """;
 
-            internal class UnitTest
-            {
-                private void Test()
-                {
-                    {{mock}}
-                }
-            }
-            """;
-
+    private async Task VerifyAsync(string referenceAssemblyGroup, string @namespace, string original, string quickFix, CompilerDiagnostics? compilerDiagnostics = null)
+    {
         string o = Template(@namespace, original);
         string f = Template(@namespace, quickFix);
 
@@ -80,6 +124,6 @@ public class ReturnsDelegateShouldReturnTaskFixerTests(ITestOutputHelper output)
         output.WriteLine("Fixed:");
         output.WriteLine(f);
 
-        await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
+        await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup, compilerDiagnostics).ConfigureAwait(false);
     }
 }

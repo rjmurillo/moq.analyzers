@@ -39,13 +39,7 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
 
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
-        if (!IsReturnsMethodCallWithSyncDelegate(invocation, context.SemanticModel, knownSymbols))
-        {
-            return;
-        }
-
-        InvocationExpressionSyntax? setupInvocation = FindSetupInvocation(invocation, context.SemanticModel, knownSymbols);
-        if (setupInvocation == null)
+        if (!IsReturnsMethodCallWithSyncDelegate(invocation, context.SemanticModel, knownSymbols, out InvocationExpressionSyntax? setupInvocation))
         {
             return;
         }
@@ -56,7 +50,11 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
         }
 
         // Report diagnostic spanning from "Returns" identifier through the closing paren
-        MemberAccessExpressionSyntax memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
+        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return;
+        }
+
         int startPos = memberAccess.Name.SpanStart;
         int endPos = invocation.Span.End;
         Microsoft.CodeAnalysis.Text.TextSpan span = Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(startPos, endPos);
@@ -68,9 +66,15 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static bool IsReturnsMethodCallWithSyncDelegate(InvocationExpressionSyntax invocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
+    private static bool IsReturnsMethodCallWithSyncDelegate(
+        InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
+        MoqKnownSymbols knownSymbols,
+        [NotNullWhen(true)] out InvocationExpressionSyntax? setupInvocation)
     {
-        if (invocation.Expression is not MemberAccessExpressionSyntax)
+        setupInvocation = null;
+
+        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
         {
             return false;
         }
@@ -80,19 +84,38 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation);
         bool isReturnsMethod = symbolInfo.Symbol is IMethodSymbol method
             ? method.IsMoqReturnsMethod(knownSymbols)
-            : symbolInfo.CandidateSymbols
-                .OfType<IMethodSymbol>()
-                .Any(m => m.IsMoqReturnsMethod(knownSymbols));
+            : symbolInfo.CandidateReason is CandidateReason.OverloadResolutionFailure
+              && symbolInfo.CandidateSymbols
+                  .OfType<IMethodSymbol>()
+                  .Any(m => m.IsMoqReturnsMethod(knownSymbols));
+
+        // Parameterless anonymous methods can cause complete overload resolution failure,
+        // leaving Symbol null and CandidateSymbols empty. Fall back to verifying the method
+        // name is "Returns", the argument is an anonymous method, and the call is in a Moq Setup chain.
+        if (!isReturnsMethod
+            && string.Equals(memberAccess.Name.Identifier.Text, "Returns", StringComparison.Ordinal)
+            && invocation.ArgumentList.Arguments.Count > 0
+            && invocation.ArgumentList.Arguments[0].Expression is AnonymousMethodExpressionSyntax)
+        {
+            setupInvocation = FindSetupInvocation(invocation, semanticModel, knownSymbols);
+            isReturnsMethod = setupInvocation != null;
+        }
 
         if (!isReturnsMethod)
         {
             return false;
         }
 
-        return HasSyncDelegateArgument(invocation);
+        if (!HasSyncDelegateArgument(invocation, semanticModel))
+        {
+            return false;
+        }
+
+        setupInvocation ??= FindSetupInvocation(invocation, semanticModel, knownSymbols);
+        return setupInvocation != null;
     }
 
-    private static bool HasSyncDelegateArgument(InvocationExpressionSyntax invocation)
+    private static bool HasSyncDelegateArgument(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
     {
         if (invocation.ArgumentList.Arguments.Count == 0)
         {
@@ -101,14 +124,28 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
 
         ExpressionSyntax firstArgument = invocation.ArgumentList.Arguments[0].Expression;
 
-        // Must be a lambda or delegate. Raw values (not delegates) are a different overload.
-        if (firstArgument is not LambdaExpressionSyntax lambda)
+        // Lambdas and anonymous methods share AnonymousFunctionExpressionSyntax,
+        // which exposes AsyncKeyword for sync/async detection.
+        if (firstArgument is AnonymousFunctionExpressionSyntax anonymousFunction)
         {
-            return false;
+            return !anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
         }
 
-        // Exclude async lambdas. Those are Moq1206's domain.
-        return !lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
+        // Method groups require semantic resolution to distinguish from raw values.
+        return IsMethodGroupExpression(firstArgument, semanticModel);
+    }
+
+    private static bool IsMethodGroupExpression(ExpressionSyntax expression, SemanticModel semanticModel)
+    {
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
+        if (symbolInfo.Symbol is IMethodSymbol)
+        {
+            return true;
+        }
+
+        // Method groups with overloads fail resolution when no single overload matches the expected delegate type
+        return symbolInfo.CandidateReason is CandidateReason.OverloadResolutionFailure or CandidateReason.MemberGroup
+            && symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().Any();
     }
 
     private static InvocationExpressionSyntax? FindSetupInvocation(InvocationExpressionSyntax returnsInvocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
@@ -140,8 +177,14 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
                 return null;
             }
 
-            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(candidateMemberAccess);
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(candidateInvocation);
             if (symbolInfo.Symbol != null && symbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
+            {
+                return candidateInvocation;
+            }
+
+            if (symbolInfo.CandidateReason is CandidateReason.OverloadResolutionFailure
+                && symbolInfo.CandidateSymbols.Any(s => s.IsMoqSetupMethod(knownSymbols)))
             {
                 return candidateInvocation;
             }
@@ -192,7 +235,7 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        // Get the delegate's return type from the lambda argument
+        // Get the delegate's return type from the Returns() argument
         delegateReturnType = GetDelegateReturnType(returnsInvocation, semanticModel);
         if (delegateReturnType == null)
         {
@@ -219,18 +262,48 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
 
         ExpressionSyntax firstArgument = returnsInvocation.ArgumentList.Arguments[0].Expression;
 
-        if (firstArgument is not LambdaExpressionSyntax lambda)
+        // For anonymous methods, prefer body analysis. Roslyn may infer the return type
+        // from the target delegate type (e.g., Task<int>) for parameterless anonymous methods,
+        // masking the actual body return type (e.g., int).
+        if (firstArgument is AnonymousMethodExpressionSyntax { Body: BlockSyntax block })
+        {
+            return GetReturnTypeFromBlock(block, semanticModel);
+        }
+
+        // GetSymbolInfo resolves lambdas to IMethodSymbol even when type conversion fails.
+        // Raw values resolve to ILocalSymbol/IFieldSymbol/etc., filtered by the type check.
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(firstArgument);
+        if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
+        {
+            return methodSymbol.ReturnType;
+        }
+
+        // Method groups with type conversion errors may not resolve via Symbol.
+        // Fall back to CandidateSymbols only when all candidates agree on the return type.
+        IMethodSymbol[] candidates = symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().ToArray();
+        if (candidates.Length > 0
+            && candidates.All(c => SymbolEqualityComparer.Default.Equals(c.ReturnType, candidates[0].ReturnType)))
+        {
+            return candidates[0].ReturnType;
+        }
+
+        return null;
+    }
+
+    private static ITypeSymbol? GetReturnTypeFromBlock(BlockSyntax block, SemanticModel semanticModel)
+    {
+        // Find the first return statement in this block,
+        // pruning nested anonymous functions so we don't pick up their returns.
+        ReturnStatementSyntax? returnStatement = block
+            .DescendantNodes(node => node is not AnonymousFunctionExpressionSyntax)
+            .OfType<ReturnStatementSyntax>()
+            .FirstOrDefault();
+
+        if (returnStatement?.Expression == null)
         {
             return null;
         }
 
-        // Use the lambda's semantic symbol to get its return type.
-        // This handles both expression-bodied (() => 42) and block-bodied (() => { return 42; }) lambdas.
-        if (semanticModel.GetSymbolInfo(lambda).Symbol is IMethodSymbol lambdaSymbol)
-        {
-            return lambdaSymbol.ReturnType;
-        }
-
-        return null;
+        return semanticModel.GetTypeInfo(returnStatement.Expression).Type;
     }
 }
