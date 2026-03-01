@@ -36,7 +36,7 @@ try {
 
         Write-Host "Invoking: dotnet $commandArguments"
 
-        if ($etl -and $IsWindows) {
+        if ($etl -and $isWindowsPlatform) {
             # Note: Using Start-Process with -Verb RunAs to ensure it runs with elevated permissions for
             # 1. ETL, if it's enabled
             # 2. To allow BenchmarkDotNet to set the power profile for the CPU
