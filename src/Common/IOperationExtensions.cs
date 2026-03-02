@@ -47,24 +47,7 @@ internal static class IOperationExtensions
     /// <param name="bodyOperation">The lambda body operation to analyze.</param>
     /// <returns>The referenced member symbol, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
     internal static ISymbol? GetReferencedMemberSymbolFromLambda(this IOperation? bodyOperation)
-    {
-        if (bodyOperation is IBlockOperation blockOperation)
-        {
-            foreach (IOperation op in blockOperation.Operations)
-            {
-                ISymbol? symbol = op.GetSymbolFromOperation();
-                if (symbol != null)
-                {
-                    return symbol;
-                }
-            }
-
-            return null;
-        }
-
-        // If it's an expression lambda (example: => x.Property or => x.Method(...))
-        return bodyOperation.GetSymbolFromOperation();
-    }
+        => TraverseLambdaBody(bodyOperation, static op => op.GetSymbolFromOperation());
 
     /// <summary>
     /// Extracts the referenced member syntax node from a lambda operation, handling both block lambdas
@@ -75,23 +58,31 @@ internal static class IOperationExtensions
     /// <param name="bodyOperation">The lambda body operation to analyze.</param>
     /// <returns>The referenced member syntax node, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
     internal static SyntaxNode? GetReferencedMemberSyntaxFromLambda(this IOperation? bodyOperation)
+        => TraverseLambdaBody(bodyOperation, static op => op.GetSyntaxFromOperation());
+
+    /// <summary>
+    /// Traverses a lambda body operation to extract a value. For block lambdas, iterates all
+    /// operations (handling Action{T} lambdas with multiple operations). For expression lambdas,
+    /// applies the extractor directly.
+    /// </summary>
+    private static T? TraverseLambdaBody<T>(IOperation? bodyOperation, Func<IOperation, T?> extractor)
+        where T : class
     {
         if (bodyOperation is IBlockOperation blockOperation)
         {
             foreach (IOperation op in blockOperation.Operations)
             {
-                SyntaxNode? syntax = op.GetSyntaxFromOperation();
-                if (syntax != null)
+                T? result = extractor(op);
+                if (result != null)
                 {
-                    return syntax;
+                    return result;
                 }
             }
 
             return null;
         }
 
-        // If it's an expression lambda (example: => x.Property or => x.Method(...))
-        return bodyOperation.GetSyntaxFromOperation();
+        return bodyOperation != null ? extractor(bodyOperation) : null;
     }
 
     /// <summary>
