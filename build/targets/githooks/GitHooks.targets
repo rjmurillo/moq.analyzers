@@ -33,5 +33,9 @@
       Condition=" '$(_HooksPathExitCode)' != '0' AND '$(_SetHooksExitCode)' == '0' "
       Importance="high"
       Text="Git hooks configured. Run 'git config --unset core.hooksPath' to disable." />
+
+    <Warning
+      Condition=" '$(_HooksPathExitCode)' != '0' AND '$(_SetHooksExitCode)' != '0' "
+      Text="Failed to configure git hooks (exit code $(_SetHooksExitCode)). Run 'git config core.hooksPath .githooks' manually." />
   </Target>
 </Project>
