@@ -52,15 +52,23 @@ try {
     $jsonFiles = Get-StagedFiles -Extensions @('.json')
     $jsonFiles = $jsonFiles | Where-Object { $_ -notmatch '\.verified\.json$' }
     if ($jsonFiles.Count -gt 0) {
-        if (Test-ToolAvailable -Command "python3" -InstallHint "https://www.python.org/downloads/") {
+        # On Windows, Python installs as 'python' not 'python3'
+        $pythonCmd = if (Get-Command "python3" -ErrorAction SilentlyContinue) { "python3" }
+                     elseif (Get-Command "python" -ErrorAction SilentlyContinue) { "python" }
+                     else { $null }
+
+        if ($pythonCmd) {
             foreach ($file in $jsonFiles) {
                 $fullPath = Join-Path $repoRoot $file
-                $output = python3 -m json.tool $fullPath 2>&1
+                $output = & $pythonCmd -m json.tool $fullPath 2>&1
                 if ($LASTEXITCODE -ne 0) {
                     Set-HookFailed -Check "json: $file"
                     Write-Host $output
                 }
             }
+        }
+        else {
+            Write-Warning "python not found. Install: https://www.python.org/downloads/"
         }
     }
 

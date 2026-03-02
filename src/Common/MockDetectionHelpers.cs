@@ -92,18 +92,12 @@ internal static class MockDetectionHelpers
     /// <returns>True if the method is Mock.Of{T}(); otherwise, false.</returns>
     public static bool IsValidMockOfMethod(IMethodSymbol? targetMethod, MoqKnownSymbols knownSymbols)
     {
-        if (targetMethod is null || !targetMethod.IsStatic)
+        if (targetMethod is null)
         {
             return false;
         }
 
-        if (!string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return targetMethod.ContainingType is not null &&
-               targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default);
+        return targetMethod.IsInstanceOf(knownSymbols.MockOf);
     }
 
     /// <summary>

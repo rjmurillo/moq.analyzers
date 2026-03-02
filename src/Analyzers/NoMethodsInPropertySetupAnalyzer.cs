@@ -74,29 +74,36 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // The lambda argument to SetupGet/SetupSet/SetupProperty contains the mocked member access.
-        // If the lambda body is an invocation (method call), that is invalid for property setup.
-        InvocationExpressionSyntax? mockedMethodCall =
-            (invocationOperation.Syntax as InvocationExpressionSyntax).FindMockedMethodInvocationFromSetupMethod();
-
-        if (mockedMethodCall == null)
+        if (invocationOperation.Arguments.Length == 0)
         {
             return;
         }
 
-        SemanticModel? semanticModel = invocationOperation.SemanticModel;
-        if (semanticModel == null)
+        // Extract the lambda from the first argument (e.g., x => x.SomeMethod()).
+        IAnonymousFunctionOperation? lambdaOperation =
+            MoqVerificationHelpers.ExtractLambdaFromArgument(invocationOperation.Arguments[0].Value);
+
+        if (lambdaOperation == null)
         {
             return;
         }
 
-        ISymbol? mockedMethodSymbol = semanticModel.GetSymbolInfo(mockedMethodCall, context.CancellationToken).Symbol;
-        if (mockedMethodSymbol == null)
+        // If the lambda body resolves to a method symbol, the user incorrectly used a property
+        // setup method (SetupGet/SetupSet/SetupProperty) for a method call.
+        ISymbol? mockedMemberSymbol = lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
+        if (mockedMemberSymbol is not IMethodSymbol)
         {
             return;
         }
 
-        Diagnostic diagnostic = mockedMethodCall.CreateDiagnostic(Rule, mockedMethodSymbol.Name);
+        // Use the syntax of the mocked member reference for a precise diagnostic location.
+        SyntaxNode? mockedMemberSyntax = lambdaOperation.Body.GetReferencedMemberSyntaxFromLambda();
+        if (mockedMemberSyntax == null)
+        {
+            return;
+        }
+
+        Diagnostic diagnostic = mockedMemberSyntax.CreateDiagnostic(Rule, mockedMemberSymbol.Name);
         context.ReportDiagnostic(diagnostic);
     }
 }
