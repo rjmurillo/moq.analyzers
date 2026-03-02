@@ -79,7 +79,8 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Extract the lambda from the first argument (e.g., x => x.SomeMethod()).
+        // Extract the lambda from the first argument. In the error case, this contains a method
+        // call (e.g., x => x.SomeMethod()) instead of a property access (e.g., x => x.Property).
         IAnonymousFunctionOperation? lambdaOperation =
             MoqVerificationHelpers.ExtractLambdaFromArgument(invocationOperation.Arguments[0].Value);
 
@@ -96,14 +97,12 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Use the syntax of the mocked member reference for a precise diagnostic location.
-        SyntaxNode? mockedMemberSyntax = lambdaOperation.Body.GetReferencedMemberSyntaxFromLambda();
-        if (mockedMemberSyntax == null)
-        {
-            return;
-        }
+        // Prefer the syntax of the mocked member reference for a precise diagnostic location.
+        // Fall back to the invocation syntax to ensure the diagnostic is always reported.
+        SyntaxNode diagnosticTarget = lambdaOperation.Body.GetReferencedMemberSyntaxFromLambda()
+            ?? invocationOperation.Syntax;
 
-        Diagnostic diagnostic = mockedMemberSyntax.CreateDiagnostic(Rule, mockedMemberSymbol.Name);
+        Diagnostic diagnostic = diagnosticTarget.CreateDiagnostic(Rule, mockedMemberSymbol.Name);
         context.ReportDiagnostic(diagnostic);
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.Testing;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.NoMockOfLoggerAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -42,6 +43,54 @@ public class NoMockOfLoggerAnalyzerTests
                 }
                 """,
                 referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
+    }
+
+    [Fact]
+    public async Task ShouldSuggestNullLoggerInstanceForILogger()
+    {
+        // Verify the diagnostic message suggests "NullLogger.Instance" for non-generic ILogger.
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using Microsoft.Extensions.Logging;
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var mock = new Mock<ILogger>();
+                    }
+                }
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
+                    .WithSpan("/0/Test1.cs", 8, 29, 8, 36)
+                    .WithArguments("NullLogger.Instance"));
+    }
+
+    [Fact]
+    public async Task ShouldSuggestNullLoggerOfTInstanceForILoggerOfT()
+    {
+        // Verify the diagnostic message suggests "NullLogger<T>.Instance" for generic ILogger<T>.
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using Microsoft.Extensions.Logging;
+
+                internal class MyService { }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var mock = new Mock<ILogger<MyService>>();
+                    }
+                }
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
+                    .WithSpan("/0/Test1.cs", 10, 29, 10, 47)
+                    .WithArguments("NullLogger<T>.Instance"));
     }
 
     [Fact]

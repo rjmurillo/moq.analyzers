@@ -85,7 +85,7 @@ internal static class MockDetectionHelpers
     }
 
     /// <summary>
-    /// Checks if the method symbol represents a static Mock.Of{T}() method.
+    /// Checks if the method symbol represents a Mock.Of{T}() method.
     /// </summary>
     /// <param name="targetMethod">The method symbol to check.</param>
     /// <param name="knownSymbols">The known Moq symbols.</param>

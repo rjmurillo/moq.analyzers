@@ -42,7 +42,7 @@ internal static class IOperationExtensions
     /// Extracts the referenced member symbol from a lambda operation, handling both block lambdas
     /// (e.g., => { return x.Property; }) and expression lambdas (e.g., => x.Property).
     /// Also handles Action{T} lambdas where the block may contain an expression statement
-    /// plus an implicit void return (e.g., SetupSet(x => x.Method())).
+    /// plus an implicit void return (e.g., SetupSet(x => x.Property = value)).
     /// </summary>
     /// <param name="bodyOperation">The lambda body operation to analyze.</param>
     /// <returns>The referenced member symbol, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
@@ -53,7 +53,7 @@ internal static class IOperationExtensions
     /// Extracts the referenced member syntax node from a lambda operation, handling both block lambdas
     /// (e.g., => { return x.Property; }) and expression lambdas (e.g., => x.Property).
     /// Also handles Action{T} lambdas where the block may contain an expression statement
-    /// plus an implicit void return (e.g., SetupSet(x => x.Method())).
+    /// plus an implicit void return (e.g., SetupSet(x => x.Property = value)).
     /// </summary>
     /// <param name="bodyOperation">The lambda body operation to analyze.</param>
     /// <returns>The referenced member syntax node, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
@@ -62,9 +62,14 @@ internal static class IOperationExtensions
 
     /// <summary>
     /// Traverses a lambda body operation to extract a value. For block lambdas, iterates all
-    /// operations (handling Action{T} lambdas with multiple operations). For expression lambdas,
+    /// operations and returns the first non-null result (handling Action{T} lambdas with multiple
+    /// operations, e.g., ExpressionStatement + implicit void Return). For expression lambdas,
     /// applies the extractor directly.
     /// </summary>
+    /// <typeparam name="T">The type of value to extract (e.g., <see cref="SyntaxNode"/>, <see cref="ISymbol"/>).</typeparam>
+    /// <param name="bodyOperation">The lambda body operation to analyze.</param>
+    /// <param name="extractor">A function that attempts to extract a value from a single operation.</param>
+    /// <returns>The extracted value, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
     private static T? TraverseLambdaBody<T>(IOperation? bodyOperation, Func<IOperation, T?> extractor)
         where T : class
     {
@@ -111,7 +116,7 @@ internal static class IOperationExtensions
                     operation = exprStmtOp.Operation;
                     continue;
                 default:
-                    return operation != null ? selector(operation) : null;
+                    return selector(operation);
             }
         }
     }
