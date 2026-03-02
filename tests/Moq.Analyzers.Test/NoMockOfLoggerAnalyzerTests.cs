@@ -138,6 +138,85 @@ public class NoMockOfLoggerAnalyzerTests
     }
 
     [Fact]
+    public async Task ShouldSuggestNullLoggerInstanceForMockOfILogger()
+    {
+        // Verify Mock.Of<ILogger>() suggests "NullLogger.Instance".
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using Microsoft.Extensions.Logging;
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var logger = Mock.Of<ILogger>();
+                    }
+                }
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
+                    .WithSpan("/0/Test1.cs", 8, 30, 8, 37)
+                    .WithArguments("NullLogger.Instance"));
+    }
+
+    [Fact]
+    public async Task ShouldSuggestNullLoggerOfTInstanceForMockOfILoggerOfT()
+    {
+        // Verify Mock.Of<ILogger<T>>() suggests "NullLogger<T>.Instance".
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using Microsoft.Extensions.Logging;
+
+                internal class MyService { }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var logger = Mock.Of<ILogger<MyService>>();
+                    }
+                }
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
+                    .WithSpan("/0/Test1.cs", 10, 30, 10, 48)
+                    .WithArguments("NullLogger<T>.Instance"));
+    }
+
+    [Fact]
+    public async Task ShouldSuggestCorrectNullLoggerForMockRepositoryCreate()
+    {
+        // Verify MockRepository.Create<ILogger>() suggests "NullLogger.Instance"
+        // and MockRepository.Create<ILogger<T>>() suggests "NullLogger<T>.Instance".
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using Moq;
+                using Microsoft.Extensions.Logging;
+
+                internal class MyService { }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var repository = new MockRepository(MockBehavior.Strict);
+                        var mock1 = repository.Create<ILogger>();
+                        var mock2 = repository.Create<ILogger<MyService>>();
+                    }
+                }
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
+                    .WithSpan("/0/Test1.cs", 11, 39, 11, 46)
+                    .WithArguments("NullLogger.Instance"),
+                new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
+                    .WithSpan("/0/Test1.cs", 12, 39, 12, 57)
+                    .WithArguments("NullLogger<T>.Instance"));
+    }
+
+    [Fact]
     public async Task ShouldDetectMockRepositoryCreate()
     {
         await Verifier.VerifyAnalyzerAsync(

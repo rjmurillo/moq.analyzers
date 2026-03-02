@@ -82,7 +82,7 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
             diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, creation.Syntax);
         }
 
-        // Handle static method invocation: Mock.Of{T}() or MockRepository.Create{T}()
+        // Handle mock invocation: Mock.Of{T}() or MockRepository.Create{T}()
         else if (context.Operation is IInvocationOperation invocation &&
                  MockDetectionHelpers.IsValidMockInvocation(invocation, knownSymbols, out mockedType))
         {
