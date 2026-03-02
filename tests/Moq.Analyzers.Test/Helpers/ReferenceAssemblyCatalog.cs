@@ -36,11 +36,6 @@ public static class ReferenceAssemblyCatalog
     public static string Net80WithNewMoqAndLogging => nameof(Net80WithNewMoqAndLogging);
 
     /// <summary>
-    /// Gets the name of the reference assembly group for .NET 8.0 without Moq.
-    /// </summary>
-    public static string Net80 => nameof(Net80);
-
-    /// <summary>
     /// Gets the catalog of reference assemblies.
     /// </summary>
     /// <remarks>
@@ -69,8 +64,5 @@ public static class ReferenceAssemblyCatalog
                 new PackageIdentity("Microsoft.Extensions.Logging.Abstractions", "8.0.0"),
             ])
         },
-
-        // .NET 8.0 without Moq, used to verify analyzers bail out gracefully when Moq is not referenced.
-        { nameof(Net80), ReferenceAssemblies.Net.Net80 },
     };
 }
