@@ -496,10 +496,10 @@ class C
     }
 
     [Fact]
-    public void GetReferencedMemberSymbolFromLambda_BlockLambdaWithMultipleOperations_ReturnsNull()
+    public void GetReferencedMemberSymbolFromLambda_ActionBlockLambda_ReturnsPropertySymbol()
     {
         // Action block lambdas produce 2 operations (ExpressionStatement + implicit Return).
-        // The method only handles block lambdas with exactly 1 operation.
+        // The method iterates block operations to find the referenced member.
         const string code = @"
 class C
 {
@@ -513,11 +513,12 @@ class C
 
         ISymbol? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSymbolFromLambda();
 
-        Assert.Null(result);
+        Assert.NotNull(result);
+        Assert.Equal("Prop", result!.Name);
     }
 
     [Fact]
-    public void GetReferencedMemberSyntaxFromLambda_BlockLambdaWithMultipleOperations_ReturnsNull()
+    public void GetReferencedMemberSyntaxFromLambda_ActionBlockLambda_ReturnsSyntaxNode()
     {
         const string code = @"
 class C
@@ -532,7 +533,8 @@ class C
 
         SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
 
-        Assert.Null(result);
+        Assert.NotNull(result);
+        Assert.Contains("Prop", result!.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]

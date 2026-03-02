@@ -41,15 +41,25 @@ internal static class IOperationExtensions
     /// <summary>
     /// Extracts the referenced member symbol from a lambda operation, handling both block lambdas
     /// (e.g., => { return x.Property; }) and expression lambdas (e.g., => x.Property).
+    /// Also handles Action{T} lambdas where the block may contain an expression statement
+    /// plus an implicit void return (e.g., SetupSet(x => x.Method())).
     /// </summary>
     /// <param name="bodyOperation">The lambda body operation to analyze.</param>
     /// <returns>The referenced member symbol, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
     internal static ISymbol? GetReferencedMemberSymbolFromLambda(this IOperation? bodyOperation)
     {
-        if (bodyOperation is IBlockOperation { Operations.Length: 1 } blockOperation)
+        if (bodyOperation is IBlockOperation blockOperation)
         {
-            // If it's a block lambda (example: => { return x.Property; })
-            return blockOperation.Operations[0].GetSymbolFromOperation();
+            foreach (IOperation op in blockOperation.Operations)
+            {
+                ISymbol? symbol = op.GetSymbolFromOperation();
+                if (symbol != null)
+                {
+                    return symbol;
+                }
+            }
+
+            return null;
         }
 
         // If it's an expression lambda (example: => x.Property or => x.Method(...))
@@ -59,15 +69,25 @@ internal static class IOperationExtensions
     /// <summary>
     /// Extracts the referenced member syntax node from a lambda operation, handling both block lambdas
     /// (e.g., => { return x.Property; }) and expression lambdas (e.g., => x.Property).
+    /// Also handles Action{T} lambdas where the block may contain an expression statement
+    /// plus an implicit void return (e.g., SetupSet(x => x.Method())).
     /// </summary>
     /// <param name="bodyOperation">The lambda body operation to analyze.</param>
     /// <returns>The referenced member syntax node, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
     internal static SyntaxNode? GetReferencedMemberSyntaxFromLambda(this IOperation? bodyOperation)
     {
-        if (bodyOperation is IBlockOperation { Operations.Length: 1 } blockOperation)
+        if (bodyOperation is IBlockOperation blockOperation)
         {
-            // If it's a block lambda (example: => { return x.Property; })
-            return blockOperation.Operations[0].GetSyntaxFromOperation();
+            foreach (IOperation op in blockOperation.Operations)
+            {
+                SyntaxNode? syntax = op.GetSyntaxFromOperation();
+                if (syntax != null)
+                {
+                    return syntax;
+                }
+            }
+
+            return null;
         }
 
         // If it's an expression lambda (example: => x.Property or => x.Method(...))
