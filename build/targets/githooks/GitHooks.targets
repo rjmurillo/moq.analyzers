@@ -1,32 +1,37 @@
 <Project>
   <!--
     Automatically configure git to use .githooks/ as the hooks directory.
-    Runs once per clone via sentinel file. Degrades gracefully in CI or non-git contexts.
+    Queries git config directly instead of a sentinel file, so this works
+    in worktrees and submodules where .git may be a file, not a directory.
+    Respects any existing core.hooksPath value (does not clobber).
+    Skips design-time builds and CI.
   -->
   <Target
     Name="ConfigureGitHooks"
     BeforeTargets="Restore;Build"
-    Condition=" '$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND Exists('$(RepoRoot).git') AND !Exists('$(RepoRoot).git/hooks/.githooks-configured') ">
+    Condition=" '$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND Exists('$(RepoRoot).git') ">
 
     <Exec
+      Command="git config core.hooksPath"
+      WorkingDirectory="$(RepoRoot)"
+      ConsoleToMsBuild="true"
+      IgnoreExitCode="true"
+      StandardOutputImportance="low">
+      <Output TaskParameter="ExitCode" PropertyName="_HooksPathExitCode" />
+    </Exec>
+
+    <!-- Only set when core.hooksPath is not configured (exit code 1) -->
+    <Exec
+      Condition=" '$(_HooksPathExitCode)' != '0' "
       Command="git config core.hooksPath .githooks"
       WorkingDirectory="$(RepoRoot)"
       IgnoreExitCode="true">
-      <Output TaskParameter="ExitCode" PropertyName="_GitHooksExitCode" />
+      <Output TaskParameter="ExitCode" PropertyName="_SetHooksExitCode" />
     </Exec>
 
-    <Touch
-      Condition=" '$(_GitHooksExitCode)' == '0' "
-      Files="$(RepoRoot).git/hooks/.githooks-configured"
-      AlwaysCreate="true" />
-
     <Message
-      Condition=" '$(_GitHooksExitCode)' == '0' "
+      Condition=" '$(_HooksPathExitCode)' != '0' AND '$(_SetHooksExitCode)' == '0' "
       Importance="high"
       Text="Git hooks configured. Run 'git config --unset core.hooksPath' to disable." />
-
-    <Warning
-      Condition=" '$(_GitHooksExitCode)' != '0' "
-      Text="Failed to configure git hooks (exit code $(_GitHooksExitCode)). Run 'git config core.hooksPath .githooks' manually." />
   </Target>
 </Project>
