@@ -35,7 +35,7 @@ try {
         }
     }
 
-    # YAML linting (lint only)
+    # YAML linting (lint only) and GitHub Actions linting share the file list
     $yamlFiles = Get-StagedFiles -Extensions @('.yml', '.yaml')
     if ($yamlFiles.Count -gt 0) {
         if (Test-ToolAvailable -Command "yamllint" -InstallHint "pip install yamllint") {
@@ -46,21 +46,41 @@ try {
                 Write-Host $output
             }
         }
+
+        # GitHub Actions linting (lint only, subset of YAML files)
+        $workflowFiles = $yamlFiles | Where-Object { $_ -match '^\.github/workflows/' }
+        if ($workflowFiles.Count -gt 0) {
+            if (Test-ToolAvailable -Command "actionlint" -InstallHint "https://github.com/rhysd/actionlint#install") {
+                $fullPaths = $workflowFiles | ForEach-Object { Join-Path $repoRoot $_ }
+                $output = actionlint $fullPaths 2>&1
+                if ($LASTEXITCODE -ne 0) {
+                    Set-HookFailed -Check "actionlint"
+                    Write-Host $output
+                }
+            }
+        }
     }
 
     # JSON linting (lint only, exclude .verified.json)
     $jsonFiles = Get-StagedFiles -Extensions @('.json')
     $jsonFiles = $jsonFiles | Where-Object { $_ -notmatch '\.verified\.json$' }
     if ($jsonFiles.Count -gt 0) {
-        if (Test-ToolAvailable -Command "python3" -InstallHint "https://www.python.org/downloads/") {
+        # Probe for python3 or python (Windows often lacks python3 alias)
+        $pythonCmd = if (Get-Command "python3" -ErrorAction SilentlyContinue) { "python3" }
+                     elseif (Get-Command "python" -ErrorAction SilentlyContinue) { "python" }
+                     else { $null }
+        if ($pythonCmd) {
             foreach ($file in $jsonFiles) {
                 $fullPath = Join-Path $repoRoot $file
-                $output = python3 -m json.tool $fullPath 2>&1
+                $output = & $pythonCmd -m json.tool $fullPath 2>&1
                 if ($LASTEXITCODE -ne 0) {
                     Set-HookFailed -Check "json: $file"
                     Write-Host $output
                 }
             }
+        }
+        else {
+            Write-Warning "python not found. Install: https://www.python.org/downloads/"
         }
     }
 
@@ -72,20 +92,6 @@ try {
             $output = shellcheck $fullPaths 2>&1
             if ($LASTEXITCODE -ne 0) {
                 Set-HookFailed -Check "shellcheck"
-                Write-Host $output
-            }
-        }
-    }
-
-    # GitHub Actions linting (lint only)
-    $workflowFiles = Get-StagedFiles -Extensions @('.yml', '.yaml')
-    $workflowFiles = $workflowFiles | Where-Object { $_ -match '^\.github/workflows/' }
-    if ($workflowFiles.Count -gt 0) {
-        if (Test-ToolAvailable -Command "actionlint" -InstallHint "https://github.com/rhysd/actionlint#install") {
-            $fullPaths = $workflowFiles | ForEach-Object { Join-Path $repoRoot $_ }
-            $output = actionlint $fullPaths 2>&1
-            if ($LASTEXITCODE -ne 0) {
-                Set-HookFailed -Check "actionlint"
                 Write-Host $output
             }
         }

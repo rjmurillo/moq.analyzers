@@ -57,12 +57,24 @@ function Invoke-AutoFix {
         [string[]]$Files
     )
 
+    # Snapshot files with pre-existing unstaged changes to avoid
+    # silently including a developer's partial staging in the commit
+    $dirtyBefore = @(git diff --name-only -- $Files)
+
     & $FixCommand
 
     $modified = git diff --name-only -- $Files
     if ($modified) {
-        Write-Host "Auto-fixed: $($modified -join ', ')"
-        git add $modified
+        $safeToStage = @($modified | Where-Object { $_ -notin $dirtyBefore })
+        $skipped = @($modified | Where-Object { $_ -in $dirtyBefore })
+
+        if ($safeToStage.Count -gt 0) {
+            Write-Host "Auto-fixed: $($safeToStage -join ', ')"
+            git add $safeToStage
+        }
+        if ($skipped.Count -gt 0) {
+            Write-Warning "Has unstaged changes, not re-staging: $($skipped -join ', ')"
+        }
     }
 }
 
