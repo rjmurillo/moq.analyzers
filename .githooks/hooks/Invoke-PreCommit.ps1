@@ -3,7 +3,7 @@ param()
 
 $repoRoot = git rev-parse --show-toplevel
 if ($LASTEXITCODE -ne 0 -or -not $repoRoot) {
-    Write-Host "FAIL: Unable to determine repository root." -ForegroundColor Red
+    Write-Error "Unable to determine repository root."
     exit 1
 }
 . "$PSScriptRoot/../lib/LintHelpers.ps1"
