@@ -2,25 +2,30 @@
 param()
 
 $repoRoot = git rev-parse --show-toplevel
+if ($LASTEXITCODE -ne 0 -or -not $repoRoot) {
+    Write-Error "Unable to determine repository root."
+    exit 1
+}
 . "$PSScriptRoot/../lib/LintHelpers.ps1"
 
 # Allow newer .NET runtimes to run tests targeting older TFMs
 $env:DOTNET_ROLL_FORWARD = "LatestMajor"
 
 try {
-    $output = dotnet build (Join-Path $repoRoot "Moq.Analyzers.sln") /p:PedanticMode=true --verbosity quiet 2>&1
+    $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
+
+    $output = dotnet build $slnPath /p:PedanticMode=true --verbosity quiet 2>&1
     $buildExitCode = $LASTEXITCODE
     $output = $output | Out-String
-    $buildPassed = $buildExitCode -eq 0
 
-    if (-not $buildPassed) {
+    if ($buildExitCode -ne 0) {
         Set-HookFailed -Check "dotnet build"
         Write-Host $output
         Write-Host "Build failed. Skipping tests."
     }
     else {
         $runSettings = Join-Path $repoRoot "build/targets/tests/test.runsettings"
-        $output = dotnet test (Join-Path $repoRoot "Moq.Analyzers.sln") --no-build --settings $runSettings --verbosity quiet 2>&1
+        $output = dotnet test $slnPath --no-build --settings $runSettings --verbosity quiet 2>&1
         $testExitCode = $LASTEXITCODE
         $output = $output | Out-String
         if ($testExitCode -ne 0) {

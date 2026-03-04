@@ -1,32 +1,53 @@
 <Project>
   <!--
     Automatically configure git to use .githooks/ as the hooks directory.
-    Runs once per clone via sentinel file. Degrades gracefully in CI or non-git contexts.
+    Queries git config directly instead of a sentinel file, so this works
+    in worktrees and submodules where .git may be a file, not a directory.
+    Respects any existing core.hooksPath value (does not clobber).
+    Skips design-time builds and CI.
   -->
   <Target
     Name="ConfigureGitHooks"
     BeforeTargets="Restore;Build"
-    Condition=" '$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND Exists('$(RepoRoot).git') AND !Exists('$(RepoRoot).git/hooks/.githooks-configured') ">
+    Condition=" '$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND Exists('$(RepoRoot).git') ">
 
     <Exec
+      Command="git config core.hooksPath"
+      WorkingDirectory="$(RepoRoot)"
+      ConsoleToMsBuild="true"
+      IgnoreExitCode="true"
+      StandardOutputImportance="low">
+      <Output TaskParameter="ExitCode" PropertyName="_HooksPathExitCode" />
+    </Exec>
+
+    <!--
+      git config exit codes (per git-config(1) man page):
+        0 = success (key exists and has a value)
+        1 = key not found
+        3 = invalid config file
+        4 = config file cannot be written
+      We only act on exit code 1 (key not set). Other non-zero codes
+      indicate real errors that a retry would not fix.
+    -->
+    <Exec
+      Condition=" '$(_HooksPathExitCode)' == '1' "
       Command="git config core.hooksPath .githooks"
       WorkingDirectory="$(RepoRoot)"
       IgnoreExitCode="true">
-      <Output TaskParameter="ExitCode" PropertyName="_GitHooksExitCode" />
+      <Output TaskParameter="ExitCode" PropertyName="_SetHooksExitCode" />
     </Exec>
 
-    <Touch
-      Condition=" '$(_GitHooksExitCode)' == '0' "
-      Files="$(RepoRoot).git/hooks/.githooks-configured"
-      AlwaysCreate="true" />
-
     <Message
-      Condition=" '$(_GitHooksExitCode)' == '0' "
+      Condition=" '$(_HooksPathExitCode)' == '1' AND '$(_SetHooksExitCode)' == '0' "
       Importance="high"
       Text="Git hooks configured. Run 'git config --unset core.hooksPath' to disable." />
 
     <Warning
-      Condition=" '$(_GitHooksExitCode)' != '0' "
-      Text="Failed to configure git hooks (exit code $(_GitHooksExitCode)). Run 'git config core.hooksPath .githooks' manually." />
+      Condition=" '$(_HooksPathExitCode)' == '1' AND '$(_SetHooksExitCode)' != '0' "
+      Text="Failed to configure git hooks (exit code $(_SetHooksExitCode)). Run 'git config core.hooksPath .githooks' manually." />
+
+    <Warning
+      Condition=" '$(_HooksPathExitCode)' != '0' AND '$(_HooksPathExitCode)' != '1' "
+      Text="git config query failed (exit code $(_HooksPathExitCode)). Your git config may be corrupt or unreadable." />
   </Target>
 </Project>
