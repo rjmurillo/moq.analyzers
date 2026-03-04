@@ -41,8 +41,8 @@ internal static class IOperationExtensions
     /// <summary>
     /// Extracts the referenced member symbol from a lambda operation, handling both block lambdas
     /// (e.g., => { return x.Property; }) and expression lambdas (e.g., => x.Property).
-    /// Also handles Action{T} lambdas where the block may contain an expression statement
-    /// plus an implicit void return (e.g., SetupSet(x => x.Property = value)).
+    /// Also handles <see cref="System.Action{T}"/> lambdas where the block may contain an expression statement
+    /// plus an implicit void return (e.g., <c>SetupSet(x =&gt; x.Property = value)</c>).
     /// </summary>
     /// <param name="bodyOperation">The lambda body operation to analyze.</param>
     /// <returns>The referenced member symbol, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
@@ -52,8 +52,8 @@ internal static class IOperationExtensions
     /// <summary>
     /// Extracts the referenced member syntax node from a lambda operation, handling both block lambdas
     /// (e.g., => { return x.Property; }) and expression lambdas (e.g., => x.Property).
-    /// Also handles Action{T} lambdas where the block may contain an expression statement
-    /// plus an implicit void return (e.g., SetupSet(x => x.Property = value)).
+    /// Also handles <see cref="System.Action{T}"/> lambdas where the block may contain an expression statement
+    /// plus an implicit void return (e.g., <c>SetupSet(x =&gt; x.Property = value)</c>).
     /// </summary>
     /// <param name="bodyOperation">The lambda body operation to analyze.</param>
     /// <returns>The referenced member syntax node, or <see langword="null" /> if not found or if the operation is <see langword="null" />.</returns>
@@ -62,7 +62,7 @@ internal static class IOperationExtensions
 
     /// <summary>
     /// Traverses a lambda body operation to extract a value. For block lambdas, iterates all
-    /// operations and returns the first non-null result (handling Action{T} lambdas with multiple
+    /// operations and returns the first non-null result (handling <see cref="System.Action{T}"/> lambdas with multiple
     /// operations, e.g., ExpressionStatement + implicit void Return). For expression lambdas,
     /// applies the extractor directly.
     /// </summary>
@@ -75,6 +75,9 @@ internal static class IOperationExtensions
     {
         if (bodyOperation is IBlockOperation blockOperation)
         {
+            // Iterate all operations and return on the first match. This handles Action<T> block
+            // lambdas (e.g., SetupSet) that emit ExpressionStatement + implicit void Return.
+            // Moq setup expressions contain at most one meaningful operation, so first-match is correct.
             foreach (IOperation op in blockOperation.Operations)
             {
                 T? result = extractor(op);
@@ -91,7 +94,7 @@ internal static class IOperationExtensions
     }
 
     /// <summary>
-    /// Traverses an <see cref="IOperation"/> tree to extract a value using the provided selector, handling return operations, assignments, and expression statements.
+    /// Traverses an <see cref="IOperation"/> tree to extract a value using the provided selector, handling conversions, return operations, assignments, and expression statements.
     /// </summary>
     /// <typeparam name="T">The type of value to extract (e.g., <see cref="SyntaxNode"/>, <see cref="ISymbol"/>).</typeparam>
     /// <param name="operation">The <see cref="IOperation"/> to analyze.</param>
@@ -106,6 +109,9 @@ internal static class IOperationExtensions
             {
                 case null:
                     return null;
+                case IConversionOperation conversionOp:
+                    operation = conversionOp.Operand;
+                    continue;
                 case IReturnOperation returnOp:
                     operation = returnOp.ReturnedValue;
                     continue;

@@ -52,7 +52,7 @@ try {
     $jsonFiles = Get-StagedFiles -Extensions @('.json')
     $jsonFiles = $jsonFiles | Where-Object { $_ -notmatch '\.verified\.json$' }
     if ($jsonFiles.Count -gt 0) {
-        # On Windows, Python installs as 'python' not 'python3'
+        # Python may be available as 'python3' or 'python' depending on platform
         $pythonCmd = if (Get-Command "python3" -ErrorAction SilentlyContinue) { "python3" }
                      elseif (Get-Command "python" -ErrorAction SilentlyContinue) { "python" }
                      else { $null }

@@ -6,46 +6,6 @@ namespace Moq.Analyzers.Test;
 public class NoMockOfLoggerAnalyzerTests
 {
     [Fact]
-    public async Task ShouldDetectMockOfILogger()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                using Moq;
-                using Microsoft.Extensions.Logging;
-
-                internal class UnitTest
-                {
-                    private void Test()
-                    {
-                        var mock = new Mock<{|Moq1004:ILogger|}>();
-                    }
-                }
-                """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
-    }
-
-    [Fact]
-    public async Task ShouldDetectMockOfILoggerOfT()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                using Moq;
-                using Microsoft.Extensions.Logging;
-
-                internal class MyService { }
-
-                internal class UnitTest
-                {
-                    private void Test()
-                    {
-                        var mock = new Mock<{|Moq1004:ILogger<MyService>|}>();
-                    }
-                }
-                """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
-    }
-
-    [Fact]
     public async Task ShouldSuggestNullLoggerInstanceForILogger()
     {
         // Verify the diagnostic message suggests "NullLogger.Instance" for non-generic ILogger.
@@ -94,7 +54,7 @@ public class NoMockOfLoggerAnalyzerTests
     }
 
     [Fact]
-    public async Task ShouldDetectMockOfILoggerWithBehavior()
+    public async Task ShouldSuggestCorrectNullLoggerWithBehaviorArgument()
     {
         await Verifier.VerifyAnalyzerAsync(
                 """
@@ -107,34 +67,18 @@ public class NoMockOfLoggerAnalyzerTests
                 {
                     private void Test()
                     {
-                        var mock1 = new Mock<{|Moq1004:ILogger|}>(MockBehavior.Strict);
-                        var mock2 = new Mock<{|Moq1004:ILogger<MyService>|}>(MockBehavior.Loose);
+                        var mock1 = new Mock<ILogger>(MockBehavior.Strict);
+                        var mock2 = new Mock<ILogger<MyService>>(MockBehavior.Loose);
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
-    }
-
-    [Fact]
-    public async Task ShouldDetectMockOfViaMockOf()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                using Moq;
-                using Microsoft.Extensions.Logging;
-
-                internal class MyService { }
-
-                internal class UnitTest
-                {
-                    private void Test()
-                    {
-                        var logger1 = Mock.Of<{|Moq1004:ILogger|}>();
-                        var logger2 = Mock.Of<{|Moq1004:ILogger<MyService>|}>();
-                    }
-                }
-                """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
+                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
+                    .WithSpan("/0/Test1.cs", 10, 30, 10, 37)
+                    .WithArguments("NullLogger.Instance"),
+                new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
+                    .WithSpan("/0/Test1.cs", 11, 30, 11, 48)
+                    .WithArguments("NullLogger<T>.Instance"));
     }
 
     [Fact]
@@ -214,29 +158,6 @@ public class NoMockOfLoggerAnalyzerTests
                 new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
                     .WithSpan("/0/Test1.cs", 12, 39, 12, 57)
                     .WithArguments("NullLogger<T>.Instance"));
-    }
-
-    [Fact]
-    public async Task ShouldDetectMockRepositoryCreate()
-    {
-        await Verifier.VerifyAnalyzerAsync(
-                """
-                using Moq;
-                using Microsoft.Extensions.Logging;
-
-                internal class MyService { }
-
-                internal class UnitTest
-                {
-                    private void Test()
-                    {
-                        var repository = new MockRepository(MockBehavior.Strict);
-                        var mock1 = repository.Create<{|Moq1004:ILogger|}>();
-                        var mock2 = repository.Create<{|Moq1004:ILogger<MyService>|}>();
-                    }
-                }
-                """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
     }
 
     [Fact]

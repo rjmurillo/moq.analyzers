@@ -79,10 +79,25 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Extract the lambda from the first argument. In the error case, this contains a method
-        // call (e.g., x => x.SomeMethod()) instead of a property access (e.g., x => x.Property).
+        // Extract the lambda argument by parameter ordinal (0), not source position,
+        // so named-argument reordering (e.g., SetupProperty(initialValue: ..., propertyExpression: ...)) is handled.
+        IArgumentOperation? lambdaArgument = null;
+        foreach (IArgumentOperation argument in invocationOperation.Arguments)
+        {
+            if (argument.Parameter?.Ordinal == 0)
+            {
+                lambdaArgument = argument;
+                break;
+            }
+        }
+
+        if (lambdaArgument == null)
+        {
+            return;
+        }
+
         IAnonymousFunctionOperation? lambdaOperation =
-            MoqVerificationHelpers.ExtractLambdaFromArgument(invocationOperation.Arguments[0].Value);
+            MoqVerificationHelpers.ExtractLambdaFromArgument(lambdaArgument.Value);
 
         if (lambdaOperation == null)
         {

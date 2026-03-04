@@ -37,7 +37,7 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
 
     /// <summary>
     /// Registers the operation action for object creation and invocation if Moq is referenced,
-    /// Mock{T} is available, and at least one ILogger type is resolvable.
+    /// <c>Mock{T}</c> is available, and at least one <c>ILogger</c> type is resolvable.
     /// </summary>
     private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
@@ -68,21 +68,21 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Analyzes object creation and invocation operations to report diagnostics for ILogger mocks.
+    /// Analyzes object creation and invocation operations to report diagnostics for <c>ILogger</c> mocks.
     /// </summary>
     private static void Analyze(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         ITypeSymbol? mockedType = null;
         Location? diagnosticLocation = null;
 
-        // Handle object creation: new Mock{T}()
+        // Handle object creation: new Mock<T>()
         if (context.Operation is IObjectCreationOperation creation &&
             MockDetectionHelpers.IsValidMockCreation(creation, knownSymbols, out mockedType))
         {
             diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, creation.Syntax);
         }
 
-        // Handle mock invocation: Mock.Of{T}() or MockRepository.Create{T}()
+        // Handle mock invocation: Mock.Of<T>() or MockRepository.Create<T>()
         else if (context.Operation is IInvocationOperation invocation &&
                  MockDetectionHelpers.IsValidMockInvocation(invocation, knownSymbols, out mockedType))
         {
@@ -101,7 +101,7 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Determines whether the mocked type is ILogger or ILogger{T} using symbol-based comparison,
+    /// Determines whether the mocked type is <c>ILogger</c> or <c>ILogger{T}</c> using symbol-based comparison,
     /// and provides the appropriate NullLogger alternative.
     /// </summary>
     /// <param name="mockedType">The type being mocked.</param>

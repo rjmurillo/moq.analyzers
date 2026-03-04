@@ -538,6 +538,42 @@ class C
     }
 
     [Fact]
+    public void GetReferencedMemberSymbolFromLambda_EmptyBlockLambda_ReturnsNull()
+    {
+        const string code = @"
+class C
+{
+    void M()
+    {
+        System.Action f = () => { };
+    }
+}";
+        IAnonymousFunctionOperation funcOp = GetLambdaOperation(code);
+
+        ISymbol? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSymbolFromLambda();
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void GetReferencedMemberSyntaxFromLambda_EmptyBlockLambda_ReturnsNull()
+    {
+        const string code = @"
+class C
+{
+    void M()
+    {
+        System.Action f = () => { };
+    }
+}";
+        IAnonymousFunctionOperation funcOp = GetLambdaOperation(code);
+
+        SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public void GetReferencedMemberSymbolFromLambda_ExpressionLambdaWithEventReference_ReturnsEventSymbol()
     {
         const string code = @"

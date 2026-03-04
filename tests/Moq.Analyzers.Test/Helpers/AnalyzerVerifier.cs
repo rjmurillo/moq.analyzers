@@ -17,14 +17,7 @@ internal static class AnalyzerVerifier<TAnalyzer>
         string? configContent,
         CompilerDiagnostics? compilerDiagnostics = null)
     {
-        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[referenceAssemblyGroup];
-
-        Test<TAnalyzer, EmptyCodeFixProvider> test = new Test<TAnalyzer, EmptyCodeFixProvider>
-        {
-            TestCode = source,
-            FixedCode = source,
-            ReferenceAssemblies = referenceAssemblies,
-        };
+        Test<TAnalyzer, EmptyCodeFixProvider> test = CreateTest(source, referenceAssemblyGroup);
 
         if (compilerDiagnostics.HasValue)
         {
@@ -46,17 +39,18 @@ internal static class AnalyzerVerifier<TAnalyzer>
 
     public static async Task VerifyAnalyzerAsync(string source, string referenceAssemblyGroup, params DiagnosticResult[] expected)
     {
-        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[referenceAssemblyGroup];
-
-        Test<TAnalyzer, EmptyCodeFixProvider> test = new Test<TAnalyzer, EmptyCodeFixProvider>
-        {
-            TestCode = source,
-            FixedCode = source,
-            ReferenceAssemblies = referenceAssemblies,
-        };
+        Test<TAnalyzer, EmptyCodeFixProvider> test = CreateTest(source, referenceAssemblyGroup);
 
         test.ExpectedDiagnostics.AddRange(expected);
 
         await test.RunAsync().ConfigureAwait(false);
     }
+
+    private static Test<TAnalyzer, EmptyCodeFixProvider> CreateTest(string source, string referenceAssemblyGroup)
+        => new Test<TAnalyzer, EmptyCodeFixProvider>
+        {
+            TestCode = source,
+            FixedCode = source,
+            ReferenceAssemblies = ReferenceAssemblyCatalog.Catalog[referenceAssemblyGroup],
+        };
 }
