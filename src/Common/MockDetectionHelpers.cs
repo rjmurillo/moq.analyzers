@@ -10,12 +10,12 @@ namespace Moq.Analyzers.Common;
 internal static class MockDetectionHelpers
 {
     /// <summary>
-    /// Determines if the operation is a valid Mock{T} object creation and extracts the mocked type.
+    /// Determines if the operation is a valid <c>Mock{T}</c> object creation and extracts the mocked type.
     /// </summary>
     /// <param name="creation">The object creation operation.</param>
     /// <param name="knownSymbols">The known Moq symbols.</param>
     /// <param name="mockedType">When successful, the mocked type; otherwise, null.</param>
-    /// <returns>True if this is a valid Mock{T} creation; otherwise, false.</returns>
+    /// <returns>True if this is a valid <c>Mock{T}</c> creation; otherwise, false.</returns>
     public static bool IsValidMockCreation(IObjectCreationOperation creation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
@@ -29,12 +29,12 @@ internal static class MockDetectionHelpers
     }
 
     /// <summary>
-    /// Determines if the operation is a valid Mock.Of{T}() invocation and extracts the mocked type.
+    /// Determines if the operation is a valid <c>Mock.Of{T}()</c> invocation and extracts the mocked type.
     /// </summary>
     /// <param name="invocation">The invocation operation.</param>
     /// <param name="knownSymbols">The known Moq symbols.</param>
     /// <param name="mockedType">When successful, the mocked type; otherwise, null.</param>
-    /// <returns>True if this is a valid Mock.Of{T}() invocation; otherwise, false.</returns>
+    /// <returns>True if this is a valid <c>Mock.Of{T}()</c> invocation; otherwise, false.</returns>
     public static bool IsValidMockOfInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
@@ -54,7 +54,7 @@ internal static class MockDetectionHelpers
     }
 
     /// <summary>
-    /// Determines if the operation is a valid Mock.Of{T}() or MockRepository.Create{T}() invocation
+    /// Determines if the operation is a valid <c>Mock.Of{T}()</c> or <c>MockRepository.Create{T}()</c> invocation
     /// and extracts the mocked type.
     /// </summary>
     /// <param name="invocation">The invocation operation.</param>
@@ -85,29 +85,16 @@ internal static class MockDetectionHelpers
     }
 
     /// <summary>
-    /// Checks if the method symbol represents a static Mock.Of{T}() method.
+    /// Checks if the method symbol represents a <c>Mock.Of{T}()</c> method.
     /// </summary>
     /// <param name="targetMethod">The method symbol to check.</param>
     /// <param name="knownSymbols">The known Moq symbols.</param>
-    /// <returns>True if the method is Mock.Of{T}(); otherwise, false.</returns>
+    /// <returns>True if the method is <c>Mock.Of{T}()</c>; otherwise, false.</returns>
     public static bool IsValidMockOfMethod(IMethodSymbol? targetMethod, MoqKnownSymbols knownSymbols)
-    {
-        if (targetMethod is null || !targetMethod.IsStatic)
-        {
-            return false;
-        }
-
-        if (!string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return targetMethod.ContainingType is not null &&
-               targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default);
-    }
+        => targetMethod is not null && targetMethod.IsInstanceOf(knownSymbols.MockOf);
 
     /// <summary>
-    /// Attempts to extract the mocked type argument from a generic Mock{T} type.
+    /// Attempts to extract the mocked type argument from a generic <c>Mock{T}</c> type.
     /// </summary>
     /// <param name="type">The type symbol to extract from.</param>
     /// <param name="mockedType">When successful, the mocked type; otherwise, null.</param>

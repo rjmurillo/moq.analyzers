@@ -65,7 +65,7 @@ try {
     $jsonFiles = Get-StagedFiles -Extensions @('.json')
     $jsonFiles = $jsonFiles | Where-Object { $_ -notmatch '\.verified\.json$' }
     if ($jsonFiles.Count -gt 0) {
-        # Probe for python3 or python (Windows often lacks python3 alias)
+        # Python may be available as 'python3' or 'python' depending on platform
         $pythonCmd = (Get-Command -Name python3, python -ErrorAction SilentlyContinue | Select-Object -First 1).Name
         if ($pythonCmd) {
             foreach ($file in $jsonFiles) {

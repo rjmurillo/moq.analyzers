@@ -11,8 +11,8 @@ namespace Moq.Analyzers;
 public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: ILogger mocked";
-    private static readonly LocalizableString Message = "ILogger should not be mocked; use NullLogger<T>.Instance or FakeLogger from Microsoft.Extensions.Diagnostics.Testing instead";
-    private static readonly LocalizableString Description = "Mocking ILogger is unnecessary and fragile. Use NullLogger<T>.Instance for tests that ignore logging, or FakeLogger from Microsoft.Extensions.Diagnostics.Testing for tests that verify log output.";
+    private static readonly LocalizableString Message = "ILogger should not be mocked; use {0} or FakeLogger from Microsoft.Extensions.Diagnostics.Testing instead";
+    private static readonly LocalizableString Description = "Mocking ILogger is unnecessary and fragile. Use NullLogger.Instance (for ILogger) or NullLogger<T>.Instance (for ILogger<T>) for tests that ignore logging, or FakeLogger from Microsoft.Extensions.Diagnostics.Testing for tests that verify log output.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticIds.LoggerShouldNotBeMocked,
@@ -37,7 +37,7 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
 
     /// <summary>
     /// Registers the operation action for object creation and invocation if Moq is referenced,
-    /// Mock{T} is available, and at least one ILogger type is resolvable.
+    /// <c>Mock{T}</c> is available, and at least one <c>ILogger</c> type is resolvable.
     /// </summary>
     private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
@@ -68,21 +68,21 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Analyzes object creation and invocation operations to report diagnostics for ILogger mocks.
+    /// Analyzes object creation and invocation operations to report diagnostics for <c>ILogger</c> mocks.
     /// </summary>
     private static void Analyze(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         ITypeSymbol? mockedType = null;
         Location? diagnosticLocation = null;
 
-        // Handle object creation: new Mock{T}()
+        // Handle object creation: new Mock<T>()
         if (context.Operation is IObjectCreationOperation creation &&
             MockDetectionHelpers.IsValidMockCreation(creation, knownSymbols, out mockedType))
         {
             diagnosticLocation = MockDetectionHelpers.GetDiagnosticLocation(context.Operation, creation.Syntax);
         }
 
-        // Handle static method invocation: Mock.Of{T}() or MockRepository.Create{T}()
+        // Handle mock invocation: Mock.Of<T>() or MockRepository.Create<T>()
         else if (context.Operation is IInvocationOperation invocation &&
                  MockDetectionHelpers.IsValidMockInvocation(invocation, knownSymbols, out mockedType))
         {
@@ -94,17 +94,31 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (mockedType != null && diagnosticLocation != null && IsLoggerType(mockedType, knownSymbols))
+        if (mockedType != null && diagnosticLocation != null && TryGetNullLoggerAlternative(mockedType, knownSymbols, out string? nullLoggerSuggestion))
         {
-            context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(Rule));
+            context.ReportDiagnostic(diagnosticLocation.CreateDiagnostic(Rule, nullLoggerSuggestion));
         }
     }
 
     /// <summary>
-    /// Determines whether the mocked type is ILogger or ILogger{T} using symbol-based comparison.
+    /// Determines whether the mocked type is <c>ILogger</c> or <c>ILogger{T}</c> using symbol-based comparison,
+    /// and provides the appropriate NullLogger alternative.
     /// </summary>
-    private static bool IsLoggerType(ITypeSymbol mockedType, MoqKnownSymbols knownSymbols)
+    /// <param name="mockedType">The type being mocked.</param>
+    /// <param name="knownSymbols">Well-known Moq and logging symbols from the compilation.</param>
+    /// <param name="nullLoggerSuggestion">
+    /// When this method returns <see langword="true"/>, contains the recommended NullLogger usage:
+    /// <c>NullLogger.Instance</c> for non-generic ILogger, or
+    /// <c>NullLogger&lt;T&gt;.Instance</c> for ILogger&lt;T&gt;.
+    /// </param>
+    /// <returns><see langword="true"/> if the mocked type is an ILogger variant; otherwise, <see langword="false"/>.</returns>
+    private static bool TryGetNullLoggerAlternative(
+        ITypeSymbol mockedType,
+        MoqKnownSymbols knownSymbols,
+        [NotNullWhen(true)] out string? nullLoggerSuggestion)
     {
+        nullLoggerSuggestion = null;
+
         if (mockedType is not INamedTypeSymbol namedType)
         {
             return false;
@@ -115,12 +129,14 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
         if (knownSymbols.ILogger is not null &&
             SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.ILogger))
         {
+            nullLoggerSuggestion = "NullLogger.Instance";
             return true;
         }
 
         if (knownSymbols.ILogger1 is not null &&
             SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.ILogger1))
         {
+            nullLoggerSuggestion = "NullLogger<T>.Instance";
             return true;
         }
 

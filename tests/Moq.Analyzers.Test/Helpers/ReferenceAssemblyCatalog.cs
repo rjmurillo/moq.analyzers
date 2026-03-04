@@ -36,16 +36,11 @@ public static class ReferenceAssemblyCatalog
     public static string Net80WithNewMoqAndLogging => nameof(Net80WithNewMoqAndLogging);
 
     /// <summary>
-    /// Gets the name of the reference assembly group for .NET 8.0 without Moq.
-    /// </summary>
-    public static string Net80 => nameof(Net80);
-
-    /// <summary>
     /// Gets the catalog of reference assemblies.
     /// </summary>
     /// <remarks>
-    /// The key is the name of the reference assembly group (<see cref="Net80WithOldMoq"/>, <see cref="Net80WithNewMoq"/>,
-    /// <see cref="Net80WithNewMoqAndLogging"/>, and <see cref="Net80"/>).
+    /// The key is the name of the reference assembly group (<see cref="Net80"/>, <see cref="Net80WithOldMoq"/>,
+    /// <see cref="Net80WithNewMoq"/>, and <see cref="Net80WithNewMoqAndLogging"/>).
     /// </remarks>
     public static IReadOnlyDictionary<string, ReferenceAssemblies> Catalog { get; } = new Dictionary<string, ReferenceAssemblies>(StringComparer.Ordinal)
     {
@@ -69,8 +64,5 @@ public static class ReferenceAssemblyCatalog
                 new PackageIdentity("Microsoft.Extensions.Logging.Abstractions", "8.0.0"),
             ])
         },
-
-        // .NET 8.0 without Moq, used to verify analyzers bail out gracefully when Moq is not referenced.
-        { nameof(Net80), ReferenceAssemblies.Net.Net80 },
     };
 }

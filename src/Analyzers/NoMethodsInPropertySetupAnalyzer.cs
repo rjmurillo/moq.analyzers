@@ -74,29 +74,50 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // The lambda argument to SetupGet/SetupSet/SetupProperty contains the mocked member access.
-        // If the lambda body is an invocation (method call), that is invalid for property setup.
-        InvocationExpressionSyntax? mockedMethodCall =
-            (invocationOperation.Syntax as InvocationExpressionSyntax).FindMockedMethodInvocationFromSetupMethod();
-
-        if (mockedMethodCall == null)
+        if (invocationOperation.Arguments.Length == 0)
         {
             return;
         }
 
-        SemanticModel? semanticModel = invocationOperation.SemanticModel;
-        if (semanticModel == null)
+        // Extract the lambda argument by parameter ordinal (0), not source position,
+        // so named-argument reordering (e.g., SetupProperty(initialValue: ..., propertyExpression: ...)) is handled.
+        IArgumentOperation? lambdaArgument = null;
+        foreach (IArgumentOperation argument in invocationOperation.Arguments)
+        {
+            if (argument.Parameter?.Ordinal == 0)
+            {
+                lambdaArgument = argument;
+                break;
+            }
+        }
+
+        if (lambdaArgument == null)
         {
             return;
         }
 
-        ISymbol? mockedMethodSymbol = semanticModel.GetSymbolInfo(mockedMethodCall, context.CancellationToken).Symbol;
-        if (mockedMethodSymbol == null)
+        IAnonymousFunctionOperation? lambdaOperation =
+            MoqVerificationHelpers.ExtractLambdaFromArgument(lambdaArgument.Value);
+
+        if (lambdaOperation == null)
         {
             return;
         }
 
-        Diagnostic diagnostic = mockedMethodCall.CreateDiagnostic(Rule, mockedMethodSymbol.Name);
+        // If the lambda body resolves to a method symbol, the user incorrectly used a property
+        // setup method (SetupGet/SetupSet/SetupProperty) for a method call.
+        ISymbol? mockedMemberSymbol = lambdaOperation.Body.GetReferencedMemberSymbolFromLambda();
+        if (mockedMemberSymbol is not IMethodSymbol)
+        {
+            return;
+        }
+
+        // Prefer the syntax of the mocked member reference for a precise diagnostic location.
+        // Fall back to the invocation syntax to ensure the diagnostic is always reported.
+        SyntaxNode diagnosticTarget = lambdaOperation.Body.GetReferencedMemberSyntaxFromLambda()
+            ?? invocationOperation.Syntax;
+
+        Diagnostic diagnostic = diagnosticTarget.CreateDiagnostic(Rule, mockedMemberSymbol.Name);
         context.ReportDiagnostic(diagnostic);
     }
 }
