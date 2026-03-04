@@ -496,10 +496,10 @@ class C
     }
 
     [Fact]
-    public void GetReferencedMemberSymbolFromLambda_BlockLambdaWithMultipleOperations_ReturnsNull()
+    public void GetReferencedMemberSymbolFromLambda_ActionBlockLambda_ReturnsPropertySymbol()
     {
         // Action block lambdas produce 2 operations (ExpressionStatement + implicit Return).
-        // The method only handles block lambdas with exactly 1 operation.
+        // The method iterates block operations to find the referenced member.
         const string code = @"
 class C
 {
@@ -513,11 +513,12 @@ class C
 
         ISymbol? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSymbolFromLambda();
 
-        Assert.Null(result);
+        Assert.NotNull(result);
+        Assert.Equal("Prop", result!.Name);
     }
 
     [Fact]
-    public void GetReferencedMemberSyntaxFromLambda_BlockLambdaWithMultipleOperations_ReturnsNull()
+    public void GetReferencedMemberSyntaxFromLambda_ActionBlockLambda_ReturnsSyntaxNode()
     {
         const string code = @"
 class C
@@ -526,6 +527,43 @@ class C
     void M()
     {
         System.Action<C> f = c => { c.Prop = 1; };
+    }
+}";
+        IAnonymousFunctionOperation funcOp = GetLambdaOperation(code);
+
+        SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
+
+        Assert.NotNull(result);
+        Assert.Contains("Prop", result!.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GetReferencedMemberSymbolFromLambda_EmptyBlockLambda_ReturnsNull()
+    {
+        const string code = @"
+class C
+{
+    void M()
+    {
+        System.Action f = () => { };
+    }
+}";
+        IAnonymousFunctionOperation funcOp = GetLambdaOperation(code);
+
+        ISymbol? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSymbolFromLambda();
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void GetReferencedMemberSyntaxFromLambda_EmptyBlockLambda_ReturnsNull()
+    {
+        const string code = @"
+class C
+{
+    void M()
+    {
+        System.Action f = () => { };
     }
 }";
         IAnonymousFunctionOperation funcOp = GetLambdaOperation(code);
