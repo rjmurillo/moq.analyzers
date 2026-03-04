@@ -8,8 +8,10 @@ $repoRoot = git rev-parse --show-toplevel
 $env:DOTNET_ROLL_FORWARD = "LatestMajor"
 
 try {
-    $output = dotnet build (Join-Path $repoRoot "Moq.Analyzers.sln") /p:PedanticMode=true --verbosity quiet 2>&1 | Out-String
-    $buildPassed = $LASTEXITCODE -eq 0
+    $output = dotnet build (Join-Path $repoRoot "Moq.Analyzers.sln") /p:PedanticMode=true --verbosity quiet 2>&1
+    $buildExitCode = $LASTEXITCODE
+    $output = $output | Out-String
+    $buildPassed = $buildExitCode -eq 0
 
     if (-not $buildPassed) {
         Set-HookFailed -Check "dotnet build"
@@ -18,8 +20,10 @@ try {
     }
     else {
         $runSettings = Join-Path $repoRoot "build/targets/tests/test.runsettings"
-        $output = dotnet test (Join-Path $repoRoot "Moq.Analyzers.sln") --no-build --settings $runSettings --verbosity quiet 2>&1 | Out-String
-        if ($LASTEXITCODE -ne 0) {
+        $output = dotnet test (Join-Path $repoRoot "Moq.Analyzers.sln") --no-build --settings $runSettings --verbosity quiet 2>&1
+        $testExitCode = $LASTEXITCODE
+        $output = $output | Out-String
+        if ($testExitCode -ne 0) {
             Set-HookFailed -Check "dotnet test"
             Write-Host $output
         }
