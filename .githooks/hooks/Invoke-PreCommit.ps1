@@ -12,12 +12,11 @@ try {
     # C# formatting (auto-fix + re-stage)
     $csFiles = Get-StagedFiles -Extensions @('.cs')
     if ($csFiles.Count -gt 0) {
+        $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
         $includePaths = ($csFiles | ForEach-Object { "--include", $_ })
         Invoke-AutoFix -Files $csFiles -FixCommand {
-            $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
             dotnet format $slnPath --verbosity quiet @includePaths 2>&1 | Out-Null
         }
-        $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
         $output = dotnet format $slnPath --verify-no-changes --verbosity quiet @includePaths 2>&1
         if ($LASTEXITCODE -ne 0) {
             Set-HookFailed -Check "dotnet format"
