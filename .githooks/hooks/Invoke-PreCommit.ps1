@@ -52,7 +52,7 @@ try {
         if ($workflowFiles.Count -gt 0) {
             if (Test-ToolAvailable -Command "actionlint" -InstallHint "https://github.com/rhysd/actionlint#install") {
                 $fullPaths = $workflowFiles | ForEach-Object { Join-Path $repoRoot $_ }
-                $output = actionlint $fullPaths 2>&1
+                $output = & actionlint @fullPaths 2>&1
                 if ($LASTEXITCODE -ne 0) {
                     Set-HookFailed -Check "actionlint"
                     Write-Host $output
@@ -66,9 +66,7 @@ try {
     $jsonFiles = $jsonFiles | Where-Object { $_ -notmatch '\.verified\.json$' }
     if ($jsonFiles.Count -gt 0) {
         # Probe for python3 or python (Windows often lacks python3 alias)
-        $pythonCmd = if (Get-Command "python3" -ErrorAction SilentlyContinue) { "python3" }
-                     elseif (Get-Command "python" -ErrorAction SilentlyContinue) { "python" }
-                     else { $null }
+        $pythonCmd = (Get-Command -Name python3, python -ErrorAction SilentlyContinue | Select-Object -First 1).Name
         if ($pythonCmd) {
             foreach ($file in $jsonFiles) {
                 $fullPath = Join-Path $repoRoot $file

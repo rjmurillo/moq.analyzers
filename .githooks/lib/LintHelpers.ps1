@@ -70,7 +70,7 @@ function Invoke-AutoFix {
 
         if ($safeToStage.Count -gt 0) {
             Write-Host "Auto-fixed: $($safeToStage -join ', ')"
-            git add $safeToStage
+            git add -- $safeToStage
         }
         if ($skipped.Count -gt 0) {
             Write-Warning "Has unstaged changes, not re-staging: $($skipped -join ', ')"

@@ -20,9 +20,17 @@
       <Output TaskParameter="ExitCode" PropertyName="_HooksPathExitCode" />
     </Exec>
 
-    <!-- Only set when core.hooksPath is not configured (exit code 1) -->
+    <!--
+      git config exit codes (from git-config(1)):
+        0 = success (key exists and has a value)
+        1 = key not found (section or key is invalid / --get returns 1 when key is absent)
+        3 = invalid config file
+        4 = config file cannot be written
+      We only act on exit code 1 (key not set). Other non-zero codes indicate
+      real errors that a retry would not fix.
+    -->
     <Exec
-      Condition=" '$(_HooksPathExitCode)' != '0' "
+      Condition=" '$(_HooksPathExitCode)' == '1' "
       Command="git config core.hooksPath .githooks"
       WorkingDirectory="$(RepoRoot)"
       IgnoreExitCode="true">
@@ -30,12 +38,12 @@
     </Exec>
 
     <Message
-      Condition=" '$(_HooksPathExitCode)' != '0' AND '$(_SetHooksExitCode)' == '0' "
+      Condition=" '$(_HooksPathExitCode)' == '1' AND '$(_SetHooksExitCode)' == '0' "
       Importance="high"
       Text="Git hooks configured. Run 'git config --unset core.hooksPath' to disable." />
 
     <Warning
-      Condition=" '$(_HooksPathExitCode)' != '0' AND '$(_SetHooksExitCode)' != '0' "
+      Condition=" '$(_HooksPathExitCode)' == '1' AND '$(_SetHooksExitCode)' != '0' "
       Text="Failed to configure git hooks (exit code $(_SetHooksExitCode)). Run 'git config core.hooksPath .githooks' manually." />
   </Target>
 </Project>
