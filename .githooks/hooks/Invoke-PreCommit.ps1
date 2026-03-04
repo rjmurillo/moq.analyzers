@@ -2,6 +2,10 @@
 param()
 
 $repoRoot = git rev-parse --show-toplevel
+if ($LASTEXITCODE -ne 0 -or -not $repoRoot) {
+    Write-Host "FAIL: Unable to determine repository root." -ForegroundColor Red
+    exit 1
+}
 . "$PSScriptRoot/../lib/LintHelpers.ps1"
 
 try {
@@ -10,9 +14,11 @@ try {
     if ($csFiles.Count -gt 0) {
         $includePaths = ($csFiles | ForEach-Object { "--include", $_ })
         Invoke-AutoFix -Files $csFiles -FixCommand {
-            dotnet format "$repoRoot/Moq.Analyzers.sln" --verbosity quiet @includePaths 2>&1 | Out-Null
+            $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
+            dotnet format $slnPath --verbosity quiet @includePaths 2>&1 | Out-Null
         }
-        $output = dotnet format "$repoRoot/Moq.Analyzers.sln" --verify-no-changes --verbosity quiet @includePaths 2>&1
+        $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
+        $output = dotnet format $slnPath --verify-no-changes --verbosity quiet @includePaths 2>&1
         if ($LASTEXITCODE -ne 0) {
             Set-HookFailed -Check "dotnet format"
             Write-Host $output
@@ -25,9 +31,9 @@ try {
         if (Test-ToolAvailable -Command "markdownlint-cli2" -InstallHint "npm install -g markdownlint-cli2") {
             $fullPaths = $mdFiles | ForEach-Object { Join-Path $repoRoot $_ }
             Invoke-AutoFix -Files $mdFiles -FixCommand {
-                markdownlint-cli2 --fix $fullPaths 2>&1 | Out-Null
+                & markdownlint-cli2 --fix @fullPaths 2>&1 | Out-Null
             }
-            $output = markdownlint-cli2 $fullPaths 2>&1
+            $output = & markdownlint-cli2 @fullPaths 2>&1
             if ($LASTEXITCODE -ne 0) {
                 Set-HookFailed -Check "markdownlint-cli2"
                 Write-Host $output
@@ -40,7 +46,7 @@ try {
     if ($yamlFiles.Count -gt 0) {
         if (Test-ToolAvailable -Command "yamllint" -InstallHint "pip install yamllint") {
             $fullPaths = $yamlFiles | ForEach-Object { Join-Path $repoRoot $_ }
-            $output = yamllint -c (Join-Path $repoRoot ".yamllint.yml") $fullPaths 2>&1
+            $output = & yamllint -c (Join-Path $repoRoot ".yamllint.yml") @fullPaths 2>&1
             if ($LASTEXITCODE -ne 0) {
                 Set-HookFailed -Check "yamllint"
                 Write-Host $output
@@ -87,7 +93,7 @@ try {
     if ($shellFiles.Count -gt 0) {
         if (Test-ToolAvailable -Command "shellcheck" -InstallHint "https://github.com/koalaman/shellcheck#installing") {
             $fullPaths = $shellFiles | ForEach-Object { Join-Path $repoRoot $_ }
-            $output = shellcheck $fullPaths 2>&1
+            $output = & shellcheck @fullPaths 2>&1
             if ($LASTEXITCODE -ne 0) {
                 Set-HookFailed -Check "shellcheck"
                 Write-Host $output

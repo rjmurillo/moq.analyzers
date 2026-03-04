@@ -32,6 +32,9 @@ function Get-StagedFiles {
     )
 
     $stagedFiles = git diff --cached --name-only --diff-filter=d
+    if ($LASTEXITCODE -ne 0) {
+        throw "git diff --cached failed with exit code $LASTEXITCODE"
+    }
     if (-not $stagedFiles) {
         return @()
     }
@@ -62,6 +65,9 @@ function Invoke-AutoFix {
     $dirtyBefore = @(git diff --name-only -- $Files)
 
     & $FixCommand
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Auto-fix command exited with code $LASTEXITCODE. Review changes manually."
+    }
 
     $modified = git diff --name-only -- $Files
     if ($modified) {
@@ -71,6 +77,9 @@ function Invoke-AutoFix {
         if ($safeToStage.Count -gt 0) {
             Write-Host "Auto-fixed: $($safeToStage -join ', ')"
             git add -- $safeToStage
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "Failed to stage auto-fixed files. Stage manually: $($safeToStage -join ', ')"
+            }
         }
         if ($skipped.Count -gt 0) {
             Write-Warning "Has unstaged changes, not re-staging: $($skipped -join ', ')"

@@ -45,5 +45,9 @@
     <Warning
       Condition=" '$(_HooksPathExitCode)' == '1' AND '$(_SetHooksExitCode)' != '0' "
       Text="Failed to configure git hooks (exit code $(_SetHooksExitCode)). Run 'git config core.hooksPath .githooks' manually." />
+
+    <Warning
+      Condition=" '$(_HooksPathExitCode)' != '0' AND '$(_HooksPathExitCode)' != '1' "
+      Text="git config query failed (exit code $(_HooksPathExitCode)). Your git config may be corrupt or unreadable." />
   </Target>
 </Project>

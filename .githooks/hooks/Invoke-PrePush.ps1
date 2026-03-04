@@ -2,6 +2,10 @@
 param()
 
 $repoRoot = git rev-parse --show-toplevel
+if ($LASTEXITCODE -ne 0 -or -not $repoRoot) {
+    Write-Host "FAIL: Unable to determine repository root." -ForegroundColor Red
+    exit 1
+}
 . "$PSScriptRoot/../lib/LintHelpers.ps1"
 
 # Allow newer .NET runtimes to run tests targeting older TFMs
