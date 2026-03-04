@@ -21,13 +21,13 @@
     </Exec>
 
     <!--
-      git config exit codes (from git-config(1)):
+      git config exit codes (per git-config(1) man page):
         0 = success (key exists and has a value)
-        1 = key not found (section or key is invalid / --get returns 1 when key is absent)
+        1 = key not found
         3 = invalid config file
         4 = config file cannot be written
-      We only act on exit code 1 (key not set). Other non-zero codes indicate
-      real errors that a retry would not fix.
+      We only act on exit code 1 (key not set). Other non-zero codes
+      indicate real errors that a retry would not fix.
     -->
     <Exec
       Condition=" '$(_HooksPathExitCode)' == '1' "
