@@ -58,6 +58,9 @@ internal class MoqKnownSymbols : KnownSymbols
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _timesOnce;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _timesExactly;
 
+    // ECS1200: Lazy<T> fields capture 'this' in lambdas; inline initializers cannot reference instance members. Constructor assignment is required.
+    // MA0051: This constructor is intentionally long. Each assignment is a single-line Lazy<T> initialization; extracting helper methods would not improve readability.
+#pragma warning disable ECS1200, MA0051
     internal MoqKnownSymbols(WellKnownTypeProvider typeProvider)
         : base(typeProvider)
     {
@@ -235,6 +238,7 @@ internal class MoqKnownSymbols : KnownSymbols
             Times?.GetMembers("Exactly").OfType<IMethodSymbol>().ToImmutableArray()
             ?? ImmutableArray<IMethodSymbol>.Empty);
     }
+#pragma warning restore ECS1200, MA0051
 
     internal MoqKnownSymbols(Compilation compilation)
         : this(WellKnownTypeProvider.GetOrCreate(compilation))
