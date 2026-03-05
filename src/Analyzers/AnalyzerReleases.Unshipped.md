@@ -17,6 +17,8 @@ Moq1208 | Usage | Warning | ReturnsDelegateShouldReturnTaskAnalyzer
 Moq1210 | Usage | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer
 Moq1301 | Usage | Warning | Mock.Get() should not take literals
 Moq1302 | Usage | Warning | LINQ to Mocks expression should be valid
+Moq1420 | Usage | Info | RedundantTimesSpecificationAnalyzer
+Moq1500 | Usage | Warning | MockRepository.Verify() should be called
 
 ### Changed Rules
 
@@ -32,5 +34,3 @@ Moq1201 | Usage | Error | SetupShouldNotIncludeAsyncResultAnalyzer (updated cate
 Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated category from Moq to Usage)
 Moq1400 | Usage | Warning | SetExplicitMockBehaviorAnalyzer (updated category from Moq to Usage)
 Moq1410 | Usage | Info | SetStrictMockBehaviorAnalyzer (updated category from Moq to Usage)
-Moq1420 | Usage | Info | RedundantTimesSpecificationAnalyzer (updated category from Moq to Usage)
-Moq1500 | Usage | Warning | MockRepository.Verify() should be called (updated category from Moq to Usage)
