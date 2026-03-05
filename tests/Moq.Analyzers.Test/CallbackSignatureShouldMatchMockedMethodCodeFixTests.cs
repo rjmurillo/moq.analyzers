@@ -267,12 +267,10 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     [Fact]
     public async Task FixerReturnsUnchangedDocumentWhenSetupMethodNotFound()
     {
-        // This test exercises the defensive null guard on setupMethodInvocation
-        // (line 67-69 in CallbackSignatureShouldMatchMockedMethodFixer.cs).
+        // This test exercises the defensive null guard on setupMethodInvocation.
         // The guard is unreachable through normal analyzer-fixer pipelines because
-        // the analyzer only reports Moq1100 when it finds a Setup method. However,
-        // the fixer must handle the null case defensively. We test it by injecting
-        // a synthetic Moq1100 diagnostic on a Callback that is NOT chained from Setup.
+        // the analyzer only reports Moq1100 when it finds a Setup method. We test
+        // it by injecting a synthetic Moq1100 diagnostic on a non-chained Callback.
         const string source =
             """
             using System;
@@ -296,14 +294,22 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(source);
         SyntaxNode root = await tree.GetRootAsync();
 
-        // Find the ParameterListSyntax of the callback lambda: (int i)
+        Diagnostic diagnostic = CreateSyntheticDiagnostic(root, tree);
+        Document document = CreateTestDocument(model, source);
+        List<CodeAction> actions = await InvokeFixerAsync(document, diagnostic);
+
+        Assert.Single(actions);
+        await AssertDocumentUnchangedAsync(actions[0], document);
+    }
+
+    private static Diagnostic CreateSyntheticDiagnostic(SyntaxNode root, SyntaxTree tree)
+    {
         ParameterListSyntax parameterList = root
             .DescendantNodes()
             .OfType<ParenthesizedLambdaExpressionSyntax>()
             .Last()
             .ParameterList;
 
-        // Create a synthetic Moq1100 diagnostic at the parameter list location
         DiagnosticDescriptor descriptor = new(
             DiagnosticIds.BadCallbackParameters,
             "Bad callback parameters",
@@ -312,15 +318,19 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        Diagnostic diagnostic = Diagnostic.Create(descriptor, Location.Create(tree, parameterList.Span));
+        return Diagnostic.Create(descriptor, Location.Create(tree, parameterList.Span));
+    }
 
-        // Create workspace and document
-        AdhocWorkspace workspace = new();
+    private static Document CreateTestDocument(SemanticModel model, string source)
+    {
+        using AdhocWorkspace workspace = new();
         Project project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         project = project.AddMetadataReferences(model.Compilation.References);
-        Document document = project.AddDocument("Test.cs", SourceText.From(source));
+        return project.AddDocument("Test.cs", SourceText.From(source));
+    }
 
-        // Invoke the fixer
+    private static async Task<List<CodeAction>> InvokeFixerAsync(Document document, Diagnostic diagnostic)
+    {
         Moq.CodeFixes.CallbackSignatureShouldMatchMockedMethodFixer fixer = new();
         List<CodeAction> actions = [];
 
@@ -330,24 +340,23 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             (action, _) => actions.Add(action),
             CancellationToken.None);
 
-        await fixer.RegisterCodeFixesAsync(context);
+        await fixer.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+        return actions;
+    }
 
-        // The fixer should register an action (it always does), but applying it
-        // should return the document unchanged because FindSetupMethodFromCallbackInvocation returns null
-        Assert.Single(actions);
-
-        // Apply the code action to get the changed document
-        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None);
+    private static async Task AssertDocumentUnchangedAsync(CodeAction action, Document document)
+    {
+        ImmutableArray<CodeActionOperation> operations = await action.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
         ApplyChangesOperation? applyChanges = operations.OfType<ApplyChangesOperation>().FirstOrDefault();
 
-        if (applyChanges is not null)
+        if (applyChanges is null)
         {
-            Document changedDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
-            string originalText = (await document.GetTextAsync(CancellationToken.None)).ToString();
-            string changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
-            Assert.Equal(originalText, changedText);
+            return;
         }
 
-        // If no ApplyChangesOperation, that also means no changes were applied (guard returned early)
+        Document changedDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
+        string originalText = (await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+        Assert.Equal(originalText, changedText);
     }
 }
