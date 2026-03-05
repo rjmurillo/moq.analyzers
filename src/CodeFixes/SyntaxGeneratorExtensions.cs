@@ -19,6 +19,12 @@ internal static class SyntaxGeneratorExtensions
         if (syntax is InvocationExpressionSyntax invocation)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
+
+            if (index < 0 || index > arguments.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
             arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
             return invocation.WithArgumentList(SyntaxFactory.ArgumentList(arguments));
         }
@@ -26,6 +32,12 @@ internal static class SyntaxGeneratorExtensions
         if (syntax is BaseObjectCreationExpressionSyntax creation)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList?.Arguments ?? [];
+
+            if (index < 0 || index > arguments.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
             arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
             return creation.WithArgumentList(SyntaxFactory.ArgumentList(arguments));
         }

@@ -7,7 +7,7 @@ internal static class InvocationExpressionSyntaxExtensions
 {
     internal static InvocationExpressionSyntax? FindMockedMethodInvocationFromSetupMethod(this InvocationExpressionSyntax? setupInvocation)
     {
-        if (setupInvocation?.ArgumentList.Arguments.Count is null or 0)
+        if (setupInvocation is null || setupInvocation.ArgumentList.Arguments.Count == 0)
         {
             return null;
         }
@@ -18,7 +18,7 @@ internal static class InvocationExpressionSyntaxExtensions
 
     internal static ExpressionSyntax? FindMockedMemberExpressionFromSetupMethod(this InvocationExpressionSyntax? setupInvocation)
     {
-        if (setupInvocation?.ArgumentList.Arguments.Count is null or 0)
+        if (setupInvocation is null || setupInvocation.ArgumentList.Arguments.Count == 0)
         {
             return null;
         }
