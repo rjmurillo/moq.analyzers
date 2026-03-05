@@ -75,6 +75,11 @@ internal record DiagnosticEditProperties
             return false;
         }
 
+        if (editPosition < 0)
+        {
+            return false;
+        }
+
         editProperties = new DiagnosticEditProperties
         {
             TypeOfEdit = editType,

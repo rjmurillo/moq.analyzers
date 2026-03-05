@@ -7,13 +7,23 @@ internal static class InvocationExpressionSyntaxExtensions
 {
     internal static InvocationExpressionSyntax? FindMockedMethodInvocationFromSetupMethod(this InvocationExpressionSyntax? setupInvocation)
     {
-        LambdaExpressionSyntax? setupLambdaArgument = setupInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
+        if (setupInvocation?.ArgumentList.Arguments.Count is null or 0)
+        {
+            return null;
+        }
+
+        LambdaExpressionSyntax? setupLambdaArgument = setupInvocation.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
         return setupLambdaArgument?.Body as InvocationExpressionSyntax;
     }
 
     internal static ExpressionSyntax? FindMockedMemberExpressionFromSetupMethod(this InvocationExpressionSyntax? setupInvocation)
     {
-        LambdaExpressionSyntax? setupLambdaArgument = setupInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
+        if (setupInvocation?.ArgumentList.Arguments.Count is null or 0)
+        {
+            return null;
+        }
+
+        LambdaExpressionSyntax? setupLambdaArgument = setupInvocation.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
         return setupLambdaArgument?.Body as ExpressionSyntax;
     }
 

@@ -26,14 +26,18 @@ public class DiagnosticEditPropertiesTests
     }
 
     [Fact]
-    public void ToImmutableDictionary_HandlesNegativeAndLargeEditPosition()
+    public void TryGetFromImmutableDictionary_Fails_WhenEditPositionNegative()
     {
         DiagnosticEditProperties propsNeg = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Insert, EditPosition = -1 };
         ImmutableDictionary<string, string?> dictNeg = propsNeg.ToImmutableDictionary();
         Assert.Equal("-1", dictNeg[DiagnosticEditProperties.EditPositionKey]);
-        Assert.True(DiagnosticEditProperties.TryGetFromImmutableDictionary(dictNeg, out DiagnosticEditProperties? roundTrippedNeg));
-        Assert.Equal(-1, roundTrippedNeg!.EditPosition);
+        Assert.False(DiagnosticEditProperties.TryGetFromImmutableDictionary(dictNeg, out DiagnosticEditProperties? roundTrippedNeg));
+        Assert.Null(roundTrippedNeg);
+    }
 
+    [Fact]
+    public void ToImmutableDictionary_HandlesLargeEditPosition()
+    {
         DiagnosticEditProperties propsLarge = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Replace, EditPosition = int.MaxValue };
         ImmutableDictionary<string, string?> dictLarge = propsLarge.ToImmutableDictionary();
         Assert.Equal(int.MaxValue.ToString(), dictLarge[DiagnosticEditProperties.EditPositionKey]);
