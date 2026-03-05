@@ -1,4 +1,5 @@
 ﻿using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
@@ -36,7 +37,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
                                         .Parent?
                                         .AncestorsAndSelf()
                                         .OfType<ParameterListSyntax>()
-                                        .First();
+                                        .FirstOrDefault();
 
         if (badArgumentListSyntax is null)
         {
@@ -69,12 +70,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         }
 
         InvocationExpressionSyntax? setupMethodInvocation = semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, callbackInvocation, cancellationToken);
-
-        if (setupMethodInvocation is null)
-        {
-            return document;
-        }
-
+        Debug.Assert(setupMethodInvocation != null, nameof(setupMethodInvocation) + " != null");
         IMethodSymbol[] matchingMockedMethods = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupMethodInvocation).ToArray();
 
         if (matchingMockedMethods.Length != 1)
