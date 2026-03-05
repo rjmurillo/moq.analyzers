@@ -118,7 +118,7 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static bool HasCreateCallsForRepository(ILocalSymbol repositorySymbol, IOperation memberOperation, MoqKnownSymbols knownSymbols)
     {
-        foreach (IOperation operation in GetAllChildOperations(memberOperation))
+        foreach (IOperation operation in memberOperation.Descendants())
         {
             if (operation is IInvocationOperation invocation &&
                 IsValidMockRepositoryCreateCall(invocation, knownSymbols) &&
@@ -136,7 +136,7 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static bool HasVerifyCallsForRepository(ILocalSymbol repositorySymbol, IOperation memberOperation, MoqKnownSymbols knownSymbols)
     {
-        foreach (IOperation operation in GetAllChildOperations(memberOperation))
+        foreach (IOperation operation in memberOperation.Descendants())
         {
             if (operation is IInvocationOperation invocation &&
                 IsValidMockRepositoryVerifyCall(invocation, knownSymbols) &&
@@ -147,22 +147,6 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Gets all child operations recursively.
-    /// </summary>
-    private static IEnumerable<IOperation> GetAllChildOperations(IOperation operation)
-    {
-        foreach (IOperation child in operation.ChildOperations)
-        {
-            yield return child;
-
-            foreach (IOperation grandchild in GetAllChildOperations(child))
-            {
-                yield return grandchild;
-            }
-        }
     }
 
     /// <summary>
