@@ -44,6 +44,12 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Double-parenthesized Setup with correct callback
             ["""((new Mock<IFoo>().Setup(x => x.DoWork("test")))).Callback((string param) => { });"""],
+
+            // Implicitly typed lambda with correct parameter type via generic Callback overload
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback<string>((x) => { });"""],
+
+            // Implicitly typed lambda with multiple correct parameters via generic Callback overload
+            ["""new Mock<IFoo>().Setup(x => x.ProcessMultiple(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback<int, string, DateTime>((id, name, timestamp) => { });"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         // Invalid patterns that SHOULD trigger the analyzer
