@@ -3,7 +3,7 @@
   "extends": [
     "config:recommended"
   ],
-  "enabledManagers": ["nuget"],
+  "enabledManagers": ["nuget", "github-actions"],
   "ignoreDeps": [
     "Microsoft.CodeAnalysis.CSharp",
     "Microsoft.CodeAnalysis.CSharp.Workspaces",

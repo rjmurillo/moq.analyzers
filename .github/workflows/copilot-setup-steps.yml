@@ -15,7 +15,7 @@ jobs:
       actions: read
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work
 
@@ -24,7 +24,7 @@ jobs:
         run: git fetch --unshallow
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
         with:
           global-json-file: ./global.json
 
