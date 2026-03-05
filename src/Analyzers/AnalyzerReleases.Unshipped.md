@@ -22,8 +22,8 @@ Moq1500 | Usage | Warning | MockRepository.Verify() should be called
 
 ### Changed Rules
 
-Rule ID | New Category | Severity | Notes
---------|-------------|----------|------
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
 Moq1000 | Usage | Warning | NoSealedClassMocksAnalyzer (updated category from Moq to Usage)
 Moq1001 | Usage | Warning | ConstructorArgumentsShouldMatchAnalyzer (updated category from Moq to Usage)
 Moq1002 | Usage | Warning | ConstructorArgumentsShouldMatchAnalyzer (updated category from Moq to Usage)
