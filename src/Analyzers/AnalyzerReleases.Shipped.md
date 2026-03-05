@@ -7,9 +7,9 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1101 | Moq | Warning | CallbackSignatureAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1101.md)
+Moq1101 | Moq | Warning | NoMethodsInPropertySetupAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1101.md)
 Moq1002 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1002.md)
-Moq1001 | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1001.md)
+Moq1001 | Moq | Warning | NoSealedClassMocksAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1001.md)
 
 ## Release 0.0.3.40797
 

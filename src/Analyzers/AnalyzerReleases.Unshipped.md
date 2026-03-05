@@ -22,15 +22,15 @@ Moq1500 | Usage | Warning | MockRepository.Verify() should be called
 
 ### Changed Rules
 
-Rule ID | Category | Severity | Notes
---------|----------|----------|-------
-Moq1000 | Usage | Warning | NoSealedClassMocksAnalyzer (updated category from Moq to Usage)
-Moq1001 | Usage | Warning | ConstructorArgumentsShouldMatchAnalyzer (updated category from Moq to Usage)
-Moq1002 | Usage | Warning | ConstructorArgumentsShouldMatchAnalyzer (updated category from Moq to Usage)
-Moq1100 | Usage | Warning | CallbackSignatureShouldMatchMockedMethodAnalyzer (updated category from Moq to Usage)
-Moq1101 | Usage | Warning | NoMethodsInPropertySetupAnalyzer (updated category from Moq to Usage)
-Moq1200 | Usage | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
-Moq1201 | Usage | Error | SetupShouldNotIncludeAsyncResultAnalyzer (updated category from Moq to Usage)
-Moq1300 | Usage | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated category from Moq to Usage)
-Moq1400 | Usage | Warning | SetExplicitMockBehaviorAnalyzer (updated category from Moq to Usage)
-Moq1410 | Usage | Info | SetStrictMockBehaviorAnalyzer (updated category from Moq to Usage)
+Rule ID | New Category | New Severity | Old Category | Old Severity | Notes
+--------|--------------|--------------|--------------|--------------|------
+Moq1000 | Usage | Warning | Moq | Warning | NoSealedClassMocksAnalyzer (updated category from Moq to Usage)
+Moq1001 | Usage | Warning | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer (updated category from Moq to Usage)
+Moq1002 | Usage | Warning | Moq | Warning | ConstructorArgumentsShouldMatchAnalyzer (updated category from Moq to Usage)
+Moq1100 | Usage | Warning | Moq | Warning | CallbackSignatureShouldMatchMockedMethodAnalyzer (updated category from Moq to Usage)
+Moq1101 | Usage | Warning | Moq | Warning | NoMethodsInPropertySetupAnalyzer (updated category from Moq to Usage)
+Moq1200 | Usage | Error | Moq | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer (updated category from Moq to Usage)
+Moq1201 | Usage | Error | Moq | Error | SetupShouldNotIncludeAsyncResultAnalyzer (updated category from Moq to Usage)
+Moq1300 | Usage | Error | Moq | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer (updated category from Moq to Usage)
+Moq1400 | Usage | Warning | Moq | Warning | SetExplicitMockBehaviorAnalyzer (updated category from Moq to Usage)
+Moq1410 | Usage | Info | Moq | Info | SetStrictMockBehaviorAnalyzer (updated category from Moq to Usage)
