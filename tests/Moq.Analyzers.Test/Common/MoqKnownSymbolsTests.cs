@@ -37,6 +37,16 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
+    public void Constructor_WithNullTypeProvider_ThrowsArgumentNullException()
+    {
+        Analyzer.Utilities.WellKnownTypeProvider? nullProvider = null;
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => new MoqKnownSymbols(nullProvider!));
+
+        Assert.Equal("typeProvider", ex.ParamName);
+    }
+
+    [Fact]
     public void Mock_WithoutMoqReference_ReturnsNull()
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
