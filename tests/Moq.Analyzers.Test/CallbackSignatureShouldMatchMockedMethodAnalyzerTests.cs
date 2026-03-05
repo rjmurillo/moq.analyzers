@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.Testing;
 using Moq.Analyzers.Test.Helpers;
 
 using AnalyzerVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer>;
@@ -50,6 +51,9 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Implicitly typed lambda with multiple correct parameters via generic Callback overload
             ["""new Mock<IFoo>().Setup(x => x.ProcessMultiple(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback<int, string, DateTime>((id, name, timestamp) => { });"""],
+
+            // Explicitly typed lambda with correct parameter type (exercises GetDeclaredSymbol path)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback((string x) => { });"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         // Invalid patterns that SHOULD trigger the analyzer
@@ -69,6 +73,9 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Double-parenthesized Setup with wrong callback type
             ["""((new Mock<IFoo>().Setup(x => x.DoWork("test")))).Callback(({|Moq1100:int wrongParam|}) => { });"""],
+
+            // Explicitly typed lambda with wrong parameter type (exercises semantic resolution mismatch)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(({|Moq1100:DateTime wrongParam|}) => { });"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         return validPatterns.Concat(invalidPatterns);
@@ -108,6 +115,38 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
         string source = Template(@namespace, testCode);
         output.WriteLine(source);
         await AnalyzerVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
+    }
+
+    /// <summary>
+    /// Verifies that implicitly typed lambda parameters without a generic Callback overload
+    /// do not trigger a diagnostic. The compiler cannot resolve the parameter type, so the
+    /// analyzer treats it as unresolvable and skips validation.
+    /// </summary>
+    /// <returns>A task representing the asynchronous unit test.</returns>
+    [Fact]
+    public async Task ImplicitlyTypedLambdaWithoutGenericOverload_SkipsValidation()
+    {
+        const string source = """
+            using Moq;
+
+            public interface IFoo
+            {
+                int DoWork(string input);
+            }
+
+            public class TestClass
+            {
+                public void TestMethod()
+                {
+                    // Implicitly typed lambda without generic overload: type is unresolvable
+                    new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback((x) => { });
+                }
+            }
+            """;
+
+        // CompilerDiagnostics.None suppresses CS8917/CS1660 from the unresolvable delegate type.
+        // The analyzer should not report Moq1100 because the parameter type cannot be resolved.
+        await AnalyzerVerifier.VerifyAnalyzerAsync(source, "Net80WithOldMoq", CompilerDiagnostics.None);
     }
 
     /// <summary>
