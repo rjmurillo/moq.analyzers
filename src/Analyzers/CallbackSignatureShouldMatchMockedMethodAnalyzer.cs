@@ -209,7 +209,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         TypeSyntax? lambdaParameterTypeSyntax = lambdaParameter.Type;
         if (lambdaParameterTypeSyntax is null)
         {
-            return true; // Can't validate, assume ok
+            return false; // Type cannot be resolved; treat as mismatch
         }
 
         TypeInfo lambdaParameterType = semanticModel.GetTypeInfo(lambdaParameterTypeSyntax, cancellationToken);
@@ -217,7 +217,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
         if (lambdaParameterTypeSymbol is null)
         {
-            return true; // Can't validate, assume ok
+            return false; // Type cannot be resolved; treat as mismatch
         }
 
         ITypeSymbol mockedParameterType = mockedParameter.Type;
