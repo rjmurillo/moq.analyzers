@@ -5,8 +5,6 @@ on:
   release:
     types:
       - published # Run the workflow when a new GitHub release is published
-      - edited
-      - prereleased
       - released
 
 permissions:
@@ -22,16 +20,36 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
     steps:
       - name: Download packages
         uses: actions/download-artifact@v8
         with:
           path: packages
           name: packages
+      - name: Verify package version matches release tag
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $tag = $env:RELEASE_TAG -replace '^v', ''
+          $packages = Get-ChildItem ./packages/release -Recurse -Include *.nupkg
+          foreach ($pkg in $packages) {
+            if ($pkg.Name -notmatch [regex]::Escape($tag)) {
+              Write-Error "Package '$($pkg.Name)' does not match release tag 'v$tag'"
+              exit 1
+            }
+          }
+          Write-Host "All packages match release tag v$tag"
       - name: Publish NuGet package
         shell: pwsh
         run: |
-          foreach ($file in (Get-ChildItem ./packages/release -Recurse -Include *.nupkg)) {
-            echo "NuGet publish for file: '$file'"
+          $files = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue)
+          if ($files.Count -eq 0) {
+            Write-Error "No .nupkg files found under ./packages/release"
+            exit 1
+          }
+          foreach ($file in $files) {
+            Write-Host "NuGet publish for file: '$file'"
             dotnet nuget push $file --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
           }
