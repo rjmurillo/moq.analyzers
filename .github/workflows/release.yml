@@ -5,7 +5,6 @@ on:
   release:
     types:
       - published # Run the workflow when a new GitHub release is published
-      - released
 
 permissions:
   security-events: write  # required for CodeQL
@@ -28,21 +27,29 @@ jobs:
           path: packages
           name: packages
       - name: Verify package version matches release tag
+        if: github.event_name == 'release'
         shell: pwsh
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           $tag = $env:RELEASE_TAG -replace '^v', ''
-          $packages = Get-ChildItem ./packages/release -Recurse -Include *.nupkg
+          $packages = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue)
+          if ($packages.Count -eq 0) {
+            Write-Error "No .nupkg files found for version verification"
+            exit 1
+          }
           foreach ($pkg in $packages) {
-            if ($pkg.Name -notmatch [regex]::Escape($tag)) {
-              Write-Error "Package '$($pkg.Name)' does not match release tag 'v$tag'"
+            $nupkgVersion = [System.IO.Path]::GetFileNameWithoutExtension($pkg.Name) -replace '^.*?(\d+\..*)$', '$1'
+            if ($nupkgVersion -ne $tag) {
+              Write-Error "Package version '$nupkgVersion' does not match release tag '$tag'"
               exit 1
             }
           }
           Write-Host "All packages match release tag v$tag"
       - name: Publish NuGet package
         shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           $files = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue)
           if ($files.Count -eq 0) {
@@ -51,5 +58,5 @@ jobs:
           }
           foreach ($file in $files) {
             Write-Host "NuGet publish for file: '$file'"
-            dotnet nuget push $file --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+            dotnet nuget push $file --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
           }
