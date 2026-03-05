@@ -33,7 +33,7 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           $tag = $env:RELEASE_TAG -replace '^v', ''
-          $packages = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue)
+          $packages = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike '*.symbols.*' })
           if ($packages.Count -eq 0) {
             Write-Error "No .nupkg files found for version verification"
             exit 1
@@ -51,7 +51,7 @@ jobs:
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          $files = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue)
+          $files = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike '*.symbols.*' })
           if ($files.Count -eq 0) {
             Write-Error "No .nupkg files found under ./packages/release"
             exit 1
