@@ -441,7 +441,7 @@ jobs:
   # Performance validation runs last, after build and tests confirm correctness.
   # Builds from source on Linux ARM to get consistent benchmark results.
   perf:
-    needs: [check-paths, build, test]
+    needs: [check-paths, test]
     runs-on: ubuntu-24.04-arm
 
     env:
