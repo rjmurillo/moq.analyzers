@@ -168,7 +168,7 @@ jobs:
   # platform-appropriate metadata (runtimeconfig.dev.json, project.assets.json)
   # is generated with correct local paths.
   test:
-    needs: [check-paths, build]
+    needs: [check-paths]
     strategy:
       fail-fast: false
       matrix:
@@ -201,7 +201,7 @@ jobs:
 
       - name: Test
         if: needs.check-paths.outputs.code-changed == 'true'
-        run: dotnet test --no-restore --configuration Release --settings ./build/targets/tests/test.runsettings
+        run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
         env:
           REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
