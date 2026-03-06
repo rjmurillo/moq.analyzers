@@ -666,6 +666,45 @@ When making CI/CD changes:
 3. **Update documentation**: Document new CI features or changes
 4. **Consider performance impact**: Ensure changes don't significantly impact CI duration
 
+### Workflow File Validation
+
+Changes to `.github/workflows/**` require local validation before pushing. Run these checks in order:
+
+#### Step 1: Lint with actionlint
+
+```bash
+# Install locally (preferred)
+go install github.com/rhysd/actionlint/cmd/actionlint@latest
+actionlint
+
+# Or run via Docker (if not installed locally)
+docker run --rm -v "$(pwd)":/repo -w /repo rhysd/actionlint:latest -color
+```
+
+actionlint catches YAML syntax errors, invalid expressions, and type mismatches without running workflow containers.
+
+> **Note:** Docker commands may require `sudo` depending on your Docker setup.
+
+#### Step 2: Dry-run with gh act (validates job graph and step ordering)
+
+```bash
+gh act -n -W .github/workflows/main.yml \
+  -P ubuntu-24.04-arm=catthehacker/ubuntu:act-latest \
+  -P windows-latest=catthehacker/ubuntu:act-latest \
+  -P windows-2022=catthehacker/ubuntu:act-latest \
+  -P windows-2025-vs2026=catthehacker/ubuntu:act-latest
+```
+
+The `-n` flag performs a dry-run without executing steps. Platform mappings (`-P`) are required for runners that are not available locally.
+
+> **Note:** `gh act` requires Docker access. If Docker requires `sudo`, prefix the command with `sudo`.
+
+#### Step 3: Verify all jobs succeed
+
+Check the dry-run output for failures. All jobs must show `Job succeeded`. No `Job failed` entries are acceptable.
+
+**PR evidence requirement:** Include the actionlint output and `gh act` dry-run summary in the PR description when submitting workflow changes.
+
 ### Running Workflows Locally with `gh act`
 
 [`gh act`](https://github.com/nektos/gh-act) runs GitHub Actions workflows locally using Docker.

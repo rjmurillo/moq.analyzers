@@ -164,10 +164,11 @@ jobs:
         if: needs.check-paths.outputs.code-changed != 'true'
         run: echo "Skipped -- no code changes detected"
 
-  # Run unit tests on multiple platforms.
-  # Build happens independently on each runner so tests use platform-native binaries.
+  # Run unit tests on multiple platforms. Each platform builds locally to ensure
+  # platform-appropriate metadata (runtimeconfig.dev.json, project.assets.json)
+  # is generated with correct local paths.
   test:
-    needs: check-paths
+    needs: [check-paths]
     strategy:
       fail-fast: false
       matrix:
