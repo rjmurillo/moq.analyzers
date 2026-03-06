@@ -164,9 +164,9 @@ jobs:
         if: needs.check-paths.outputs.code-changed != 'true'
         run: echo "Skipped -- no code changes detected"
 
-  # Run unit tests on multiple platforms using build artifacts from the build job.
-  # The analyzer targets netstandard2.0 and tests are managed IL, so build artifacts
-  # are platform-independent and can be shared across runners.
+  # Run unit tests on multiple platforms. Each platform builds locally to ensure
+  # platform-appropriate metadata (runtimeconfig.dev.json, project.assets.json)
+  # is generated with correct local paths.
   test:
     needs: [check-paths, build]
     strategy:
@@ -187,22 +187,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET
+      - name: Setup, Restore, and Build Solution
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
-        with:
-          global-json-file: ./global.json
-
-      - name: Download build artifacts
-        if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
-        with:
-          name: artifacts
-          path: ./artifacts
-
-      - name: Restore NuGet packages
-        if: needs.check-paths.outputs.code-changed == 'true'
-        run: dotnet restore
+        uses: ./.github/actions/setup-restore-build
 
       - name: Restore Code Coverage history
         if: needs.check-paths.outputs.code-changed == 'true'
@@ -214,7 +201,7 @@ jobs:
 
       - name: Test
         if: needs.check-paths.outputs.code-changed == 'true'
-        run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
+        run: dotnet test --no-restore --configuration Release --settings ./build/targets/tests/test.runsettings
         env:
           REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
