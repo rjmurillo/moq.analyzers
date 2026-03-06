@@ -167,7 +167,7 @@ jobs:
   # Run unit tests on multiple platforms.
   # Build happens independently on each runner so tests use platform-native binaries.
   test:
-    needs: check-paths
+    needs: [check-paths, build]
     strategy:
       fail-fast: false
       matrix:
@@ -185,10 +185,6 @@ jobs:
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
-
-      - name: Setup, Restore, and Build Solution
-        if: needs.check-paths.outputs.code-changed == 'true'
-        uses: ./.github/actions/setup-restore-build
 
       - name: Restore Code Coverage history
         if: needs.check-paths.outputs.code-changed == 'true'
