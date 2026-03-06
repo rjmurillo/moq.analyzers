@@ -19,12 +19,7 @@ internal static class SyntaxGeneratorExtensions
         if (syntax is InvocationExpressionSyntax invocation)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
-
-            if (index < 0 || index > arguments.Count)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
+            ThrowIfIndexOutOfRangeForInsert(index, arguments.Count);
             arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
             return invocation.WithArgumentList(SyntaxFactory.ArgumentList(arguments));
         }
@@ -32,12 +27,7 @@ internal static class SyntaxGeneratorExtensions
         if (syntax is BaseObjectCreationExpressionSyntax creation)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList?.Arguments ?? [];
-
-            if (index < 0 || index > arguments.Count)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
+            ThrowIfIndexOutOfRangeForInsert(index, arguments.Count);
             arguments = arguments.InsertRange(index, items.OfType<ArgumentSyntax>());
             return creation.WithArgumentList(SyntaxFactory.ArgumentList(arguments));
         }
@@ -54,12 +44,8 @@ internal static class SyntaxGeneratorExtensions
 
         if (syntax is InvocationExpressionSyntax invocation)
         {
-            if (index < 0 || index >= invocation.ArgumentList.Arguments.Count)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
             SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
+            ThrowIfIndexOutOfRangeForReplace(index, arguments.Count);
             arguments = arguments.RemoveAt(index).Insert(index, argument);
             return invocation.WithArgumentList(SyntaxFactory.ArgumentList(arguments));
         }
@@ -67,16 +53,27 @@ internal static class SyntaxGeneratorExtensions
         if (syntax is BaseObjectCreationExpressionSyntax creation)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = creation.ArgumentList?.Arguments ?? [];
-
-            if (index < 0 || index >= arguments.Count)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
+            ThrowIfIndexOutOfRangeForReplace(index, arguments.Count);
             arguments = arguments.RemoveAt(index).Insert(index, argument);
             return creation.WithArgumentList(SyntaxFactory.ArgumentList(arguments));
         }
 
         throw new ArgumentException($"Must be of type {nameof(InvocationExpressionSyntax)} or {nameof(BaseObjectCreationExpressionSyntax)} but is of type {syntax.GetType().Name}", nameof(syntax));
+    }
+
+    private static void ThrowIfIndexOutOfRangeForInsert(int index, int count)
+    {
+        if (index < 0 || index > count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} must be between 0 and {count}.");
+        }
+    }
+
+    private static void ThrowIfIndexOutOfRangeForReplace(int index, int count)
+    {
+        if (index < 0 || index >= count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} must be between 0 and {count - 1}.");
+        }
     }
 }

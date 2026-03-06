@@ -31,7 +31,7 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
 
         if (position < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(position));
+            throw new ArgumentOutOfRangeException(nameof(position), $"Position {position} must be non-negative.");
         }
 
         Title = title;

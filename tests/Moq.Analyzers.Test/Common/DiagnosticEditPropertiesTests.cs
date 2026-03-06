@@ -40,7 +40,7 @@ public class DiagnosticEditPropertiesTests
     {
         DiagnosticEditProperties propsLarge = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Replace, EditPosition = int.MaxValue };
         ImmutableDictionary<string, string?> dictLarge = propsLarge.ToImmutableDictionary();
-        Assert.Equal(int.MaxValue.ToString(), dictLarge[DiagnosticEditProperties.EditPositionKey]);
+        Assert.Equal(int.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture), dictLarge[DiagnosticEditProperties.EditPositionKey]);
         Assert.True(DiagnosticEditProperties.TryGetFromImmutableDictionary(dictLarge, out DiagnosticEditProperties? roundTrippedLarge));
         Assert.Equal(int.MaxValue, roundTrippedLarge!.EditPosition);
     }
