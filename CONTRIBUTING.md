@@ -670,7 +670,7 @@ When making CI/CD changes:
 
 Changes to `.github/workflows/**` require local validation before pushing. Run these checks in order:
 
-**Step 1: Lint with actionlint (fast, no Docker required)**
+#### Step 1: Lint with actionlint (fast, no Docker required)
 
 ```bash
 # Via Docker (if actionlint is not installed locally)
@@ -682,7 +682,7 @@ actionlint
 
 actionlint catches YAML syntax errors, invalid expressions, and type mismatches without needing Docker containers for each job.
 
-**Step 2: Dry-run with `gh act` (validates job graph and step ordering)**
+#### Step 2: Dry-run with gh act (validates job graph and step ordering)
 
 ```bash
 gh act -n -W .github/workflows/main.yml \
@@ -704,7 +704,7 @@ sudo ~/.local/share/gh/extensions/gh-act/gh-act -n -W .github/workflows/main.yml
   -P windows-2025-vs2026=catthehacker/ubuntu:act-latest
 ```
 
-**Step 3: Verify all jobs succeed**
+#### Step 3: Verify all jobs succeed
 
 Check the dry-run output for failures. All jobs must show `Job succeeded`. Zero `Job failed` entries are acceptable.
 

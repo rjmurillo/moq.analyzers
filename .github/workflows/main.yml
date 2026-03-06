@@ -167,7 +167,7 @@ jobs:
   # Run unit tests on multiple platforms.
   # Build happens independently on each runner so tests use platform-native binaries.
   test:
-    needs: [check-paths, build]
+    needs: check-paths
     strategy:
       fail-fast: false
       matrix:
