@@ -670,17 +670,20 @@ When making CI/CD changes:
 
 Changes to `.github/workflows/**` require local validation before pushing. Run these checks in order:
 
-#### Step 1: Lint with actionlint (fast, no Docker required)
+#### Step 1: Lint with actionlint
 
 ```bash
-# Via Docker (if actionlint is not installed locally)
-sudo docker run --rm -v "$(pwd)":/repo -w /repo rhysd/actionlint:latest -color
-
-# Or install locally: go install github.com/rhysd/actionlint/cmd/actionlint@latest
+# Install locally (preferred)
+go install github.com/rhysd/actionlint/cmd/actionlint@latest
 actionlint
+
+# Or run via Docker (if not installed locally)
+docker run --rm -v "$(pwd)":/repo -w /repo rhysd/actionlint:latest -color
 ```
 
-actionlint catches YAML syntax errors, invalid expressions, and type mismatches without needing Docker containers for each job.
+actionlint catches YAML syntax errors, invalid expressions, and type mismatches without running workflow containers.
+
+> **Note:** Docker commands may require `sudo` depending on your Docker setup.
 
 #### Step 2: Dry-run with gh act (validates job graph and step ordering)
 
@@ -694,19 +697,11 @@ gh act -n -W .github/workflows/main.yml \
 
 The `-n` flag performs a dry-run without executing steps. Platform mappings (`-P`) are required for runners that are not available locally.
 
-**Note:** `gh act` requires Docker access. If Docker requires `sudo`, use the binary directly:
-
-```bash
-sudo ~/.local/share/gh/extensions/gh-act/gh-act -n -W .github/workflows/main.yml \
-  -P ubuntu-24.04-arm=catthehacker/ubuntu:act-latest \
-  -P windows-latest=catthehacker/ubuntu:act-latest \
-  -P windows-2022=catthehacker/ubuntu:act-latest \
-  -P windows-2025-vs2026=catthehacker/ubuntu:act-latest
-```
+> **Note:** `gh act` requires Docker access. If Docker requires `sudo`, prefix the command with `sudo`.
 
 #### Step 3: Verify all jobs succeed
 
-Check the dry-run output for failures. All jobs must show `Job succeeded`. Zero `Job failed` entries are acceptable.
+Check the dry-run output for failures. All jobs must show `Job succeeded`. No `Job failed` entries are acceptable.
 
 **PR evidence requirement:** Include the actionlint output and `gh act` dry-run summary in the PR description when submitting workflow changes.
 
