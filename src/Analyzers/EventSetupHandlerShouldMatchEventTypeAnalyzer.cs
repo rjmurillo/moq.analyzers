@@ -161,7 +161,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
             // Use semantic model to check if this is actually It.IsAny
             SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol &&
-                knownSymbols.ItIsAny.Contains(methodSymbol))
+                methodSymbol.IsInstanceOf(knownSymbols.ItIsAny))
             {
                 // NOTE: This code path extracts the generic type argument T from It.IsAny<T>() expressions.
                 // It's difficult to test directly because most type mismatches that would exercise this

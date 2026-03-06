@@ -138,6 +138,6 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             return false;
         }
 
-        return knownSymbols.Mock1Raise.Contains(methodSymbol.OriginalDefinition);
+        return methodSymbol.IsInstanceOf(knownSymbols.Mock1Raise);
     }
 }
