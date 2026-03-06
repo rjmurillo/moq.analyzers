@@ -166,6 +166,10 @@ jobs:
 
   # Run unit tests on multiple platforms.
   # Build happens independently on each runner so tests use platform-native binaries.
+  # DO NOT add 'build' to needs or remove the build step below. The 'build' job runs
+  # on a single runner; test runs on ubuntu + windows. GitHub Actions 'needs' controls
+  # execution order only, not artifact sharing. Each test runner must build its own
+  # platform-native binaries. Adding a 'build' dependency just wastes runner time waiting.
   test:
     needs: check-paths
     strategy:
