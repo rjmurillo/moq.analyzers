@@ -1,6 +1,6 @@
 # Dependency Management
 
-This project uses **Renovate** as the primary dependency update bot. Dependabot is retained only for GitHub Actions updates.
+This project uses **Renovate** as the primary dependency update bot. Renovate manages both NuGet packages and GitHub Actions. Dependabot is retained for CLA and security alert handling only.
 
 ## Package Categories
 
@@ -23,7 +23,7 @@ These packages are bundled in the analyzer NuGet package and run inside the **us
 
 **Upgrade policy:**
 
-- `Microsoft.CodeAnalysis.*` core packages are **ignored** in the Renovate config (`ignoreDeps`). Dependabot does not manage NuGet packages. Update manually when raising the minimum supported SDK version.
+- `Microsoft.CodeAnalysis.*` core packages are **ignored** in the Renovate config (`ignoreDeps`). Renovate does not manage these packages. Update manually when raising the minimum supported SDK version.
 - `System.Collections.Immutable`, `System.Formats.Asn1`, `System.Reflection.Metadata`, and `AnalyzerUtilities` have `automerge: false` and the `analyzer-compat` label. Every update requires manual validation that assembly versions stay within host bounds.
 - The `ValidateAnalyzerHostCompatibility` MSBuild target and `AnalyzerAssemblyCompatibilityTests` enforce this at build and test time.
 
@@ -93,12 +93,12 @@ The PerfDiff tool (`src/tools/PerfDiff/`) uses System.CommandLine, which had bre
 
 ## Configuration Files
 
-| File                             | Purpose                                             |
-| -------------------------------- | --------------------------------------------------- |
-| `renovate.json`                  | Renovate bot configuration (primary dependency bot) |
-| `.github/dependabot.yml`         | Dependabot configuration (GitHub Actions only)      |
-| `Directory.Packages.props`       | Central package version management                  |
-| `build/targets/*/Packages.props` | Category-specific package versions                  |
+| File                             | Purpose                                                              |
+| -------------------------------- | -------------------------------------------------------------------- |
+| `renovate.json`                  | Renovate bot configuration (NuGet packages and GitHub Actions)       |
+| `.github/dependabot.yml`         | Dependabot configuration (GitHub Actions, kept for security alerts)  |
+| `Directory.Packages.props`       | Central package version management                                   |
+| `build/targets/*/Packages.props` | Category-specific package versions                                   |
 
 ## VersionOverride Pattern
 
@@ -115,5 +115,5 @@ This allows the central pin (8.0.0) to protect shipped analyzer DLLs while letti
 
 A single consolidated workflow (`.github/workflows/dependabot-approve-and-auto-merge.yml`) handles auto-approval for both Dependabot and Renovate PRs.
 
-- **Dependabot** (GitHub Actions only): The workflow approves the PR and enables auto-merge for non-major updates. Major version gating uses `dependabot/fetch-metadata` output.
-- **Renovate** (NuGet): The workflow only approves the PR. Auto-merge is controlled entirely by Renovate via `platformAutomerge: true` and per-package `automerge` rules in `renovate.json`. Packages with `automerge: false` (e.g., `analyzer-compat`, `benchmark-tooling`) require manual merge after review.
+- **Renovate** (NuGet and GitHub Actions): The workflow approves the PR. Auto-merge is controlled entirely by Renovate via `platformAutomerge: true` and per-package `automerge` rules in `renovate.json`. Packages with `automerge: false` (e.g., `analyzer-compat`, `benchmark-tooling`) require manual merge after review.
+- **Dependabot** (GitHub Actions, kept for security alerts): The workflow approves the PR and enables auto-merge for non-major updates. Major version gating uses `dependabot/fetch-metadata` output.
