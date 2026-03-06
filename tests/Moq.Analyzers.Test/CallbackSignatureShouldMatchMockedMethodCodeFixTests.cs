@@ -1,3 +1,6 @@
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Text;
 using AnalyzerVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer>;
 using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer, Moq.CodeFixes.CallbackSignatureShouldMatchMockedMethodFixer>;
 
@@ -259,5 +262,101 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         await AnalyzerVerifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task FixerReturnsUnchangedDocumentWhenSetupMethodNotFound()
+    {
+        // This test exercises the defensive null guard on setupMethodInvocation.
+        // The guard is unreachable through normal analyzer-fixer pipelines because
+        // the analyzer only reports Moq1100 when it finds a Setup method. We test
+        // it by injecting a synthetic Moq1100 diagnostic on a non-chained Callback.
+        const string source =
+            """
+            using System;
+            using Moq;
+
+            internal interface IFoo
+            {
+                int Do(string s);
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var setup = new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>()));
+                    setup.Callback((int i) => { });
+                }
+            }
+            """;
+
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(source);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        Diagnostic diagnostic = CreateSyntheticDiagnostic(root, tree);
+        using AdhocWorkspace workspace = new();
+        Document document = CreateTestDocument(workspace, model, source);
+        List<CodeAction> actions = await InvokeFixerAsync(document, diagnostic);
+
+        Assert.Single(actions);
+        await AssertDocumentUnchangedAsync(actions[0], document);
+    }
+
+    private static Diagnostic CreateSyntheticDiagnostic(SyntaxNode root, SyntaxTree tree)
+    {
+        ParameterListSyntax parameterList = root
+            .DescendantNodes()
+            .OfType<ParenthesizedLambdaExpressionSyntax>()
+            .Last()
+            .ParameterList;
+
+        DiagnosticDescriptor descriptor = new(
+            DiagnosticIds.BadCallbackParameters,
+            "Bad callback parameters",
+            "Callback signature must match the signature of the mocked method",
+            "Usage",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        return Diagnostic.Create(descriptor, Location.Create(tree, parameterList.Span));
+    }
+
+    private static Document CreateTestDocument(AdhocWorkspace workspace, SemanticModel model, string source)
+    {
+        Project project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+        project = project.AddMetadataReferences(model.Compilation.References);
+        return project.AddDocument("Test.cs", SourceText.From(source));
+    }
+
+    private static async Task<List<CodeAction>> InvokeFixerAsync(Document document, Diagnostic diagnostic)
+    {
+        Moq.CodeFixes.CallbackSignatureShouldMatchMockedMethodFixer fixer = new();
+        List<CodeAction> actions = [];
+
+        CodeFixContext context = new(
+            document,
+            diagnostic,
+            (action, _) => actions.Add(action),
+            CancellationToken.None);
+
+        await fixer.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+        return actions;
+    }
+
+    private static async Task AssertDocumentUnchangedAsync(CodeAction action, Document document)
+    {
+        ImmutableArray<CodeActionOperation> operations = await action.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
+        ApplyChangesOperation? applyChanges = operations.OfType<ApplyChangesOperation>().FirstOrDefault();
+
+        if (applyChanges is null)
+        {
+            return;
+        }
+
+        Document changedDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
+        string originalText = (await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+        Assert.Equal(originalText, changedText);
     }
 }

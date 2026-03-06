@@ -54,11 +54,18 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
             return;
         }
 
-        ISymbol? mockedMemberSymbol =
-            targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet)
-                ? MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(
-                    MoqVerificationHelpers.ExtractLambdaFromArgument(invocationOperation.Arguments[0].Value)!)
-                : MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
+        ISymbol? mockedMemberSymbol;
+        if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
+        {
+            IAnonymousFunctionOperation? lambda = MoqVerificationHelpers.ExtractLambdaFromArgument(invocationOperation.Arguments[0].Value);
+            mockedMemberSymbol = lambda is not null
+                ? MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambda)
+                : null;
+        }
+        else
+        {
+            mockedMemberSymbol = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
+        }
 
         if (mockedMemberSymbol == null || IsInterfaceMember(mockedMemberSymbol))
         {

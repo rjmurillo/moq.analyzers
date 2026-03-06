@@ -1,5 +1,4 @@
 ﻿using System.Composition;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
@@ -70,7 +69,11 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         }
 
         InvocationExpressionSyntax? setupMethodInvocation = semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, callbackInvocation, cancellationToken);
-        Debug.Assert(setupMethodInvocation != null, nameof(setupMethodInvocation) + " != null");
+        if (setupMethodInvocation is null)
+        {
+            return document;
+        }
+
         IMethodSymbol[] matchingMockedMethods = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupMethodInvocation).ToArray();
 
         if (matchingMockedMethods.Length != 1)
