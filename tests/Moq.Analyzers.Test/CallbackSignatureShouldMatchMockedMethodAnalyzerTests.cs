@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.Testing;
 using Moq.Analyzers.Test.Helpers;
 
 using AnalyzerVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer>;
@@ -44,6 +45,15 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Double-parenthesized Setup with correct callback
             ["""((new Mock<IFoo>().Setup(x => x.DoWork("test")))).Callback((string param) => { });"""],
+
+            // Implicitly typed lambda with correct parameter type via generic Callback overload
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback<string>((x) => { });"""],
+
+            // Implicitly typed lambda with multiple correct parameters via generic Callback overload
+            ["""new Mock<IFoo>().Setup(x => x.ProcessMultiple(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback<int, string, DateTime>((id, name, timestamp) => { });"""],
+
+            // Explicitly typed lambda with correct parameter type (exercises GetDeclaredSymbol path)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback((string x) => { });"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         // Invalid patterns that SHOULD trigger the analyzer
@@ -63,6 +73,9 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Double-parenthesized Setup with wrong callback type
             ["""((new Mock<IFoo>().Setup(x => x.DoWork("test")))).Callback(({|Moq1100:int wrongParam|}) => { });"""],
+
+            // Explicitly typed lambda with wrong parameter type (exercises semantic resolution mismatch)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(({|Moq1100:DateTime wrongParam|}) => { });"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         return validPatterns.Concat(invalidPatterns);
@@ -105,6 +118,79 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
     }
 
     /// <summary>
+    /// Verifies that implicitly typed lambda parameters without a generic Callback overload
+    /// do not trigger a diagnostic. Even though the delegate type is ambiguous (CS8917),
+    /// Roslyn's semantic model resolves the parameter type via best-effort binding.
+    /// The analyzer uses GetDeclaredSymbol to obtain the inferred type and validates correctly.
+    /// </summary>
+    /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
+    /// <returns>A task representing the asynchronous unit test.</returns>
+    [Theory]
+    [InlineData("Net80WithOldMoq")]
+    [InlineData("Net80WithNewMoq")]
+    public async Task ImplicitlyTypedLambdaWithoutGenericOverload_NoFalsePositive(string referenceAssemblyGroup)
+    {
+        const string source = """
+            using Moq;
+
+            public interface IFoo
+            {
+                int DoWork(string input);
+            }
+
+            public class TestClass
+            {
+                public void TestMethod()
+                {
+                    // Implicitly typed lambda without generic overload.
+                    // Roslyn resolves 'x' to 'string' via best-effort binding.
+                    new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback((x) => { });
+                }
+            }
+            """;
+
+        // CompilerDiagnostics.None suppresses CS8917/CS1660 from the ambiguous delegate type.
+        // No Moq1100 is expected because GetDeclaredSymbol resolves 'x' to 'string' which matches.
+        await AnalyzerVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup, CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Proves the thesis of issue #995: when a lambda parameter uses an unresolvable type,
+    /// the analyzer reports a diagnostic instead of silently suppressing it. Before the fix,
+    /// the old code returned true ("assume ok") when type resolution failed, hiding real
+    /// mismatches from users.
+    /// </summary>
+    /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
+    /// <returns>A task representing the asynchronous unit test.</returns>
+    [Theory]
+    [InlineData("Net80WithOldMoq")]
+    [InlineData("Net80WithNewMoq")]
+    public async Task UnresolvableParameterType_ReportsDiagnostic(string referenceAssemblyGroup)
+    {
+        const string source = """
+            using Moq;
+
+            public interface IFoo
+            {
+                int DoWork(string input);
+            }
+
+            public class TestClass
+            {
+                public void TestMethod()
+                {
+                    // 'NonExistentType' does not resolve, producing TypeKind.Error.
+                    // The analyzer treats this as a mismatch rather than silently suppressing Moq1100.
+                    new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(({|Moq1100:NonExistentType x|}) => { });
+                }
+            }
+            """;
+
+        // CompilerDiagnostics.None suppresses CS0246 from the unresolvable type name.
+        await AnalyzerVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup, CompilerDiagnostics.None);
+    }
+
+    /// <summary>
     /// Test to document the known limitation with generic callback validation.
     /// This test documents that .Callback&lt;T&gt;() with wrong type parameters is NOT currently validated.
     /// This is an accepted limitation as the explicit generic syntax is rarely used in practice.
@@ -119,9 +205,12 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
     /// See docs/rules/Moq1100.md "Known Limitations" section for best practices.
     /// </para>
     /// </remarks>
+    /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
     /// <returns>A task representing the asynchronous unit test.</returns>
-    [Fact]
-    public async Task GenericCallbackValidation_CurrentLimitation_IsDocumented()
+    [Theory]
+    [InlineData("Net80WithOldMoq")]
+    [InlineData("Net80WithNewMoq")]
+    public async Task GenericCallbackValidation_CurrentLimitation_IsDocumented(string referenceAssemblyGroup)
     {
         const string source = """
             using Moq;
@@ -145,6 +234,6 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
             """;
 
         // This test documents the known limitation - no diagnostic is expected
-        await AnalyzerVerifier.VerifyAnalyzerAsync(source, "Net80WithOldMoq");
+        await AnalyzerVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
     }
 }

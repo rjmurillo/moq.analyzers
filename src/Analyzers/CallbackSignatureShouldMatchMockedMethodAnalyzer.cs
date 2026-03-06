@@ -206,18 +206,14 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         ParameterSyntax lambdaParameter,
         CancellationToken cancellationToken)
     {
-        TypeSyntax? lambdaParameterTypeSyntax = lambdaParameter.Type;
-        if (lambdaParameterTypeSyntax is null)
-        {
-            return true; // Can't validate, assume ok
-        }
+        // Use semantic model to resolve the parameter type, handling both
+        // explicitly typed and implicitly typed lambda parameters.
+        IParameterSymbol? parameterSymbol = semanticModel.GetDeclaredSymbol(lambdaParameter, cancellationToken);
+        ITypeSymbol? lambdaParameterTypeSymbol = parameterSymbol?.Type;
 
-        TypeInfo lambdaParameterType = semanticModel.GetTypeInfo(lambdaParameterTypeSyntax, cancellationToken);
-        ITypeSymbol? lambdaParameterTypeSymbol = lambdaParameterType.Type;
-
-        if (lambdaParameterTypeSymbol is null)
+        if (lambdaParameterTypeSymbol is null || lambdaParameterTypeSymbol.TypeKind == TypeKind.Error)
         {
-            return true; // Can't validate, assume ok
+            return false; // Type could not be resolved; treat as mismatch to avoid suppressing Moq1100
         }
 
         ITypeSymbol mockedParameterType = mockedParameter.Type;
