@@ -5,9 +5,6 @@ on:
   release:
     types:
       - published # Run the workflow when a new GitHub release is published
-      - edited
-      - prereleased
-      - released
 
 permissions:
   security-events: write  # required for CodeQL
@@ -22,16 +19,60 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
     steps:
       - name: Download packages
         uses: actions/download-artifact@v8
         with:
           path: packages
           name: packages
+      - name: Verify package version matches release tag
+        if: github.event_name == 'release'
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $tag = $env:RELEASE_TAG -replace '^v', ''
+          $packages = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike '*.symbols.*' })
+          if ($packages.Count -eq 0) {
+            Write-Error "No .nupkg files found for version verification"
+            exit 1
+          }
+          foreach ($pkg in $packages) {
+            $stem = [System.IO.Path]::GetFileNameWithoutExtension($pkg.Name)
+            if ($stem -match '(\d+\.\d+\.\d+.*)$') {
+              $nupkgVersion = $Matches[1]
+            } else {
+              Write-Error "Could not parse version from package filename '$($pkg.Name)'"
+              exit 1
+            }
+            if ($nupkgVersion -ne $tag) {
+              Write-Error "Package version '$nupkgVersion' does not match release tag '$tag'"
+              exit 1
+            }
+          }
+          Write-Host "All packages match release tag v$tag"
       - name: Publish NuGet package
         shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          foreach ($file in (Get-ChildItem ./packages/release -Recurse -Include *.nupkg)) {
-            echo "NuGet publish for file: '$file'"
-            dotnet nuget push $file --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          $files = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike '*.symbols.*' })
+          if ($files.Count -eq 0) {
+            Write-Error "No .nupkg files found under ./packages/release"
+            exit 1
+          }
+          foreach ($file in $files) {
+            Write-Host "NuGet publish for file: '$file'"
+            $maxAttempts = 3
+            for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+              dotnet nuget push $file --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+              if ($LASTEXITCODE -eq 0) { break }
+              if ($attempt -eq $maxAttempts) {
+                Write-Error "NuGet push failed for '$file' after $maxAttempts attempts"
+                exit 1
+              }
+              Write-Warning "Attempt $attempt failed (exit code $LASTEXITCODE). Retrying in $($attempt * 5)s..."
+              Start-Sleep -Seconds ($attempt * 5)
+            }
           }
