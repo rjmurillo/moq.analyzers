@@ -164,14 +164,11 @@ jobs:
         if: needs.check-paths.outputs.code-changed != 'true'
         run: echo "Skipped -- no code changes detected"
 
-  # Run unit tests on multiple platforms.
-  # Build happens independently on each runner so tests use platform-native binaries.
-  # DO NOT add 'build' to needs or remove the build step below. The 'build' job runs
-  # on a single runner; test runs on ubuntu + windows. GitHub Actions 'needs' controls
-  # execution order only, not artifact sharing. Each test runner must build its own
-  # platform-native binaries. Adding a 'build' dependency just wastes runner time waiting.
+  # Run unit tests on multiple platforms using build artifacts from the build job.
+  # The analyzer targets netstandard2.0 and tests are managed IL, so build artifacts
+  # are platform-independent and can be shared across runners.
   test:
-    needs: check-paths
+    needs: [check-paths, build]
     strategy:
       fail-fast: false
       matrix:
@@ -190,9 +187,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup, Restore, and Build Solution
+      - name: Setup .NET
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: ./.github/actions/setup-restore-build
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
+        with:
+          global-json-file: ./global.json
+
+      - name: Download build artifacts
+        if: needs.check-paths.outputs.code-changed == 'true'
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: artifacts
+          path: ./artifacts
 
       - name: Restore Code Coverage history
         if: needs.check-paths.outputs.code-changed == 'true'
