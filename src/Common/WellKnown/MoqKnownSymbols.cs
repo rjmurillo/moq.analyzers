@@ -566,7 +566,7 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Creates a <see cref="Lazy{T}"/> that resolves all methods with <paramref name="memberName"/> from <paramref name="type"/> and its base types.
     /// </summary>
     /// <remarks>
-    /// Used for types like <c>MockRepository</c> that inherit members from an obsolete base class.
+    /// Used for types like <see cref="MockRepository"/> that inherit members from an obsolete base class.
     /// <see cref="LazyThreadSafetyMode.ExecutionAndPublication"/> ensures the value is computed once
     /// even when multiple analyzer threads access it concurrently.
     /// </remarks>
