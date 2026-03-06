@@ -58,187 +58,80 @@ internal class MoqKnownSymbols : KnownSymbols
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _timesOnce;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _timesExactly;
 
-    // ECS1200: Lazy<T> fields capture 'this' in lambdas; inline initializers cannot reference instance members. Constructor assignment is required.
-    // MA0051: This constructor is intentionally long. Each assignment is a single-line Lazy<T> initialization; extracting helper methods would not improve readability.
-#pragma warning disable ECS1200, MA0051
+#pragma warning disable MA0051 // Constructor length is proportional to the number of Moq symbols cached; each line is a single-field assignment.
     internal MoqKnownSymbols(WellKnownTypeProvider typeProvider)
         : base(typeProvider)
     {
         // Mock and Mock<T> members
-        _mockAs = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock?.GetMembers("As").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mockOf = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock?.GetMembers("Of").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mockGet = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock?.GetMembers("Get").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1As = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("As").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1Setup = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("Setup").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1SetupGet = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("SetupGet").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1SetupSet = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("SetupSet").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1SetupProperty = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("SetupProperty").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1SetupAdd = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("SetupAdd").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1SetupRemove = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("SetupRemove").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1SetupSequence = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("SetupSequence").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1Raise = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("Raise").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1Verify = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("Verify").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1VerifyGet = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("VerifyGet").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1VerifySet = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("VerifySet").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mock1VerifyNoOtherCalls = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Mock1?.GetMembers("VerifyNoOtherCalls").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
+        _mockAs = CreateLazyMethods(Mock, "As");
+        _mockOf = CreateLazyMethods(Mock, "Of");
+        _mockGet = CreateLazyMethods(Mock, "Get");
+        _mock1As = CreateLazyMethods(Mock1, "As");
+        _mock1Setup = CreateLazyMethods(Mock1, "Setup");
+        _mock1SetupGet = CreateLazyMethods(Mock1, "SetupGet");
+        _mock1SetupSet = CreateLazyMethods(Mock1, "SetupSet");
+        _mock1SetupProperty = CreateLazyMethods(Mock1, "SetupProperty");
+        _mock1SetupAdd = CreateLazyMethods(Mock1, "SetupAdd");
+        _mock1SetupRemove = CreateLazyMethods(Mock1, "SetupRemove");
+        _mock1SetupSequence = CreateLazyMethods(Mock1, "SetupSequence");
+        _mock1Raise = CreateLazyMethods(Mock1, "Raise");
+        _mock1Verify = CreateLazyMethods(Mock1, "Verify");
+        _mock1VerifyGet = CreateLazyMethods(Mock1, "VerifyGet");
+        _mock1VerifySet = CreateLazyMethods(Mock1, "VerifySet");
+        _mock1VerifyNoOtherCalls = CreateLazyMethods(Mock1, "VerifyNoOtherCalls");
 
         // MockRepository members (walks base types for inherited members)
-#pragma warning disable ECS0900 // Boxing from SelectMany over GetBaseTypesAndThis(); acceptable for lazy-evaluated one-time initialization.
-        _mockRepositoryCreate = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            MockRepository?.GetBaseTypesAndThis().SelectMany(type => type.GetMembers("Create")).OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _mockRepositoryVerify = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            MockRepository?.GetBaseTypesAndThis().SelectMany(type => type.GetMembers("Verify")).OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-#pragma warning restore ECS0900
+        _mockRepositoryCreate = CreateLazyInheritedMethods(MockRepository, "Create");
+        _mockRepositoryVerify = CreateLazyInheritedMethods(MockRepository, "Verify");
 
         // MockBehavior enum fields
-        _mockBehaviorStrict = new Lazy<IFieldSymbol?>(() =>
-            MockBehavior?.GetMembers("Strict").OfType<IFieldSymbol>().SingleOrDefault());
-        _mockBehaviorLoose = new Lazy<IFieldSymbol?>(() =>
-            MockBehavior?.GetMembers("Loose").OfType<IFieldSymbol>().SingleOrDefault());
-        _mockBehaviorDefault = new Lazy<IFieldSymbol?>(() =>
-            MockBehavior?.GetMembers("Default").OfType<IFieldSymbol>().SingleOrDefault());
+        _mockBehaviorStrict = CreateLazySingleField(MockBehavior, "Strict");
+        _mockBehaviorLoose = CreateLazySingleField(MockBehavior, "Loose");
+        _mockBehaviorDefault = CreateLazySingleField(MockBehavior, "Default");
 
         // It members
-        _itIsAny = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            It?.GetMembers("IsAny").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
+        _itIsAny = CreateLazyMethods(It, "IsAny");
 
         // IReturns, IThrows, ReturnsExtensions, and ICallback members
-        _iReturnsReturns = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IReturns?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iReturns1Returns = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IReturns1?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iReturns2Returns = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IReturns2?.GetMembers("Returns").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iThrowsThrows = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IThrows?.GetMembers("Throws").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _returnsExtensionsReturnsAsync = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ReturnsExtensions?.GetMembers("ReturnsAsync").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _returnsExtensionsThrowsAsync = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ReturnsExtensions?.GetMembers("ThrowsAsync").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iCallbackCallback = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ICallback?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iCallback1Callback = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ICallback1?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iCallback2Callback = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ICallback2?.GetMembers("Callback").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iCallbackRaises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ICallback?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iCallback1Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ICallback1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iCallback2Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ICallback2?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
+        _iReturnsReturns = CreateLazyMethods(IReturns, "Returns");
+        _iReturns1Returns = CreateLazyMethods(IReturns1, "Returns");
+        _iReturns2Returns = CreateLazyMethods(IReturns2, "Returns");
+        _iThrowsThrows = CreateLazyMethods(IThrows, "Throws");
+        _returnsExtensionsReturnsAsync = CreateLazyMethods(ReturnsExtensions, "ReturnsAsync");
+        _returnsExtensionsThrowsAsync = CreateLazyMethods(ReturnsExtensions, "ThrowsAsync");
+        _iCallbackCallback = CreateLazyMethods(ICallback, "Callback");
+        _iCallback1Callback = CreateLazyMethods(ICallback1, "Callback");
+        _iCallback2Callback = CreateLazyMethods(ICallback2, "Callback");
+        _iCallbackRaises = CreateLazyMethods(ICallback, "Raises");
+        _iCallback1Raises = CreateLazyMethods(ICallback1, "Raises");
+        _iCallback2Raises = CreateLazyMethods(ICallback2, "Raises");
 
         // Setup Raises members
-        _iSetupGetterRaises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ISetupGetter?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iSetupSetterRaises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ISetupSetter?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iReturnsRaises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IReturns?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iReturns1Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IReturns1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iReturns2Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IReturns2?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iSetup1Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ISetup1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iSetupPhrase1Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ISetupPhrase1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iSetupGetter1Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ISetupGetter1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iSetupSetter1Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            ISetupSetter1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _voidSetupPhrase1Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            VoidSetupPhrase1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _nonVoidSetupPhrase2Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            NonVoidSetupPhrase2?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
+        _iSetupGetterRaises = CreateLazyMethods(ISetupGetter, "Raises");
+        _iSetupSetterRaises = CreateLazyMethods(ISetupSetter, "Raises");
+        _iReturnsRaises = CreateLazyMethods(IReturns, "Raises");
+        _iReturns1Raises = CreateLazyMethods(IReturns1, "Raises");
+        _iReturns2Raises = CreateLazyMethods(IReturns2, "Raises");
+        _iSetup1Raises = CreateLazyMethods(ISetup1, "Raises");
+        _iSetupPhrase1Raises = CreateLazyMethods(ISetupPhrase1, "Raises");
+        _iSetupGetter1Raises = CreateLazyMethods(ISetupGetter1, "Raises");
+        _iSetupSetter1Raises = CreateLazyMethods(ISetupSetter1, "Raises");
+        _voidSetupPhrase1Raises = CreateLazyMethods(VoidSetupPhrase1, "Raises");
+        _nonVoidSetupPhrase2Raises = CreateLazyMethods(NonVoidSetupPhrase2, "Raises");
 
         // IRaiseable and IRaise members
-        _iRaiseableRaises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IRaiseable?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iRaiseableAsyncRaisesAsync = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IRaiseableAsync?.GetMembers("RaisesAsync").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iRaise1Raises = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IRaise1?.GetMembers("Raises").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _iRaise1RaisesAsync = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            IRaise1?.GetMembers("RaisesAsync").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
+        _iRaiseableRaises = CreateLazyMethods(IRaiseable, "Raises");
+        _iRaiseableAsyncRaisesAsync = CreateLazyMethods(IRaiseableAsync, "RaisesAsync");
+        _iRaise1Raises = CreateLazyMethods(IRaise1, "Raises");
+        _iRaise1RaisesAsync = CreateLazyMethods(IRaise1, "RaisesAsync");
 
         // Times members
-        _timesAtLeastOnce = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Times?.GetMembers("AtLeastOnce").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _timesNever = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Times?.GetMembers("Never").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _timesOnce = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Times?.GetMembers("Once").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
-        _timesExactly = new Lazy<ImmutableArray<IMethodSymbol>>(() =>
-            Times?.GetMembers("Exactly").OfType<IMethodSymbol>().ToImmutableArray()
-            ?? ImmutableArray<IMethodSymbol>.Empty);
+        _timesAtLeastOnce = CreateLazyMethods(Times, "AtLeastOnce");
+        _timesNever = CreateLazyMethods(Times, "Never");
+        _timesOnce = CreateLazyMethods(Times, "Once");
+        _timesExactly = CreateLazyMethods(Times, "Exactly");
     }
-#pragma warning restore ECS1200, MA0051
+#pragma warning restore MA0051
 
     internal MoqKnownSymbols(Compilation compilation)
         : this(WellKnownTypeProvider.GetOrCreate(compilation))
@@ -656,4 +549,43 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the interface <c>Microsoft.Extensions.Logging.ILogger{T}</c>.
     /// </summary>
     internal INamedTypeSymbol? ILogger1 => TypeProvider.GetOrCreateTypeByMetadataName("Microsoft.Extensions.Logging.ILogger`1");
+
+    /// <summary>
+    /// Creates a <see cref="Lazy{T}"/> that resolves all methods with <paramref name="memberName"/> declared directly on <paramref name="type"/>.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="LazyThreadSafetyMode.ExecutionAndPublication"/> ensures the value is computed once
+    /// even when multiple analyzer threads access it concurrently.
+    /// </remarks>
+    private static Lazy<ImmutableArray<IMethodSymbol>> CreateLazyMethods(INamedTypeSymbol? type, string memberName) =>
+        new Lazy<ImmutableArray<IMethodSymbol>>(
+            () => type?.GetMembers(memberName).OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty,
+            LazyThreadSafetyMode.ExecutionAndPublication);
+
+    /// <summary>
+    /// Creates a <see cref="Lazy{T}"/> that resolves all methods with <paramref name="memberName"/> from <paramref name="type"/> and its base types.
+    /// </summary>
+    /// <remarks>
+    /// Used for types like <c>MockRepository</c> that inherit members from an obsolete base class.
+    /// <see cref="LazyThreadSafetyMode.ExecutionAndPublication"/> ensures the value is computed once
+    /// even when multiple analyzer threads access it concurrently.
+    /// </remarks>
+#pragma warning disable ECS0900 // Minimize boxing and unboxing: SelectMany over GetBaseTypesAndThis() boxes; acceptable for lazy-evaluated one-time initialization.
+    private static Lazy<ImmutableArray<IMethodSymbol>> CreateLazyInheritedMethods(INamedTypeSymbol? type, string memberName) =>
+        new Lazy<ImmutableArray<IMethodSymbol>>(
+            () => type?.GetBaseTypesAndThis().SelectMany(t => t.GetMembers(memberName)).OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty,
+            LazyThreadSafetyMode.ExecutionAndPublication);
+#pragma warning restore ECS0900
+
+    /// <summary>
+    /// Creates a <see cref="Lazy{T}"/> that resolves a single field with <paramref name="memberName"/> declared on <paramref name="type"/>.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="LazyThreadSafetyMode.ExecutionAndPublication"/> ensures the value is computed once
+    /// even when multiple analyzer threads access it concurrently.
+    /// </remarks>
+    private static Lazy<IFieldSymbol?> CreateLazySingleField(INamedTypeSymbol? type, string memberName) =>
+        new Lazy<IFieldSymbol?>(
+            () => type?.GetMembers(memberName).OfType<IFieldSymbol>().SingleOrDefault(),
+            LazyThreadSafetyMode.ExecutionAndPublication);
 }
