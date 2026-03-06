@@ -421,4 +421,32 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
 
         await Verify.VerifyCodeFixAsync(test, test, referenceAssemblyGroup);
     }
+
+    [Fact]
+    public async Task VerifySetWithActionVariableDoesNotCrash()
+    {
+        // When VerifySet receives a non-lambda argument (e.g. a stored Action<T> variable),
+        // ExtractLambdaFromArgument returns null. The null guard (lambda is not null ? ... : null)
+        // must prevent a NullReferenceException and silently skip the diagnostic.
+        const string test = """
+            using Moq;
+
+            public class MyClass
+            {
+                public int Property { get; set; }
+            }
+
+            public class MyTest
+            {
+                public void Test()
+                {
+                    var mock = new Mock<MyClass>();
+                    System.Action<MyClass> setter = x => { x.Property = 1; };
+                    mock.VerifySet(setter);
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(test, ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
 }
