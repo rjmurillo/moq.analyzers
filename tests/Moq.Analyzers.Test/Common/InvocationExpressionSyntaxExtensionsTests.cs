@@ -95,6 +95,34 @@ public class InvocationExpressionSyntaxExtensionsTests
     }
 
     [Fact]
+    public void FindMockedMethodInvocationFromSetupMethod_EmptyArgumentList_ReturnsNull()
+    {
+        // An invocation with no arguments hits the Arguments.Count == 0 guard.
+        const string code = @"mock.Setup()";
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(code, new CSharpParseOptions(kind: SourceCodeKind.Script));
+        InvocationExpressionSyntax setupInvocation = tree.GetRoot()
+            .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+
+        InvocationExpressionSyntax? result = setupInvocation.FindMockedMethodInvocationFromSetupMethod();
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void FindMockedMemberExpressionFromSetupMethod_EmptyArgumentList_ReturnsNull()
+    {
+        // An invocation with no arguments hits the Arguments.Count == 0 guard.
+        const string code = @"mock.Setup()";
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(code, new CSharpParseOptions(kind: SourceCodeKind.Script));
+        InvocationExpressionSyntax setupInvocation = tree.GetRoot()
+            .DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+
+        ExpressionSyntax? result = setupInvocation.FindMockedMemberExpressionFromSetupMethod();
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task IsRaisesMethodCall_ValidRaisesCall_ReturnsTrue()
     {
         const string code = @"

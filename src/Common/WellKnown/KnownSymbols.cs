@@ -14,6 +14,11 @@ internal class KnownSymbols
 {
     public KnownSymbols(WellKnownTypeProvider typeProvider)
     {
+        if (typeProvider is null)
+        {
+            throw new ArgumentNullException(nameof(typeProvider));
+        }
+
         TypeProvider = typeProvider;
     }
 

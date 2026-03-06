@@ -14,6 +14,26 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
 
     public SetExplicitMockBehaviorCodeAction(string title, Document document, SyntaxNode nodeToFix, BehaviorType behaviorType, DiagnosticEditProperties.EditType editType, int position)
     {
+        if (title is null)
+        {
+            throw new ArgumentNullException(nameof(title));
+        }
+
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        if (nodeToFix is null)
+        {
+            throw new ArgumentNullException(nameof(nodeToFix));
+        }
+
+        if (position < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(position), $"Position {position} must be non-negative.");
+        }
+
         Title = title;
         _document = document;
         _nodeToFix = nodeToFix;
