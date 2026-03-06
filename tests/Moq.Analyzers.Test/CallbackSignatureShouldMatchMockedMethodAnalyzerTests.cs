@@ -119,12 +119,13 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
     /// <summary>
     /// Verifies that implicitly typed lambda parameters without a generic Callback overload
-    /// do not trigger a diagnostic. The compiler cannot resolve the parameter type, so the
-    /// analyzer treats it as unresolvable and skips validation.
+    /// do not trigger a diagnostic. Even though the delegate type is ambiguous (CS8917),
+    /// Roslyn's semantic model resolves the parameter type via best-effort binding.
+    /// The analyzer uses GetDeclaredSymbol to obtain the inferred type and validates correctly.
     /// </summary>
     /// <returns>A task representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task ImplicitlyTypedLambdaWithoutGenericOverload_SkipsValidation()
+    public async Task ImplicitlyTypedLambdaWithoutGenericOverload_NoFalsePositive()
     {
         const string source = """
             using Moq;
@@ -138,14 +139,15 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
             {
                 public void TestMethod()
                 {
-                    // Implicitly typed lambda without generic overload: type is unresolvable
+                    // Implicitly typed lambda without generic overload.
+                    // Roslyn resolves 'x' to 'string' via best-effort binding.
                     new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback((x) => { });
                 }
             }
             """;
 
-        // CompilerDiagnostics.None suppresses CS8917/CS1660 from the unresolvable delegate type.
-        // The analyzer should not report Moq1100 because the parameter type cannot be resolved.
+        // CompilerDiagnostics.None suppresses CS8917/CS1660 from the ambiguous delegate type.
+        // No Moq1100 is expected because GetDeclaredSymbol resolves 'x' to 'string' which matches.
         await AnalyzerVerifier.VerifyAnalyzerAsync(source, "Net80WithOldMoq", CompilerDiagnostics.None);
     }
 

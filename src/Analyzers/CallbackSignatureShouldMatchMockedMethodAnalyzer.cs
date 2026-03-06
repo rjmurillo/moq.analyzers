@@ -213,7 +213,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
         if (lambdaParameterTypeSymbol is null || lambdaParameterTypeSymbol.TypeKind == TypeKind.Error)
         {
-            return true; // Type could not be resolved (e.g., implicitly typed lambda); skip validation
+            return false; // Type could not be resolved; treat as mismatch to avoid suppressing Moq1100
         }
 
         ITypeSymbol mockedParameterType = mockedParameter.Type;
