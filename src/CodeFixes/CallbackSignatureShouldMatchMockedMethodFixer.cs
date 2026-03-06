@@ -37,7 +37,12 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
                                         .Parent?
                                         .AncestorsAndSelf()
                                         .OfType<ParameterListSyntax>()
-                                        .First();
+                                        .FirstOrDefault();
+
+        if (badArgumentListSyntax is null)
+        {
+            return;
+        }
 
         // Register a code action that will invoke the fix.
         context.RegisterCodeFix(
