@@ -295,7 +295,8 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         SyntaxNode root = await tree.GetRootAsync();
 
         Diagnostic diagnostic = CreateSyntheticDiagnostic(root, tree);
-        Document document = CreateTestDocument(model, source);
+        using AdhocWorkspace workspace = new();
+        Document document = CreateTestDocument(workspace, model, source);
         List<CodeAction> actions = await InvokeFixerAsync(document, diagnostic);
 
         Assert.Single(actions);
@@ -321,9 +322,8 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         return Diagnostic.Create(descriptor, Location.Create(tree, parameterList.Span));
     }
 
-    private static Document CreateTestDocument(SemanticModel model, string source)
+    private static Document CreateTestDocument(AdhocWorkspace workspace, SemanticModel model, string source)
     {
-        using AdhocWorkspace workspace = new();
         Project project = workspace.AddProject("TestProject", LanguageNames.CSharp);
         project = project.AddMetadataReferences(model.Compilation.References);
         return project.AddDocument("Test.cs", SourceText.From(source));
