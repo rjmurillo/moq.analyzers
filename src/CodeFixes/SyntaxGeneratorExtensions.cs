@@ -71,6 +71,11 @@ internal static class SyntaxGeneratorExtensions
 
     private static void ThrowIfIndexOutOfRangeForReplace(int index, int count)
     {
+        if (count == 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), $"Cannot replace argument at index {index} because there are no arguments.");
+        }
+
         if (index < 0 || index >= count)
         {
             throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} must be between 0 and {count - 1}.");
