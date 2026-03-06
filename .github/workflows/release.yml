@@ -39,7 +39,13 @@ jobs:
             exit 1
           }
           foreach ($pkg in $packages) {
-            $nupkgVersion = [System.IO.Path]::GetFileNameWithoutExtension($pkg.Name) -replace '^.*?(\d+\..*)$', '$1'
+            $stem = [System.IO.Path]::GetFileNameWithoutExtension($pkg.Name)
+            if ($stem -match '(\d+\.\d+\.\d+.*)$') {
+              $nupkgVersion = $Matches[1]
+            } else {
+              Write-Error "Could not parse version from package filename '$($pkg.Name)'"
+              exit 1
+            }
             if ($nupkgVersion -ne $tag) {
               Write-Error "Package version '$nupkgVersion' does not match release tag '$tag'"
               exit 1
@@ -58,5 +64,15 @@ jobs:
           }
           foreach ($file in $files) {
             Write-Host "NuGet publish for file: '$file'"
-            dotnet nuget push $file --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+            $maxAttempts = 3
+            for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+              dotnet nuget push $file --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+              if ($LASTEXITCODE -eq 0) { break }
+              if ($attempt -eq $maxAttempts) {
+                Write-Error "NuGet push failed for '$file' after $maxAttempts attempts"
+                exit 1
+              }
+              Write-Warning "Attempt $attempt failed (exit code $LASTEXITCODE). Retrying in $($attempt * 5)s..."
+              Start-Sleep -Seconds ($attempt * 5)
+            }
           }
