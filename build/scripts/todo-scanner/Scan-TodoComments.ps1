@@ -56,11 +56,25 @@ $markers = @('TODO', 'FIXME', 'HACK', 'UNDONE')
 # Pattern that matches any marker (linked or unlinked)
 $anyMarkerPattern = '(?i)\b(?:' + ($markers -join '|') + ')\b'
 
-$files = Get-ChildItem -Path $Path -Recurse -Include $Extensions -File
+# Use git ls-files to avoid descending into excluded directories (.git, node_modules, etc.)
+$extensionFilters = $Extensions | ForEach-Object { $_ -replace '^\*', '' }
+$gitFiles = git -C $Path ls-files -- ($Extensions | ForEach-Object { "*$($_ -replace '^\*', '')" })
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning "git ls-files failed; falling back to Get-ChildItem."
+    $files = Get-ChildItem -Path $Path -Recurse -Include $Extensions -File
+}
+else {
+    $files = $gitFiles | ForEach-Object {
+        $fullPath = Join-Path $Path $_
+        if (Test-Path -LiteralPath $fullPath) {
+            Get-Item -LiteralPath $fullPath
+        }
+    }
+}
 
 $totalLinked = 0
 $totalUnlinked = 0
-$unlinkedDetails = @()
+$unlinkedDetails = [System.Collections.Generic.List[object]]::new()
 
 foreach ($file in $files) {
     $relativePath = $file.FullName.Substring($Path.Length).TrimStart('\', '/')
@@ -100,12 +114,12 @@ foreach ($file in $files) {
             }
             else {
                 $totalUnlinked++
-                $unlinkedDetails += [PSCustomObject]@{
+                [void]$unlinkedDetails.Add([PSCustomObject]@{
                     File    = $relativePath
                     Line    = $lineNumber
                     Content = $line.Trim()
                     Marker  = $match.Value
-                }
+                })
             }
         }
     }
