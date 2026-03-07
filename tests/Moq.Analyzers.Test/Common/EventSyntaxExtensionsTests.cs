@@ -5,7 +5,7 @@ namespace Moq.Analyzers.Test.Common;
 public class EventSyntaxExtensionsTests
 {
     [Fact]
-    public void GetEventParameterTypes_ActionDelegate_ReturnsTypeArguments()
+    public void GetEventParameterTypes_MultiArgActionDelegate_FallsBackToCustomDelegateInvoke()
     {
         const string code = @"
 using System;
