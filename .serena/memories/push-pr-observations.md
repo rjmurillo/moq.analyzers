@@ -13,6 +13,6 @@
 
 ## Edge Cases (MED confidence)
 
-- `gh act` requires sudo for Docker socket access on this machine. The `gh act` extension is user-installed, so `sudo gh act` fails. Use the binary directly: `sudo ~/.local/share/gh/extensions/gh-act/gh-act`. (Session 1, 2026-03-06)
+- `gh act` may require elevated permissions for Docker socket access. If `sudo gh act` fails because the extension is not in the sudo PATH, locate the binary with `which gh-act` or check the gh extensions directory, then invoke it directly with sudo. (Session 1, 2026-03-06)
 - Unsupported runners (e.g., `ubuntu-24.04-arm`) need platform mappings: `-P ubuntu-24.04-arm=catthehacker/ubuntu:act-latest`. Map all matrix runners similarly. (Session 1, 2026-03-06)
 - Actionlint runs via Docker: `sudo docker run --rm -v "$(pwd)":/repo -w /repo rhysd/actionlint:latest -color`. (Session 1, 2026-03-06)
