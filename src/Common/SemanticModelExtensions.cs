@@ -57,7 +57,9 @@ internal static class SemanticModelExtensions
 
         string methodName = callbackOrReturnsMethod.Name.ToString();
 
-        // First fast check before walking semantic model
+        // Fast-path: reject non-matching names before the expensive GetSymbolInfo call.
+        // This string check is an intentional optimization, not detection logic. The
+        // semantic check below is the authoritative gate for correctness.
         if (!string.Equals(methodName, "Callback", StringComparison.Ordinal)
             && !string.Equals(methodName, "Returns", StringComparison.Ordinal))
         {

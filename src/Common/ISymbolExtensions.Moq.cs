@@ -234,7 +234,9 @@ internal static partial class ISymbolExtensions
     {
         if (symbol is IPropertySymbol propertySymbol)
         {
-            // Check if the property is named "Result"
+            // "Result" is a stable BCL property name on Task<T> and ValueTask<T>.
+            // The string check is safe here because the containing type is verified
+            // against the known generic type symbol on the next line.
             if (!string.Equals(propertySymbol.Name, "Result", StringComparison.Ordinal))
             {
                 return false;
