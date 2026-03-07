@@ -20,6 +20,8 @@ internal static class DiagnosticIds
     internal const string ReturnsAsyncShouldBeUsedForAsyncMethods = "Moq1206";
     internal const string SetupSequenceOnlyUsedForOverridableMembers = "Moq1207";
     internal const string ReturnsDelegateMismatchOnAsyncMethod = "Moq1208";
+
+    // Moq1209 is intentionally reserved and not currently assigned.
     internal const string VerifyOnlyUsedForOverridableMembers = "Moq1210";
     internal const string AsShouldOnlyBeUsedForInterfacesRuleId = "Moq1300";
     internal const string MockGetShouldNotTakeLiterals = "Moq1301";

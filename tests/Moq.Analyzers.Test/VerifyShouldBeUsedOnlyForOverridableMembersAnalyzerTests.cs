@@ -1,5 +1,5 @@
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer>;
-using Verify = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer, Moq.Analyzers.VerifyOverridableMembersFixer>;
+using Verify = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer, Moq.CodeFixes.VerifyOverridableMembersFixer>;
 
 namespace Moq.Analyzers.Test;
 

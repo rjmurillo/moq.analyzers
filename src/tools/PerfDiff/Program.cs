@@ -53,8 +53,6 @@ internal sealed class Program
             cancellationTokenSource.Cancel();
         };
 
-        string currentDirectory = string.Empty;
-
         try
         {
             int exitCode = await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationTokenSource.Token).ConfigureAwait(false);
@@ -73,14 +71,6 @@ internal sealed class Program
         {
             return UnhandledExceptionExitCode;
         }
-        finally
-        {
-            if (!string.IsNullOrEmpty(currentDirectory))
-            {
-                Environment.CurrentDirectory = currentDirectory;
-            }
-        }
-
         static ILogger<Program> SetupLogging(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
