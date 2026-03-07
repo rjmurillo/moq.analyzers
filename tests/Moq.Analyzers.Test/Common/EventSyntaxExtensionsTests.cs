@@ -22,38 +22,25 @@ class C
         Assert.Equal("string", result[1].ToDisplayString());
     }
 
-    [Fact]
-    public void GetEventParameterTypes_ActionWithSingleTypeArg_ReturnsSingleType()
+    [Theory]
+    [InlineData("Action<double>", "double")]
+    [InlineData("EventHandler<EventArgs>", "System.EventArgs")]
+    public void GetEventParameterTypes_SingleTypeArgDelegate_ReturnsSingleType(
+        string delegateType,
+        string expectedTypeName)
     {
-        const string code = @"
+        string code = $@"
 using System;
 class C
-{
-    event Action<double> MyEvent;
-}";
+{{
+    event {delegateType} MyEvent;
+}}";
         (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(code, "MyEvent");
 
         ITypeSymbol[] result = EventSyntaxExtensions.GetEventParameterTypes(eventType, knownSymbols);
 
         Assert.Single(result);
-        Assert.Equal("double", result[0].ToDisplayString());
-    }
-
-    [Fact]
-    public void GetEventParameterTypes_EventHandlerGeneric_ReturnsSingleTypeArgument()
-    {
-        const string code = @"
-using System;
-class C
-{
-    event EventHandler<EventArgs> MyEvent;
-}";
-        (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(code, "MyEvent");
-
-        ITypeSymbol[] result = EventSyntaxExtensions.GetEventParameterTypes(eventType, knownSymbols);
-
-        Assert.Single(result);
-        Assert.Equal("System.EventArgs", result[0].ToDisplayString());
+        Assert.Equal(expectedTypeName, result[0].ToDisplayString());
     }
 
     [Fact]
