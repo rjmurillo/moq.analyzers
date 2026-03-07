@@ -4,18 +4,18 @@ namespace Moq.Analyzers.Common;
 
 internal static class DiagnosticExtensions
 {
-    public static Diagnostic CreateDiagnostic(
+    internal static Diagnostic CreateDiagnostic(
         this SyntaxNode node,
         DiagnosticDescriptor rule,
         params object?[]? messageArgs) => node.CreateDiagnostic(rule, properties: null, messageArgs);
 
-    public static Diagnostic CreateDiagnostic(
+    internal static Diagnostic CreateDiagnostic(
         this SyntaxNode node,
         DiagnosticDescriptor rule,
         ImmutableDictionary<string, string?>? properties,
         params object?[]? messageArgs) => node.CreateDiagnostic(rule, additionalLocations: null, properties, messageArgs);
 
-    public static Diagnostic CreateDiagnostic(
+    internal static Diagnostic CreateDiagnostic(
         this SyntaxNode node,
         DiagnosticDescriptor rule,
         IEnumerable<Location>? additionalLocations,
@@ -28,19 +28,19 @@ internal static class DiagnosticExtensions
                 properties: properties,
                 messageArgs: messageArgs);
 
-    public static Diagnostic CreateDiagnostic(
+    internal static Diagnostic CreateDiagnostic(
         this Location location,
         DiagnosticDescriptor rule,
         params object?[]? messageArgs) => location.CreateDiagnostic(rule, properties: null, messageArgs);
 
-    public static Diagnostic CreateDiagnostic(
+    internal static Diagnostic CreateDiagnostic(
         this Location location,
         DiagnosticDescriptor rule,
         ImmutableDictionary<string, string?>? properties,
         params object?[]? messageArgs) => location.CreateDiagnostic(rule, additionalLocations: null, properties, messageArgs);
 
     [SuppressMessage("ApiDesign", "RS0030:Do not use banned APIs", Justification = "This is the API that wraps the banned API, so it must be allowed to call banned APIs.")]
-    public static Diagnostic CreateDiagnostic(
+    internal static Diagnostic CreateDiagnostic(
         this Location location,
         DiagnosticDescriptor rule,
         IEnumerable<Location>? additionalLocations,
@@ -55,18 +55,18 @@ internal static class DiagnosticExtensions
         return Diagnostic.Create(rule, location, additionalLocations, properties, messageArgs);
     }
 
-    public static Diagnostic CreateDiagnostic(
+    internal static Diagnostic CreateDiagnostic(
         this IOperation operation,
         DiagnosticDescriptor rule,
         params object?[]? messageArgs) => operation.CreateDiagnostic(rule, properties: null, messageArgs);
 
-    public static Diagnostic CreateDiagnostic(
+    internal static Diagnostic CreateDiagnostic(
     this IOperation operation,
     DiagnosticDescriptor rule,
     ImmutableDictionary<string, string?>? properties,
     params object?[]? messageArgs) => operation.CreateDiagnostic(rule, additionalLocations: null, properties, messageArgs);
 
-    public static Diagnostic CreateDiagnostic(
+    internal static Diagnostic CreateDiagnostic(
         this IOperation operation,
         DiagnosticDescriptor rule,
         IEnumerable<Location>? additionalLocations,
