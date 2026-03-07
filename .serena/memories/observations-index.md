@@ -22,7 +22,7 @@ In binary expressions within lambda analysis, only recurse into the operand refe
 
 ### Co-authored implementation and tests share blind spots
 
-When AI generates both implementation and tests in a single PR, the test suite inherits the same assumptions as the implementation. Require independent adversarial boundary cases from a human reviewer. At minimum, require 3 adversarial boundary cases before merge.
+When AI generates both implementation and tests in a single PR, the test suite inherits the same assumptions as the implementation. Require independent adversarial boundary cases from a human reviewer covering each RHS category: literal, local variable, static member, const field, and method call.
 
 - Source: moq1302 retrospective, Learning 2 (Atomicity 85%)
 - Evidence: PR #511 Copilot-generated impl+tests; RHS static member cases absent until issue #1010

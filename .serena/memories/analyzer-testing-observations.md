@@ -9,7 +9,7 @@
   - Source: Issue #1010 - PR #511 tests covered only RHS literals. User directive: "be aggressive about testing for other boundary cases."
   - Citation: `tests/Moq.Analyzers.Test/LinqToMocksExpressionShouldBeValidAnalyzerTests.cs`
 
-- When AI generates both implementation and tests in one PR, require human reviewer to add at least 3 adversarial boundary cases before merge. AI and its tests share the same blind spots. (Session 1, 2026-03-06)
+- When AI generates both implementation and tests in one PR, require human reviewer to add adversarial boundary cases covering each RHS category (literal, local variable, static member, const field, method call) before merge. AI and its tests share the same blind spots. (Session 1, 2026-03-06)
   - Source: Retrospective - Copilot-authored PR #511 had implementation and tests with shared blind spot. User emphasis: "why YET ANOTHER defect escaped"
 
 - All expression-walking analyzers must follow the upstream three-phase pattern: (1) Register for an OperationKind, (2) Guard by checking operation.Instance to confirm the receiver is the target entity (null = static, skip), (3) Validate the member. Moq1302 skipped phase 2. This is the structural root cause. (Session 1, 2026-03-06)
