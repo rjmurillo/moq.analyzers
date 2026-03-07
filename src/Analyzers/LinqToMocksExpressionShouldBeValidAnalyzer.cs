@@ -190,12 +190,10 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         // IConditionalOperation, etc.) must pass through to AnalyzeLambdaBody for
         // decomposition; blocking them here causes false negatives for chained
         // comparisons like `c.Prop == "a" && c.Other == "b"`.
-        if (operation is IMemberReferenceOperation or IInvocationOperation)
+        if (operation is (IMemberReferenceOperation or IInvocationOperation)
+            && !operation.IsRootedInLambdaParameter(lambdaOperation))
         {
-            if (!operation.IsRootedInLambdaParameter(lambdaOperation))
-            {
-                return;
-            }
+            return;
         }
 
         // Recursively analyze the operation to find member references
