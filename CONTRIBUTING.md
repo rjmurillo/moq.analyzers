@@ -57,6 +57,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 
    | Hook | Check | Mode | Tool |
    | ------ | ------- | ------ | ------ |
+   | pre-commit | Large file detection | Fail on error | Built-in (500 KB / 1000 lines) |
    | pre-commit | C# formatting | Auto-fix + re-stage | `dotnet format` |
    | pre-commit | Markdown lint | Auto-fix + re-stage | `markdownlint-cli2` |
    | pre-commit | YAML lint | Lint only | `yamllint` |
