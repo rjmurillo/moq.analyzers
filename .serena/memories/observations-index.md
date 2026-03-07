@@ -41,4 +41,3 @@ For any binary/comparison operation in an analyzer, test all RHS types: literal,
 The moq1302 retrospective used a structured format: Data Gathering (4-step debrief), Insights (Five Whys, fishbone), Diagnosis (atomicity scoring), Decisions (SMART validation), Extracted Learnings, Recursive Learning Extraction. This format produced 4 atomic skills with atomicity scores >= 75%.
 
 - Source: moq1302 retrospective, Phases 0-6
-- Full retrospective: `moq1302-retrospective.md`
