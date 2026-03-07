@@ -10,7 +10,18 @@ runs:
 
     - name: Restore local .NET tools
       shell: pwsh
-      run: dotnet tool restore
+      run: |
+        $maxAttempts = 3
+        for ($i = 1; $i -le $maxAttempts; $i++) {
+          Write-Host "Attempt $i of $maxAttempts: dotnet tool restore"
+          dotnet tool restore
+          if ($LASTEXITCODE -eq 0) { break }
+          if ($i -eq $maxAttempts) {
+            Write-Error "dotnet tool restore failed after $maxAttempts attempts"
+            exit 1
+          }
+          Start-Sleep -Seconds (5 * $i)
+        }
 
     - name: NuGet Restore
       shell: pwsh
