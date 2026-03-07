@@ -54,14 +54,12 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             return;
         }
 
-        KnownSymbols wellKnownSymbols = new(context.Compilation);
-
         context.RegisterSyntaxNodeAction(
-            syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols, wellKnownSymbols),
+            syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
             SyntaxKind.InvocationExpression);
     }
 
-    private static void Analyze(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, KnownSymbols wellKnownSymbols)
+    private static void Analyze(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
@@ -71,7 +69,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             return;
         }
 
-        if (!TryGetRaiseMethodArguments(invocation, context.SemanticModel, wellKnownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
+        if (!TryGetRaiseMethodArguments(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
         {
             return;
         }
