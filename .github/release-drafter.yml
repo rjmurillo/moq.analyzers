@@ -33,7 +33,7 @@ template: |
   ## Resources
 
   - **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$NEXT_PATCH_VERSION
-  - **Documentation**: https://github.com/$OWNER/$REPOSITORY/tree/main/docs/rules
+  - **Documentation**: https://github.com/$OWNER/$REPOSITORY/tree/v$NEXT_PATCH_VERSION/docs/rules
   - **Issue Tracker**: https://github.com/$OWNER/$REPOSITORY/issues
 
   ## Feedback
