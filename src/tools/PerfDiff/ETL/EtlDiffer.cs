@@ -13,13 +13,27 @@ internal static class EtlDiffer
     public static bool TryCompareETL(string sourceEtlPath, string baselineEtlPath, out bool regression)
     {
         regression = false;
-        CallTree sourceCallTree = GetCallTree(sourceEtlPath);
-        CallTree baselineCallTree = GetCallTree(baselineEtlPath);
-        ImmutableArray<OverWeightResult> report = GenerateOverweightReport(sourceCallTree, baselineCallTree);
 
-        // print results
-        Console.WriteLine(string.Join(Environment.NewLine, report.Take(10)));
-        return true;
+        try
+        {
+            CallTree sourceCallTree = GetCallTree(sourceEtlPath);
+            CallTree baselineCallTree = GetCallTree(baselineEtlPath);
+            ImmutableArray<OverWeightResult> report = GenerateOverweightReport(sourceCallTree, baselineCallTree);
+
+            // print results
+            Console.WriteLine(string.Join(Environment.NewLine, report.Take(10)));
+            return true;
+        }
+        catch (InvalidOperationException ex)
+        {
+            Console.Error.WriteLine($"ETL comparison failed: {ex.Message}");
+            return false;
+        }
+        catch (IOException ex)
+        {
+            Console.Error.WriteLine($"ETL comparison failed: {ex.Message}");
+            return false;
+        }
     }
 
     private static CallTree GetCallTree(string eltPath)
