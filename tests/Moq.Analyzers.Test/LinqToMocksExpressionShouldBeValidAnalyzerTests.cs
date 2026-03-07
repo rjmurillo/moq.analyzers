@@ -859,6 +859,313 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
 
     [Theory]
     [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagExactReporterScenarioNestedMockOfInMethodArg(string referenceAssemblyGroup)
+    {
+        // Exact pattern from https://github.com/rjmurillo/moq.analyzers/issues/1010:
+        // Mock.Of inside a method argument, with static const on right side.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IResponse
+            {
+                int Status { get; }
+                bool IsError { get; }
+            }
+
+            public static class StatusCodes
+            {
+                public const int Status200OK = 200;
+            }
+
+            public class ServiceUnderTest
+            {
+                public IResponse CreateResponse(IResponse inner) => inner;
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var sut = new ServiceUnderTest();
+                    var result = sut.CreateResponse(Mock.Of<IResponse>(r => r.Status == StatusCodes.Status200OK));
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagStaticLambdaWithExternalConstant(string referenceAssemblyGroup)
+    {
+        // Static lambda prevents closures but should not change analyzer behavior.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IResponse
+            {
+                int Status { get; }
+            }
+
+            public static class StatusCodes
+            {
+                public const int Status200OK = 200;
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var response = Mock.Of<IResponse>(static r => r.Status == StatusCodes.Status200OK);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagCapturedLocalVariableAsComparisonValue(string referenceAssemblyGroup)
+    {
+        // Captured local is not rooted in the lambda parameter.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IService
+            {
+                int Priority { get; }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    int expectedPriority = 5;
+                    var svc = Mock.Of<IService>(s => s.Priority == expectedPriority);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagMethodParameterAsComparisonValue(string referenceAssemblyGroup)
+    {
+        // Method parameter captured in lambda is not rooted in the lambda parameter.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IService
+            {
+                string Name { get; }
+            }
+
+            internal class UnitTest
+            {
+                private IService CreateMock(string expectedName)
+                {
+                    return Mock.Of<IService>(s => s.Name == expectedName);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagInstanceFieldAsComparisonValue(string referenceAssemblyGroup)
+    {
+        // Instance field on 'this' (captured) is not rooted in the lambda parameter.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IService
+            {
+                string Name { get; }
+            }
+
+            internal class UnitTest
+            {
+                private readonly string _defaultName = "test";
+
+                private void Test()
+                {
+                    var svc = Mock.Of<IService>(s => s.Name == _defaultName);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagInequalityComparisonWithExternalConstant(string referenceAssemblyGroup)
+    {
+        // != is also IBinaryOperation; external constant should not be flagged.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IResponse
+            {
+                int Status { get; }
+            }
+
+            public static class StatusCodes
+            {
+                public const int Status404NotFound = 404;
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var response = Mock.Of<IResponse>(r => r.Status != StatusCodes.Status404NotFound);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagChainedExternalInstanceProperty(string referenceAssemblyGroup)
+    {
+        // Multi-hop property access on a captured local (not lambda parameter).
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IService
+            {
+                string Name { get; }
+            }
+
+            public class AppSettings
+            {
+                public ServiceConfig Service { get; set; }
+            }
+
+            public class ServiceConfig
+            {
+                public string DefaultName { get; set; }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var settings = new AppSettings { Service = new ServiceConfig { DefaultName = "test" } };
+                    var svc = Mock.Of<IService>(s => s.Name == settings.Service.DefaultName);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldFlagNonVirtualMethodWithExternalArguments(string referenceAssemblyGroup)
+    {
+        // The method itself is non-virtual and rooted in lambda parameter.
+        // External arguments do not change that the method access is invalid.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public class ConcreteClass
+            {
+                public string Format(string input) => input;
+            }
+
+            public static class Constants
+            {
+                public const string Template = "hello";
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = Mock.Of<ConcreteClass>(c => {|Moq1302:c.Format(Constants.Template)|} == "result");
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagStringConcatenationOnRightSide(string referenceAssemblyGroup)
+    {
+        // String concatenation produces an IBinaryOperation with Add operator.
+        // Neither operand is rooted in the lambda parameter.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IService
+            {
+                string Name { get; }
+            }
+
+            public static class Prefix
+            {
+                public const string Value = "svc";
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var svc = Mock.Of<IService>(s => s.Name == Prefix.Value + "-default");
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagOrComparisonWithAllExternalConstants(string referenceAssemblyGroup)
+    {
+        // || with interface members and external constants: no false positives.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IResponse
+            {
+                int Status { get; }
+            }
+
+            public static class StatusCodes
+            {
+                public const int Status200OK = 200;
+                public const int Status204NoContent = 204;
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var response = Mock.Of<IResponse>(r =>
+                        r.Status == StatusCodes.Status200OK ||
+                        r.Status == StatusCodes.Status204NoContent);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
     public async Task ShouldNotAnalyzeNonMockOfInvocations(string referenceAssemblyGroup)
     {
         await Verifier.VerifyAnalyzerAsync(
