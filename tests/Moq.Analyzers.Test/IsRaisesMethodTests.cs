@@ -2,7 +2,7 @@ namespace Moq.Analyzers.Test;
 
 /// <summary>
 /// Tests for the symbol-based Raises method detection functionality.
-/// These tests verify that IsRaisesMethodCall and IsRaisesInvocation correctly identify
+/// These tests verify that IsRaisesInvocation correctly identifies
 /// valid and invalid Raises patterns using symbol-based detection.
 /// </summary>
 public class IsRaisesMethodTests

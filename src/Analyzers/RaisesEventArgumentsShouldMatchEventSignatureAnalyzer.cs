@@ -67,7 +67,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         // Check if this is a Raises method call using symbol-based detection
-        if (!context.SemanticModel.IsRaisesInvocation(invocation, knownSymbols) && !invocation.IsRaisesMethodCall(context.SemanticModel, knownSymbols))
+        if (!context.SemanticModel.IsRaisesInvocation(invocation, knownSymbols))
         {
             return;
         }
