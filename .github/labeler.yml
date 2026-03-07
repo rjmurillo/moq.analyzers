@@ -28,7 +28,7 @@ releasable:
 # Add 'github_actions' label to any change to one of the GitHub workflows or configuration files
 github_actions:
   - changed-files:
-      - any-glob-to-any-file: ['.github/workflows/*.yml', '.github/dependabot.yml', '.github/labeler.yml']
+      - any-glob-to-any-file: ['.github/workflows/*.yml', '.github/labeler.yml', 'renovate.json']
 
 # Add 'analyzers' label to any change to an analyzer, code fix, or shipping documentation
 analyzers:
