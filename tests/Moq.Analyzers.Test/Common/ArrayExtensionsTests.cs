@@ -35,24 +35,37 @@ public class ArrayExtensionsTests
     }
 
     [Fact]
+    public void RemoveAt_ThrowsArgumentNullException_WhenSourceIsNull()
+    {
+        int[]? source = null;
+        Assert.Throws<ArgumentNullException>(() => source!.RemoveAt(0));
+    }
+
+    [Fact]
     public void RemoveAt_ThrowsArgumentOutOfRangeException_WhenIndexIsNegative()
     {
         int[] source = [1, 2, 3];
-        Assert.Throws<ArgumentOutOfRangeException>(() => source.RemoveAt(-1));
+        ArgumentOutOfRangeException ex =
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.RemoveAt(-1));
+        Assert.Equal("index", ex.ParamName);
     }
 
     [Fact]
     public void RemoveAt_ThrowsArgumentOutOfRangeException_WhenIndexEqualsLength()
     {
         int[] source = [1, 2, 3];
-        Assert.Throws<ArgumentOutOfRangeException>(() => source.RemoveAt(3));
+        ArgumentOutOfRangeException ex =
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.RemoveAt(3));
+        Assert.Equal("index", ex.ParamName);
     }
 
     [Fact]
     public void RemoveAt_ThrowsArgumentOutOfRangeException_WhenIndexExceedsLength()
     {
         int[] source = [1, 2, 3];
-        Assert.Throws<ArgumentOutOfRangeException>(() => source.RemoveAt(10));
+        ArgumentOutOfRangeException ex =
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.RemoveAt(10));
+        Assert.Equal("index", ex.ParamName);
     }
 
     [Fact]
