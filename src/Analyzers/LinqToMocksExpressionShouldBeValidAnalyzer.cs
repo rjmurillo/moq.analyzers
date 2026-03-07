@@ -55,7 +55,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         }
 
         // Analyze lambda expressions in the arguments
-        AnalyzeMockOfArguments(context, invocationOperation);
+        AnalyzeMockOfArguments(context, invocationOperation, knownSymbols);
     }
 
     /// <summary>
@@ -75,7 +75,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
                targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default);
     }
 
-    private static void AnalyzeMockOfArguments(OperationAnalysisContext context, IInvocationOperation invocationOperation)
+    private static void AnalyzeMockOfArguments(OperationAnalysisContext context, IInvocationOperation invocationOperation, MoqKnownSymbols knownSymbols)
     {
         // Look for lambda expressions in the arguments (LINQ to Mocks expressions)
         foreach (IArgumentOperation argument in invocationOperation.Arguments)
@@ -84,19 +84,19 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
 
             if (argumentValue is IAnonymousFunctionOperation lambdaOperation)
             {
-                AnalyzeLambdaExpression(context, lambdaOperation);
+                AnalyzeLambdaExpression(context, lambdaOperation, knownSymbols);
             }
         }
     }
 
-    private static void AnalyzeLambdaExpression(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation)
+    private static void AnalyzeLambdaExpression(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, MoqKnownSymbols knownSymbols)
     {
         // For LINQ to Mocks, we need to handle more complex expressions like: x => x.Property == "value"
         // The lambda body is often a binary expression where the left operand is the member we want to check
-        AnalyzeLambdaBody(context, lambdaOperation, lambdaOperation.Body);
+        AnalyzeLambdaBody(context, lambdaOperation, lambdaOperation.Body, knownSymbols);
     }
 
-    private static void AnalyzeLambdaBody(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation? body)
+    private static void AnalyzeLambdaBody(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation? body, MoqKnownSymbols knownSymbols)
     {
         if (body == null)
         {
@@ -107,18 +107,20 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         {
             case IBlockOperation blockOp when blockOp.Operations.Length == 1:
                 // Handle block lambdas with return statements
-                AnalyzeLambdaBody(context, lambdaOperation, blockOp.Operations[0]);
+                AnalyzeLambdaBody(context, lambdaOperation, blockOp.Operations[0], knownSymbols);
                 break;
 
             case IReturnOperation returnOp:
                 // Handle return statements
-                AnalyzeLambdaBody(context, lambdaOperation, returnOp.ReturnedValue);
+                AnalyzeLambdaBody(context, lambdaOperation, returnOp.ReturnedValue, knownSymbols);
                 break;
 
             case IBinaryOperation binaryOp:
-                // Handle binary expressions like equality comparisons
-                AnalyzeMemberOperations(context, lambdaOperation, binaryOp.LeftOperand);
-                AnalyzeMemberOperations(context, lambdaOperation, binaryOp.RightOperand);
+                // Analyze each operand independently. The IsRootedInLambdaParameter guard
+                // in AnalyzeMemberOperations filters out operands not rooted in the lambda
+                // parameter (e.g., static constants, enum values).
+                AnalyzeMemberOperations(context, lambdaOperation, binaryOp.LeftOperand, knownSymbols);
+                AnalyzeMemberOperations(context, lambdaOperation, binaryOp.RightOperand, knownSymbols);
                 break;
 
             case IPropertyReferenceOperation propertyRef:
@@ -137,35 +139,60 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
                 break;
 
             default:
-                // For other complex expressions, try to recursively find member references
+                // Route children through AnalyzeMemberOperations so they pass through the
+                // IsRootedInLambdaParameter guard. Calling AnalyzeLambdaBody directly would
+                // bypass the guard for operation kinds not enumerated above (e.g.,
+                // IConditionalOperation, ICoalesceOperation).
                 foreach (IOperation childOperation in body.ChildOperations)
                 {
-                    AnalyzeLambdaBody(context, lambdaOperation, childOperation);
+                    AnalyzeMemberOperations(context, lambdaOperation, childOperation, knownSymbols);
                 }
 
                 break;
         }
     }
 
-    private static void AnalyzeMemberOperations(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation? operation)
+    /// <summary>
+    /// Guards member analysis by filtering out operations not rooted in the lambda parameter,
+    /// then delegates to <see cref="AnalyzeLambdaBody"/> for recursive analysis.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This method is the single entry point for all recursive member analysis. Every code path
+    /// in <see cref="AnalyzeLambdaBody"/> that descends into child operations must route through
+    /// this method. The <see cref="IOperationExtensions.IsRootedInLambdaParameter"/> guard is
+    /// applied only to leaf member operations (<see cref="IMemberReferenceOperation"/> and
+    /// <see cref="IInvocationOperation"/>). Composite operations (e.g., <c>IBinaryOperation</c>
+    /// for chained <c>&amp;&amp;</c>/<c>||</c>/<c>==</c>) pass through to
+    /// <see cref="AnalyzeLambdaBody"/> for decomposition. Blocking composite operations would
+    /// cause false negatives for chained comparisons (see GitHub issue #1010).
+    /// </para>
+    /// <para>
+    /// Nested <c>Mock.Of</c> calls are excluded to prevent false positives from inner mock
+    /// expressions that have their own lambda parameters.
+    /// </para>
+    /// </remarks>
+    private static void AnalyzeMemberOperations(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation operation, MoqKnownSymbols knownSymbols)
     {
-        if (operation == null)
+        // Don't recursively analyze nested Mock.Of calls to avoid false positives
+        if (operation is IInvocationOperation invocation && IsValidMockOfInvocation(invocation, knownSymbols))
         {
             return;
         }
 
-        // Don't recursively analyze nested Mock.Of calls to avoid false positives
-        if (operation is IInvocationOperation invocation)
+        // Only apply the lambda-parameter guard to leaf member operations (property,
+        // field, event, method). Composite operations (IBinaryOperation for &&/||/==,
+        // IConditionalOperation, etc.) must pass through to AnalyzeLambdaBody for
+        // decomposition; blocking them here causes false negatives for chained
+        // comparisons like `c.Prop == "a" && c.Other == "b"`.
+        if (operation is (IMemberReferenceOperation or IInvocationOperation)
+            && !operation.IsRootedInLambdaParameter(lambdaOperation))
         {
-            MoqKnownSymbols knownSymbols = new(context.Operation.SemanticModel!.Compilation);
-            if (IsValidMockOfInvocation(invocation, knownSymbols))
-            {
-                return; // Skip analyzing nested Mock.Of calls
-            }
+            return;
         }
 
         // Recursively analyze the operation to find member references
-        AnalyzeLambdaBody(context, lambdaOperation, operation);
+        AnalyzeLambdaBody(context, lambdaOperation, operation, knownSymbols);
     }
 
     private static void AnalyzeMemberSymbol(OperationAnalysisContext context, ISymbol memberSymbol, IAnonymousFunctionOperation lambdaOperation)
