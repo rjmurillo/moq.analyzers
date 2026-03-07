@@ -41,12 +41,26 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
+
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private static void Analyze(SyntaxNodeAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
-        MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
+        if (!knownSymbols.IsMockReferenced())
+        {
+            return;
+        }
+
+        context.RegisterSyntaxNodeAction(
+            syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
+            SyntaxKind.InvocationExpression);
+    }
+
+    private static void Analyze(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
+    {
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         // Check if this is a Raise method call on a Mock<T>
@@ -55,9 +69,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             return;
         }
 
-        KnownSymbols wellKnownSymbols = new(context.SemanticModel.Compilation);
-
-        if (!TryGetRaiseMethodArguments(invocation, context.SemanticModel, wellKnownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
+        if (!TryGetRaiseMethodArguments(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
         {
             return;
         }
