@@ -33,7 +33,8 @@ param(
         '(^|[\\/])\.serena[\\/]',
         '(^|[\\/])node_modules[\\/]',
         '\.verified\.(txt|xml|json)$',
-        'Scan-TodoComments\.ps1$'
+        'Scan-TodoComments\.ps1$',
+        'Invoke-PrePush\.ps1$'
     ),
 
     [switch]$FailOnUnlinked
@@ -171,7 +172,7 @@ if ($env:GITHUB_STEP_SUMMARY) {
 |------|------|---------|
 "@
         foreach ($item in $unlinkedDetails) {
-            $escapedContent = $item.Content -replace '\|', '\|'
+            $escapedContent = $item.Content -replace '\\', '\\' -replace '\|', '\|' -replace '`', '\`'
             $summary += "| ``$($item.File)`` | $($item.Line) | ``$escapedContent`` |`n"
         }
         $summary += "`n</details>`n"
