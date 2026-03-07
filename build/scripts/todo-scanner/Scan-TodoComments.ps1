@@ -57,7 +57,6 @@ $markers = @('TODO', 'FIXME', 'HACK', 'UNDONE')
 $anyMarkerPattern = '(?i)\b(?:' + ($markers -join '|') + ')\b'
 
 # Use git ls-files to avoid descending into excluded directories (.git, node_modules, etc.)
-$extensionFilters = $Extensions | ForEach-Object { $_ -replace '^\*', '' }
 $gitFiles = git -C $Path ls-files -- ($Extensions | ForEach-Object { "*$($_ -replace '^\*', '')" })
 if ($LASTEXITCODE -ne 0) {
     Write-Warning "git ls-files failed; falling back to Get-ChildItem."
@@ -170,7 +169,6 @@ if ($env:GITHUB_STEP_SUMMARY) {
 
 | File | Line | Content |
 |------|------|---------|
-
 "@
         foreach ($item in $unlinkedDetails) {
             $escapedContent = $item.Content -replace '\|', '\|'
