@@ -25,13 +25,13 @@ param(
     [string[]]$Extensions = @('*.cs', '*.ps1', '*.sh', '*.yaml', '*.yml', '*.json', '*.xml', '*.md', '*.csproj', '*.props', '*.targets'),
 
     [string[]]$ExcludePatterns = @(
-        '[\\/]bin[\\/]',
-        '[\\/]obj[\\/]',
-        '[\\/]artifacts[\\/]',
-        '[\\/]\.git[\\/]',
-        '[\\/]\.claude[\\/]',
-        '[\\/]\.serena[\\/]',
-        '[\\/]node_modules[\\/]',
+        '(^|[\\/])bin[\\/]',
+        '(^|[\\/])obj[\\/]',
+        '(^|[\\/])artifacts[\\/]',
+        '(^|[\\/])\.git[\\/]',
+        '(^|[\\/])\.claude[\\/]',
+        '(^|[\\/])\.serena[\\/]',
+        '(^|[\\/])node_modules[\\/]',
         '\.verified\.(txt|xml|json)$',
         'Scan-TodoComments\.ps1$'
     ),
@@ -76,7 +76,15 @@ foreach ($file in $files) {
     if ($skip) { continue }
 
     $lineNumber = 0
-    foreach ($line in (Get-Content -Path $file.FullName -ErrorAction SilentlyContinue)) {
+    $fileContent = $null
+    try {
+        $fileContent = Get-Content -Path $file.FullName -ErrorAction Stop
+    }
+    catch {
+        Write-Warning "Failed to read file: $relativePath - $_"
+        continue
+    }
+    foreach ($line in $fileContent) {
         $lineNumber++
 
         # Find all marker occurrences in the line and evaluate each individually
