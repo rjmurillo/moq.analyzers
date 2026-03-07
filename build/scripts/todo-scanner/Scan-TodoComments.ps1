@@ -92,7 +92,7 @@ foreach ($file in $files) {
     $lineNumber = 0
     $fileContent = $null
     try {
-        $fileContent = Get-Content -Path $file.FullName -ErrorAction Stop
+        $fileContent = Get-Content -LiteralPath $file.FullName -ErrorAction Stop
     }
     catch {
         Write-Warning "Failed to read file: $relativePath - $_"
