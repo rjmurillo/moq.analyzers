@@ -82,8 +82,15 @@ foreach ($file in $files) {
     foreach ($line in (Get-Content -Path $file.FullName -ErrorAction SilentlyContinue)) {
         $lineNumber++
 
-        if ($line -match $anyMarkerPattern) {
-            if ($line -match $linkedPattern) {
+        # Find all marker occurrences in the line and evaluate each individually
+        $markerMatches = [regex]::Matches($line, $anyMarkerPattern)
+        foreach ($match in $markerMatches) {
+            # Check if this specific marker is linked by examining what follows it
+            $markerEnd = $match.Index + $match.Length
+            $remainingLine = $line.Substring($markerEnd)
+
+            # A linked marker has (#digits) immediately following (allowing whitespace)
+            if ($remainingLine -match '^\s*\(\s*#\d+\s*\)') {
                 $totalLinked++
             }
             else {
@@ -92,6 +99,7 @@ foreach ($file in $files) {
                     File    = $relativePath
                     Line    = $lineNumber
                     Content = $line.Trim()
+                    Marker  = $match.Value
                 }
             }
         }
