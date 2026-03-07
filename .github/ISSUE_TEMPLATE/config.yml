@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Moq Documentation
+    url: https://github.com/devlooped/moq/wiki
+    about: For questions about the Moq framework itself, consult the Moq wiki.
+  - name: Discussions
+    url: https://github.com/rjmurillo/moq.analyzers/discussions
+    about: Ask questions and share ideas in GitHub Discussions.
