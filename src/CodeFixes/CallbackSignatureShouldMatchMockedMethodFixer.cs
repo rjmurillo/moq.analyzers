@@ -12,6 +12,8 @@ namespace Moq.CodeFixes;
 [Shared]
 public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 {
+    private const string FixTitle = "Fix Moq callback signature";
+
     /// <inheritdoc />
     public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.BadCallbackParameters);
 
@@ -43,9 +45,9 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    "Fix Moq callback signature",
+                    FixTitle,
                     cancellationToken => FixParenthesizedCallbackSignatureAsync(root, context.Document, badArgumentListSyntax, cancellationToken),
-                    "Fix Moq callback signature"),
+                    FixTitle),
                 diagnostic);
             return;
         }
@@ -60,9 +62,9 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    "Fix Moq callback signature",
+                    FixTitle,
                     cancellationToken => FixSimpleLambdaCallbackSignatureAsync(root, context.Document, simpleLambda, cancellationToken),
-                    "Fix Moq callback signature"),
+                    FixTitle),
                 diagnostic);
         }
     }
@@ -78,7 +80,12 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
         MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
 
-        if (oldParameters.Parent?.Parent?.Parent?.Parent is not InvocationExpressionSyntax callbackInvocation)
+        InvocationExpressionSyntax? callbackInvocation = oldParameters
+            .Ancestors()
+            .OfType<InvocationExpressionSyntax>()
+            .FirstOrDefault();
+
+        if (callbackInvocation is null)
         {
             return document;
         }
@@ -143,7 +150,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
             return null;
         }
 
-        IMethodSymbol[] matchingMockedMethods = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupMethodInvocation).ToArray();
+        IMethodSymbol[] matchingMockedMethods = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupMethodInvocation).Take(2).ToArray();
 
         if (matchingMockedMethods.Length != 1)
         {
