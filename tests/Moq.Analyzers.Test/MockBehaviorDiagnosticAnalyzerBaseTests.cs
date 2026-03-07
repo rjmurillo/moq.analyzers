@@ -137,10 +137,9 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
         string referenceAssemblyGroup,
         CompilerDiagnostics? compilerDiagnostics = null)
     {
-        Task explicitTask = ExplicitVerifier.VerifyAnalyzerAsync(
+        await ExplicitVerifier.VerifyAnalyzerAsync(
             source, referenceAssemblyGroup, configFileName: null, configContent: null, compilerDiagnostics);
-        Task strictTask = StrictVerifier.VerifyAnalyzerAsync(
+        await StrictVerifier.VerifyAnalyzerAsync(
             source, referenceAssemblyGroup, configFileName: null, configContent: null, compilerDiagnostics);
-        await Task.WhenAll(explicitTask, strictTask).ConfigureAwait(false);
     }
 }
