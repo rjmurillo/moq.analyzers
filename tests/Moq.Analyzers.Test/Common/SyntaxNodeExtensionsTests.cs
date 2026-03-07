@@ -3,7 +3,7 @@ namespace Moq.Analyzers.Test.Common;
 public class SyntaxNodeExtensionsTests
 {
     [Fact]
-    public void FindLocation_MatchingSymbol_ReturnsLocation()
+    public void FindLocation_NoReferenceToSymbol_ReturnsNull()
     {
         // Arrange
         const string code = "class C { void M() {} }";
@@ -15,9 +15,7 @@ public class SyntaxNodeExtensionsTests
         // Act
         Location? location = root.FindLocation<IdentifierNameSyntax>(methodSymbol!, model);
 
-        // Assert - FindLocation searches for IdentifierNameSyntax referencing the symbol.
-        // In a simple declaration, there may not be an IdentifierNameSyntax referencing M.
-        // This verifies the method returns null when no matching descendant exists.
+        // Assert - No IdentifierNameSyntax references M in a simple declaration
         Assert.Null(location);
     }
 
