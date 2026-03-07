@@ -74,7 +74,7 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : Diagno
         }
 
         // 4. Check if symbol is a property or method, and if it is overridable or is returning a Task (which Moq allows).
-        if (IsOverridableOrTaskResultMember(mockedMemberSymbol, knownSymbols))
+        if (mockedMemberSymbol.IsOverridableOrAllowedMockMember(knownSymbols))
         {
             return;
         }
@@ -88,48 +88,5 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : Diagno
 
         Diagnostic diagnostic = diagnosticLocation.CreateDiagnostic(Rule, mockedMemberSymbol.ToDisplayString());
         context.ReportDiagnostic(diagnostic);
-    }
-
-    /// <summary>
-    /// Determines whether a member symbol is either overridable or represents a <see cref="Task{T}"/>/<see cref="ValueTask{T}"/> Result property
-    /// that Moq allows to be setup even if the underlying <see cref="Task{T}"/> property is not overridable.
-    /// </summary>
-    /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
-    /// <param name="knownSymbols">A <see cref="MoqKnownSymbols"/> instance for resolving well-known types.</param>
-    /// <returns>
-    /// Returns <see langword="true"/> when the member is overridable or is a <see cref="Task{T}"/>/<see cref="ValueTask{T}"/> Result property; otherwise <see langword="false" />.
-    /// </returns>
-    private static bool IsOverridableOrTaskResultMember(ISymbol mockedMemberSymbol, MoqKnownSymbols knownSymbols)
-    {
-        switch (mockedMemberSymbol)
-        {
-            case IPropertySymbol propertySymbol:
-                // Check if the property is Task<T>.Result and skip diagnostic if it is
-                if (propertySymbol.IsTaskOrValueResultProperty(knownSymbols))
-                {
-                    return true;
-                }
-
-                if (propertySymbol.IsOverridable())
-                {
-                    return true;
-                }
-
-                break;
-
-            case IMethodSymbol methodSymbol:
-                if (methodSymbol.IsOverridable())
-                {
-                    return true;
-                }
-
-                break;
-
-            default:
-                // If it's not a property or method, it's not overridable
-                return false;
-        }
-
-        return false;
     }
 }
