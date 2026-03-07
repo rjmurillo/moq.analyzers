@@ -406,6 +406,6 @@ dotnet_diagnostic.CA2016.severity = error
 # to fire, only one. Pick one and mark it as informational so we
 # don't lose track.
 # S1135: Track uses of "TODO" tags
-dotnet_diagnostic.S1135.severity = warning
+dotnet_diagnostic.S1135.severity = suggestion
 # MA0026: Fix TODO comment
 dotnet_diagnostic.MA0026.severity = none
