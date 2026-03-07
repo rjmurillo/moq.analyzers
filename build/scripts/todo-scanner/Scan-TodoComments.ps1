@@ -172,8 +172,8 @@ if ($env:GITHUB_STEP_SUMMARY) {
 |------|------|---------|
 "@
         foreach ($item in $unlinkedDetails) {
-            $escapedContent = $item.Content -replace '\\', '\\' -replace '\|', '\|' -replace '`', '\`'
-            $summary += "| ``$($item.File)`` | $($item.Line) | ``$escapedContent`` |`n"
+            $escapedContent = $item.Content -replace '\\', '\\' -replace '\|', '\|' -replace '`', '\`' -replace '<', '&lt;' -replace '>', '&gt;' -replace '\[', '\[' -replace '\]', '\]'
+            $summary += "`n| ``$($item.File)`` | $($item.Line) | ``$escapedContent`` |"
         }
         $summary += "`n</details>`n"
     }

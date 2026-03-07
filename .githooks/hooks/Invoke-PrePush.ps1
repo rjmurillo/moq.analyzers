@@ -21,6 +21,9 @@ try {
             Set-HookFailed -Check "todo-scanner"
         }
     }
+    else {
+        Write-Warning "Tech debt scanner not found at '$scanScript'. Skipping scan."
+    }
 
     $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
 
