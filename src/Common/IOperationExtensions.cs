@@ -90,18 +90,14 @@ internal static class IOperationExtensions
         IAnonymousFunctionOperation lambdaOperation)
     {
         IParameterSymbol? lambdaParameter = lambdaOperation.Symbol.Parameters.FirstOrDefault();
-        if (lambdaParameter == null)
-        {
-            return false;
-        }
-
-        IOperation current = operation;
-        while (current != null)
+        IOperation? current = operation;
+        while (true)
         {
             switch (current)
             {
                 case IParameterReferenceOperation paramRef:
-                    return SymbolEqualityComparer.Default.Equals(paramRef.Parameter, lambdaParameter);
+                    return lambdaParameter is not null &&
+                        SymbolEqualityComparer.Default.Equals(paramRef.Parameter, lambdaParameter);
 
                 case IMemberReferenceOperation memberRef:
                     if (memberRef.Instance == null)
@@ -125,16 +121,13 @@ internal static class IOperationExtensions
                     current = conversionOp.Operand;
                     break;
 
-                case IParenthesizedOperation parenOp:
-                    current = parenOp.Operand;
-                    break;
-
                 default:
+                    // IParenthesizedOperation is intentionally omitted. The C# compiler
+                    // never emits it in IOperation trees (VB.NET only), and this analyzer
+                    // targets C# exclusively via [DiagnosticAnalyzer(LanguageNames.CSharp)].
                     return false;
             }
         }
-
-        return false;
     }
 
     /// <summary>

@@ -771,6 +771,94 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
 
     [Theory]
     [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagNestedMockOfExpression(string referenceAssemblyGroup)
+    {
+        // Nested Mock.Of calls have their own lambda parameters and should not
+        // be recursively analyzed by the outer lambda's analysis.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IInner
+            {
+                string Value { get; }
+            }
+
+            public interface IOuter
+            {
+                IInner Inner { get; }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = Mock.Of<IOuter>(o => o.Inner == Mock.Of<IInner>(i => i.Value == "nested"));
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagMemberAccessThroughExplicitCast(string referenceAssemblyGroup)
+    {
+        // Explicit cast on the lambda parameter inserts an IConversionOperation
+        // in the receiver chain. IsRootedInLambdaParameter must walk through it.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IBase
+            {
+                string Name { get; }
+            }
+
+            public interface IDerived : IBase
+            {
+                string Extra { get; }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = Mock.Of<IDerived>(d => ((IBase)d).Name == "test");
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagVirtualInstanceMethodOnLambdaParameter(string referenceAssemblyGroup)
+    {
+        // Instance method call on the lambda parameter exercises the
+        // IInvocationOperation branch with non-null Instance in IsRootedInLambdaParameter.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IFormatter
+            {
+                string Format(string input);
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = Mock.Of<IFormatter>(f => f.Format("x") == "formatted");
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
     public async Task ShouldNotAnalyzeNonMockOfInvocations(string referenceAssemblyGroup)
     {
         await Verifier.VerifyAnalyzerAsync(

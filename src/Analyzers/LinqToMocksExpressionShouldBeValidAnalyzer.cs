@@ -172,13 +172,8 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     /// expressions that have their own lambda parameters.
     /// </para>
     /// </remarks>
-    private static void AnalyzeMemberOperations(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation? operation, MoqKnownSymbols knownSymbols)
+    private static void AnalyzeMemberOperations(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation operation, MoqKnownSymbols knownSymbols)
     {
-        if (operation == null)
-        {
-            return;
-        }
-
         // Don't recursively analyze nested Mock.Of calls to avoid false positives
         if (operation is IInvocationOperation invocation && IsValidMockOfInvocation(invocation, knownSymbols))
         {
