@@ -11,7 +11,8 @@
 
 ### 4-Step Debrief
 
-**Step 1: Observe**
+#### Step 1: Observe
+
 - Analyzer introduced: commit `458ca5d` (PR #511), authored by Copilot, Jun 25 2025
 - PR title: "Lacking coverage for LINQ to Mocks"
 - Test file: `LinqToMocksExpressionShouldBeValidAnalyzerTests.cs`, also in `458ca5d`
@@ -22,20 +23,23 @@
 - `AnalyzeMemberSymbol` only skips interface members and compiler-error spans; it flags non-virtual fields on concrete types
 - `StatusCodes.Status200OK` is a `const int` field on a concrete static class -- non-virtual, non-interface -- so the analyzer reports it
 
-**Step 2: Respond**
+#### Step 2: Respond
+
 - Original PR had no test covering `r.Status == StatusCodes.Status200OK` (RHS = static/const from concrete class)
 - `ValidExpressionTestData` covered: interface properties, virtual properties, abstract properties, methods -- all on the LEFT of `==`
 - No test exercised a binary comparison where the RHS is a constant or static member from an unrelated concrete class
 - `EdgeCaseExpressionTestData` covered `r => 42 == 42` (literal) but not `r => r.X == SomeClass.Constant`
 - The false positive only surfaces when real-world code crosses the mock lambda boundary with an external value reference
 
-**Step 3: Analyze**
+#### Step 3: Analyze
+
 - The design assumption embedded in the code: "both operands of a binary expression in a Mock.Of lambda are member accesses on the mocked type." This assumption is wrong.
 - The RHS of a comparison in `Mock.Of<T>(x => x.Prop == someValue)` can be ANY expression: literal, local, static member, method call, etc.
 - The correct model: only the LEFT side (or more precisely, the side referencing the lambda parameter) needs mockability analysis. The RHS is a value expression, not a member setup target.
 - The code comment says "Handle binary expressions like equality comparisons" -- but it treats both sides identically, which is the defect.
 
-**Step 4: Apply**
+#### Step 4: Apply
+
 - Fix: In `IBinaryOperation` case, only recurse into the operand that references the lambda parameter. The other operand is a value expression and must be skipped.
 - Tests must cover RHS = static property, RHS = constant field, RHS = local variable, RHS = method call on unrelated type.
 
@@ -84,6 +88,7 @@
 ### Pattern: Recurring Themes
 
 This is NOT an isolated defect. The git log shows:
+
 - PR #4cf69db: "Remove false positive for Moq1200 when using parameterized lambda"
 - PR #9c05b6b: "Moq1203 false positive when Setup call is wrapped in parentheses"
 - PR #ca1949a: "Moq1203 false positives for ReturnsAsync and Callback chaining"
@@ -111,7 +116,7 @@ This is NOT an isolated defect. The git log shows:
 
 ### Atomicity Score of Root Cause
 
-**Score: 35% systemic, 65% isolated**
+Score: 35% systemic, 65% isolated
 
 - The specific bug (symmetric binary recursion) is isolated and fixable in ~5 lines.
 - The underlying cause (co-authored implementation + tests, no adversarial boundary checklist) is systemic -- same pattern produced Moq1200, Moq1203 false positives.
@@ -119,13 +124,15 @@ This is NOT an isolated defect. The git log shows:
 
 ### Test Coverage Gap Analysis
 
-**Original test data covered**:
+Original test data covered:
+
 - RHS = literal (`true`, `"test"`, `3`, `42`)
 - Lambda expressions on interface, virtual, abstract members
 - `null` comparisons
 - Literal-to-literal comparisons (`42 == 42`)
 
-**Test data missing at ship time**:
+Test data missing at ship time:
+
 - RHS = static property on concrete class (e.g., `StatusCodes.Status202Accepted`)
 - RHS = const field on concrete class (e.g., `StatusCodes.Status200OK`)
 - RHS = local variable
@@ -149,7 +156,8 @@ This is NOT an isolated defect. The git log shows:
 
 ### SMART Validation: Key Skills
 
-**Skill 1**: "Analyze only the lambda-parameter-referencing operand in binary expressions; skip value operands."
+Skill 1: "Analyze only the lambda-parameter-referencing operand in binary expressions; skip value operands."
+
 - Specific: Yes (one rule)
 - Measurable: Yes (no false positives on RHS static members)
 - Attainable: Yes
@@ -157,7 +165,8 @@ This is NOT an isolated defect. The git log shows:
 - Timely: Yes (clear trigger: IBinaryOperation in lambda analysis)
 - Score: 90%
 
-**Skill 2**: "When Copilot generates both implementation and tests in one PR, require independent adversarial test cases from a human reviewer."
+Skill 2: "When Copilot generates both implementation and tests in one PR, require independent adversarial test cases from a human reviewer."
+
 - Specific: Yes
 - Measurable: Yes (PR review checklist item)
 - Attainable: Yes
@@ -170,24 +179,28 @@ This is NOT an isolated defect. The git log shows:
 ## Phase 4: Extracted Learnings
 
 ### Learning 1
+
 - **Statement**: In binary expressions within lambda analysis, only recurse into the operand referencing the lambda parameter.
 - **Atomicity Score**: 90%
 - **Evidence**: Issue #1010; `AnalyzeLambdaBody` IBinaryOperation case; `StatusCodes.Status200OK` false positive
 - **Operation**: ADD skill
 
 ### Learning 2
+
 - **Statement**: Test authors who also wrote the implementation share its blind spots; require independent adversarial boundary cases.
 - **Atomicity Score**: 85%
 - **Evidence**: PR #511 Copilot-generated impl+tests; RHS static member cases absent until PR #635
 - **Operation**: ADD skill
 
 ### Learning 3
+
 - **Statement**: For any binary/comparison operation in an analyzer, test all RHS types: literal, local, static member, const, method call, external type chain.
 - **Atomicity Score**: 80%
 - **Evidence**: 5 missing RHS boundary categories allowed #1010 to escape
 - **Operation**: ADD skill (boundary checklist)
 
 ### Learning 4
+
 - **Statement**: Moq analyzer false positives cluster around expression-tree nodes with multiple semantic roles (binary ops, method chains, parenthesized expressions).
 - **Atomicity Score**: 75%
 - **Evidence**: Moq1200 PR #301, Moq1203 PRs #895/#886/#919, Moq1302 #1010
