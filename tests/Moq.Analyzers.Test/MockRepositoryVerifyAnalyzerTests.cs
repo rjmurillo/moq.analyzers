@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.MockRepositoryVerifyAnalyzer>;
 
@@ -8,7 +7,7 @@ public class MockRepositoryVerifyAnalyzerTests
 {
     public static IEnumerable<object[]> TestData()
     {
-        IEnumerable<object[]> testCases = new object[][]
+        return new object[][]
         {
             // Should NOT report diagnostic - Verify() is called
             [
@@ -87,13 +86,11 @@ public class MockRepositoryVerifyAnalyzerTests
                 """,
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-
-        return testCases;
     }
 
     public static IEnumerable<object[]> MultipleRepositoryTestData()
     {
-        IEnumerable<object[]> testCases = new object[][]
+        return new object[][]
         {
             // Two repositories, both verified - no diagnostics
             [
@@ -139,15 +136,13 @@ public class MockRepositoryVerifyAnalyzerTests
                 """,
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-
-        return testCases;
     }
 
     public static IEnumerable<object[]> FieldLevelRepositoryTestData()
     {
         // The analyzer only tracks local variables via ILocalReferenceOperation.
         // Field-level repositories are a known limitation and should not produce diagnostics.
-        IEnumerable<object[]> testCases = new object[][]
+        return new object[][]
         {
             // Field-level repository without Verify() - no diagnostic (known limitation)
             [
@@ -190,13 +185,11 @@ public class MockRepositoryVerifyAnalyzerTests
                 """,
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-
-        return testCases;
     }
 
     public static IEnumerable<object[]> ConditionalVerifyTestData()
     {
-        IEnumerable<object[]> testCases = new object[][]
+        return new object[][]
         {
             // Verify() inside an if block - no diagnostic (conservative: any call suffices)
             [
@@ -225,15 +218,13 @@ public class MockRepositoryVerifyAnalyzerTests
                 """,
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-
-        return testCases;
     }
 
     public static IEnumerable<object[]> VerifyAllTestData()
     {
         // VerifyAll() is a separate method on MockRepository. The analyzer currently
         // only checks for Verify(), not VerifyAll(). These tests document current behavior.
-        IEnumerable<object[]> testCases = new object[][]
+        return new object[][]
         {
             // VerifyAll() called - still reports diagnostic because analyzer only checks Verify()
             [
@@ -244,15 +235,13 @@ public class MockRepositoryVerifyAnalyzerTests
                 """,
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-
-        return testCases;
     }
 
     public static IEnumerable<object[]> SeparateMethodTestData()
     {
         // The analyzer scopes to the containing method body. Verify() in a different
         // method than Create() results in a diagnostic. This documents the limitation.
-        IEnumerable<object[]> testCases = new object[][]
+        return new object[][]
         {
             // Create() and Verify() in separate methods - diagnostic because analyzer is method-scoped
             [
@@ -279,41 +268,34 @@ public class MockRepositoryVerifyAnalyzerTests
                 """,
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
-
-        return testCases;
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeMockRepositoryUsage(string referenceAssemblyGroup, string @namespace, string testCode)
     {
-        string code = BuildMultiInterfaceTemplate(@namespace, testCode);
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
+        await VerifyWithMultiInterfaceTemplate(referenceAssemblyGroup, @namespace, testCode);
     }
 
     [Theory]
     [MemberData(nameof(MultipleRepositoryTestData))]
-    [SuppressMessage("Blocker Code Smell", "S4144:Methods should not have identical implementations", Justification = "Test methods use different MemberData sources for distinct scenarios")]
     public async Task ShouldAnalyzeMultipleRepositories(string referenceAssemblyGroup, string @namespace, string testCode)
     {
-        string code = BuildMultiInterfaceTemplate(@namespace, testCode);
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
+        await VerifyWithMultiInterfaceTemplate(referenceAssemblyGroup, @namespace, testCode);
     }
 
     [Theory]
     [MemberData(nameof(FieldLevelRepositoryTestData))]
     public async Task ShouldNotReportForFieldLevelRepositories(string referenceAssemblyGroup, string @namespace, string testCode)
     {
-        string code = @namespace + "\n" + testCode;
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
+        await VerifyWithNamespacePrefix(referenceAssemblyGroup, @namespace, testCode);
     }
 
     [Theory]
     [MemberData(nameof(ConditionalVerifyTestData))]
     public async Task ShouldNotReportWhenVerifyIsConditional(string referenceAssemblyGroup, string @namespace, string testCode)
     {
-        string code = BuildSingleInterfaceTemplate(@namespace, testCode);
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
+        await VerifyWithSingleInterfaceTemplate(referenceAssemblyGroup, @namespace, testCode);
     }
 
     [Theory]
@@ -336,27 +318,51 @@ public class MockRepositoryVerifyAnalyzerTests
             """;
 
         // CompilerDiagnostics.None suppresses CS0246 caused by global using Moq
-        // when Moq is not referenced.
+        // when Moq is not referenced. The test harness unconditionally adds
+        // "global using Moq;" (see Test.cs), so when the Moq assembly is absent
+        // the using directive itself fails to resolve. No narrower suppression
+        // is available because the harness applies globally, not per-test.
         await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup, CompilerDiagnostics.None);
     }
 
     [Theory]
     [MemberData(nameof(VerifyAllTestData))]
-    [SuppressMessage("Blocker Code Smell", "S4144:Methods should not have identical implementations", Justification = "Test methods use different MemberData sources for distinct scenarios")]
     public async Task ShouldDocumentVerifyAllBehavior(string referenceAssemblyGroup, string @namespace, string testCode)
     {
-        string code = BuildSingleInterfaceTemplate(@namespace, testCode);
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
+        await VerifyWithSingleInterfaceTemplate(referenceAssemblyGroup, @namespace, testCode);
     }
 
     [Theory]
     [MemberData(nameof(SeparateMethodTestData))]
-    [SuppressMessage("Blocker Code Smell", "S4144:Methods should not have identical implementations", Justification = "Test methods use different MemberData sources for distinct scenarios")]
     public async Task ShouldReportWhenCreateAndVerifyInSeparateMethods(string referenceAssemblyGroup, string @namespace, string testCode)
     {
-        string code = @namespace + "\n" + testCode;
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
+        await VerifyWithNamespacePrefix(referenceAssemblyGroup, @namespace, testCode);
     }
+
+    private static async Task VerifyWithMultiInterfaceTemplate(string referenceAssemblyGroup, string ns, string testCode)
+    {
+        string code = BuildMultiInterfaceTemplate(ns, testCode);
+        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup).ConfigureAwait(false);
+    }
+
+    private static async Task VerifyWithSingleInterfaceTemplate(string referenceAssemblyGroup, string ns, string testCode)
+    {
+        string code = BuildSingleInterfaceTemplate(ns, testCode);
+        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup).ConfigureAwait(false);
+    }
+
+    private static async Task VerifyWithNamespacePrefix(string referenceAssemblyGroup, string ns, string testCode)
+    {
+        string code = BuildNamespacePrefixTemplate(ns, testCode);
+        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup).ConfigureAwait(false);
+    }
+
+    private static string BuildNamespacePrefixTemplate(string ns, string content) =>
+        $$"""
+        {{ns}}
+
+        {{content}}
+        """;
 
     private static string BuildSingleInterfaceTemplate(string ns, string content) =>
         $$"""
