@@ -9,6 +9,9 @@ if ($LASTEXITCODE -ne 0 -or -not $repoRoot) {
 . "$PSScriptRoot/../lib/LintHelpers.ps1"
 
 try {
+    # Large file detection (file size and line count)
+    Test-LargeFiles
+
     # C# formatting (auto-fix + re-stage)
     $csFiles = Get-StagedFiles -Extensions @('.cs')
     if ($csFiles.Count -gt 0) {
