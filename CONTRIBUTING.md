@@ -831,7 +831,7 @@ For full documentation, see [nektosact.com](https://nektosact.com/usage/).
 
 ### Dependency Update Guidelines
 
-**For Renovate/Dependabot PRs:**
+**For Renovate PRs:**
 
 - Review changelog and release notes
 - Test locally to ensure compatibility

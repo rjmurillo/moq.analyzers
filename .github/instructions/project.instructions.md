@@ -136,7 +136,7 @@ Your changes are successful when:
 
 ### Dependency Update Guidelines
 
-**For Renovate/Dependabot PRs:**
+**For Renovate PRs:**
 
 - Review changelog and release notes
 - Test locally to ensure compatibility
