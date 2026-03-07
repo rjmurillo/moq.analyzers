@@ -1,6 +1,6 @@
 # Dependency Management
 
-This project uses **Renovate** as the primary dependency update bot. Renovate manages both NuGet packages and GitHub Actions. Dependabot is retained for CLA and security alert handling only.
+This project uses **Renovate** as the sole dependency update bot. Renovate manages both NuGet packages and GitHub Actions. Dependabot configuration has been removed. GitHub may still open Dependabot security alert PRs automatically.
 
 ## Package Categories
 
@@ -96,7 +96,6 @@ The PerfDiff tool (`src/tools/PerfDiff/`) uses System.CommandLine, which had bre
 | File                             | Purpose                                                              |
 | -------------------------------- | -------------------------------------------------------------------- |
 | `renovate.json`                  | Renovate bot configuration (NuGet packages and GitHub Actions)       |
-| `.github/dependabot.yml`         | Dependabot configuration (GitHub Actions, kept for security alerts)  |
 | `Directory.Packages.props`       | Central package version management                                   |
 | `build/targets/*/Packages.props` | Category-specific package versions                                   |
 
@@ -113,7 +112,7 @@ This allows the central pin (8.0.0) to protect shipped analyzer DLLs while letti
 
 ## Workflow
 
-A single consolidated workflow (`.github/workflows/dependabot-approve-and-auto-merge.yml`) handles auto-approval for both Dependabot and Renovate PRs.
+A single consolidated workflow (`.github/workflows/dependabot-approve-and-auto-merge.yml`) handles auto-approval for Renovate PRs and any Dependabot security alert PRs.
 
 - **Renovate** (NuGet and GitHub Actions): The workflow approves the PR. Auto-merge is controlled entirely by Renovate via `platformAutomerge: true` and per-package `automerge` rules in `renovate.json`. Packages with `automerge: false` (e.g., `analyzer-compat`, `benchmark-tooling`) require manual merge after review.
-- **Dependabot** (GitHub Actions, kept for security alerts): The workflow approves the PR and enables auto-merge for non-major updates. Major version gating uses `dependabot/fetch-metadata` output.
+- **Dependabot** (security alerts only): GitHub may still open Dependabot PRs for security vulnerabilities. The workflow approves and enables auto-merge for non-major updates.
