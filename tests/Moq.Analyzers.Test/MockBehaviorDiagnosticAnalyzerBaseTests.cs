@@ -31,7 +31,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
     }
 
     [Fact]
-    public async Task ExplicitAnalyzer_ShouldNotReport_WhenMoqIsNotReferenced()
+    public async Task ShouldNotReport_WhenMoqIsNotReferenced()
     {
         const string source = """
             public class Foo
@@ -41,26 +41,12 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             """;
 
         // CompilerDiagnostics.None suppresses CS0246 from the global using Moq added by the test infrastructure.
-        await ExplicitVerifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80, CompilerDiagnostics.None);
-    }
-
-    [Fact]
-    public async Task StrictAnalyzer_ShouldNotReport_WhenMoqIsNotReferenced()
-    {
-        const string source = """
-            public class Foo
-            {
-                private void Test() { }
-            }
-            """;
-
-        // CompilerDiagnostics.None suppresses CS0246 from the global using Moq added by the test infrastructure.
-        await StrictVerifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80, CompilerDiagnostics.None);
+        await VerifyBothAnalyzersAsync(source, ReferenceAssemblyCatalog.Net80, CompilerDiagnostics.None);
     }
 
     [Theory]
     [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task ExplicitAnalyzer_ShouldNotReport_WhenObjectCreationIsNotMockType(string referenceAssemblyGroup)
+    public async Task ShouldNotReport_WhenObjectCreationIsNotMockType(string referenceAssemblyGroup)
     {
         const string source = """
             using System.Collections.Generic;
@@ -74,31 +60,12 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await ExplicitVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
     }
 
     [Theory]
     [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task StrictAnalyzer_ShouldNotReport_WhenObjectCreationIsNotMockType(string referenceAssemblyGroup)
-    {
-        const string source = """
-            using System.Collections.Generic;
-
-            internal class UnitTest
-            {
-                private void Test()
-                {
-                    var list = new List<int>();
-                }
-            }
-            """;
-
-        await StrictVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
-    }
-
-    [Theory]
-    [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task ExplicitAnalyzer_ShouldNotReport_WhenInvocationIsNotMockOf(string referenceAssemblyGroup)
+    public async Task ShouldNotReport_WhenInvocationIsNotMockOf(string referenceAssemblyGroup)
     {
         const string source = """
             using System;
@@ -112,31 +79,12 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await ExplicitVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
     }
 
     [Theory]
     [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task StrictAnalyzer_ShouldNotReport_WhenInvocationIsNotMockOf(string referenceAssemblyGroup)
-    {
-        const string source = """
-            using System;
-
-            internal class UnitTest
-            {
-                private void Test()
-                {
-                    Console.WriteLine("not a mock");
-                }
-            }
-            """;
-
-        await StrictVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
-    }
-
-    [Theory]
-    [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task ExplicitAnalyzer_ShouldNotReport_WhenNonMockObjectCreatedWithMoqReferenced(string referenceAssemblyGroup)
+    public async Task ShouldNotReport_WhenNonMockObjectCreatedWithMoqReferenced(string referenceAssemblyGroup)
     {
         // Moq is referenced but the object creation is not Mock<T> or MockRepository.
         // Exercises the type guard in AnalyzeObjectCreation.
@@ -154,35 +102,12 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await ExplicitVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
     }
 
     [Theory]
     [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task StrictAnalyzer_ShouldNotReport_WhenNonMockObjectCreatedWithMoqReferenced(string referenceAssemblyGroup)
-    {
-        // Moq is referenced but the object creation is not Mock<T> or MockRepository.
-        // Exercises the type guard in AnalyzeObjectCreation.
-        const string source = """
-            using Moq;
-
-            public interface ISample { }
-
-            internal class UnitTest
-            {
-                private void Test()
-                {
-                    var obj = new object();
-                }
-            }
-            """;
-
-        await StrictVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
-    }
-
-    [Theory]
-    [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task ExplicitAnalyzer_ShouldNotReport_WhenMoqInvocationIsNotMockOf(string referenceAssemblyGroup)
+    public async Task ShouldNotReport_WhenMoqInvocationIsNotMockOf(string referenceAssemblyGroup)
     {
         // Moq is referenced, invocation exists on a mock, but it is not Mock.Of<T>().
         // Exercises the invocation method guard in AnalyzeInvocation.
@@ -204,33 +129,18 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await ExplicitVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
     }
 
-    [Theory]
-    [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task StrictAnalyzer_ShouldNotReport_WhenMoqInvocationIsNotMockOf(string referenceAssemblyGroup)
+    private static async Task VerifyBothAnalyzersAsync(
+        string source,
+        string referenceAssemblyGroup,
+        CompilerDiagnostics? compilerDiagnostics = null)
     {
-        // Moq is referenced, invocation exists on a mock, but it is not Mock.Of<T>().
-        // Exercises the invocation method guard in AnalyzeInvocation.
-        const string source = """
-            using Moq;
-
-            public interface ISample
-            {
-                void Method();
-            }
-
-            internal class UnitTest
-            {
-                private void Test()
-                {
-                    var mock = new Mock<ISample>(MockBehavior.Strict);
-                    mock.Setup(x => x.Method());
-                }
-            }
-            """;
-
-        await StrictVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
+        Task explicitTask = ExplicitVerifier.VerifyAnalyzerAsync(
+            source, referenceAssemblyGroup, configFileName: null, configContent: null, compilerDiagnostics);
+        Task strictTask = StrictVerifier.VerifyAnalyzerAsync(
+            source, referenceAssemblyGroup, configFileName: null, configContent: null, compilerDiagnostics);
+        await Task.WhenAll(explicitTask, strictTask).ConfigureAwait(false);
     }
 }
