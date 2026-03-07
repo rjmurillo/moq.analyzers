@@ -1,0 +1,94 @@
+# Release Drafter configuration
+#
+# This generates a draft release on GitHub each time a PR merges to main.
+# The draft is a starting point: before publishing a release, the maintainer
+# should:
+#   1. Create a release branch (release/vX.Y.Z) per CONTRIBUTING.md
+#   2. Retarget the draft release to that branch
+#   3. Set the tag to match the NBGV-derived version (e.g. v0.5.0)
+#   4. Update the heading, Full Changelog link, and Documentation link
+#      to reflect the final version tag
+#   5. Polish the notes to match the project's release style (see v0.4.0,
+#      v0.4.1 for examples with Highlights, Breaking Changes, Contributors,
+#      Resources, and Feedback sections)
+#
+# Versioning is controlled by Nerdbank.GitVersioning (version.json), NOT by
+# the version-resolver below. The resolver is intentionally omitted.
+#
+# The name-template and tag-template use $RESOLVED_VERSION as a placeholder.
+# Before publishing, replace with the actual NBGV-derived version.
+
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+template: |
+  # Moq.Analyzers $RESOLVED_VERSION
+
+  <!-- Edit this draft before publishing. See prior releases (v0.4.0, v0.4.1)
+       for the expected style with Highlights, Breaking Changes, Contributors,
+       Resources, and Feedback sections.
+
+       Before publishing:
+       - Update the heading version above
+       - Update the Full Changelog and Documentation links below
+         to use the final release tag -->
+
+  ## What's Changed
+
+  $CHANGES
+
+  ## Contributors
+
+  $CONTRIBUTORS
+
+  ## Resources
+
+  - **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...<release-tag>
+  - **Documentation**: https://github.com/$OWNER/$REPOSITORY/tree/<release-tag>/docs/rules
+  - **Issue Tracker**: https://github.com/$OWNER/$REPOSITORY/issues
+
+  ## Feedback
+
+  - **Report bugs**: https://github.com/$OWNER/$REPOSITORY/issues/new
+  - **Request features**: https://github.com/$OWNER/$REPOSITORY/discussions
+  - **Ask questions**: https://github.com/$OWNER/$REPOSITORY/discussions/categories/q-a
+categories:
+  - title: 'New Analyzers & Code Fixes'
+    labels:
+      - 'analyzers'
+  - title: 'Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: 'Bug Fixes'
+    labels:
+      - 'bug'
+      - 'bugfix'
+  - title: 'Build & CI'
+    labels:
+      - 'build'
+      - 'github_actions'
+  - title: 'Dependencies'
+    labels:
+      - 'dependencies'
+  - title: 'Documentation'
+    labels:
+      - 'documentation'
+  - title: 'Other Changes'
+    labels:
+      - '*'
+exclude-labels:
+  - 'skip-changelog'
+autolabeler:
+  - label: 'feature'
+    title:
+      - '/^feat(\(.+\))?!?:/'
+  - label: 'bug'
+    title:
+      - '/^fix(\(.+\))?!?:/'
+  - label: 'documentation'
+    title:
+      - '/^docs(\(.+\))?!?:/'
+  - label: 'build'
+    title:
+      - '/^build(\(.+\))?!?:/'
+      - '/^ci(\(.+\))?!?:/'

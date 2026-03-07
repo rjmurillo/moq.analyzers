@@ -1,0 +1,42 @@
+name: Release Drafter
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+
+jobs:
+  update_release_draft:
+    name: Draft release notes
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Update release draft
+        uses: release-drafter/release-drafter@6a93d829887aa2e0748befe2e808c66c0ec6e4c7 # v6.4.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  label_pull_request:
+    name: Label pull request
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Apply release-drafter labels
+        uses: release-drafter/release-drafter@6a93d829887aa2e0748befe2e808c66c0ec6e4c7 # v6.4.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
