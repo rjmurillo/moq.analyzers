@@ -45,13 +45,27 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
+
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private static void Analyze(SyntaxNodeAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
+    {
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
+        if (!knownSymbols.IsMockReferenced())
+        {
+            return;
+        }
+
+        context.RegisterSyntaxNodeAction(
+            syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
+            SyntaxKind.InvocationExpression);
+    }
+
+    private static void Analyze(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
-        MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
 
         // Check if this is a Raises method call using symbol-based detection
         if (!context.SemanticModel.IsRaisesInvocation(invocation, knownSymbols) && !invocation.IsRaisesMethodCall(context.SemanticModel, knownSymbols))
@@ -59,7 +73,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
             return;
         }
 
-        if (!TryGetRaisesMethodArguments(invocation, context.SemanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
+        if (!TryGetRaisesMethodArguments(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
         {
             return;
         }
@@ -70,7 +84,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
         EventSyntaxExtensions.ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, Rule, eventName);
     }
 
-    private static bool TryGetRaisesMethodArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes)
+    private static bool TryGetRaisesMethodArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, KnownSymbols knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes)
     {
         return EventSyntaxExtensions.TryGetEventMethodArguments(
             invocation,
@@ -81,7 +95,8 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
             {
                 bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
                 return (success, eventType);
-            });
+            },
+            knownSymbols);
     }
 
     /// <summary>
