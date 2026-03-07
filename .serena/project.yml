@@ -77,6 +77,10 @@ symbol_info_budget:
 # is activated post-init, an error will be returned.
 language_backend:
 
+# list of regex patterns which, when matched, mark a memory entry as read-only.
+# Extends the list from the global configuration, merging the two lists.
+read_only_memory_patterns: []
+
 # Unused optional keys removed for clarity.
 # See the ai-agents/.serena/project.yml reference for all available options:
 #   base_modes, default_modes, fixed_tools, symbol_info_budget, language_backend
