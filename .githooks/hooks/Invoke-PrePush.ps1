@@ -12,6 +12,19 @@ if ($LASTEXITCODE -ne 0 -or -not $repoRoot) {
 $env:DOTNET_ROLL_FORWARD = "LatestMajor"
 
 try {
+    # Run tech debt marker scan to catch unlinked TODOs before push
+    $scanScript = Join-Path $repoRoot "build/scripts/todo-scanner/Scan-TodoComments.ps1"
+    if (Test-Path -LiteralPath $scanScript) {
+        Write-Host "Running tech debt marker scan..." -ForegroundColor Cyan
+        & $scanScript -FailOnUnlinked
+        if ($LASTEXITCODE -ne 0) {
+            Set-HookFailed -Check "todo-scanner"
+        }
+    }
+    else {
+        Write-Warning "Tech debt scanner not found at '$scanScript'. Skipping scan."
+    }
+
     $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
 
     $output = dotnet build $slnPath /p:PedanticMode=true --verbosity quiet 2>&1
