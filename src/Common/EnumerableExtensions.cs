@@ -3,11 +3,12 @@
 internal static class EnumerableExtensions
 {
     /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is <see langword="null"/>.</exception>
     internal static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source)
     {
         if (source == null)
         {
-            return default;
+            throw new ArgumentNullException(nameof(source));
         }
 
         return source.DefaultIfNotSingle(static _ => true);
@@ -26,11 +27,12 @@ internal static class EnumerableExtensions
     /// This should be equivalent to calling <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
     /// combined with a catch that returns <see langword="default"/>.
     /// </remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="predicate"/> is <see langword="null"/>.</exception>
     internal static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
     {
         if (source == null)
         {
-            return default;
+            throw new ArgumentNullException(nameof(source));
         }
 
         if (predicate == null)
