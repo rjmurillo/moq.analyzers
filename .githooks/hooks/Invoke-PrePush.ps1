@@ -9,6 +9,7 @@ if ($LASTEXITCODE -ne 0 -or -not $repoRoot) {
 . "$PSScriptRoot/../lib/LintHelpers.ps1"
 
 # Allow newer .NET runtimes to run tests targeting older TFMs
+$originalRollForward = $env:DOTNET_ROLL_FORWARD
 $env:DOTNET_ROLL_FORWARD = "LatestMajor"
 
 try {
@@ -51,6 +52,9 @@ catch {
     Write-Host $_ -ForegroundColor Red
     Write-Host $_.ScriptStackTrace
     $script:HookExitCode = 1
+}
+finally {
+    $env:DOTNET_ROLL_FORWARD = $originalRollForward
 }
 
 if ($script:HookExitCode -ne 0) {

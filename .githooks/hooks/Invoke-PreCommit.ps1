@@ -16,7 +16,7 @@ try {
     $csFiles = Get-StagedFiles -Extensions @('.cs')
     if ($csFiles.Count -gt 0) {
         $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
-        $includePaths = ($csFiles | ForEach-Object { "--include", $_ })
+        $includePaths = ($csFiles | ForEach-Object { "--include", (Join-Path $repoRoot $_) })
         Invoke-AutoFix -Files $csFiles -FixCommand {
             dotnet format $slnPath --verbosity quiet @includePaths 2>&1 | Out-Null
         }
