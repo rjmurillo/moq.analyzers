@@ -10,6 +10,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
     /// Provides both Moq reference assembly versions (4.8.2 and 4.18.4) for <c>[Theory]</c> tests.
     /// All analyzer tests must run against both versions to catch version-specific regressions.
     /// </summary>
+    /// <returns>One element per Moq reference assembly group.</returns>
     public static IEnumerable<object[]> MoqReferenceAssemblyGroups()
     {
         yield return [ReferenceAssemblyCatalog.Net80WithOldMoq];
