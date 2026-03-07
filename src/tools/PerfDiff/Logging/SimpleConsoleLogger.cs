@@ -15,7 +15,7 @@ internal sealed class SimpleConsoleLogger : ILogger
     private readonly LogLevel _minimalLogLevel;
     private readonly LogLevel _minimalErrorLevel;
 
-    private static ImmutableDictionary<LogLevel, ConsoleColor> LogLevelColorMap => new Dictionary<LogLevel, ConsoleColor>
+    private static readonly ImmutableDictionary<LogLevel, ConsoleColor> LogLevelColorMap = new Dictionary<LogLevel, ConsoleColor>
     {
         [LogLevel.Critical] = ConsoleColor.Red,
         [LogLevel.Error] = ConsoleColor.Red,
@@ -52,8 +52,14 @@ internal sealed class SimpleConsoleLogger : ILogger
             ConsoleColor messageColor = LogLevelColorMap[logLevel];
 
             Console.ForegroundColor = messageColor;
-            LogToConsole(message, logToErrorStream);
-            Console.ResetColor();
+            try
+            {
+                LogToConsole(message, logToErrorStream);
+            }
+            finally
+            {
+                Console.ResetColor();
+            }
         }
     }
 
