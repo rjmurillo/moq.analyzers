@@ -27,9 +27,19 @@ public static class BenchmarkFileReader
         {
             return JsonConvert.DeserializeObject<BdnResult>(await File.ReadAllTextAsync(resultFilePath).ConfigureAwait(false));
         }
-        catch (JsonSerializationException)
+        catch (JsonReaderException ex)
         {
-            logger.LogError("Exception while reading the {ResultFilePath} file.", resultFilePath);
+            logger.LogError(ex, "Failed to read benchmark file {ResultFilePath}.", resultFilePath);
+            return null;
+        }
+        catch (JsonSerializationException ex)
+        {
+            logger.LogError(ex, "Failed to read benchmark file {ResultFilePath}.", resultFilePath);
+            return null;
+        }
+        catch (IOException ex)
+        {
+            logger.LogError(ex, "Failed to read benchmark file {ResultFilePath}.", resultFilePath);
             return null;
         }
     }

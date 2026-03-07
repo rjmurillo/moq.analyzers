@@ -31,9 +31,20 @@ internal static class EtlDiffer
 
     public static TraceProcess GetTraceProcessFromETLFile(string eltPath)
     {
-        TraceLog? traceLog = TraceLog.OpenOrConvert(eltPath);
-        return traceLog.Processes
-            .First(p => p.Name.Equals("dotnet", StringComparison.OrdinalIgnoreCase));
+        TraceLog traceLog = TraceLog.OpenOrConvert(eltPath)
+            ?? throw new InvalidOperationException($"Failed to open ETL trace file: {eltPath}");
+
+        TraceProcess? process = traceLog.Processes
+            .FirstOrDefault(p => p.Name.Equals("dotnet", StringComparison.OrdinalIgnoreCase));
+
+        if (process is null)
+        {
+            string available = string.Join(", ", traceLog.Processes.Select(p => p.Name));
+            throw new InvalidOperationException(
+                $"No 'dotnet' process found in ETL file: {eltPath}. Available processes: {available}");
+        }
+
+        return process;
     }
 
     public static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
