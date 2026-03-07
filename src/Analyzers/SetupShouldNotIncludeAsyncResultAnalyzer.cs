@@ -28,22 +28,35 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
+
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private static void Analyze(SyntaxNodeAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
-        // Check Moq version and skip analysis if the version is 4.16.0 or later
-        AssemblyIdentity? moqAssembly = context.Compilation.ReferencedAssemblyNames.FirstOrDefault(a => a.Name.Equals("Moq", StringComparison.OrdinalIgnoreCase));
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
 
-        if (moqAssembly != null && moqAssembly.Version >= new Version(4, 16, 0))
+        if (!knownSymbols.IsMockReferenced())
         {
-            // Skip analysis for Moq 4.16.0 or later
             return;
         }
 
-        MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
+        // Check Moq version once per compilation, skip for 4.16.0 or later
+        AssemblyIdentity? moqAssembly = context.Compilation.ReferencedAssemblyNames
+            .FirstOrDefault(a => a.Name.Equals("Moq", StringComparison.OrdinalIgnoreCase));
 
+        if (moqAssembly != null && moqAssembly.Version >= new Version(4, 16, 0))
+        {
+            return;
+        }
+
+        context.RegisterSyntaxNodeAction(
+            syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
+            SyntaxKind.InvocationExpression);
+    }
+
+    private static void Analyze(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
+    {
         InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
 
         if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
