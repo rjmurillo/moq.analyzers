@@ -29,6 +29,13 @@
         "reportgenerator"
       ],
       "rollForward": false
+    },
+    "snitch": {
+      "version": "2.0.0",
+      "commands": [
+        "snitch"
+      ],
+      "rollForward": false
     }
   }
 }
