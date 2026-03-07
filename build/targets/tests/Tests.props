@@ -10,4 +10,8 @@
     </PackageReference>
     <PackageReference Include="Verify.Xunit" />
   </ItemGroup>
+
+  <ItemGroup Condition=" '$(IsTestProject)' == 'true' ">
+    <Content Include="$(MSBuildThisFileDirectory)xunit.runner.json" CopyToOutputDirectory="PreserveNewest" Link="xunit.runner.json" />
+  </ItemGroup>
 </Project>
