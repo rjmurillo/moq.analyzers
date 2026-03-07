@@ -10,25 +10,33 @@ namespace PerfDiff;
 internal static class DiffCommand
 {
     /// <summary>
-    /// Delegate for handling the diff command.
-    /// </summary>
-    /// <param name="baseline">Baseline results folder.</param>
-    /// <param name="results">Results folder.</param>
-    /// <param name="verbosity">Verbosity level.</param>
-    /// <param name="failOnRegression">Whether to fail on regression.</param>
-    /// <param name="console">Console for output.</param>
-    /// <returns>Exit code.</returns>
-    internal delegate Task<int> Handler(
-        string baseline,
-        string results,
-        string? verbosity,
-        bool failOnRegression,
-        IConsole console);
-
-    /// <summary>
     /// Gets the allowed verbosity levels for the command.
     /// </summary>
     private static readonly string[] VerbosityLevels = ["q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic"];
+
+    /// <summary>
+    /// Gets the baseline option.
+    /// </summary>
+    internal static Option<string?> BaselineOption { get; } =
+        new Option<string?>("--baseline", () => null, "folder that contains the baseline performance run data").LegalFilePathsOnly();
+
+    /// <summary>
+    /// Gets the results option.
+    /// </summary>
+    internal static Option<string?> ResultsOption { get; } =
+        new Option<string?>("--results", () => null, "folder that contains the performance results").LegalFilePathsOnly();
+
+    /// <summary>
+    /// Gets the verbosity option.
+    /// </summary>
+    internal static Option<string> VerbosityOption { get; } =
+        new Option<string>(["--verbosity", "-v"], "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]").FromAmong(VerbosityLevels);
+
+    /// <summary>
+    /// Gets the fail-on-regression option.
+    /// </summary>
+    internal static Option<bool> FailOnRegressionOption { get; } =
+        new(["--failOnRegression"], "Should return non-zero exit code if regression detected");
 
     /// <summary>
     /// Creates the root command with options for the diff command.
@@ -36,13 +44,12 @@ internal static class DiffCommand
     /// <returns>The configured <see cref="RootCommand"/>.</returns>
     internal static RootCommand CreateCommandLineOptions()
     {
-        // Sync changes to option and argument names with the FormatCommand.Handler above.
         RootCommand rootCommand = new RootCommand
         {
-            new Option<string?>("--baseline", () => null, "folder that contains the baseline performance run data").LegalFilePathsOnly(),
-            new Option<string?>("--results", () => null, "folder that contains the performance results").LegalFilePathsOnly(),
-            new Option<string>(["--verbosity", "-v"], "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]").FromAmong(VerbosityLevels),
-            new Option<bool>(["--failOnRegression"], "Should return non-zero exit code if regression detected"),
+            BaselineOption,
+            ResultsOption,
+            VerbosityOption,
+            FailOnRegressionOption,
         };
 
         rootCommand.Description = "diff two sets of performance results";
