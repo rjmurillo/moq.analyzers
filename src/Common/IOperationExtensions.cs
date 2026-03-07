@@ -103,13 +103,13 @@ internal static class IOperationExtensions
                 case IParameterReferenceOperation paramRef:
                     return SymbolEqualityComparer.Default.Equals(paramRef.Parameter, lambdaParameter);
 
-                case IPropertyReferenceOperation propRef:
-                    if (propRef.Instance == null)
+                case IMemberReferenceOperation memberRef:
+                    if (memberRef.Instance == null)
                     {
-                        return false; // Static property access
+                        return false; // Static member access
                     }
 
-                    current = propRef.Instance;
+                    current = memberRef.Instance;
                     break;
 
                 case IInvocationOperation invocationOp:
@@ -119,24 +119,6 @@ internal static class IOperationExtensions
                     }
 
                     current = invocationOp.Instance;
-                    break;
-
-                case IFieldReferenceOperation fieldRef:
-                    if (fieldRef.Instance == null)
-                    {
-                        return false; // Static field access
-                    }
-
-                    current = fieldRef.Instance;
-                    break;
-
-                case IEventReferenceOperation eventRef:
-                    if (eventRef.Instance == null)
-                    {
-                        return false; // Static event access
-                    }
-
-                    current = eventRef.Instance;
                     break;
 
                 case IConversionOperation conversionOp:

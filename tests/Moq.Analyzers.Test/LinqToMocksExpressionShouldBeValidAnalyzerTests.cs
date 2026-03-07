@@ -564,12 +564,10 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
 
     [Theory]
     [MemberData(nameof(MoqReferenceAssemblyGroups))]
-    public async Task ShouldNotFlagConditionalWithMixedSources(string referenceAssemblyGroup)
+    public async Task ShouldFlagNonVirtualMemberInsideConditionalExpression(string referenceAssemblyGroup)
     {
-        // Known limitation: a ternary expression is not a recognized receiver type in
-        // IsRootedInLambdaParameter, so the entire IConditionalOperation subtree is skipped.
-        // This prevents false positives but also means non-virtual members inside ternaries
-        // are not flagged (a false negative trade-off).
+        // Non-virtual member inside a ternary expression should be flagged.
+        // Virtual members and string literals in the same ternary should not be flagged.
         await Verifier.VerifyAnalyzerAsync(
             """
             using Moq;
@@ -584,7 +582,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
             {
                 private void Test()
                 {
-                    var mock = Mock.Of<ConcreteClass>(c => (c.IsEnabled ? c.NonVirtualProperty : "none") == "test");
+                    var mock = Mock.Of<ConcreteClass>(c => (c.IsEnabled ? {|Moq1302:c.NonVirtualProperty|} : "none") == "test");
                 }
             }
             """,
@@ -615,6 +613,155 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
                 private void Test()
                 {
                     var mock = Mock.Of<IOuter>(o => o.Inner.Value == "test");
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldFlagNonVirtualMemberInChainedAndComparison(string referenceAssemblyGroup)
+    {
+        // Regression test: chained && must not suppress non-virtual member diagnostics.
+        // The inner == comparisons are IBinaryOperation nodes that must pass through
+        // AnalyzeLambdaBody for decomposition, not be blocked by the guard.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public class ConcreteClass
+            {
+                public string NonVirtualProperty { get; set; }
+                public virtual int VirtualProperty { get; set; }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = Mock.Of<ConcreteClass>(c =>
+                        {|Moq1302:c.NonVirtualProperty|} == "a" &&
+                        c.VirtualProperty == 1);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldFlagMultipleNonVirtualMembersInChainedComparison(string referenceAssemblyGroup)
+    {
+        // Both non-virtual members in a chained && should be flagged.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public class ConcreteClass
+            {
+                public string Name { get; set; }
+                public int Age { get; set; }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = Mock.Of<ConcreteClass>(c =>
+                        {|Moq1302:c.Name|} == "test" &&
+                        {|Moq1302:c.Age|} == 42);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldNotFlagVirtualMembersInChainedComparisonWithStaticConstants(string referenceAssemblyGroup)
+    {
+        // No false positives: virtual members with static constants in chained &&.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public interface IService
+            {
+                string Name { get; }
+                int Priority { get; }
+                bool IsEnabled { get; }
+            }
+
+            public static class Defaults
+            {
+                public const string ServiceName = "default";
+                public const int DefaultPriority = 5;
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var svc = Mock.Of<IService>(s =>
+                        s.Name == Defaults.ServiceName &&
+                        s.Priority == Defaults.DefaultPriority &&
+                        s.IsEnabled == true);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldFlagNonVirtualMemberInOrComparison(string referenceAssemblyGroup)
+    {
+        // || is also an IBinaryOperation; non-virtual members must still be flagged.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public class ConcreteClass
+            {
+                public string NonVirtualProperty { get; set; }
+                public virtual bool IsActive { get; set; }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = Mock.Of<ConcreteClass>(c =>
+                        {|Moq1302:c.NonVirtualProperty|} == "x" ||
+                        c.IsActive == true);
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MoqReferenceAssemblyGroups))]
+    public async Task ShouldFlagNonVirtualPropertyInNullCoalescing(string referenceAssemblyGroup)
+    {
+        // Non-virtual member rooted in lambda parameter inside null-coalescing
+        // should still be flagged.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using Moq;
+
+            public class ConcreteClass
+            {
+                public string NonVirtualProperty { get; set; }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mock = Mock.Of<ConcreteClass>(c =>
+                        ({|Moq1302:c.NonVirtualProperty|} ?? "fallback") == "test");
                 }
             }
             """,

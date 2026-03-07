@@ -160,10 +160,12 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     /// <para>
     /// This method is the single entry point for all recursive member analysis. Every code path
     /// in <see cref="AnalyzeLambdaBody"/> that descends into child operations must route through
-    /// this method to ensure the <see cref="IOperationExtensions.IsRootedInLambdaParameter"/>
-    /// guard is applied. Calling <see cref="AnalyzeLambdaBody"/> directly from new code paths
-    /// bypasses the guard and risks false positives on static members, constants, and external
-    /// instance members (see GitHub issue #1010).
+    /// this method. The <see cref="IOperationExtensions.IsRootedInLambdaParameter"/> guard is
+    /// applied only to leaf member operations (<see cref="IMemberReferenceOperation"/> and
+    /// <see cref="IInvocationOperation"/>). Composite operations (e.g., <c>IBinaryOperation</c>
+    /// for chained <c>&amp;&amp;</c>/<c>||</c>/<c>==</c>) pass through to
+    /// <see cref="AnalyzeLambdaBody"/> for decomposition. Blocking composite operations would
+    /// cause false negatives for chained comparisons (see GitHub issue #1010).
     /// </para>
     /// <para>
     /// Nested <c>Mock.Of</c> calls are excluded to prevent false positives from inner mock
@@ -183,12 +185,17 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Only analyze operations rooted in the lambda parameter.
-        // Members on unrelated types (static fields, constants, enum values) are value
-        // expressions and should not be flagged.
-        if (!operation.IsRootedInLambdaParameter(lambdaOperation))
+        // Only apply the lambda-parameter guard to leaf member operations (property,
+        // field, event, method). Composite operations (IBinaryOperation for &&/||/==,
+        // IConditionalOperation, etc.) must pass through to AnalyzeLambdaBody for
+        // decomposition; blocking them here causes false negatives for chained
+        // comparisons like `c.Prop == "a" && c.Other == "b"`.
+        if (operation is IMemberReferenceOperation or IInvocationOperation)
         {
-            return;
+            if (!operation.IsRootedInLambdaParameter(lambdaOperation))
+            {
+                return;
+            }
         }
 
         // Recursively analyze the operation to find member references
