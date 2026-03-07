@@ -1,8 +1,8 @@
 <Project>
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Pin to the C# version shipped with the SDK in global.json -->
-    <LangVersion>13</LangVersion>
+    <!-- Use the default C# version for the SDK pinned in global.json -->
+    <LangVersion>default</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
