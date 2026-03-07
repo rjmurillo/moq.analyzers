@@ -156,6 +156,7 @@ if ($env:GITHUB_STEP_SUMMARY) {
 
 | File | Line | Content |
 |------|------|---------|
+
 "@
         foreach ($item in $unlinkedDetails) {
             $escapedContent = $item.Content -replace '\|', '\|'
