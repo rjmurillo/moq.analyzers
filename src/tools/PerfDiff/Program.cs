@@ -39,7 +39,8 @@ internal sealed class Program
     {
         if (s_parseResult == null)
         {
-            return 1;
+            Console.Error.WriteLine("Error: Command line arguments were not parsed. This indicates an internal initialization error.");
+            return UnhandledExceptionExitCode;
         }
 
         // Setup logging.
