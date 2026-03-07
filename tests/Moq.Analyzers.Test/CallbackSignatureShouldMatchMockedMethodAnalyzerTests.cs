@@ -46,6 +46,9 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
             // Double-parenthesized Setup with correct callback
             ["""((new Mock<IFoo>().Setup(x => x.DoWork("test")))).Callback((string param) => { });"""],
 
+            // In parameter with correct signature
+            ["""new Mock<IFoo>().Setup(m => m.DoIn(in It.Ref<DateTime>.IsAny)).Callback((in DateTime timestamp) => { });"""],
+
             // Implicitly typed lambda with correct parameter type via generic Callback overload
             ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback<string>((x) => { });"""],
 
@@ -67,6 +70,9 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Out parameter mismatch (missing out)
             ["""new Mock<IFoo>().Setup(m => m.DoOut(out It.Ref<int>.IsAny)).Callback(({|Moq1100:int result|}) => { });"""],
+
+            // In parameter mismatch (missing in modifier)
+            ["""new Mock<IFoo>().Setup(m => m.DoIn(in It.Ref<DateTime>.IsAny)).Callback(({|Moq1100:DateTime timestamp|}) => { });"""],
 
             // Parenthesized Setup with wrong callback type
             ["""(new Mock<IFoo>().Setup(x => x.DoWork("test"))).Callback(({|Moq1100:int wrongParam|}) => { });"""],
