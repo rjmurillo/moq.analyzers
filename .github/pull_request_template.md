@@ -2,7 +2,8 @@
 
 <!-- Provide a concise summary of the change and which issue(s) it addresses. -->
 
-Fixes # <!-- issue number -->
+<!-- If this PR fixes an issue, uncomment the line below and add the issue number. -->
+<!-- Fixes # -->
 
 ## Motivation and Context
 
@@ -12,7 +13,7 @@ Fixes # <!-- issue number -->
 
 <!-- List the key changes introduced by this PR. -->
 
-- 
+-
 
 ## Type of Change
 
@@ -25,18 +26,8 @@ Fixes # <!-- issue number -->
 - [ ] Documentation update
 - [ ] Build or CI configuration change
 
-## Testing Done
-
-<!-- Describe the tests you ran and how to reproduce them. -->
-
-- [ ] Existing unit tests pass (`dotnet test`)
-- [ ] New unit tests added for the change
-- [ ] Verified analyzer behavior in a sample project (if applicable)
-
 ## Checklist
 
-- [ ] My code follows the project coding style
-- [ ] I have added or updated XML documentation where appropriate
+- [ ] I have met all requirements in [`CONTRIBUTING.md`](../CONTRIBUTING.md)
 - [ ] I have added tests that prove my fix is effective or my feature works
-- [ ] New and existing unit tests pass locally
-- [ ] My changes generate no new warnings
+- [ ] I have updated documentation where appropriate
