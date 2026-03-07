@@ -61,6 +61,101 @@ internal static class IOperationExtensions
         => TraverseLambdaBody(bodyOperation, static op => op.GetSyntaxFromOperation());
 
     /// <summary>
+    /// Determines whether an operation's receiver chain terminates in a parameter of the
+    /// given lambda. Walks instance receivers (property, method, field, event) and transparent
+    /// wrappers (conversion, parenthesized) until it reaches a
+    /// <see cref="IParameterReferenceOperation"/> or a terminal node.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This method exists because <c>IAnonymousFunctionOperation.GetCaptures()</c> is an
+    /// internal Roslyn API and cannot be used by analyzers. Even if it were public, it
+    /// solves a different problem: it reports closed-over variables, not whether a member
+    /// access chain originates from the lambda parameter.
+    /// </para>
+    /// <para>
+    /// Use this method before flagging member accesses inside lambda expression analysis
+    /// to distinguish mock setup members (rooted in the lambda parameter) from value
+    /// expressions (static members, external locals, constants).
+    /// </para>
+    /// </remarks>
+    /// <param name="operation">The operation whose receiver chain to walk.</param>
+    /// <param name="lambdaOperation">The lambda whose parameter to match against.</param>
+    /// <returns>
+    /// <see langword="true"/> if the receiver chain terminates in the lambda parameter;
+    /// <see langword="false"/> otherwise.
+    /// </returns>
+    internal static bool IsRootedInLambdaParameter(
+        this IOperation operation,
+        IAnonymousFunctionOperation lambdaOperation)
+    {
+        IParameterSymbol? lambdaParameter = lambdaOperation.Symbol.Parameters.FirstOrDefault();
+        if (lambdaParameter == null)
+        {
+            return false;
+        }
+
+        IOperation current = operation;
+        while (current != null)
+        {
+            switch (current)
+            {
+                case IParameterReferenceOperation paramRef:
+                    return SymbolEqualityComparer.Default.Equals(paramRef.Parameter, lambdaParameter);
+
+                case IPropertyReferenceOperation propRef:
+                    if (propRef.Instance == null)
+                    {
+                        return false; // Static property access
+                    }
+
+                    current = propRef.Instance;
+                    break;
+
+                case IInvocationOperation invocationOp:
+                    if (invocationOp.Instance == null)
+                    {
+                        return false; // Static method call
+                    }
+
+                    current = invocationOp.Instance;
+                    break;
+
+                case IFieldReferenceOperation fieldRef:
+                    if (fieldRef.Instance == null)
+                    {
+                        return false; // Static field access
+                    }
+
+                    current = fieldRef.Instance;
+                    break;
+
+                case IEventReferenceOperation eventRef:
+                    if (eventRef.Instance == null)
+                    {
+                        return false; // Static event access
+                    }
+
+                    current = eventRef.Instance;
+                    break;
+
+                case IConversionOperation conversionOp:
+                    current = conversionOp.Operand;
+                    break;
+
+                case IParenthesizedOperation parenOp:
+                    current = parenOp.Operand;
+                    break;
+
+                default:
+                    return false;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Traverses a lambda body operation to extract a value. For block lambdas, iterates all
     /// operations and returns the first non-null result (handling <see cref="System.Action{T}"/> lambdas with multiple
     /// operations, e.g., ExpressionStatement + implicit void Return). For expression lambdas,
