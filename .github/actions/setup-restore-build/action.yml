@@ -13,7 +13,7 @@ runs:
       run: |
         $maxAttempts = 3
         for ($i = 1; $i -le $maxAttempts; $i++) {
-          Write-Host "Attempt $i of $maxAttempts: dotnet tool restore"
+          Write-Host "Attempt $i of ${maxAttempts}: dotnet tool restore"
           dotnet tool restore
           if ($LASTEXITCODE -eq 0) { break }
           if ($i -eq $maxAttempts) {
