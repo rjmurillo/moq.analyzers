@@ -17,7 +17,7 @@
 - PR title: "Lacking coverage for LINQ to Mocks"
 - Test file: `LinqToMocksExpressionShouldBeValidAnalyzerTests.cs`, also in `458ca5d`
 - One test refactor: commit `1d5a6d0` (PR #635, "improve code coverage")
-- `ShouldNotReportFalsePositiveForStaticExternalProperty` test -- covering `StatusCodes.Status200OK` on RHS -- was present at time of investigation (current state). Its commit origin is `1d5a6d0`, NOT the original `458ca5d`.
+- `ShouldNotReportFalsePositiveForStaticExternalProperty` test -- covering `StatusCodes.Status200OK` on RHS -- was added as part of the fix (commit `1d5a6d0`, PR #635). It did not exist before that commit.
 - The `IBinaryOperation` case in `AnalyzeLambdaBody` unconditionally recurses into BOTH operands via `AnalyzeMemberOperations`
 - `AnalyzeMemberOperations` ultimately calls `AnalyzeLambdaBody`, which handles `IFieldReferenceOperation` by calling `AnalyzeMemberSymbol`
 - `AnalyzeMemberSymbol` only skips interface members and compiler-error spans; it flags non-virtual fields on concrete types
@@ -89,11 +89,11 @@
 
 This is NOT an isolated defect. The git log shows:
 
-- PR #4cf69db: "Remove false positive for Moq1200 when using parameterized lambda"
-- PR #9c05b6b: "Moq1203 false positive when Setup call is wrapped in parentheses"
-- PR #ca1949a: "Moq1203 false positives for ReturnsAsync and Callback chaining"
-- PR #6621540: "Resolve delegate-overload resolution for Moq1203 and Moq1206"
-- PR #8a82731: "Use semantic model to resolve implicitly typed lambda parameters"
+- Commit 4cf69db: "Remove false positive for Moq1200 when using parameterized lambda"
+- Commit 9c05b6b: "Moq1203 false positive when Setup call is wrapped in parentheses"
+- Commit ca1949a: "Moq1203 false positives for ReturnsAsync and Callback chaining"
+- Commit 6621540: "Resolve delegate-overload resolution for Moq1203 and Moq1206"
+- Commit 8a82731: "Use semantic model to resolve implicitly typed lambda parameters"
 
 **Pattern**: False positives recur when analyzers process expression sub-trees without distinguishing the semantic role of each node. Operators (binary, ternary, coalesce) have operands with different purposes. Treating them symmetrically causes false positives on the "value" operand.
 
