@@ -16,6 +16,7 @@ namespace PerfDiff;
 internal sealed class Program
 {
     internal const int UnhandledExceptionExitCode = 1;
+    internal const int CancelledExitCode = 2;
     private static ParseResult? s_parseResult;
 
     private static async Task<int> Main(string[] args)
@@ -69,9 +70,12 @@ internal sealed class Program
 #pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
             return UnhandledExceptionExitCode;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            return UnhandledExceptionExitCode;
+#pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+            logger.LogWarning(ex, "Operation was cancelled.");
+#pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+            return CancelledExitCode;
         }
         finally
         {
@@ -88,9 +92,7 @@ internal sealed class Program
             serviceCollection.AddLogging();
 
             ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-            ILogger<Program>? logger = serviceProvider.GetService<ILogger<Program>>();
-
-            return logger!;
+            return serviceProvider.GetRequiredService<ILogger<Program>>();
         }
 
         static LogLevel GetLogLevel(string? verbosity)

@@ -80,9 +80,7 @@ try {
     }
 }
 catch {
-    Write-Host $_
-    Write-Host $_.Exception
-    Write-Host $_.ScriptStackTrace
+    Write-Error "$_`n$($_.Exception)`n$($_.ScriptStackTrace)"
     $host.SetShouldExit(1)
     exit 1
 }
