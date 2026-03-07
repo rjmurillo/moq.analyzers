@@ -95,6 +95,11 @@ jobs:
         if: needs.check-paths.outputs.code-changed == 'true'
         uses: ./.github/actions/setup-restore-build
 
+      - name: Detect unused NuGet dependencies
+        if: needs.check-paths.outputs.code-changed == 'true'
+        shell: pwsh
+        run: dotnet tool restore && dotnet snitch --strict
+
       - name: Validate analyzer host compatibility
         if: needs.check-paths.outputs.code-changed == 'true'
         shell: pwsh
