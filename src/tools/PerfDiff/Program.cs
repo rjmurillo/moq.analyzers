@@ -2,8 +2,6 @@
 
 using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
-using System.CommandLine.Parsing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,17 +14,22 @@ namespace PerfDiff;
 internal sealed class Program
 {
     internal const int UnhandledExceptionExitCode = 1;
-    private static ParseResult? s_parseResult;
 
     private static async Task<int> Main(string[] args)
     {
         RootCommand rootCommand = DiffCommand.CreateCommandLineOptions();
-        rootCommand.Handler = CommandHandler.Create(new DiffCommand.Handler(RunAsync));
+        rootCommand.SetAction(async (parseResult, cancellationToken) =>
+        {
+            string baseline = parseResult.GetValue(DiffCommand.BaselineOption) ?? string.Empty;
+            string results = parseResult.GetValue(DiffCommand.ResultsOption) ?? string.Empty;
+            string? verbosity = parseResult.GetValue(DiffCommand.VerbosityOption);
+            bool failOnRegression = parseResult.GetValue(DiffCommand.FailOnRegressionOption);
 
-        // Parse the incoming args so we can give warnings when deprecated options are used.
-        s_parseResult = rootCommand.Parse(args);
+            int exitCode = await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken).ConfigureAwait(false);
+            parseResult.Action!.ExitCode = exitCode;
+        });
 
-        return await rootCommand.InvokeAsync(args).ConfigureAwait(false);
+        return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
     }
 
     public static async Task<int> RunAsync(
@@ -34,28 +37,15 @@ internal sealed class Program
         string results,
         string? verbosity,
         bool failOnRegression,
-        IConsole console)
+        CancellationToken cancellationToken)
     {
-        if (s_parseResult == null)
-        {
-            return 1;
-        }
-
         // Setup logging.
         LogLevel logLevel = GetLogLevel(verbosity);
-        ILogger<Program> logger = SetupLogging(console, minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
-
-        // Hook so we can cancel and exit when ctrl+c is pressed.
-        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        Console.CancelKeyPress += (sender, e) =>
-        {
-            e.Cancel = true;
-            cancellationTokenSource.Cancel();
-        };
+        ILogger<Program> logger = SetupLogging(minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
 
         try
         {
-            int exitCode = await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationTokenSource.Token).ConfigureAwait(false);
+            int exitCode = await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationToken).ConfigureAwait(false);
             return exitCode;
         }
         catch (FileNotFoundException fex)
@@ -72,10 +62,10 @@ internal sealed class Program
             return UnhandledExceptionExitCode;
         }
 
-        static ILogger<Program> SetupLogging(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
+        static ILogger<Program> SetupLogging(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(new LoggerFactory().AddSimpleConsole(console, minimalLogLevel, minimalErrorLevel));
+            serviceCollection.AddSingleton(new LoggerFactory().AddSimpleConsole(minimalLogLevel, minimalErrorLevel));
             serviceCollection.AddLogging();
 
             ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
