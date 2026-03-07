@@ -1,0 +1,162 @@
+<#
+.SYNOPSIS
+    Scans source files for TODO/FIXME/HACK/UNDONE comments and enforces issue linking.
+.DESCRIPTION
+    Finds tech debt markers in source code and validates that each one references a
+    GitHub issue using the format: TODO(#123), FIXME(#456), HACK(#789), UNDONE(#101).
+
+    Unlinked markers are reported as errors. This ensures technical debt is tracked
+    in the issue tracker, not hidden in code comments.
+.PARAMETER Path
+    Root directory to scan. Defaults to the repository root.
+.PARAMETER Extensions
+    File extensions to scan. Defaults to common source file types.
+.PARAMETER ExcludePatterns
+    Regex patterns for paths to exclude from scanning.
+.PARAMETER FailOnUnlinked
+    If set, exits with code 1 when unlinked markers are found.
+.EXAMPLE
+    ./Scan-TodoComments.ps1 -FailOnUnlinked
+#>
+[CmdletBinding()]
+param(
+    [string]$Path,
+
+    [string[]]$Extensions = @('*.cs', '*.ps1', '*.sh', '*.yaml', '*.yml', '*.json', '*.xml', '*.md', '*.csproj', '*.props', '*.targets'),
+
+    [string[]]$ExcludePatterns = @(
+        '[\\/]bin[\\/]',
+        '[\\/]obj[\\/]',
+        '[\\/]artifacts[\\/]',
+        '[\\/]\.git[\\/]',
+        '[\\/]\.claude[\\/]',
+        '[\\/]\.serena[\\/]',
+        '[\\/]node_modules[\\/]',
+        '\.verified\.(txt|xml|json)$',
+        'Scan-TodoComments\.ps1$'
+    ),
+
+    [switch]$FailOnUnlinked
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+if (-not $Path) {
+    $Path = git rev-parse --show-toplevel
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Unable to determine repository root."
+        exit 1
+    }
+}
+
+# Markers to scan for (case-insensitive)
+$markers = @('TODO', 'FIXME', 'HACK', 'UNDONE')
+
+# Pattern that matches a linked marker: TODO(#123) or FIXME(#456)
+$linkedPattern = '(?i)\b(?:' + ($markers -join '|') + ')\s*\(\s*#\d+\s*\)'
+
+# Pattern that matches any marker (linked or unlinked)
+$anyMarkerPattern = '(?i)\b(?:' + ($markers -join '|') + ')\b'
+
+$files = Get-ChildItem -Path $Path -Recurse -Include $Extensions -File
+
+$totalLinked = 0
+$totalUnlinked = 0
+$unlinkedDetails = @()
+
+foreach ($file in $files) {
+    $relativePath = $file.FullName.Substring($Path.Length).TrimStart('\', '/')
+
+    # Skip excluded paths
+    $skip = $false
+    foreach ($pattern in $ExcludePatterns) {
+        if ($relativePath -match $pattern) {
+            $skip = $true
+            break
+        }
+    }
+    if ($skip) { continue }
+
+    $lineNumber = 0
+    foreach ($line in (Get-Content -Path $file.FullName -ErrorAction SilentlyContinue)) {
+        $lineNumber++
+
+        if ($line -match $anyMarkerPattern) {
+            if ($line -match $linkedPattern) {
+                $totalLinked++
+            }
+            else {
+                $totalUnlinked++
+                $unlinkedDetails += [PSCustomObject]@{
+                    File    = $relativePath
+                    Line    = $lineNumber
+                    Content = $line.Trim()
+                }
+            }
+        }
+    }
+}
+
+$total = $totalLinked + $totalUnlinked
+
+Write-Host ""
+Write-Host "=== Tech Debt Marker Report ===" -ForegroundColor Cyan
+Write-Host "Total markers found: $total"
+Write-Host "  Linked to issues:  $totalLinked" -ForegroundColor Green
+Write-Host "  Unlinked:          $totalUnlinked" -ForegroundColor $(if ($totalUnlinked -gt 0) { 'Yellow' } else { 'Green' })
+Write-Host ""
+
+if ($totalLinked -gt 0) {
+    Write-Host "Linked markers are properly tracked." -ForegroundColor Green
+}
+
+if ($totalUnlinked -gt 0) {
+    Write-Host "Unlinked markers (should reference a GitHub issue):" -ForegroundColor Yellow
+    Write-Host ""
+    foreach ($item in $unlinkedDetails) {
+        Write-Host "  $($item.File):$($item.Line)" -ForegroundColor Yellow
+        Write-Host "    $($item.Content)" -ForegroundColor DarkYellow
+    }
+    Write-Host ""
+    Write-Host "Fix by adding an issue reference: TODO(#123): description" -ForegroundColor Yellow
+}
+
+# Output GitHub Actions summary if running in CI
+if ($env:GITHUB_STEP_SUMMARY) {
+    $summary = @"
+### Tech Debt Marker Report
+
+| Metric | Count |
+|--------|-------|
+| Total markers | $total |
+| Linked to issues | $totalLinked |
+| Unlinked | $totalUnlinked |
+
+"@
+
+    if ($totalUnlinked -gt 0) {
+        $summary += @"
+
+<details>
+<summary>Unlinked markers ($totalUnlinked)</summary>
+
+| File | Line | Content |
+|------|------|---------|
+"@
+        foreach ($item in $unlinkedDetails) {
+            $escapedContent = $item.Content -replace '\|', '\|'
+            $summary += "| ``$($item.File)`` | $($item.Line) | ``$escapedContent`` |`n"
+        }
+        $summary += "`n</details>`n"
+    }
+
+    Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summary
+}
+
+if ($FailOnUnlinked -and $totalUnlinked -gt 0) {
+    Write-Host "FAIL: $totalUnlinked unlinked tech debt marker(s) found. Link them to GitHub issues." -ForegroundColor Red
+    exit 1
+}
+
+exit 0

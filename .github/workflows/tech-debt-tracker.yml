@@ -1,0 +1,25 @@
+name: Tech debt tracker
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  scan-todo:
+    name: Scan TODO/FIXME markers
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v4
+
+      - name: Scan for unlinked tech debt markers
+        shell: pwsh
+        run: ./build/scripts/todo-scanner/Scan-TodoComments.ps1 -FailOnUnlinked
