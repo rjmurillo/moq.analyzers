@@ -17,7 +17,7 @@
 - PR title: "Lacking coverage for LINQ to Mocks"
 - Test file: `LinqToMocksExpressionShouldBeValidAnalyzerTests.cs`, also in `458ca5d`
 - One test refactor: commit `1d5a6d0` (PR #635, "improve code coverage")
-- `ShouldNotReportFalsePositiveForStaticExternalProperty` test -- covering `StatusCodes.Status200OK` on RHS -- was added as part of the fix (commit `1d5a6d0`, PR #635). It did not exist before that commit.
+- `ShouldNotReportFalsePositiveForStaticExternalProperty` test -- covering `StatusCodes.Status200OK` on RHS -- was proposed as part of the fix but does not exist in the current codebase. The test name is a descriptive placeholder for the missing boundary case.
 - The `IBinaryOperation` case in `AnalyzeLambdaBody` unconditionally recurses into BOTH operands via `AnalyzeMemberOperations`
 - `AnalyzeMemberOperations` ultimately calls `AnalyzeLambdaBody`, which handles `IFieldReferenceOperation` by calling `AnalyzeMemberSymbol`
 - `AnalyzeMemberSymbol` only skips interface members and compiler-error spans; it flags non-virtual fields on concrete types
@@ -89,11 +89,11 @@
 
 This is NOT an isolated defect. The git log shows:
 
-- Commit 4cf69db: "Remove false positive for Moq1200 when using parameterized lambda"
-- Commit 9c05b6b: "Moq1203 false positive when Setup call is wrapped in parentheses"
-- Commit ca1949a: "Moq1203 false positives for ReturnsAsync and Callback chaining"
-- Commit 6621540: "Resolve delegate-overload resolution for Moq1203 and Moq1206"
-- Commit 8a82731: "Use semantic model to resolve implicitly typed lambda parameters"
+- Commit `4cf69db`: "Remove false positive for Moq1200 when using parameterized lambda"
+- Commit `9c05b6b`: "Moq1203 false positive when Setup call is wrapped in parentheses"
+- Commit `ca1949a`: "Moq1203 false positives for ReturnsAsync and Callback chaining"
+- Commit `6621540`: "Resolve delegate-overload resolution for Moq1203 and Moq1206"
+- Commit `8a82731`: "Use semantic model to resolve implicitly typed lambda parameters"
 
 **Pattern**: False positives recur when analyzers process expression sub-trees without distinguishing the semantic role of each node. Operators (binary, ternary, coalesce) have operands with different purposes. Treating them symmetrically causes false positives on the "value" operand.
 
@@ -235,7 +235,7 @@ Clear root cause, systemic pattern identified, 4 atomic learnings extracted, dir
 
 **Hindered**: No separate test data directory; all coverage visible only by reading the test class carefully.
 
-**Hypothesis**: Adding a PR checklist item "if AI generated both impl and tests, reviewer must add at least 3 adversarial boundary cases" would reduce this class of escape.
+**Hypothesis**: Adding a PR checklist item "if AI generated both impl and tests, reviewer must add at least one adversarial boundary case per RHS category" would reduce this class of escape. The 5 RHS categories are: (1) static property on concrete class, (2) const field on concrete class, (3) local variable, (4) method call on unrelated type, (5) nested property chain on unrelated type.
 
 ---
 

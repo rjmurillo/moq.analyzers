@@ -5,7 +5,7 @@
 
 ## Constraints (HIGH confidence)
 
-- `IsRootedInLambdaParameter` guard must only apply to leaf member operations (`IMemberReferenceOperation` or `IInvocationOperation`), not composite operations like `IBinaryOperation`. Blocking composites causes false negatives on chained comparisons (`&&`/`||`/`==`). See issue #1010, PR #1017. (Session 1, 2026-03-06)
+- A lambda-parameter guard (proposed, not yet implemented) must only apply to leaf member operations (`IMemberReferenceOperation` or `IInvocationOperation`), not composite operations like `IBinaryOperation`. Blocking composites causes false negatives on chained comparisons (`&&`/`||`/`==`). The `LinqToMocksExpressionShouldBeValidAnalyzer` still uses a full tree walk via `ChildOperations` without a receiver guard. See issue #1010, PR #1017. (Session 1, 2026-03-06)
 
 ## Preferences (MED confidence)
 

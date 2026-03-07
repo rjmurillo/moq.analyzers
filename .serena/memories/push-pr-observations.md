@@ -9,7 +9,7 @@
 
 ## Preferences (MED confidence)
 
-- Run actionlint before gh act to catch YAML errors faster. Actionlint needs no Docker; gh act requires Docker and sudo. (Session 1, 2026-03-06)
+- Run actionlint before gh act to catch YAML errors faster. Actionlint runs natively (preferred) or via Docker as a fallback; gh act requires Docker and sudo. (Session 1, 2026-03-06)
 
 ## Edge Cases (MED confidence)
 
