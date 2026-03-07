@@ -8,6 +8,10 @@ runs:
       with:
         global-json-file: ./global.json
 
+    - name: Restore local .NET tools
+      shell: pwsh
+      run: dotnet tool restore
+
     - name: NuGet Restore
       shell: pwsh
       run: dotnet restore
