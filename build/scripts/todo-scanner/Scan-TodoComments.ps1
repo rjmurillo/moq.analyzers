@@ -53,9 +53,6 @@ if (-not $Path) {
 # Markers to scan for (case-insensitive)
 $markers = @('TODO', 'FIXME', 'HACK', 'UNDONE')
 
-# Pattern that matches a linked marker: TODO(#123) or FIXME(#456)
-$linkedPattern = '(?i)\b(?:' + ($markers -join '|') + ')\s*\(\s*#\d+\s*\)'
-
 # Pattern that matches any marker (linked or unlinked)
 $anyMarkerPattern = '(?i)\b(?:' + ($markers -join '|') + ')\b'
 
