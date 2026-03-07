@@ -1,11 +1,46 @@
-name-template: 'v$RESOLVED_VERSION'
-tag-template: 'v$RESOLVED_VERSION'
+# Release Drafter configuration
+#
+# This generates a draft release on GitHub each time a PR merges to main.
+# The draft is a starting point: before publishing a release, the maintainer
+# should:
+#   1. Create a release branch (release/vX.Y.Z) per CONTRIBUTING.md
+#   2. Retarget the draft release to that branch
+#   3. Set the tag to match the NBGV-derived version (e.g. v0.5.0)
+#   4. Polish the notes to match the project's release style (see v0.4.0,
+#      v0.4.1 for examples with Highlights, Breaking Changes, Contributors,
+#      Resources, and Feedback sections)
+#
+# Versioning is controlled by Nerdbank.GitVersioning (version.json), NOT by
+# the version-resolver below. The resolver is intentionally omitted.
+
+name-template: 'v$NEXT_PATCH_VERSION'
+tag-template: 'v$NEXT_PATCH_VERSION'
 template: |
+  # Moq.Analyzers $NEXT_PATCH_VERSION
+
+  <!-- Edit this draft before publishing. See prior releases (v0.4.0, v0.4.1)
+       for the expected style with Highlights, Breaking Changes, Contributors,
+       Resources, and Feedback sections. -->
+
   ## What's Changed
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  ## Contributors
+
+  $CONTRIBUTORS
+
+  ## Resources
+
+  - **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$NEXT_PATCH_VERSION
+  - **Documentation**: https://github.com/$OWNER/$REPOSITORY/tree/main/docs/rules
+  - **Issue Tracker**: https://github.com/$OWNER/$REPOSITORY/issues
+
+  ## Feedback
+
+  - **Report bugs**: https://github.com/$OWNER/$REPOSITORY/issues/new
+  - **Request features**: https://github.com/$OWNER/$REPOSITORY/discussions
+  - **Ask questions**: https://github.com/$OWNER/$REPOSITORY/discussions/categories/q-a
 categories:
   - title: 'New Analyzers & Code Fixes'
     labels:
@@ -33,23 +68,6 @@ categories:
       - '*'
 exclude-labels:
   - 'skip-changelog'
-version-resolver:
-  major:
-    labels:
-      - 'major'
-      - 'breaking'
-  minor:
-    labels:
-      - 'feature'
-      - 'enhancement'
-      - 'analyzers'
-  patch:
-    labels:
-      - 'bug'
-      - 'bugfix'
-      - 'dependencies'
-      - 'build'
-  default: patch
 autolabeler:
   - label: 'feature'
     title:
@@ -64,6 +82,3 @@ autolabeler:
     title:
       - '/^build(\(.+\))?!?:/'
       - '/^ci(\(.+\))?!?:/'
-  - label: 'breaking'
-    title:
-      - '/^.+!:/'
