@@ -32,12 +32,27 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
+
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private static void AnalyzeInvocation(OperationAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
-        if (!TryGetSetupInvocation(context, out IInvocationOperation? setupInvocation, out MoqKnownSymbols? knownSymbols))
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
+        if (!knownSymbols.IsMockReferenced())
+        {
+            return;
+        }
+
+        context.RegisterOperationAction(
+            operationAnalysisContext => AnalyzeInvocation(operationAnalysisContext, knownSymbols),
+            OperationKind.Invocation);
+    }
+
+    private static void AnalyzeInvocation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
+    {
+        if (!TryGetSetupInvocation(context, knownSymbols, out IInvocationOperation? setupInvocation))
         {
             return;
         }
@@ -58,24 +73,16 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     private static bool TryGetSetupInvocation(
         OperationAnalysisContext context,
-        out IInvocationOperation setupInvocation,
-        out MoqKnownSymbols knownSymbols)
+        MoqKnownSymbols knownSymbols,
+        out IInvocationOperation setupInvocation)
     {
         setupInvocation = null!;
-        knownSymbols = null!;
 
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
             return false;
         }
 
-        SemanticModel? semanticModel = invocationOperation.SemanticModel;
-        if (semanticModel == null)
-        {
-            return false;
-        }
-
-        knownSymbols = new MoqKnownSymbols(semanticModel.Compilation);
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
 
         if (!targetMethod.IsMoqSetupMethod(knownSymbols))
