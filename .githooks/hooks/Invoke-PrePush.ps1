@@ -41,12 +41,7 @@ catch {
     $script:HookExitCode = 1
 }
 finally {
-    if ($null -eq $originalRollForward) {
-        Remove-Item Env:DOTNET_ROLL_FORWARD -ErrorAction SilentlyContinue
-    }
-    else {
-        $env:DOTNET_ROLL_FORWARD = $originalRollForward
-    }
+    $env:DOTNET_ROLL_FORWARD = $originalRollForward
 }
 
 if ($script:HookExitCode -ne 0) {
