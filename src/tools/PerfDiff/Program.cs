@@ -41,7 +41,7 @@ internal sealed class Program
     {
         // Setup logging.
         LogLevel logLevel = GetLogLevel(verbosity);
-        ILogger<Program> logger = SetupLogging(minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
+        (ServiceProvider serviceProvider, ILogger<Program> logger) = SetupLogging(minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
 
         try
         {
@@ -61,8 +61,12 @@ internal sealed class Program
         {
             return UnhandledExceptionExitCode;
         }
+        finally
+        {
+            serviceProvider.Dispose();
+        }
 
-        static ILogger<Program> SetupLogging(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
+        static (ServiceProvider ServiceProvider, ILogger<Program> Logger) SetupLogging(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(new LoggerFactory().AddSimpleConsole(minimalLogLevel, minimalErrorLevel));
@@ -71,7 +75,7 @@ internal sealed class Program
             ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
             ILogger<Program>? logger = serviceProvider.GetService<ILogger<Program>>();
 
-            return logger!;
+            return (serviceProvider, logger!);
         }
 
         static LogLevel GetLogLevel(string? verbosity)
