@@ -25,6 +25,24 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    public static IEnumerable<object[]> ValidRaisesOnReturnsChainTestData()
+    {
+        return new object[][]
+        {
+            // Valid: Raises on Returns chain with Action<string> event with string argument
+            ["""mockProvider.Setup(x => x.GetValue()).Returns(1).Raises(x => x.StringEvent += null, "test");"""],
+
+            // Valid: Raises on Returns chain with Action<int> event with int argument
+            ["""mockProvider.Setup(x => x.GetValue()).Returns(1).Raises(x => x.NumberEvent += null, 42);"""],
+
+            // Valid: Raises on Returns chain with EventHandler<CustomArgs> event with correct args
+            ["""mockProvider.Setup(x => x.GetValue()).Returns(1).Raises(x => x.CustomEvent += null, new CustomArgs());"""],
+
+            // Valid: Raises on Returns chain with Action event with no parameters
+            ["""mockProvider.Setup(x => x.GetValue()).Returns(1).Raises(x => x.SimpleEvent += null);"""],
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+    }
+
     public static IEnumerable<object[]> InvalidTestData()
     {
         return new object[][]
@@ -44,6 +62,21 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
             // Invalid: Too few arguments
             ["""{|Moq1204:mockProvider.Setup(x => x.Submit()).Raises(x => x.StringEvent += null)|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> InvalidRaisesOnReturnsChainTestData()
+    {
+        return new object[][]
+        {
+            // Invalid: Raises on Returns chain with Action<string> event with int argument
+            ["""mockProvider.Setup(x => x.GetValue()).Returns(1).Raises(x => x.StringEvent += null, {|Moq1204:42|});"""],
+
+            // Invalid: Raises on Returns chain with Action<int> event with string argument
+            ["""mockProvider.Setup(x => x.GetValue()).Returns(1).Raises(x => x.NumberEvent += null, {|Moq1204:"test"|});"""],
+
+            // Invalid: Raises on Returns chain with EventHandler<CustomArgs> event with wrong type
+            ["""mockProvider.Setup(x => x.GetValue()).Returns(1).Raises(x => x.CustomEvent += null, {|Moq1204:"wrong"|});"""],
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
     }
 
     [Theory]
@@ -66,6 +99,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
             internal interface ITestInterface
             {
                 void Submit();
+                int GetValue();
                 event Action<string> StringEvent;
                 event Action<int> NumberEvent;
                 event EventHandler<CustomArgs> CustomEvent;
@@ -105,6 +139,87 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
             internal interface ITestInterface
             {
                 void Submit();
+                int GetValue();
+                event Action<string> StringEvent;
+                event Action<int> NumberEvent;
+                event EventHandler<CustomArgs> CustomEvent;
+                event Action SimpleEvent;
+                event MyDelegate CustomDelegate;
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mockProvider = new Mock<ITestInterface>();
+                    {{raisesCall}}
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidRaisesOnReturnsChainTestData))]
+    public async Task ShouldNotReportDiagnosticForValidRaisesOnReturnsChainArguments(string referenceAssemblyGroup, string @namespace, string raisesCall)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+            {{@namespace}}
+            using Moq;
+            using System;
+
+            internal class CustomArgs : EventArgs
+            {
+                public string Value { get; set; }
+            }
+
+            internal delegate void MyDelegate(string value);
+
+            internal interface ITestInterface
+            {
+                void Submit();
+                int GetValue();
+                event Action<string> StringEvent;
+                event Action<int> NumberEvent;
+                event EventHandler<CustomArgs> CustomEvent;
+                event Action SimpleEvent;
+                event MyDelegate CustomDelegate;
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mockProvider = new Mock<ITestInterface>();
+                    {{raisesCall}}
+                }
+            }
+            """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidRaisesOnReturnsChainTestData))]
+    public async Task ShouldReportDiagnosticForInvalidRaisesOnReturnsChainArguments(string referenceAssemblyGroup, string @namespace, string raisesCall)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+            {{@namespace}}
+            using Moq;
+            using System;
+
+            internal class CustomArgs : EventArgs
+            {
+                public string Value { get; set; }
+            }
+
+            internal delegate void MyDelegate(string value);
+
+            internal interface ITestInterface
+            {
+                void Submit();
+                int GetValue();
                 event Action<string> StringEvent;
                 event Action<int> NumberEvent;
                 event EventHandler<CustomArgs> CustomEvent;
