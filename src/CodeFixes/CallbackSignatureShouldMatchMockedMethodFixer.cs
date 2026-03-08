@@ -72,7 +72,12 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
     private static async Task<Document> FixParenthesizedCallbackSignatureAsync(SyntaxNode root, Document document, ParameterListSyntax oldParameters, CancellationToken cancellationToken)
     {
-        ParameterListSyntax? newParameters = await ResolveNewParameterListAsync(document, oldParameters, oldParameters.SpanStart, cancellationToken).ConfigureAwait(false);
+        if (IsInsideDelegateConstructor(oldParameters))
+        {
+            return document;
+        }
+
+        ParameterListSyntax? newParameters = await ResolveNewParameterListAsync(document, oldParameters, oldParameters.SpanStart, oldParameters.Parameters, cancellationToken).ConfigureAwait(false);
         if (newParameters is null)
         {
             return document;
@@ -84,7 +89,8 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
     private static async Task<Document> FixSimpleLambdaCallbackSignatureAsync(SyntaxNode root, Document document, SimpleLambdaExpressionSyntax simpleLambda, CancellationToken cancellationToken)
     {
-        ParameterListSyntax? newParameters = await ResolveNewParameterListAsync(document, simpleLambda, simpleLambda.SpanStart, cancellationToken).ConfigureAwait(false);
+        SeparatedSyntaxList<ParameterSyntax> originalParams = SyntaxFactory.SeparatedList(new[] { simpleLambda.Parameter });
+        ParameterListSyntax? newParameters = await ResolveNewParameterListAsync(document, simpleLambda, simpleLambda.SpanStart, originalParams, cancellationToken).ConfigureAwait(false);
         if (newParameters is null)
         {
             return document;
@@ -102,7 +108,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         return document.WithSyntaxRoot(newRoot);
     }
 
-    private static async Task<ParameterListSyntax?> ResolveNewParameterListAsync(Document document, SyntaxNode lambdaNode, int position, CancellationToken cancellationToken)
+    private static async Task<ParameterListSyntax?> ResolveNewParameterListAsync(Document document, SyntaxNode lambdaNode, int position, SeparatedSyntaxList<ParameterSyntax>? originalParameters, CancellationToken cancellationToken)
     {
         SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         if (semanticModel is null)
@@ -128,7 +134,15 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
             return null;
         }
 
-        return BuildParameterList(semanticModel, mockedMethod, position);
+        return BuildParameterList(semanticModel, mockedMethod, position, originalParameters);
+    }
+
+    private static bool IsInsideDelegateConstructor(SyntaxNode node)
+    {
+        return node
+            .Ancestors()
+            .OfType<ObjectCreationExpressionSyntax>()
+            .Any();
     }
 
     private static IMethodSymbol? FindSingleMockedMethod(SemanticModel semanticModel, MoqKnownSymbols knownSymbols, InvocationExpressionSyntax callbackInvocation, CancellationToken cancellationToken)
@@ -150,14 +164,21 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         return matchingMockedMethods[0];
     }
 
-    private static ParameterListSyntax BuildParameterList(SemanticModel semanticModel, IMethodSymbol mockedMethod, int position)
+    private static ParameterListSyntax BuildParameterList(SemanticModel semanticModel, IMethodSymbol mockedMethod, int position, SeparatedSyntaxList<ParameterSyntax>? originalParameters = null)
     {
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(mockedMethod.Parameters.Select(
-            parameterSymbol =>
+            (parameterSymbol, index) =>
             {
                 TypeSyntax type = SyntaxFactory.ParseTypeName(parameterSymbol.Type.ToMinimalDisplayString(semanticModel, position));
                 SyntaxTokenList modifiers = GetParameterModifiers(parameterSymbol.RefKind);
-                return SyntaxFactory.Parameter(default, modifiers, type, SyntaxFactory.Identifier(parameterSymbol.Name), null);
+
+                string name = originalParameters.HasValue && index < originalParameters.Value.Count
+                    ? originalParameters.Value[index].Identifier.ValueText
+                    : parameterSymbol.Name;
+
+                SyntaxToken identifier = SyntaxFactory.Identifier(name);
+
+                return SyntaxFactory.Parameter(default, modifiers, type, identifier, null);
             })));
     }
 
