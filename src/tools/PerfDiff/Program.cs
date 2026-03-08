@@ -31,7 +31,7 @@ internal sealed class Program
         return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
     }
 
-    public static async Task<int> RunAsync(
+    internal static async Task<int> RunAsync(
         string baseline,
         string results,
         string? verbosity,
