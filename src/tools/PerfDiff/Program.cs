@@ -71,6 +71,7 @@ internal sealed class Program
         {
             return UnhandledExceptionExitCode;
         }
+
         static ILogger<Program> SetupLogging(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
