@@ -12,7 +12,7 @@ namespace Moq.CodeFixes;
 [Shared]
 public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 {
-    private const string FixTitle = "Fix Moq callback signature";
+    private static readonly string FixTitle = "Fix Moq callback signature";
 
     /// <inheritdoc />
     public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.BadCallbackParameters);
@@ -144,10 +144,14 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
     private static bool IsInsideDelegateConstructor(SyntaxNode node)
     {
-        return node
-            .Ancestors()
-            .OfType<ObjectCreationExpressionSyntax>()
-            .Any();
+        LambdaExpressionSyntax? lambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+        return lambda?.Parent is ArgumentSyntax
+        {
+            Parent: ArgumentListSyntax
+            {
+                Parent: ObjectCreationExpressionSyntax
+            }
+        };
     }
 
     private static IMethodSymbol? FindSingleMockedMethod(SemanticModel semanticModel, MoqKnownSymbols knownSymbols, InvocationExpressionSyntax callbackInvocation, CancellationToken cancellationToken)
@@ -171,20 +175,25 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
     private static ParameterListSyntax BuildParameterList(SemanticModel semanticModel, IMethodSymbol mockedMethod, int position, SeparatedSyntaxList<ParameterSyntax>? originalParameters = null)
     {
-        return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(mockedMethod.Parameters.Select(
-            (parameterSymbol, index) =>
-            {
-                TypeSyntax type = SyntaxFactory.ParseTypeName(parameterSymbol.Type.ToMinimalDisplayString(semanticModel, position));
-                SyntaxTokenList modifiers = GetParameterModifiers(parameterSymbol.RefKind);
+        ImmutableArray<IParameterSymbol> parameters = mockedMethod.Parameters;
+        List<ParameterSyntax> result = new List<ParameterSyntax>(parameters.Length);
 
-                string name = originalParameters.HasValue && index < originalParameters.Value.Count
-                    ? originalParameters.Value[index].Identifier.ValueText
-                    : parameterSymbol.Name;
+        for (int index = 0; index < parameters.Length; index++)
+        {
+            IParameterSymbol parameterSymbol = parameters[index];
+            TypeSyntax type = SyntaxFactory.ParseTypeName(parameterSymbol.Type.ToMinimalDisplayString(semanticModel, position));
+            SyntaxTokenList modifiers = GetParameterModifiers(parameterSymbol.RefKind);
 
-                SyntaxToken identifier = SyntaxFactory.Identifier(name);
+            string name = originalParameters.HasValue && index < originalParameters.Value.Count
+                ? originalParameters.Value[index].Identifier.ValueText
+                : parameterSymbol.Name;
 
-                return SyntaxFactory.Parameter(default, modifiers, type, identifier, null);
-            })));
+            SyntaxToken identifier = SyntaxFactory.Identifier(name);
+
+            result.Add(SyntaxFactory.Parameter(default, modifiers, type, identifier, null));
+        }
+
+        return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(result));
     }
 
     private static SyntaxTokenList GetParameterModifiers(RefKind refKind)
