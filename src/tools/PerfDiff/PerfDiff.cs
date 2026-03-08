@@ -33,56 +33,49 @@ public static class PerfDiff
             return 0;
         }
 
-        (bool etlCompareSucceeded, bool etlRegressionDetected) = CheckEltTraces(baselineFolder, resultsFolder, failOnRegression);
+        (bool etlCompareSucceeded, bool etlRegressionDetected) = CheckEltTraces(baselineFolder, resultsFolder);
         if (!etlCompareSucceeded)
         {
 #pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogTrace(ILogger, string?, params object?[])'
             logger.LogTrace("We detected a regression in BenchmarkDotNet and there is no ETL info.");
 #pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogTrace(ILogger, string?, params object?[])'
-            return 1;
+            return failOnRegression ? 1 : 0;
         }
 
         if (etlRegressionDetected)
         {
 #pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogTrace(ILogger, string?, params object?[])'
-            logger.LogTrace(" We detected a regression in BenchmarkDotNet and there _is_ ETL info which agrees there was a regression.");
+            logger.LogTrace("We detected a regression in BenchmarkDotNet and there _is_ ETL info which agrees there was a regression.");
 #pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogTrace(ILogger, string?, params object?[])'
-            return 1;
+            return failOnRegression ? 1 : 0;
         }
 
 #pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogTrace(ILogger, string?, params object?[])'
-        logger.LogTrace("We detected a regression in BenchmarkDotNet but examining the ETL trace determined that is was noise.");
+        logger.LogTrace("We detected a regression in BenchmarkDotNet but examining the ETL trace determined that it was noise.");
 #pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogTrace(ILogger, string?, params object?[])'
         return 0;
     }
 
-    private static (bool compareSucceeded, bool regressionDetected) CheckEltTraces(string baselineFolder, string resultsFolder, bool failOnRegression)
+    private static (bool compareSucceeded, bool regressionDetected) CheckEltTraces(string baselineFolder, string resultsFolder)
     {
-        bool regressionDetected = false;
-
         // try look for ETL traces
         if (!TryGetETLPaths(baselineFolder, out string? baselineEtlPath))
         {
-            return (false, regressionDetected);
+            return (false, false);
         }
 
         if (!TryGetETLPaths(resultsFolder, out string? resultsEtlPath))
         {
-            return (false, regressionDetected);
+            return (false, false);
         }
 
         // Compare ETL
-        if (!EtlDiffer.TryCompareETL(resultsEtlPath, baselineEtlPath, out regressionDetected))
+        if (!EtlDiffer.TryCompareETL(resultsEtlPath, baselineEtlPath, out bool regressionDetected))
         {
-            return (false, regressionDetected);
+            return (false, false);
         }
 
-        if (regressionDetected && failOnRegression)
-        {
-            return (true, regressionDetected);
-        }
-
-        return (false, regressionDetected);
+        return (true, regressionDetected);
     }
 
     private const string ETLFileExtension = "etl.zip";
