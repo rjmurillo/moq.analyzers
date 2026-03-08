@@ -1,4 +1,6 @@
 using Moq.Analyzers.Common.WellKnown;
+using RaisesVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.RaisesEventArgumentsShouldMatchEventSignatureAnalyzer>;
+using RaiseVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.RaiseEventArgumentsShouldMatchEventSignatureAnalyzer>;
 
 namespace Moq.Analyzers.Test.Common;
 
@@ -23,6 +25,132 @@ public class EventSyntaxExtensionsTests
         isEnabledByDefault: true);
 #pragma warning restore ECS1300
 #pragma warning restore RS2008
+
+    public static IEnumerable<object[]> TooFewArgumentsData()
+    {
+        return new object[][]
+        {
+            // Action<string> expects 1 arg, Raises passes 0
+            ["""{|Moq1204:mockProvider.Setup(x => x.Submit()).Raises(x => x.StringEvent += null)|};"""],
+
+            // Custom delegate expects 2 params, Raises passes 1
+            ["""{|Moq1204:mockProvider.Setup(x => x.Submit()).Raises(x => x.TwoParamDelegate += null, "only-one")|};"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> TooManyArgumentsData()
+    {
+        return new object[][]
+        {
+            // Action<string> expects 1 arg, Raises passes 3
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.StringEvent += null, "test", {|Moq1204:"extra1"|});"""],
+
+            // Action event (no params) with extra arg
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.SimpleEvent += null, {|Moq1204:"unexpected"|});"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> WrongArgumentTypesData()
+    {
+        return new object[][]
+        {
+            // Action<string> event with int argument
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.StringEvent += null, {|Moq1204:42|});"""],
+
+            // Action<int> event with string argument
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.NumberEvent += null, {|Moq1204:"wrong"|});"""],
+
+            // EventHandler<CustomArgs> with wrong type
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.CustomEvent += null, {|Moq1204:"notCustomArgs"|});"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> ExactMatchData()
+    {
+        return new object[][]
+        {
+            // Action<string> with correct string
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.StringEvent += null, "correct");"""],
+
+            // Action<int> with correct int
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.NumberEvent += null, 42);"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> EventHandlerSubclassData()
+    {
+        return new object[][]
+        {
+            // EventHandler<CustomArgs> with CustomArgs instance
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.CustomEvent += null, new CustomArgs());"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> ActionDelegateData()
+    {
+        return new object[][]
+        {
+            // Action<double> with implicit int-to-double conversion
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.DoubleEvent += null, 42);"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> CustomDelegateData()
+    {
+        return new object[][]
+        {
+            // Custom delegate with matching parameters
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.TwoParamDelegate += null, "hello", 99);"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> ZeroExpectedParametersData()
+    {
+        return new object[][]
+        {
+            // Action event with zero parameters, no args passed
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.SimpleEvent += null);"""],
+
+            // Parameterless custom delegate with no args
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.NoParamDelegate += null);"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> ManyParametersMatchData()
+    {
+        return new object[][]
+        {
+            // Action<int, string, bool> with all correct types
+            ["""mockProvider.Raise(p => p.MultiParamEvent += null, 1, "two", true);"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> ManyParametersMismatchData()
+    {
+        return new object[][]
+        {
+            // Action<int, string, bool> with third arg wrong type
+            ["""mockProvider.Raise(p => p.MultiParamEvent += null, 1, "two", {|Moq1202:"notBool"|});"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> ZeroParamsWithExtraArgsData()
+    {
+        return new object[][]
+        {
+            // Parameterless delegate, but extra args are passed
+            ["""mockProvider.Setup(x => x.Submit()).Raises(x => x.NoParamDelegate += null, {|Moq1204:"extra"|});"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> RaiseWithEventNameData()
+    {
+        return new object[][]
+        {
+            // Raise (with event name) too few args
+            ["""{|Moq1202:mockProvider.Raise(p => p.StringOptionsChanged += null)|};"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
 
     [Fact]
     public void GetEventParameterTypes_MultiArgActionDelegate_FallsBackToCustomDelegateInvoke()
@@ -398,12 +526,223 @@ class C { event MyDelegate MyEvent; }",
         Assert.Contains("On<Click>", diagnostic.GetMessage(), StringComparison.Ordinal);
     }
 
-    // ValidateEventArgumentTypes requires SyntaxNodeAnalysisContext, which has no public
-    // constructor and requires internal analyzer infrastructure to construct. These methods
-    // are tested indirectly through RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
-    // and RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests, which exercise all
-    // branching logic (too few args, too many args, wrong type, matching types, with/without
-    // eventName).
+    // ValidateEventArgumentTypes tests exercise the method indirectly through the
+    // analyzer pipeline. SyntaxNodeAnalysisContext has no public constructor, so direct
+    // unit testing is not feasible.
+    [Theory]
+    [MemberData(nameof(TooFewArgumentsData))]
+    public async Task ValidateEventArgumentTypes_TooFewArguments_ReportsDiagnosticAtInvocationLocation(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raisesCall)
+    {
+        await RaisesVerifier.VerifyAnalyzerAsync(
+            CreateRaisesTestCode(@namespace, raisesCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(TooManyArgumentsData))]
+    public async Task ValidateEventArgumentTypes_TooManyArguments_ReportsDiagnosticAtFirstExtraArgument(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raisesCall)
+    {
+        await RaisesVerifier.VerifyAnalyzerAsync(
+            CreateRaisesTestCode(@namespace, raisesCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(WrongArgumentTypesData))]
+    public async Task ValidateEventArgumentTypes_WrongArgumentTypes_ReportsDiagnosticAtMismatchedArgument(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raisesCall)
+    {
+        await RaisesVerifier.VerifyAnalyzerAsync(
+            CreateRaisesTestCode(@namespace, raisesCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(ExactMatchData))]
+    public async Task ValidateEventArgumentTypes_ExactMatchCountAndTypes_NoDiagnostic(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raisesCall)
+    {
+        await RaisesVerifier.VerifyAnalyzerAsync(
+            CreateRaisesTestCode(@namespace, raisesCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(EventHandlerSubclassData))]
+    public async Task ValidateEventArgumentTypes_EventHandlerWithCorrectEventArgsSubclass_NoDiagnostic(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raisesCall)
+    {
+        await RaisesVerifier.VerifyAnalyzerAsync(
+            CreateRaisesTestCode(@namespace, raisesCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(ActionDelegateData))]
+    public async Task ValidateEventArgumentTypes_ActionDelegateWithCorrectType_NoDiagnostic(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raisesCall)
+    {
+        await RaisesVerifier.VerifyAnalyzerAsync(
+            CreateRaisesTestCode(@namespace, raisesCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(CustomDelegateData))]
+    public async Task ValidateEventArgumentTypes_CustomDelegateWithCorrectParameters_NoDiagnostic(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raisesCall)
+    {
+        await RaisesVerifier.VerifyAnalyzerAsync(
+            CreateRaisesTestCode(@namespace, raisesCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(ZeroExpectedParametersData))]
+    public async Task ValidateEventArgumentTypes_ZeroExpectedParameters_NoDiagnostic(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raisesCall)
+    {
+        await RaisesVerifier.VerifyAnalyzerAsync(
+            CreateRaisesTestCode(@namespace, raisesCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(ManyParametersMatchData))]
+    public async Task ValidateEventArgumentTypes_ManyParametersAllMatch_NoDiagnostic(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raiseCall)
+    {
+        await RaiseVerifier.VerifyAnalyzerAsync(
+            CreateRaiseTestCode(@namespace, raiseCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(ManyParametersMismatchData))]
+    public async Task ValidateEventArgumentTypes_ManyParametersWithMismatch_ReportsDiagnostic(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raiseCall)
+    {
+        await RaiseVerifier.VerifyAnalyzerAsync(
+            CreateRaiseTestCode(@namespace, raiseCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(ZeroParamsWithExtraArgsData))]
+    public async Task ValidateEventArgumentTypes_ZeroExpectedParamsWithExtraArgs_ReportsDiagnostic(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raisesCall)
+    {
+        await RaisesVerifier.VerifyAnalyzerAsync(
+            CreateRaisesTestCode(@namespace, raisesCall),
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(RaiseWithEventNameData))]
+    public async Task ValidateEventArgumentTypes_RaiseWithEventName_ReportsDiagnostic(
+        string referenceAssemblyGroup,
+        string @namespace,
+        string raiseCall)
+    {
+        await RaiseVerifier.VerifyAnalyzerAsync(
+            CreateRaiseTestCode(@namespace, raiseCall),
+            referenceAssemblyGroup);
+    }
+
+    private static string CreateRaisesTestCode(string @namespace, string raisesCall)
+    {
+        return $$"""
+            {{@namespace}}
+            using Moq;
+            using System;
+
+            internal class CustomArgs : EventArgs
+            {
+                public string Value { get; set; }
+            }
+
+            internal delegate void TwoParamDelegate(string a, int b);
+
+            internal delegate void NoParamDelegate();
+
+            internal interface ITestInterface
+            {
+                void Submit();
+                event Action<string> StringEvent;
+                event Action<int> NumberEvent;
+                event Action<double> DoubleEvent;
+                event EventHandler<CustomArgs> CustomEvent;
+                event Action SimpleEvent;
+                event TwoParamDelegate TwoParamDelegate;
+                event NoParamDelegate NoParamDelegate;
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mockProvider = new Mock<ITestInterface>();
+                    {{raisesCall}}
+                }
+            }
+            """;
+    }
+
+    private static string CreateRaiseTestCode(string @namespace, string raiseCall)
+    {
+        return $$"""
+            {{@namespace}}
+            using Moq;
+            using System;
+
+            internal class MyOptions { }
+            internal class Incorrect { }
+
+            internal interface IOptionsProvider
+            {
+                event Action<string> StringOptionsChanged;
+                event Action<int> NumberChanged;
+                event Action<MyOptions> OptionsChanged;
+                event Action SimpleEvent;
+                event Action<double> DoubleChanged;
+                event Action<int, string, bool> MultiParamEvent;
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var mockProvider = new Mock<IOptionsProvider>();
+                    {{raiseCall}}
+                }
+            }
+            """;
+    }
+
 #pragma warning disable ECS0900 // Boxing needed to cast to IEventSymbol from GetDeclaredSymbol
     private static (ITypeSymbol EventType, KnownSymbols KnownSymbols) GetEventFieldTypeWithKnownSymbols(
         string code,
