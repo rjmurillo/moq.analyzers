@@ -58,7 +58,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
                                         .OfType<SimpleLambdaExpressionSyntax>()
                                         .FirstOrDefault();
 
-        if (simpleLambda is not null)
+        if (simpleLambda is not null && !IsInsideDelegateConstructor(simpleLambda))
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
@@ -71,6 +71,11 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
     private static async Task<Document> FixParenthesizedCallbackSignatureAsync(SyntaxNode root, Document document, ParameterListSyntax oldParameters, CancellationToken cancellationToken)
     {
+        if (IsInsideDelegateConstructor(oldParameters))
+        {
+            return document;
+        }
+
         SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         if (semanticModel is null)
@@ -140,6 +145,18 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
         SyntaxNode newRoot = root.ReplaceNode(simpleLambda, parenthesizedLambda);
         return document.WithSyntaxRoot(newRoot);
+    }
+
+    private static bool IsInsideDelegateConstructor(SyntaxNode node)
+    {
+        LambdaExpressionSyntax? lambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+        return lambda?.Parent is ArgumentSyntax
+        {
+            Parent: ArgumentListSyntax
+            {
+                Parent: BaseObjectCreationExpressionSyntax
+            }
+        };
     }
 
     private static IMethodSymbol? FindSingleMockedMethod(SemanticModel semanticModel, MoqKnownSymbols knownSymbols, InvocationExpressionSyntax callbackInvocation, CancellationToken cancellationToken)

@@ -23,12 +23,21 @@ internal static class SemanticModelExtensions
             }
 
             SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(method, cancellationToken);
-            if (symbolInfo.Symbol is null)
+            ISymbol? resolvedSymbol = symbolInfo.Symbol;
+
+            if (resolvedSymbol is null)
             {
-                return null;
+                if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
+                    && symbolInfo.CandidateSymbols.Any(s => s.IsMoqSetupMethod(knownSymbols)))
+                {
+                    return invocation;
+                }
+
+                expression = method.Expression;
+                continue;
             }
 
-            if (symbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
+            if (resolvedSymbol.IsMoqSetupMethod(knownSymbols))
             {
                 return invocation;
             }
