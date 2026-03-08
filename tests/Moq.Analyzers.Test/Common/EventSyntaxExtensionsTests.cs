@@ -4,6 +4,26 @@ namespace Moq.Analyzers.Test.Common;
 
 public class EventSyntaxExtensionsTests
 {
+#pragma warning disable RS2008 // Enable analyzer release tracking (test-only descriptor)
+#pragma warning disable ECS1300 // Test-only descriptor; inline init is simpler than static constructor
+    private static readonly DiagnosticDescriptor TestRuleWithPlaceholder = new(
+        "EVT0001",
+        "Test",
+        "Event '{0}' has wrong args",
+        "Test",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor TestRuleNoPlaceholder = new(
+        "EVT0002",
+        "Test",
+        "Event has wrong args",
+        "Test",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+#pragma warning restore ECS1300
+#pragma warning restore RS2008
+
     [Fact]
     public void GetEventParameterTypes_MultiArgActionDelegate_FallsBackToCustomDelegateInvoke()
     {
@@ -280,6 +300,102 @@ class C { event MyDelegate MyEvent; }",
         Assert.True(result);
         Assert.Equal(2, eventArguments.Length);
         Assert.Equal(2, expectedParameterTypes.Length);
+    }
+
+    [Fact]
+    public void CreateEventDiagnostic_WithEventName_IncludesNameAsMessageArg()
+    {
+        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
+        Location location = tree.GetRoot().GetLocation();
+
+        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleWithPlaceholder, "MyEvent");
+
+        Assert.Equal("EVT0001", diagnostic.Id);
+        Assert.Contains("MyEvent", diagnostic.GetMessage(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CreateEventDiagnostic_WithEventName_PreservesLocation()
+    {
+        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
+        Location location = tree.GetRoot().GetLocation();
+
+        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleWithPlaceholder, "MyEvent");
+
+        Assert.True(diagnostic.Location.IsInSource);
+        Assert.Equal(location.SourceSpan, diagnostic.Location.SourceSpan);
+    }
+
+    [Fact]
+    public void CreateEventDiagnostic_WithEventName_UsesCorrectRule()
+    {
+        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
+        Location location = tree.GetRoot().GetLocation();
+
+        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleWithPlaceholder, "MyEvent");
+
+        Assert.Equal(TestRuleWithPlaceholder.Id, diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+    }
+
+    [Fact]
+    public void CreateEventDiagnostic_WithNullEventName_DoesNotIncludeMessageArgs()
+    {
+        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
+        Location location = tree.GetRoot().GetLocation();
+
+        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleNoPlaceholder, null);
+
+        Assert.Equal("EVT0002", diagnostic.Id);
+        Assert.Equal("Event has wrong args", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public void CreateEventDiagnostic_WithNullEventName_PreservesLocation()
+    {
+        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
+        Location location = tree.GetRoot().GetLocation();
+
+        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleNoPlaceholder, null);
+
+        Assert.True(diagnostic.Location.IsInSource);
+        Assert.Equal(location.SourceSpan, diagnostic.Location.SourceSpan);
+    }
+
+    [Fact]
+    public void CreateEventDiagnostic_WithNullEventName_UsesCorrectRule()
+    {
+        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
+        Location location = tree.GetRoot().GetLocation();
+
+        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleNoPlaceholder, null);
+
+        Assert.Equal(TestRuleNoPlaceholder.Id, diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+    }
+
+    [Fact]
+    public void CreateEventDiagnostic_WithEmptyStringEventName_PassesEmptyStringAsArg()
+    {
+        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
+        Location location = tree.GetRoot().GetLocation();
+
+        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleWithPlaceholder, string.Empty);
+
+        Assert.Equal("EVT0001", diagnostic.Id);
+        Assert.Equal("Event '' has wrong args", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public void CreateEventDiagnostic_WithSpecialCharactersInEventName_PassesNameAsArg()
+    {
+        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
+        Location location = tree.GetRoot().GetLocation();
+
+        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleWithPlaceholder, "On<Click>");
+
+        Assert.Equal("EVT0001", diagnostic.Id);
+        Assert.Contains("On<Click>", diagnostic.GetMessage(), StringComparison.Ordinal);
     }
 
     // ValidateEventArgumentTypes requires SyntaxNodeAnalysisContext, which has no public

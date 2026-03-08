@@ -123,6 +123,22 @@ internal static class EventSyntaxExtensions
     }
 
     /// <summary>
+    /// Creates a <see cref="Diagnostic"/> for an event-related rule violation.
+    /// When <paramref name="eventName"/> is provided, it is passed as a message format argument.
+    /// When <paramref name="eventName"/> is <see langword="null"/>, no message arguments are included.
+    /// </summary>
+    /// <param name="location">The source location for the diagnostic.</param>
+    /// <param name="rule">The diagnostic descriptor for the rule.</param>
+    /// <param name="eventName">The event name to include in the message, or <see langword="null"/>.</param>
+    /// <returns>A new <see cref="Diagnostic"/> instance.</returns>
+    internal static Diagnostic CreateEventDiagnostic(Location location, DiagnosticDescriptor rule, string? eventName)
+    {
+        return eventName != null
+            ? location.CreateDiagnostic(rule, eventName)
+            : location.CreateDiagnostic(rule);
+    }
+
+    /// <summary>
     /// Attempts to get parameter types from Action delegate types.
     /// </summary>
     /// <param name="namedType">The named type symbol to check.</param>
@@ -158,12 +174,5 @@ internal static class EventSyntaxExtensions
     {
         IMethodSymbol? invokeMethod = namedType.DelegateInvokeMethod;
         return invokeMethod?.Parameters.Select(p => p.Type).ToArray();
-    }
-
-    private static Diagnostic CreateEventDiagnostic(Location location, DiagnosticDescriptor rule, string? eventName)
-    {
-        return eventName != null
-            ? location.CreateDiagnostic(rule, eventName)
-            : location.CreateDiagnostic(rule);
     }
 }
