@@ -260,17 +260,17 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     {
         return new object[][]
         {
-            [ // Simple lambda in delegate constructor with wrong type rewrites to parenthesized lambda (issue #1012)
+            [ // Simple lambda in delegate constructor with wrong type bails out (issue #1012)
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>({|Moq1100:x|} => { }));""",
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>((string x) => { }));""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>({|Moq1100:x|} => { }));""",
             ],
-            [ // Simple lambda in delegate constructor with wrong parameter count rewrites to parenthesized lambda (issue #1012)
+            [ // Simple lambda in delegate constructor with wrong parameter count bails out (issue #1012)
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>({|Moq1100:x|} => { }));""",
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>((int x, string s, DateTime dt) => { }));""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>({|Moq1100:x|} => { }));""",
             ],
-            [ // Expression-bodied simple lambda in delegate constructor rewrites to parenthesized lambda
+            [ // Expression-bodied simple lambda in delegate constructor bails out
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>({|Moq1100:x|} => x.ToString()));""",
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>((string x) => x.ToString()));""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>({|Moq1100:x|} => x.ToString()));""",
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
@@ -316,9 +316,10 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         _output.WriteLine("Fixed:");
         _output.WriteLine(f);
 
-        // The fixer corrects the lambda parameters but does not update the outer
-        // delegate constructor type, so residual compiler diagnostics are expected.
-        await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup, CompilerDiagnostics.None);
+        // The fixer bails out for simple lambdas inside delegate constructors,
+        // so no fix iterations occur. Compiler diagnostics are suppressed because
+        // the delegate constructor type intentionally mismatches the lambda signature.
+        await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup, numberOfIncrementalIterations: 0, numberOfFixAllIterations: 0, CompilerDiagnostics.None);
     }
 
     [Theory]

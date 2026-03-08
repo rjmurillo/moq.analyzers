@@ -59,7 +59,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
                                         .OfType<SimpleLambdaExpressionSyntax>()
                                         .FirstOrDefault();
 
-        if (simpleLambda is not null)
+        if (simpleLambda is not null && !IsInsideDelegateConstructor(simpleLambda))
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
@@ -89,6 +89,11 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
     private static async Task<Document> FixSimpleLambdaCallbackSignatureAsync(SyntaxNode root, Document document, SimpleLambdaExpressionSyntax simpleLambda, CancellationToken cancellationToken)
     {
+        if (IsInsideDelegateConstructor(simpleLambda))
+        {
+            return document;
+        }
+
         SeparatedSyntaxList<ParameterSyntax> originalParams = SyntaxFactory.SeparatedList(new[] { simpleLambda.Parameter });
         ParameterListSyntax? newParameters = await ResolveNewParameterListAsync(document, simpleLambda, simpleLambda.SpanStart, originalParams, cancellationToken).ConfigureAwait(false);
         if (newParameters is null)

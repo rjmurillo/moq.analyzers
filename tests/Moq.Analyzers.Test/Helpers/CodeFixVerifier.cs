@@ -25,4 +25,25 @@ internal static class CodeFixVerifier<TAnalyzer, TCodeFixProvider>
 
         await test.RunAsync().ConfigureAwait(false);
     }
+
+    public static async Task VerifyCodeFixAsync(string originalSource, string fixedSource, string referenceAssemblyGroup, int numberOfIncrementalIterations, int numberOfFixAllIterations, CompilerDiagnostics? compilerDiagnostics = null)
+    {
+        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[referenceAssemblyGroup];
+
+        Test<TAnalyzer, TCodeFixProvider> test = new Test<TAnalyzer, TCodeFixProvider>
+        {
+            TestCode = originalSource,
+            FixedCode = fixedSource,
+            ReferenceAssemblies = referenceAssemblies,
+            NumberOfIncrementalIterations = numberOfIncrementalIterations,
+            NumberOfFixAllIterations = numberOfFixAllIterations,
+        };
+
+        if (compilerDiagnostics.HasValue)
+        {
+            test.CompilerDiagnostics = compilerDiagnostics.Value;
+        }
+
+        await test.RunAsync().ConfigureAwait(false);
+    }
 }
