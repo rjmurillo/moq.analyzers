@@ -395,6 +395,11 @@ dotnet_naming_style.s_camelcase.required_suffix =
 dotnet_naming_style.s_camelcase.word_separator =
 dotnet_naming_style.s_camelcase.capitalization = camel_case
 
+# CA1016: Mark assemblies with AssemblyVersionAttribute
+# NBGV auto-generates AssemblyVersion during build. Codacy compiles files
+# outside MSBuild context and cannot see the generated attribute.
+dotnet_diagnostic.CA1016.severity = none
+
 # MA0040: Forward the CancellationToken parameter to methods that take one
 dotnet_diagnostic.MA0040.severity = error
 # Async analyzer

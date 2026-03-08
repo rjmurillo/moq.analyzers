@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Moq.Analyzers;
+namespace Moq.CodeFixes;
 
 /// <summary>
 /// Fixes Moq.Verify calls on non-overridable members by making them virtual.

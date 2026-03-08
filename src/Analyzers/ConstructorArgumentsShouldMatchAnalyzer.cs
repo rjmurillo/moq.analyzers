@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Moq.Analyzers;
 
 /// <summary>
@@ -82,21 +80,22 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        ISymbol targetSymbol = symbolInfo.Symbol;
-        if (symbolInfo.Symbol is IParameterSymbol parameterSymbol)
-        {
-            targetSymbol = parameterSymbol.Type;
-        }
-        else if (symbolInfo.Symbol is ILocalSymbol localSymbol)
-        {
-            targetSymbol = localSymbol.Type;
-        }
-        else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
-        {
-            targetSymbol = fieldSymbol.Type;
-        }
-
+        ISymbol targetSymbol = GetUnderlyingTypeSymbol(symbolInfo.Symbol);
         return targetSymbol.IsInstanceOf(knownSymbols.MockBehavior);
+    }
+
+    /// <summary>
+    /// Extracts the type symbol from a symbol that may be a parameter, local, or field.
+    /// </summary>
+    private static ISymbol GetUnderlyingTypeSymbol(ISymbol symbol)
+    {
+        return symbol switch
+        {
+            IParameterSymbol parameterSymbol => parameterSymbol.Type,
+            ILocalSymbol localSymbol => localSymbol.Type,
+            IFieldSymbol fieldSymbol => fieldSymbol.Type,
+            _ => symbol,
+        };
     }
 
     private static bool IsArgumentMockBehavior(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ArgumentListSyntax? argumentList, uint argumentOrdinal)
@@ -189,8 +188,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         MoqKnownSymbols knownSymbols,
         InvocationExpressionSyntax invocationExpressionSyntax)
     {
-        bool hasReturnedMock = true;
-        bool hasMockBehavior = true;
         SymbolInfo symbol = context.SemanticModel.GetSymbolInfo(invocationExpressionSyntax, context.CancellationToken);
 
         if (symbol.Symbol is not IMethodSymbol method)
@@ -198,39 +195,26 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (!method.IsInstanceOf(knownSymbols.MockOf) && !method.IsInstanceOf(knownSymbols.MockRepositoryCreate))
+        if (method.IsInstanceOf(knownSymbols.MockOf))
+        {
+            // Mock.Of<T> cannot specify constructor parameters.
+            // The mocked type is the return type directly (not wrapped in Mock<T>).
+            VerifyMockAttempt(context, knownSymbols, method.ReturnType, argumentList: null, hasMockBehavior: true);
+            return;
+        }
+
+        if (!method.IsInstanceOf(knownSymbols.MockRepositoryCreate))
         {
             return;
         }
 
-        // We are calling MockRepository.Create<T> or Mock.Of<T>, determine which
-        ArgumentListSyntax? argumentList = null;
-        if (method.IsInstanceOf(knownSymbols.MockOf))
+        // MockRepository.Create<T> returns Mock<T>; extract T.
+        if (method.ReturnType is not INamedTypeSymbol { IsGenericType: true } typeSymbol)
         {
-            // Mock.Of<T> can specify condition for construction and MockBehavior, but
-            // cannot specify constructor parameters
-            //
-            // The only parameters that can be passed are not relevant for verification
-            // to just strip them
-            hasReturnedMock = false;
-        }
-        else
-        {
-            argumentList = invocationExpressionSyntax.ArgumentList;
+            return;
         }
 
-        ITypeSymbol returnType = method.ReturnType;
-        if (hasReturnedMock)
-        {
-            if (returnType is not INamedTypeSymbol { IsGenericType: true } typeSymbol)
-            {
-                return;
-            }
-
-            returnType = typeSymbol.TypeArguments[0];
-        }
-
-        VerifyMockAttempt(context, knownSymbols, returnType, argumentList, hasMockBehavior);
+        VerifyMockAttempt(context, knownSymbols, typeSymbol.TypeArguments[0], invocationExpressionSyntax.ArgumentList, hasMockBehavior: true);
     }
 
     /// <summary>
@@ -280,7 +264,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// If the construction method is a parenthesized lambda expression, <see langword="null" /> is returned.
     /// </returns>
     /// <remarks>Handles <see langword="params" /> and optional parameters.</remarks>
-    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "This should be refactored; suppressing for now to enable TreatWarningsAsErrors in CI.")]
     private static bool? AnyConstructorsFound(
         IMethodSymbol[] constructors,
         ArgumentSyntax[] arguments,
@@ -288,90 +271,15 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     {
         for (int constructorIndex = 0; constructorIndex < constructors.Length; constructorIndex++)
         {
-            IMethodSymbol constructor = constructors[constructorIndex];
-            bool hasParams = constructor.Parameters.Length > 0 && constructor.Parameters[^1].IsParams;
-            int fixedParametersCount = hasParams ? constructor.Parameters.Length - 1 : constructor.Parameters.Length;
-#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
-            int requiredParameters = constructor.Parameters.Count(parameterSymbol => !parameterSymbol.IsOptional);
-#pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
-            bool allParametersMatch = true;
-
-            // Check if the number of arguments is valid considering params
-            if ((arguments.Length < fixedParametersCount
-                 || (!hasParams && arguments.Length > fixedParametersCount)
-                 || (!hasParams && arguments.Length != fixedParametersCount))
-                && requiredParameters != arguments.Length)
-            {
-                continue;
-            }
-
-            // There's a chance that there are optional parameters or a ctor that is only optional parameters
-            if (arguments.Length <= requiredParameters
-                && arguments.Length == 0
-                && requiredParameters == 0
-                && fixedParametersCount != 0)
-            {
-                return true;
-            }
-
-            // Check fixed parameters
-            for (int parameterIndex = 0; parameterIndex < fixedParametersCount; parameterIndex++)
-            {
-                IParameterSymbol expectedParameter = constructor.Parameters[parameterIndex];
-
-                if (parameterIndex < arguments.Length)
-                {
-                    ArgumentSyntax passedArgument = arguments[parameterIndex];
-
-                    Conversion conversionType =
-                        context.SemanticModel.ClassifyConversion(passedArgument.Expression, expectedParameter.Type);
-
-                    if (!conversionType.Exists)
-                    {
-                        allParametersMatch = false;
-                        break;
-                    }
-                }
-            }
-
-            // Check params parameters if applicable
-            if (hasParams && allParametersMatch)
-            {
-                IParameterSymbol paramsParameter = constructor.Parameters[^1];
-                ITypeSymbol paramsElementType = ((IArrayTypeSymbol)paramsParameter.Type).ElementType;
-
-                for (int parameterIndex = fixedParametersCount; parameterIndex < arguments.Length; parameterIndex++)
-                {
-                    ArgumentSyntax passedArgument = arguments[parameterIndex];
-                    Conversion conversionType = context.SemanticModel.ClassifyConversion(passedArgument.Expression, paramsElementType);
-
-                    if (!conversionType.Exists)
-                    {
-                        allParametersMatch = false;
-                        break;
-                    }
-                }
-            }
-
-            if (allParametersMatch)
+            if (IsConstructorMatch(constructors[constructorIndex], arguments, context))
             {
                 return true;
             }
         }
 
-        // Special case for Lambda expression syntax
-        // In Moq you can specify a Lambda expression that creates an instance
-        // of the specified type
+        // Special case: parenthesized lambda creates the instance directly.
+        // The compiler validates the lambda, so no additional checks are needed.
         // See https://github.com/devlooped/moq/blob/18dc7410ad4f993ce0edd809c5dfcaa3199f13ff/src/Moq/Mock%601.cs#L200
-        //
-        // The parenthesized lambda takes arguments as the first child node
-        // which may be empty or have args defined as part of a closure.
-        // Either way, we don't care about that, we only care that the
-        // constructor is valid.
-        //
-        // Since this does not use reflection through Castle, an invalid
-        // lambda here would cause the compiler to break, so no need to
-        // do additional checks.
         if (arguments.Length == 1 && arguments[0].Expression.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
         {
             return null;
@@ -380,22 +288,129 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
+    /// <summary>
+    /// Determines whether the given constructor accepts the provided arguments.
+    /// </summary>
+    /// <param name="constructor">The constructor to check.</param>
+    /// <param name="arguments">The arguments provided at the call site.</param>
+    /// <param name="context">The syntax node analysis context.</param>
+    /// <returns><see langword="true"/> if the constructor matches the arguments; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>Handles <see langword="params"/> and optional parameters.</remarks>
+    private static bool IsConstructorMatch(
+        IMethodSymbol constructor,
+        ArgumentSyntax[] arguments,
+        SyntaxNodeAnalysisContext context)
+    {
+        bool hasParams = constructor.Parameters.Length > 0 && constructor.Parameters[^1].IsParams;
+        int fixedParametersCount = hasParams ? constructor.Parameters.Length - 1 : constructor.Parameters.Length;
+#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
+        int requiredParameters = constructor.Parameters.Count(parameterSymbol => !parameterSymbol.IsOptional);
+#pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
+
+        if (!IsArgumentCountValid(arguments.Length, fixedParametersCount, requiredParameters, hasParams))
+        {
+            return false;
+        }
+
+        // All parameters are optional and no arguments were provided.
+        if (arguments.Length == 0 && requiredParameters == 0 && fixedParametersCount != 0)
+        {
+            return true;
+        }
+
+        if (!AllFixedParametersMatch(constructor, arguments, fixedParametersCount, context))
+        {
+            return false;
+        }
+
+        if (hasParams && !AllParamsArgumentsMatch(constructor, arguments, fixedParametersCount, context))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks whether the number of arguments is valid for the constructor signature.
+    /// </summary>
+    private static bool IsArgumentCountValid(int argumentCount, int fixedParametersCount, int requiredParameters, bool hasParams)
+    {
+        // When the argument count matches the required parameter count, it is valid.
+        if (argumentCount == requiredParameters)
+        {
+            return true;
+        }
+
+        // For params constructors, the argument count must be at least the fixed parameter count.
+        if (hasParams)
+        {
+            return argumentCount >= fixedParametersCount;
+        }
+
+        // For non-params constructors, the argument count must equal the fixed parameter count.
+        return argumentCount == fixedParametersCount;
+    }
+
+    /// <summary>
+    /// Verifies that all fixed (non-params) arguments are convertible to the expected parameter types.
+    /// </summary>
+    private static bool AllFixedParametersMatch(
+        IMethodSymbol constructor,
+        ArgumentSyntax[] arguments,
+        int fixedParametersCount,
+        SyntaxNodeAnalysisContext context)
+    {
+        for (int parameterIndex = 0; parameterIndex < fixedParametersCount; parameterIndex++)
+        {
+            if (parameterIndex >= arguments.Length)
+            {
+                continue;
+            }
+
+            IParameterSymbol expectedParameter = constructor.Parameters[parameterIndex];
+            Conversion conversionType = context.SemanticModel.ClassifyConversion(arguments[parameterIndex].Expression, expectedParameter.Type);
+
+            if (!conversionType.Exists)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Verifies that all arguments in the params position are convertible to the params element type.
+    /// </summary>
+    private static bool AllParamsArgumentsMatch(
+        IMethodSymbol constructor,
+        ArgumentSyntax[] arguments,
+        int fixedParametersCount,
+        SyntaxNodeAnalysisContext context)
+    {
+        IParameterSymbol paramsParameter = constructor.Parameters[^1];
+        ITypeSymbol paramsElementType = ((IArrayTypeSymbol)paramsParameter.Type).ElementType;
+
+        for (int parameterIndex = fixedParametersCount; parameterIndex < arguments.Length; parameterIndex++)
+        {
+            Conversion conversionType = context.SemanticModel.ClassifyConversion(arguments[parameterIndex].Expression, paramsElementType);
+
+            if (!conversionType.Exists)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private static (bool IsEmpty, Location Location) ConstructorIsEmpty(
         IMethodSymbol[] constructors,
         ArgumentListSyntax? argumentList,
         SyntaxNodeAnalysisContext context)
     {
-        Location location;
-
-        if (argumentList != null)
-        {
-            location = argumentList.GetLocation();
-        }
-        else
-        {
-            location = context.Node.GetLocation();
-        }
-
+        Location location = argumentList?.GetLocation() ?? context.Node.GetLocation();
         return (constructors.Length == 0, location);
     }
 
