@@ -86,13 +86,7 @@ public static class PerfDiff
         {
             string[] files = Directory.GetFiles(path, $"*{ETLFileExtension}", SearchOption.AllDirectories);
             etlPath = files.SingleOrDefault();
-            if (etlPath is null)
-            {
-                etlPath = null;
-                return false;
-            }
-
-            return true;
+            return etlPath is not null;
         }
         else if (File.Exists(path) && path.EndsWith(ETLFileExtension, StringComparison.OrdinalIgnoreCase))
         {

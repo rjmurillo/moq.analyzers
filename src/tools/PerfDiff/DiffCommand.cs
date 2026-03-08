@@ -44,15 +44,13 @@ internal static class DiffCommand
     /// <returns>The configured <see cref="RootCommand"/>.</returns>
     internal static RootCommand CreateCommandLineOptions()
     {
-        RootCommand rootCommand = new RootCommand
+        RootCommand rootCommand = new RootCommand("diff two sets of performance results")
         {
             BaselineOption,
             ResultsOption,
             VerbosityOption,
             FailOnRegressionOption,
         };
-
-        rootCommand.Description = "diff two sets of performance results";
 
         return rootCommand;
     }
