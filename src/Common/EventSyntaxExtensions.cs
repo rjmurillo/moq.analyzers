@@ -46,10 +46,18 @@ internal static class EventSyntaxExtensions
 
     /// <summary>
     /// Gets the parameter types for a given event delegate type.
+    /// This method handles various delegate types including Action delegates, EventHandler delegates,
+    /// and custom delegates by analyzing their structure and extracting parameter information.
     /// </summary>
-    /// <param name="eventType">The event delegate type.</param>
+    /// <param name="eventType">The event delegate type to analyze.</param>
     /// <param name="knownSymbols">Known symbols for type checking.</param>
-    /// <returns>An array of parameter types expected by the event delegate.</returns>
+    /// <returns>
+    /// An array of parameter types expected by the event delegate:
+    /// - For Action delegates: Returns all generic type arguments
+    /// - For EventHandler&lt;T&gt; delegates: Returns the single generic argument T
+    /// - For custom delegates: Returns parameters from the Invoke method
+    /// - For non-delegate types: Returns empty array.
+    /// </returns>
     internal static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType, KnownSymbols knownSymbols)
     {
         if (eventType is not INamedTypeSymbol namedType)
@@ -57,6 +65,7 @@ internal static class EventSyntaxExtensions
             return [];
         }
 
+        // Try different delegate type handlers in order of specificity
         ITypeSymbol[]? parameterTypes = TryGetActionDelegateParameters(namedType, knownSymbols) ??
                             TryGetEventHandlerDelegateParameters(namedType, knownSymbols) ??
                             TryGetCustomDelegateParameters(namedType);
