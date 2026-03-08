@@ -105,28 +105,18 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         return IsExpressionMockBehavior(context, knownSymbols, expression);
     }
 
-    private static string FormatArguments(ArgumentSyntax[] arguments)
-    {
-        if (arguments.Length == 0)
-        {
-            return "()";
-        }
-
-        return $"({string.Join(", ", arguments.Select(arg => arg.Expression.ToString()))})";
-    }
-
     private static void VerifyDelegateMockAttempt(
     SyntaxNodeAnalysisContext context,
     ITypeSymbol mockedDelegate,
     ArgumentListSyntax? argumentList,
-    ArgumentSyntax[] arguments)
+    FilteredArgumentList arguments)
     {
-        if (arguments.Length == 0)
+        if (arguments.Count == 0)
         {
             return;
         }
 
-        string argumentsString = FormatArguments(arguments);
+        string argumentsString = arguments.FormatArguments();
         Diagnostic? diagnostic = argumentList?.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedDelegate.ToDisplayString(), argumentsString);
         if (diagnostic != null)
         {
@@ -138,15 +128,15 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         SyntaxNodeAnalysisContext context,
         ITypeSymbol mockedInterface,
         ArgumentListSyntax? argumentList,
-        ArgumentSyntax[] arguments)
+        FilteredArgumentList arguments)
     {
         // Interfaces and delegates don't have ctors, so bail out early
-        if (arguments.Length == 0)
+        if (arguments.Count == 0)
         {
             return;
         }
 
-        string argumentsString = FormatArguments(arguments);
+        string argumentsString = arguments.FormatArguments();
         Diagnostic? diagnostic = argumentList?.CreateDiagnostic(InterfaceMustNotHaveConstructorParameters, mockedInterface.ToDisplayString(), argumentsString);
         if (diagnostic != null)
         {
@@ -266,7 +256,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <remarks>Handles <see langword="params" /> and optional parameters.</remarks>
     private static bool? AnyConstructorsFound(
         IMethodSymbol[] constructors,
-        ArgumentSyntax[] arguments,
+        FilteredArgumentList arguments,
         SyntaxNodeAnalysisContext context)
     {
         for (int constructorIndex = 0; constructorIndex < constructors.Length; constructorIndex++)
@@ -280,7 +270,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         // Special case: parenthesized lambda creates the instance directly.
         // The compiler validates the lambda, so no additional checks are needed.
         // See https://github.com/devlooped/moq/blob/18dc7410ad4f993ce0edd809c5dfcaa3199f13ff/src/Moq/Mock%601.cs#L200
-        if (arguments.Length == 1 && arguments[0].Expression.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+        if (arguments.Count == 1 && arguments[0].Expression.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
         {
             return null;
         }
@@ -292,13 +282,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// Determines whether the given constructor accepts the provided arguments.
     /// </summary>
     /// <param name="constructor">The constructor to check.</param>
-    /// <param name="arguments">The arguments provided at the call site.</param>
+    /// <param name="arguments">The filtered arguments provided at the call site.</param>
     /// <param name="context">The syntax node analysis context.</param>
     /// <returns><see langword="true"/> if the constructor matches the arguments; otherwise, <see langword="false"/>.</returns>
     /// <remarks>Handles <see langword="params"/> and optional parameters.</remarks>
     private static bool IsConstructorMatch(
         IMethodSymbol constructor,
-        ArgumentSyntax[] arguments,
+        FilteredArgumentList arguments,
         SyntaxNodeAnalysisContext context)
     {
         bool hasParams = constructor.Parameters.Length > 0 && constructor.Parameters[^1].IsParams;
@@ -307,13 +297,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         int requiredParameters = constructor.Parameters.Count(parameterSymbol => !parameterSymbol.IsOptional);
 #pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
 
-        if (!IsArgumentCountValid(arguments.Length, fixedParametersCount, requiredParameters, hasParams))
+        if (!IsArgumentCountValid(arguments.Count, fixedParametersCount, requiredParameters, hasParams))
         {
             return false;
         }
 
         // All parameters are optional and no arguments were provided.
-        if (arguments.Length == 0 && requiredParameters == 0 && fixedParametersCount != 0)
+        if (arguments.Count == 0 && requiredParameters == 0 && fixedParametersCount != 0)
         {
             return true;
         }
@@ -357,13 +347,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static bool AllFixedParametersMatch(
         IMethodSymbol constructor,
-        ArgumentSyntax[] arguments,
+        FilteredArgumentList arguments,
         int fixedParametersCount,
         SyntaxNodeAnalysisContext context)
     {
         for (int parameterIndex = 0; parameterIndex < fixedParametersCount; parameterIndex++)
         {
-            if (parameterIndex >= arguments.Length)
+            if (parameterIndex >= arguments.Count)
             {
                 continue;
             }
@@ -385,14 +375,14 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static bool AllParamsArgumentsMatch(
         IMethodSymbol constructor,
-        ArgumentSyntax[] arguments,
+        FilteredArgumentList arguments,
         int fixedParametersCount,
         SyntaxNodeAnalysisContext context)
     {
         IParameterSymbol paramsParameter = constructor.Parameters[^1];
         ITypeSymbol paramsElementType = ((IArrayTypeSymbol)paramsParameter.Type).ElementType;
 
-        for (int parameterIndex = fixedParametersCount; parameterIndex < arguments.Length; parameterIndex++)
+        for (int parameterIndex = fixedParametersCount; parameterIndex < arguments.Count; parameterIndex++)
         {
             Conversion conversionType = context.SemanticModel.ClassifyConversion(arguments[parameterIndex].Expression, paramsElementType);
 
@@ -426,23 +416,24 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-#pragma warning disable ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
-        ArgumentSyntax[] arguments = argumentList?.Arguments.ToArray() ?? [];
-#pragma warning restore ECS0900 // Consider using an alternative implementation to avoid boxing and unboxing
+        int skipIndex = -1;
+        int argumentCount = argumentList?.Arguments.Count ?? 0;
 
-        if (hasMockBehavior && arguments.Length > 0)
+        if (hasMockBehavior && argumentCount > 0)
         {
-            if (arguments.Length >= 1 && IsArgumentMockBehavior(context, knownSymbols, argumentList, 0))
+            if (IsArgumentMockBehavior(context, knownSymbols, argumentList, 0))
             {
                 // They passed a mock behavior as the first argument; ignore as Moq swallows it
-                arguments = arguments.RemoveAt(0);
+                skipIndex = 0;
             }
-            else if (arguments.Length >= 2 && IsArgumentMockBehavior(context, knownSymbols, argumentList, 1))
+            else if (argumentCount >= 2 && IsArgumentMockBehavior(context, knownSymbols, argumentList, 1))
             {
                 // They passed a mock behavior as the second argument; ignore as Moq swallows it
-                arguments = arguments.RemoveAt(1);
+                skipIndex = 1;
             }
         }
+
+        FilteredArgumentList arguments = new(argumentList, skipIndex);
 
         switch (mockedClass.TypeKind)
         {
@@ -467,7 +458,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         SyntaxNodeAnalysisContext context,
         ITypeSymbol mockedClass,
         ArgumentListSyntax? argumentList,
-        ArgumentSyntax[] arguments)
+        FilteredArgumentList arguments)
     {
         IMethodSymbol[] constructors = mockedClass
             .GetMembers(WellKnownMemberNames.InstanceConstructorName)
@@ -475,7 +466,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             .Where(methodSymbol => methodSymbol.IsConstructor())
             .ToArray();
 
-        string argumentsString = FormatArguments(arguments);
+        string argumentsString = arguments.FormatArguments();
 
         // Bail out early if there are no arguments on constructors or no constructors at all
         (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
