@@ -59,12 +59,10 @@ internal readonly struct FilteredArgumentList
             return "()";
         }
 
-        // For small argument lists (typical 0-5 items), StringBuilder is efficient enough.
-        // Avoid LINQ/Select to eliminate delegate allocation.
         System.Text.StringBuilder sb = new();
         sb.Append('(');
 
-        bool first = true;
+        string separator = string.Empty;
         for (int i = 0; i < _arguments.Count; i++)
         {
             if (i == _skipIndex)
@@ -72,13 +70,9 @@ internal readonly struct FilteredArgumentList
                 continue;
             }
 
-            if (!first)
-            {
-                sb.Append(", ");
-            }
-
+            sb.Append(separator);
             sb.Append(_arguments[i].Expression.ToString());
-            first = false;
+            separator = ", ";
         }
 
         sb.Append(')');
