@@ -32,16 +32,16 @@ internal static class EtlDiffer
 
     private static CallTree GetCallTree(string eltPath)
     {
-        TraceProcess traceProcess = GetTraceProcessFromETLFile(eltPath);
+        using TraceLog traceLog = TraceLog.OpenOrConvert(eltPath)
+            ?? throw new InvalidOperationException($"Failed to open ETL trace file: {eltPath}");
+
+        TraceProcess traceProcess = GetTraceProcessFromTraceLog(traceLog, eltPath);
         StackSource stackSource = CreateStackSourceFromTraceProcess(traceProcess);
         return CreateCallTreeFromStackSource(stackSource);
     }
 
-    public static TraceProcess GetTraceProcessFromETLFile(string eltPath)
+    public static TraceProcess GetTraceProcessFromTraceLog(TraceLog traceLog, string eltPath)
     {
-        TraceLog traceLog = TraceLog.OpenOrConvert(eltPath)
-            ?? throw new InvalidOperationException($"Failed to open ETL trace file: {eltPath}");
-
         TraceProcess? process = traceLog.Processes
             .FirstOrDefault(p => string.Equals(p.Name, "dotnet", StringComparison.OrdinalIgnoreCase) && p.EventsInProcess is not null);
 
@@ -58,7 +58,7 @@ internal static class EtlDiffer
     public static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
     {
         TraceEvents events = process.EventsInProcess
-            ?? throw new InvalidOperationException($"Process '{process.Name}' has no events.");
+            ?? throw new ArgumentException("Process has no events.", nameof(process));
         double start = Math.Max(events.StartTimeRelativeMSec, process.StartTimeRelativeMsec);
         double end = Math.Min(events.EndTimeRelativeMSec, process.EndTimeRelativeMsec);
         events = events.FilterByTime(start, end);
