@@ -31,16 +31,14 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
     private protected override void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols)
     {
         // Extract the type name for the diagnostic message
-        string typeName = GetMockedTypeName(context, target);
+        string typeName = GetMockedTypeName(context.Operation, target);
 
         // Check if the target method has a parameter of type MockBehavior
         IParameterSymbol? mockParameter = target.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
 
         // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
-        if (mockParameter is null && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out IMethodSymbol? methodMatch, out _, cancellationToken: context.CancellationToken))
+        if (TryHandleMissingMockBehaviorParameter(context, mockParameter, target, knownSymbols, Rule, typeName))
         {
-            // Using a method that doesn't accept a MockBehavior parameter, however there's an overload that does
-            ReportDiagnosticWithTypeName(context, methodMatch, typeName, knownSymbols, DiagnosticEditProperties.EditType.Insert);
             return;
         }
 
@@ -49,7 +47,7 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
         // Is the behavior set via a default value?
         if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue && mockArgument.Value.WalkDownConversion().ConstantValue.Value == knownSymbols.MockBehaviorDefault?.ConstantValue)
         {
-            ReportDiagnosticWithTypeName(context, target, typeName, knownSymbols, DiagnosticEditProperties.EditType.Insert);
+            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Insert, typeName);
         }
 
         // NOTE: This logic can't handle indirection (e.g. var x = MockBehavior.Default; new Mock(x);). We can't use the constant value either,
@@ -58,52 +56,7 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
         // The operation specifies a MockBehavior; is it MockBehavior.Default?
         if (mockArgument?.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorDefault)) == true)
         {
-            ReportDiagnosticWithTypeName(context, target, typeName, knownSymbols, DiagnosticEditProperties.EditType.Replace);
+            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Replace, typeName);
         }
-    }
-
-    private static string GetMockedTypeName(OperationAnalysisContext context, IMethodSymbol target)
-    {
-        // For object creation (new Mock<T>), get the type argument from the Mock<T> type
-        if (context.Operation is IObjectCreationOperation objectCreation && objectCreation.Type is INamedTypeSymbol namedType && namedType.TypeArguments.Length > 0)
-        {
-            return namedType.TypeArguments[0].ToDisplayString();
-        }
-
-        // For method invocation (MockRepository.Of<T>), get the type argument from the method
-        if (context.Operation is IInvocationOperation invocation && invocation.TargetMethod.TypeArguments.Length > 0)
-        {
-            return invocation.TargetMethod.TypeArguments[0].ToDisplayString();
-        }
-
-        // If we can't determine the type, try to get it from the target method if it's generic
-        if (target.ContainingType?.TypeArguments.Length > 0)
-        {
-            return target.ContainingType.TypeArguments[0].ToDisplayString();
-        }
-
-        // Fallback to a generic name
-        return "T";
-    }
-
-    private void ReportDiagnosticWithTypeName(
-        OperationAnalysisContext context,
-        IMethodSymbol method,
-        string typeName,
-        MoqKnownSymbols knownSymbols,
-        DiagnosticEditProperties.EditType editType)
-    {
-        if (!method.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
-        {
-            return;
-        }
-
-        ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
-        {
-            TypeOfEdit = editType,
-            EditPosition = parameterMatch.Ordinal,
-        }.ToImmutableDictionary();
-
-        context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties, typeName));
     }
 }

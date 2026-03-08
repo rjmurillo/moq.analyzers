@@ -90,57 +90,12 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         ISymbol? candidate = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
         if (candidate is null
             || candidate.ContainingType?.TypeKind == TypeKind.Interface
-            || IsPropertyOrMethod(candidate, knownSymbols))
+            || candidate.IsOverridableOrAllowedMockMember(knownSymbols))
         {
             return false;
         }
 
         mockedMemberSymbol = candidate;
         return true;
-    }
-
-    /// <summary>
-    /// Determines whether a property or method is either
-    /// <see cref="ValueTask"/>, <see cref="ValueTask{TResult}"/>, <see cref="Task"/>, or <see cref="Task{TResult}"/>
-    /// - OR -
-    /// if the <paramref name="mockedMemberSymbol"/> is overridable.
-    /// </summary>
-    /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
-    /// <param name="knownSymbols">A <see cref="MoqKnownSymbols"/> instance for resolving well-known types.</param>
-    /// <returns>
-    /// Returns <see langword="true"/> when the diagnostic should not be triggered; otherwise <see langword="false" />.
-    /// </returns>
-    private static bool IsPropertyOrMethod(ISymbol mockedMemberSymbol, MoqKnownSymbols knownSymbols)
-    {
-        switch (mockedMemberSymbol)
-        {
-            case IPropertySymbol propertySymbol:
-                // Check if the property is Task<T>.Result and skip diagnostic if it is
-                if (propertySymbol.IsTaskOrValueResultProperty(knownSymbols))
-                {
-                    return true;
-                }
-
-                if (propertySymbol.IsOverridable())
-                {
-                    return true;
-                }
-
-                break;
-
-            case IMethodSymbol methodSymbol:
-                if (methodSymbol.IsOverridable())
-                {
-                    return true;
-                }
-
-                break;
-
-            default:
-                // If it's not a property or method, it's not overridable
-                return false;
-        }
-
-        return false;
     }
 }

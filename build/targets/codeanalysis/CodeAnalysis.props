@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <!-- Properties for analyzer projects to resolve RS1036 -->
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Moq.Analyzers' or '$(MSBuildProjectName)' == 'Moq.Analyzers.Test.Analyzers' or '$(MSBuildProjectName)' == 'Moq.Analyzers.Test'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Moq.Analyzers' or '$(MSBuildProjectName)' == 'Moq.Analyzers.Test'">
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
 
