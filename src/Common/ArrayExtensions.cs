@@ -26,6 +26,11 @@ internal static class ArrayExtensions
     /// <returns>The new array.</returns>
     private static T[] RemoveRange<T>(this T[] array, int index, int length)
     {
+        if (array is null)
+        {
+            throw new ArgumentNullException(nameof(array));
+        }
+
         // Range check
         if (index < 0 || index >= array.Length)
         {

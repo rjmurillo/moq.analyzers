@@ -5,11 +5,6 @@ internal static class EnumerableExtensions
     /// <inheritdoc cref="DefaultIfNotSingle{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
     internal static TSource? DefaultIfNotSingle<TSource>(this IEnumerable<TSource> source)
     {
-        if (source == null)
-        {
-            return default;
-        }
-
         return source.DefaultIfNotSingle(static _ => true);
     }
 
