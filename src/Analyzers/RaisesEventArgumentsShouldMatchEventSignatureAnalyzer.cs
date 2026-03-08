@@ -77,10 +77,15 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
             return;
         }
 
-        // Extract event name from the lambda selector (first argument)
-        string eventName = TryGetEventNameFromLambdaSelector(invocation, context.SemanticModel) ?? "event";
+        // Extract event name from the first argument (event selector lambda)
+        string? eventName = null;
+        if (invocation.ArgumentList.Arguments.Count > 0)
+        {
+            ExpressionSyntax eventSelector = invocation.ArgumentList.Arguments[0].Expression;
+            context.SemanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out eventName);
+        }
 
-        EventSyntaxExtensions.ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, Rule, eventName);
+        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, Rule, eventName ?? "event");
     }
 
     private static bool TryGetRaisesMethodArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes)
@@ -95,51 +100,5 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
                 bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
                 return (success, eventType);
             });
-    }
-
-    /// <summary>
-    /// Extracts the event name from a lambda selector of the form: x => x.EventName += null.
-    /// </summary>
-    /// <param name="invocation">The method invocation containing the lambda selector.</param>
-    /// <param name="semanticModel">The semantic model.</param>
-    /// <returns>The event name if found; otherwise null.</returns>
-    private static string? TryGetEventNameFromLambdaSelector(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
-    {
-        // Get the first argument which should be the lambda selector
-        SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
-        if (arguments.Count < 1)
-        {
-            return null;
-        }
-
-        ExpressionSyntax eventSelector = arguments[0].Expression;
-
-        // The event selector should be a lambda like: p => p.EventName += null
-        if (eventSelector is not LambdaExpressionSyntax lambda)
-        {
-            return null;
-        }
-
-        // The body should be an assignment expression with += operator
-        if (lambda.Body is not AssignmentExpressionSyntax assignment ||
-            !assignment.OperatorToken.IsKind(SyntaxKind.PlusEqualsToken))
-        {
-            return null;
-        }
-
-        // The left side should be a member access to the event
-        if (assignment.Left is not MemberAccessExpressionSyntax memberAccess)
-        {
-            return null;
-        }
-
-        // Get the symbol for the event
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
-        if (symbolInfo.Symbol is IEventSymbol eventSymbol)
-        {
-            return eventSymbol.ToDisplayString();
-        }
-
-        return null;
     }
 }
