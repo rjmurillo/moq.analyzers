@@ -16,8 +16,13 @@ internal static class EtlDiffer
 
         try
         {
-            CallTree sourceCallTree = GetCallTree(sourceEtlPath);
-            CallTree baselineCallTree = GetCallTree(baselineEtlPath);
+            using TraceLog sourceTraceLog = TraceLog.OpenOrConvert(sourceEtlPath)
+                ?? throw new InvalidOperationException($"Failed to open ETL trace file: {sourceEtlPath}");
+            using TraceLog baselineTraceLog = TraceLog.OpenOrConvert(baselineEtlPath)
+                ?? throw new InvalidOperationException($"Failed to open ETL trace file: {baselineEtlPath}");
+
+            CallTree sourceCallTree = GetCallTree(sourceTraceLog, sourceEtlPath);
+            CallTree baselineCallTree = GetCallTree(baselineTraceLog, baselineEtlPath);
             ImmutableArray<OverWeightResult> report = GenerateOverweightReport(sourceCallTree, baselineCallTree);
 
             Console.WriteLine(string.Join(Environment.NewLine, report.Take(10)));
@@ -30,17 +35,14 @@ internal static class EtlDiffer
         }
     }
 
-    private static CallTree GetCallTree(string eltPath)
+    private static CallTree GetCallTree(TraceLog traceLog, string eltPath)
     {
-        using TraceLog traceLog = TraceLog.OpenOrConvert(eltPath)
-            ?? throw new InvalidOperationException($"Failed to open ETL trace file: {eltPath}");
-
         TraceProcess traceProcess = GetTraceProcessFromTraceLog(traceLog, eltPath);
         StackSource stackSource = CreateStackSourceFromTraceProcess(traceProcess);
         return CreateCallTreeFromStackSource(stackSource);
     }
 
-    public static TraceProcess GetTraceProcessFromTraceLog(TraceLog traceLog, string eltPath)
+    private static TraceProcess GetTraceProcessFromTraceLog(TraceLog traceLog, string eltPath)
     {
         TraceProcess? process = traceLog.Processes
             .FirstOrDefault(p => string.Equals(p.Name, "dotnet", StringComparison.OrdinalIgnoreCase) && p.EventsInProcess is not null);

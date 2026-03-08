@@ -48,11 +48,19 @@ internal sealed class Program
 
         // Hook so we can cancel and exit when ctrl+c is pressed.
         using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        Console.CancelKeyPress += (sender, e) =>
+        ConsoleCancelEventHandler cancelHandler = (sender, e) =>
         {
             e.Cancel = true;
-            cancellationTokenSource.Cancel();
+            try
+            {
+                cancellationTokenSource.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+                // CTS already disposed; safe to ignore.
+            }
         };
+        Console.CancelKeyPress += cancelHandler;
 
         try
         {
@@ -74,6 +82,7 @@ internal sealed class Program
         }
         finally
         {
+            Console.CancelKeyPress -= cancelHandler;
             await serviceProvider.DisposeAsync().ConfigureAwait(false);
         }
 
