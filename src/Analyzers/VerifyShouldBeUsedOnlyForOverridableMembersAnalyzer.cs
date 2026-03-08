@@ -112,36 +112,12 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
             return mockedMemberSymbol is IPropertySymbol propertySymbol && propertySymbol.IsOverridable();
         }
 
-        return IsAllowedMockMember(mockedMemberSymbol, knownSymbols);
+        return mockedMemberSymbol.IsOverridableOrAllowedMockMember(knownSymbols);
     }
 
     private static void ReportDiagnostic(OperationAnalysisContext context, IInvocationOperation invocationOperation, ISymbol mockedMemberSymbol)
     {
         Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule, mockedMemberSymbol.Name);
         context.ReportDiagnostic(diagnostic);
-    }
-
-    /// <summary>
-    /// Determines whether a member can be mocked.
-    /// </summary>
-    /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
-    /// <param name="knownSymbols">The known symbols.</param>
-    /// <returns>
-    /// Returns <see langword="true"/> when the diagnostic should not be triggered; otherwise <see langword="false" />.
-    /// </returns>
-    private static bool IsAllowedMockMember(ISymbol mockedMemberSymbol, MoqKnownSymbols knownSymbols)
-    {
-        switch (mockedMemberSymbol)
-        {
-            case IPropertySymbol propertySymbol:
-                return propertySymbol.IsOverridable() || propertySymbol.IsTaskOrValueResultProperty(knownSymbols);
-
-            case IMethodSymbol methodSymbol:
-                return methodSymbol.IsOverridable();
-
-            default:
-                // If it's not a property or method, it can't be mocked. This includes fields and events.
-                return false;
-        }
     }
 }
