@@ -7,11 +7,11 @@ using PerfDiff.ETL;
 
 namespace PerfDiff;
 
-public static class PerfDiff
+internal static class PerfDiff
 {
 #pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates
 #pragma warning disable CA2254 // The logging message template should not vary between calls
-    public static async Task<int> CompareAsync(
+    internal static async Task<int> CompareAsync(
         string baselineFolder, string resultsFolder, bool failOnRegression, ILogger logger, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
