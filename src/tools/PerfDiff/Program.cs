@@ -4,6 +4,7 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,8 +39,7 @@ internal sealed class Program
     {
         if (s_parseResult == null)
         {
-            Console.Error.WriteLine("Error: Command line arguments were not parsed. This indicates an internal initialization error.");
-            return UnhandledExceptionExitCode;
+            return 1;
         }
 
         // Setup logging.
@@ -53,6 +53,8 @@ internal sealed class Program
             e.Cancel = true;
             cancellationTokenSource.Cancel();
         };
+
+        string currentDirectory = string.Empty;
 
         try
         {
@@ -74,6 +76,13 @@ internal sealed class Program
             logger.LogWarning(ex, "Operation was cancelled.");
 #pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
             return CancelledExitCode;
+        }
+        finally
+        {
+            if (!string.IsNullOrEmpty(currentDirectory))
+            {
+                Environment.CurrentDirectory = currentDirectory;
+            }
         }
 
         static ILogger<Program> SetupLogging(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)

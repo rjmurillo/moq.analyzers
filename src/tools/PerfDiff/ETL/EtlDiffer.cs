@@ -24,7 +24,7 @@ internal static class EtlDiffer
             Console.WriteLine(string.Join(Environment.NewLine, report.Take(10)));
             return true;
         }
-        catch (Exception ex) when (ex is InvalidOperationException or IOException)
+        catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException)
         {
             Console.Error.WriteLine($"ETL comparison failed: {ex.Message}");
             return false;
@@ -44,7 +44,7 @@ internal static class EtlDiffer
             ?? throw new InvalidOperationException($"Failed to open ETL trace file: {eltPath}");
 
         TraceProcess? process = traceLog.Processes
-            .FirstOrDefault(p => p.Name.Equals("dotnet", StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(p => string.Equals(p.Name, "dotnet", StringComparison.OrdinalIgnoreCase) && p.EventsInProcess is not null);
 
         if (process is null)
         {

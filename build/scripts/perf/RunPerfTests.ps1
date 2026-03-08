@@ -15,7 +15,7 @@ try {
     # Check if running on Windows and warn about ETL on non-Windows platforms
     $isWindowsPlatform = $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
     if ($etl -and -not $isWindowsPlatform) {
-        Write-Warning "ETL tracing is only supported on Windows. Disabling ETL for this run."
+        Write-Warning "ETL tracing is only supported on Windows. Disabling ETL for this run." -ForegroundColor Yellow
         $etl = $false
     }
 
@@ -24,17 +24,7 @@ try {
     foreach ($project in $projectsList) {
         $projectFullPath = Join-Path $perftestRootFolder $project
         & dotnet restore $projectFullPath
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error "dotnet restore failed with exit code $LASTEXITCODE for project $project"
-            $anyFailed = $true
-            continue
-        }
         & dotnet build -c Release --no-incremental $projectFullPath
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error "dotnet build failed with exit code $LASTEXITCODE for project $project"
-            $anyFailed = $true
-            continue
-        }
         $commandArguments = @("run", "-c", "Release", "--no-build", "--project", $projectFullPath, "--", "--outliers", "DontRemove", "--memory", "--threading", "--exceptions", "--exporters", "JSON", "--artifacts", $output)
         if ($ci) {
             $commandArguments += @("--stopOnFirstError", "--keepFiles")
@@ -57,8 +47,12 @@ try {
             # The `-Verb RunAs` is only supported on Windows
             Write-Warning "Running with elevated permissions will no longer capture stdout"
 
-            # Reuse $formattedArgs which already quotes arguments containing spaces.
-            $proc = Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $formattedArgs -PassThru
+            # Start-Process -ArgumentList joins array elements with spaces without quoting,
+            # so we must explicitly quote arguments that may contain spaces.
+            $quotedArgs = $commandArguments | ForEach-Object {
+                if ($_ -match '\s') { "`"$_`"" } else { $_ }
+            }
+            $proc = Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $quotedArgs -PassThru
             if ($proc.ExitCode -ne 0) {
                 Write-Warning "dotnet exited with code $($proc.ExitCode) for project $project"
                 $anyFailed = $true

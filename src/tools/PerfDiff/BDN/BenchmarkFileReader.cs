@@ -1,3 +1,4 @@
+using System.Security;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PerfDiff.BDN.DataContracts;
@@ -17,12 +18,8 @@ public static class BenchmarkFileReader
     /// <returns>A <see cref="BdnResults"/> containing the loaded results and success status.</returns>
     public static async Task<BdnResults> TryGetBdnResultAsync(string[] paths, ILogger logger)
     {
-        BdnResult?[] rawResults = await Task.WhenAll(paths.Select(path => ReadFromFileAsync(path, logger))).ConfigureAwait(false);
-        bool hasFailures = rawResults.Any(x => x is null);
-        BdnResult?[] results = hasFailures
-            ? rawResults.Where(x => x is not null).ToArray()
-            : rawResults;
-        return new BdnResults(!hasFailures, results);
+        BdnResult?[] results = await Task.WhenAll(paths.Select(path => ReadFromFileAsync(path, logger))).ConfigureAwait(false);
+        return new BdnResults(!results.Any(x => x is null), results);
     }
 
     private static async Task<BdnResult?> ReadFromFileAsync(string resultFilePath, ILogger logger)
@@ -31,7 +28,7 @@ public static class BenchmarkFileReader
         {
             return JsonConvert.DeserializeObject<BdnResult>(await File.ReadAllTextAsync(resultFilePath).ConfigureAwait(false));
         }
-        catch (Exception ex) when (ex is JsonReaderException or JsonSerializationException or IOException)
+        catch (Exception ex) when (ex is JsonReaderException or JsonSerializationException or IOException or UnauthorizedAccessException or SecurityException)
         {
             logger.LogError(ex, "Failed to read benchmark file {ResultFilePath}.", resultFilePath);
             return null;
