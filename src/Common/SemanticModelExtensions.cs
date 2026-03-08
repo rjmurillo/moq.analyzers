@@ -55,7 +55,7 @@ internal static class SemanticModelExtensions
             return false;
         }
 
-        string methodName = callbackOrReturnsMethod.Name.ToString();
+        string methodName = callbackOrReturnsMethod.Name.Identifier.ValueText;
 
         // Fast-path: reject non-matching names before the expensive GetSymbolInfo call.
         // This string check is an intentional optimization, not detection logic. The
@@ -97,7 +97,7 @@ internal static class SemanticModelExtensions
         return symbolInfo.CandidateReason switch
         {
             CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(symbol => symbol.IsMoqRaisesMethod(knownSymbols)),
-            CandidateReason.None => IsRaisesSymbol(symbolInfo.Symbol, knownSymbols),
+            CandidateReason.None => symbolInfo.Symbol?.IsMoqRaisesMethod(knownSymbols) == true,
             _ => false,
         };
     }
@@ -264,10 +264,5 @@ internal static class SemanticModelExtensions
         }
 
         return symbol.IsMoqCallbackMethod(knownSymbols) || symbol.IsMoqReturnsMethod(knownSymbols);
-    }
-
-    private static bool IsRaisesSymbol(ISymbol? symbol, MoqKnownSymbols knownSymbols)
-    {
-        return symbol?.IsMoqRaisesMethod(knownSymbols) == true;
     }
 }

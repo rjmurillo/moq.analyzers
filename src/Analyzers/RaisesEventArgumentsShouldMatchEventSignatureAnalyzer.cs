@@ -88,7 +88,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
             semanticModel,
             out eventArguments,
             out expectedParameterTypes,
-            (sm, selector) =>
+            static (sm, selector) =>
             {
                 bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
                 return (success, eventType);
