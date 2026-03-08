@@ -67,7 +67,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
         // Extract event name from the lambda selector (first argument)
         string eventName = TryGetEventNameFromLambdaSelector(invocation, context.SemanticModel) ?? "event";
 
-        EventSyntaxExtensions.ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, Rule, eventName);
+        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, Rule, eventName);
     }
 
     private static bool TryGetRaisesMethodArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes)

@@ -82,7 +82,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             context.SemanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out eventName);
         }
 
-        EventSyntaxExtensions.ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, Rule, eventName ?? "event");
+        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, Rule, eventName ?? "event");
     }
 
     private static bool TryGetRaiseMethodArguments(

@@ -14,13 +14,13 @@ internal static class EventSyntaxExtensions
     /// <param name="invocation">The invocation expression for error reporting.</param>
     /// <param name="rule">The diagnostic rule to report.</param>
     internal static void ValidateEventArgumentTypes(
-        SyntaxNodeAnalysisContext context,
+        this SyntaxNodeAnalysisContext context,
         ArgumentSyntax[] eventArguments,
         ITypeSymbol[] expectedParameterTypes,
         InvocationExpressionSyntax invocation,
         DiagnosticDescriptor rule)
     {
-        ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, rule, null);
+        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, rule, null);
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ internal static class EventSyntaxExtensions
     /// <param name="rule">The diagnostic rule to report.</param>
     /// <param name="eventName">The event name to include in diagnostic messages.</param>
     internal static void ValidateEventArgumentTypes(
-        SyntaxNodeAnalysisContext context,
+        this SyntaxNodeAnalysisContext context,
         ArgumentSyntax[] eventArguments,
         ITypeSymbol[] expectedParameterTypes,
         InvocationExpressionSyntax invocation,
