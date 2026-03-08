@@ -125,6 +125,57 @@ internal static class EventSyntaxExtensions
     }
 
     /// <summary>
+    /// Extracts event arguments from an event method invocation using the standard
+    /// lambda-based event type extraction pattern shared by Raise and Raises analyzers.
+    /// </summary>
+    /// <param name="invocation">The method invocation.</param>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="knownSymbols">Known symbols for type checking.</param>
+    /// <param name="eventArguments">The extracted event arguments.</param>
+    /// <param name="expectedParameterTypes">The expected parameter types.</param>
+    /// <returns><see langword="true" /> if arguments were successfully extracted; otherwise, <see langword="false" />.</returns>
+    internal static bool TryGetEventMethodArgumentsFromLambdaSelector(
+        InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
+        KnownSymbols knownSymbols,
+        out ArgumentSyntax[] eventArguments,
+        out ITypeSymbol[] expectedParameterTypes)
+    {
+        return TryGetEventMethodArguments(
+            invocation,
+            semanticModel,
+            out eventArguments,
+            out expectedParameterTypes,
+            static (sm, selector) =>
+            {
+                bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
+                return (success, eventType);
+            },
+            knownSymbols);
+    }
+
+    /// <summary>
+    /// Extracts the event name from the first argument (event selector lambda) of an invocation.
+    /// </summary>
+    /// <param name="invocation">The method invocation containing the lambda selector.</param>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <returns>The event name if found; otherwise "event" as a fallback.</returns>
+    internal static string GetEventNameFromSelector(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
+    {
+        SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
+        if (arguments.Count < 1)
+        {
+            return "event";
+        }
+
+        ExpressionSyntax eventSelector = arguments[0].Expression;
+
+        return semanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out string? eventName)
+            ? eventName!
+            : "event";
+    }
+
+    /// <summary>
     /// Creates a <see cref="Diagnostic"/> for an event-related rule violation.
     /// When <paramref name="eventName"/> is provided, it is passed as a message format argument.
     /// When <paramref name="eventName"/> is <see langword="null"/>, no message arguments are included.

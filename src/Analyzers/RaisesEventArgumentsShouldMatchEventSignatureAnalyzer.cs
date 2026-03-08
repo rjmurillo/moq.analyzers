@@ -71,43 +71,13 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
             return;
         }
 
-        if (!TryGetRaisesMethodArguments(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
+        if (!EventSyntaxExtensions.TryGetEventMethodArgumentsFromLambdaSelector(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
         {
             return;
         }
 
-        string eventName = GetEventNameFromSelector(invocation, context.SemanticModel);
+        string eventName = EventSyntaxExtensions.GetEventNameFromSelector(invocation, context.SemanticModel);
 
         context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, Rule, eventName);
-    }
-
-    private static bool TryGetRaisesMethodArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, KnownSymbols knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes)
-    {
-        return EventSyntaxExtensions.TryGetEventMethodArguments(
-            invocation,
-            semanticModel,
-            out eventArguments,
-            out expectedParameterTypes,
-            static (sm, selector) =>
-            {
-                bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
-                return (success, eventType);
-            },
-            knownSymbols);
-    }
-
-    private static string GetEventNameFromSelector(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
-    {
-        SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
-        if (arguments.Count < 1)
-        {
-            return "event";
-        }
-
-        ExpressionSyntax eventSelector = arguments[0].Expression;
-
-        return semanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out string? eventName)
-            ? eventName!
-            : "event";
     }
 }

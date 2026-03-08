@@ -69,40 +69,14 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             return;
         }
 
-        if (!TryGetRaiseMethodArguments(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
+        if (!EventSyntaxExtensions.TryGetEventMethodArgumentsFromLambdaSelector(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
         {
             return;
         }
 
-        // Extract event name from the first argument (event selector lambda)
-        string? eventName = null;
-        if (invocation.ArgumentList.Arguments.Count > 0)
-        {
-            ExpressionSyntax eventSelector = invocation.ArgumentList.Arguments[0].Expression;
-            context.SemanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out eventName);
-        }
+        string eventName = EventSyntaxExtensions.GetEventNameFromSelector(invocation, context.SemanticModel);
 
-        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, Rule, eventName ?? "event");
-    }
-
-    private static bool TryGetRaiseMethodArguments(
-        InvocationExpressionSyntax invocation,
-        SemanticModel semanticModel,
-        KnownSymbols knownSymbols,
-        out ArgumentSyntax[] eventArguments,
-        out ITypeSymbol[] expectedParameterTypes)
-    {
-        return EventSyntaxExtensions.TryGetEventMethodArguments(
-            invocation,
-            semanticModel,
-            out eventArguments,
-            out expectedParameterTypes,
-            static (sm, selector) =>
-            {
-                bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
-                return (success, eventType);
-            },
-            knownSymbols);
+        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, Rule, eventName);
     }
 
     private static bool IsRaiseMethodCall(SemanticModel semanticModel, InvocationExpressionSyntax invocation, MoqKnownSymbols knownSymbols)
