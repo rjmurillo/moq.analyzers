@@ -66,7 +66,6 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
     {
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
-        // Check if this is a Raises method call using symbol-based detection
         if (!context.SemanticModel.IsRaisesInvocation(invocation, knownSymbols))
         {
             return;
@@ -77,7 +76,6 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
             return;
         }
 
-        // Extract event name from the lambda selector (first argument)
         string eventName = GetEventNameFromSelector(invocation, context.SemanticModel);
 
         EventSyntaxExtensions.ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, Rule, eventName);

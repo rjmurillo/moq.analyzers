@@ -24,39 +24,22 @@ internal static class EventSyntaxExtensions
     {
         if (eventArguments.Length != expectedParameterTypes.Length)
         {
-            Location location;
-            if (eventArguments.Length < expectedParameterTypes.Length)
-            {
-                // Too few arguments: report on the invocation
-                location = invocation.GetLocation();
-            }
-            else
-            {
-                // Too many arguments: report on the first extra argument
-                location = eventArguments[expectedParameterTypes.Length].GetLocation();
-            }
+            Location location = eventArguments.Length < expectedParameterTypes.Length
+                ? invocation.GetLocation()
+                : eventArguments[expectedParameterTypes.Length].GetLocation();
 
-            Diagnostic diagnostic = eventName != null
-                ? location.CreateDiagnostic(rule, eventName)
-                : location.CreateDiagnostic(rule);
-            context.ReportDiagnostic(diagnostic);
+            context.ReportDiagnostic(CreateEventDiagnostic(location, rule, eventName));
             return;
         }
 
-        // Check each argument type matches the expected parameter type
         for (int i = 0; i < eventArguments.Length; i++)
         {
             TypeInfo argumentTypeInfo = context.SemanticModel.GetTypeInfo(eventArguments[i].Expression, context.CancellationToken);
             ITypeSymbol? argumentType = argumentTypeInfo.Type;
-            ITypeSymbol expectedType = expectedParameterTypes[i];
 
-            if (argumentType != null && !context.SemanticModel.HasConversion(argumentType, expectedType))
+            if (argumentType != null && !context.SemanticModel.HasConversion(argumentType, expectedParameterTypes[i]))
             {
-                // Report on the specific argument with the wrong type
-                Diagnostic diagnostic = eventName != null
-                    ? eventArguments[i].GetLocation().CreateDiagnostic(rule, eventName)
-                    : eventArguments[i].GetLocation().CreateDiagnostic(rule);
-                context.ReportDiagnostic(diagnostic);
+                context.ReportDiagnostic(CreateEventDiagnostic(eventArguments[i].GetLocation(), rule, eventName));
             }
         }
     }
@@ -69,7 +52,16 @@ internal static class EventSyntaxExtensions
     /// <returns>An array of parameter types expected by the event delegate.</returns>
     internal static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType, KnownSymbols knownSymbols)
     {
-        return GetEventParameterTypesInternal(eventType, knownSymbols);
+        if (eventType is not INamedTypeSymbol namedType)
+        {
+            return [];
+        }
+
+        ITypeSymbol[]? parameterTypes = TryGetActionDelegateParameters(namedType, knownSymbols) ??
+                            TryGetEventHandlerDelegateParameters(namedType, knownSymbols) ??
+                            TryGetCustomDelegateParameters(namedType);
+
+        return parameterTypes ?? [];
     }
 
     /// <summary>
@@ -90,30 +82,16 @@ internal static class EventSyntaxExtensions
         Func<SemanticModel, ExpressionSyntax, (bool Success, ITypeSymbol? EventType)> eventTypeExtractor,
         KnownSymbols knownSymbols)
     {
-        return TryGetEventMethodArgumentsInternal(invocation, semanticModel, out eventArguments, out expectedParameterTypes, eventTypeExtractor, knownSymbols);
-    }
-
-    private static bool TryGetEventMethodArgumentsInternal(
-        InvocationExpressionSyntax invocation,
-        SemanticModel semanticModel,
-        out ArgumentSyntax[] eventArguments,
-        out ITypeSymbol[] expectedParameterTypes,
-        Func<SemanticModel, ExpressionSyntax, (bool Success, ITypeSymbol? EventType)> eventTypeExtractor,
-        KnownSymbols knownSymbols)
-    {
         eventArguments = [];
         expectedParameterTypes = [];
 
-        // Get the arguments to the method
         SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
 
-        // Method should have at least 1 argument (the event selector)
         if (arguments.Count < 1)
         {
             return false;
         }
 
-        // First argument should be a lambda that selects the event
         ExpressionSyntax eventSelector = arguments[0].Expression;
         (bool success, ITypeSymbol? eventType) = eventTypeExtractor(semanticModel, eventSelector);
         if (!success || eventType == null)
@@ -121,15 +99,9 @@ internal static class EventSyntaxExtensions
             return false;
         }
 
-        // Get expected parameter types from the event delegate
         expectedParameterTypes = GetEventParameterTypes(eventType, knownSymbols);
 
-        // The remaining arguments should match the event parameter types
-        if (arguments.Count <= 1)
-        {
-            eventArguments = [];
-        }
-        else
+        if (arguments.Count > 1)
         {
             eventArguments = new ArgumentSyntax[arguments.Count - 1];
             for (int i = 1; i < arguments.Count; i++)
@@ -139,35 +111,6 @@ internal static class EventSyntaxExtensions
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Gets the parameter types for a given event delegate type.
-    /// This method handles various delegate types including Action delegates, EventHandler delegates,
-    /// and custom delegates by analyzing their structure and extracting parameter information.
-    /// </summary>
-    /// <param name="eventType">The event delegate type to analyze.</param>
-    /// <param name="knownSymbols">Known symbols for enhanced type checking and recognition.</param>
-    /// <returns>
-    /// An array of parameter types expected by the event delegate:
-    /// - For Action delegates: Returns all generic type arguments
-    /// - For EventHandler&lt;T&gt; delegates: Returns the single generic argument T
-    /// - For custom delegates: Returns parameters from the Invoke method
-    /// - For non-delegate types: Returns empty array.
-    /// </returns>
-    private static ITypeSymbol[] GetEventParameterTypesInternal(ITypeSymbol eventType, KnownSymbols knownSymbols)
-    {
-        if (eventType is not INamedTypeSymbol namedType)
-        {
-            return [];
-        }
-
-        // Try different delegate type handlers in order of specificity
-        ITypeSymbol[]? parameterTypes = TryGetActionDelegateParameters(namedType, knownSymbols) ??
-                            TryGetEventHandlerDelegateParameters(namedType, knownSymbols) ??
-                            TryGetCustomDelegateParameters(namedType);
-
-        return parameterTypes ?? [];
     }
 
     /// <summary>
@@ -206,5 +149,12 @@ internal static class EventSyntaxExtensions
     {
         IMethodSymbol? invokeMethod = namedType.DelegateInvokeMethod;
         return invokeMethod?.Parameters.Select(p => p.Type).ToArray();
+    }
+
+    private static Diagnostic CreateEventDiagnostic(Location location, DiagnosticDescriptor rule, string? eventName)
+    {
+        return eventName != null
+            ? location.CreateDiagnostic(rule, eventName)
+            : location.CreateDiagnostic(rule);
     }
 }
