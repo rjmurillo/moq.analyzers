@@ -30,14 +30,13 @@ internal static class SemanticModelExtensions
             if (resolvedSymbol is null)
             {
                 if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
-                    && symbolInfo.CandidateSymbols.Length > 0)
+                    && symbolInfo.CandidateSymbols.Any(s => s.IsMoqSetupMethod(knownSymbols)))
                 {
-                    resolvedSymbol = symbolInfo.CandidateSymbols[0];
+                    return invocation;
                 }
-                else
-                {
-                    return null;
-                }
+
+                expression = method.Expression;
+                continue;
             }
 
             if (resolvedSymbol.IsMoqSetupMethod(knownSymbols))
