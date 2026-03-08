@@ -12,7 +12,7 @@ namespace Moq.CodeFixes;
 [Shared]
 public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 {
-    private const string FixTitle = "Fix Moq callback signature";
+    private static readonly string FixTitle = "Fix Moq callback signature";
 
     /// <inheritdoc />
     public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.BadCallbackParameters);
