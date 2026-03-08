@@ -1,6 +1,7 @@
 ﻿/
 |-- Moq.Analyzers.nuspec
 |-- README.md
+|-- THIRD-PARTY-NOTICES.TXT
 |-- analyzers
 |   |-- dotnet
 |   |   |-- cs
