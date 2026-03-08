@@ -21,8 +21,8 @@ internal sealed class Program
         RootCommand rootCommand = DiffCommand.CreateCommandLineOptions();
         rootCommand.SetAction(async (parseResult, cancellationToken) =>
         {
-            string baseline = parseResult.GetValue(DiffCommand.BaselineOption) ?? string.Empty;
-            string results = parseResult.GetValue(DiffCommand.ResultsOption) ?? string.Empty;
+            string baseline = parseResult.GetValue(DiffCommand.BaselineOption)!;
+            string results = parseResult.GetValue(DiffCommand.ResultsOption)!;
             string? verbosity = parseResult.GetValue(DiffCommand.VerbosityOption);
             bool failOnRegression = parseResult.GetValue(DiffCommand.FailOnRegressionOption);
 

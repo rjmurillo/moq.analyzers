@@ -17,14 +17,14 @@ internal static class DiffCommand
     /// <summary>
     /// Gets the baseline option.
     /// </summary>
-    internal static Option<string?> BaselineOption { get; } =
-        new Option<string?>("--baseline", () => null, "folder that contains the baseline performance run data").LegalFilePathsOnly();
+    internal static Option<string> BaselineOption { get; } =
+        new Option<string>("--baseline", "folder that contains the baseline performance run data") { IsRequired = true }.LegalFilePathsOnly();
 
     /// <summary>
     /// Gets the results option.
     /// </summary>
-    internal static Option<string?> ResultsOption { get; } =
-        new Option<string?>("--results", () => null, "folder that contains the performance results").LegalFilePathsOnly();
+    internal static Option<string> ResultsOption { get; } =
+        new Option<string>("--results", "folder that contains the performance results") { IsRequired = true }.LegalFilePathsOnly();
 
     /// <summary>
     /// Gets the verbosity option.
