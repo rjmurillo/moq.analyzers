@@ -82,6 +82,17 @@ internal static class SemanticModelExtensions
             return false;
         }
 
+        string methodName = raisesMethod.Name.Identifier.ValueText;
+
+        // Fast-path: reject non-matching names before the expensive GetSymbolInfo call.
+        // This string check is an intentional optimization, not detection logic. The
+        // semantic check below is the authoritative gate for correctness.
+        if (!string.Equals(methodName, "Raises", StringComparison.Ordinal)
+            && !string.Equals(methodName, "RaisesAsync", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(raisesMethod);
         return symbolInfo.CandidateReason switch
         {
