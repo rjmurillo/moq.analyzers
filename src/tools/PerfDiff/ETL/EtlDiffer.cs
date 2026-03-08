@@ -57,6 +57,8 @@ internal static class EtlDiffer
 
     public static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
     {
+        // Defensive null guard: EventsInProcess was checked during process selection in
+        // GetTraceProcessFromTraceLog, but TraceProcess is mutable, so guard against race conditions.
         TraceEvents events = process.EventsInProcess
             ?? throw new ArgumentException("Process has no events.", nameof(process));
         double start = Math.Max(events.StartTimeRelativeMSec, process.StartTimeRelativeMsec);
