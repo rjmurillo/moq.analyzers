@@ -16,7 +16,9 @@ on:
 jobs:
   lint:
     name: DevSkim
-    # DevSkim requires x64 runner
+    # DevSkim-Action is a Docker container action, which GitHub Actions
+    # only supports on Linux x64 runners; do not use ARM64 runners.
+    # https://docs.github.com/en/actions/creating-actions/about-custom-actions#docker-container-actions
     runs-on: ubuntu-latest
     permissions:
       actions: read
