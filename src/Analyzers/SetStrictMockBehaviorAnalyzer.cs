@@ -27,6 +27,30 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The original strict analyzer resolved the mocked type name from <paramref name="target"/>'s
+    /// type arguments (not the invocation's) and fell back to "Unknown" instead of "T".
+    /// </remarks>
+    internal override string GetMockedTypeName(IOperation operation, IMethodSymbol target)
+    {
+        // For object creation (new Mock<T>), get the type argument from the Mock<T> type
+        if (operation is IObjectCreationOperation objectCreation
+            && objectCreation.Type is INamedTypeSymbol namedType
+            && namedType.TypeArguments.Length > 0)
+        {
+            return namedType.TypeArguments[0].ToDisplayString();
+        }
+
+        // For any other case, use the target method's type arguments
+        if (target.TypeArguments.Length > 0)
+        {
+            return target.TypeArguments[0].ToDisplayString();
+        }
+
+        return "Unknown";
+    }
+
+    /// <inheritdoc />
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
     private protected override void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols)
     {
@@ -37,7 +61,7 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
         IParameterSymbol? mockParameter = target.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
 
         // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
-        if (TryHandleMissingMockBehaviorParameter(context, mockParameter, target, knownSymbols, mockedTypeName))
+        if (TryHandleMissingMockBehaviorParameter(context, mockParameter, target, knownSymbols, Rule, mockedTypeName))
         {
             // Using a method that doesn't accept a MockBehavior parameter, however there's an overload that does
             return;
@@ -47,7 +71,7 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
 
         // Is the behavior set via a default value?
         if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue && mockArgument.Value.WalkDownConversion().ConstantValue.Value == knownSymbols.MockBehaviorDefault?.ConstantValue
-            && TryReportStrictMockBehaviorDiagnostic(context, target, knownSymbols, mockedTypeName, DiagnosticEditProperties.EditType.Insert))
+            && TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Insert, mockedTypeName))
         {
             return;
         }
@@ -58,85 +82,7 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
         if (mockArgument?.Value.WalkDownConversion().ConstantValue.Value != knownSymbols.MockBehaviorStrict?.ConstantValue
             && mockArgument?.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorStrict)) != true)
         {
-            TryReportStrictMockBehaviorDiagnostic(context, target, knownSymbols, mockedTypeName, DiagnosticEditProperties.EditType.Replace);
+            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Replace, mockedTypeName);
         }
-    }
-
-    /// <summary>
-    /// Extracts the mocked type name from the operation.
-    /// </summary>
-    /// <param name="operation">The operation being analyzed.</param>
-    /// <param name="target">The target method symbol.</param>
-    /// <returns>The name of the mocked type, or "Unknown" if it cannot be determined.</returns>
-    private static string GetMockedTypeName(IOperation operation, IMethodSymbol target)
-    {
-        // For object creation like new Mock<ISample>()
-        if (operation is IObjectCreationOperation objectCreation
-            && objectCreation.Type is INamedTypeSymbol namedType
-            && namedType.TypeArguments.Length > 0)
-        {
-            return namedType.TypeArguments[0].ToDisplayString();
-        }
-
-        // For method invocation like Mock.Of<ISample>()
-        if (operation is IInvocationOperation && target.TypeArguments.Length > 0)
-        {
-            return target.TypeArguments[0].ToDisplayString();
-        }
-
-        return "Unknown";
-    }
-
-    /// <summary>
-    /// Attempts to report a strict mock behavior diagnostic with the mocked type name.
-    /// </summary>
-    /// <param name="context">The operation analysis context.</param>
-    /// <param name="method">The method to check for MockBehavior parameter.</param>
-    /// <param name="knownSymbols">The known Moq symbols.</param>
-    /// <param name="mockedTypeName">The name of the mocked type.</param>
-    /// <param name="editType">The type of edit for the code fix.</param>
-    /// <returns>True if a diagnostic was reported; otherwise, false.</returns>
-    private bool TryReportStrictMockBehaviorDiagnostic(
-        OperationAnalysisContext context,
-        IMethodSymbol method,
-        MoqKnownSymbols knownSymbols,
-        string mockedTypeName,
-        DiagnosticEditProperties.EditType editType)
-    {
-        if (!method.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
-        {
-            return false;
-        }
-
-        ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
-        {
-            TypeOfEdit = editType,
-            EditPosition = parameterMatch.Ordinal,
-        }.ToImmutableDictionary();
-
-        context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule, properties, mockedTypeName));
-        return true;
-    }
-
-    /// <summary>
-    /// Attempts to handle missing MockBehavior parameter by checking for overloads that accept it.
-    /// </summary>
-    /// <param name="context">The operation analysis context.</param>
-    /// <param name="mockParameter">The MockBehavior parameter (should be null to trigger overload check).</param>
-    /// <param name="target">The target method to check for overloads.</param>
-    /// <param name="knownSymbols">The known Moq symbols.</param>
-    /// <param name="mockedTypeName">The name of the mocked type.</param>
-    /// <returns>True if a diagnostic was reported; otherwise, false.</returns>
-    private bool TryHandleMissingMockBehaviorParameter(
-        OperationAnalysisContext context,
-        IParameterSymbol? mockParameter,
-        IMethodSymbol target,
-        MoqKnownSymbols knownSymbols,
-        string mockedTypeName)
-    {
-        // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
-        return mockParameter is null
-            && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out IMethodSymbol? methodMatch, out _, cancellationToken: context.CancellationToken)
-            && TryReportStrictMockBehaviorDiagnostic(context, methodMatch, knownSymbols, mockedTypeName, DiagnosticEditProperties.EditType.Insert);
     }
 }

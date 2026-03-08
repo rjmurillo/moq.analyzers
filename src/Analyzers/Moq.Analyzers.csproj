@@ -41,6 +41,7 @@
 
   <ItemGroup>
     <None Include="$(RepoRoot)\README.md" Pack="true" PackagePath="/" />
+    <None Include="$(RepoRoot)\THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="/" />
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
     <None Include="$(OutputPath)\Moq.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)\Moq.CodeFixes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />

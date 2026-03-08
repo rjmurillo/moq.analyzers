@@ -145,6 +145,29 @@ internal static partial class ISymbolExtensions
     }
 
     /// <summary>
+    /// Determines whether a member symbol is either overridable or represents a
+    /// <see cref="Task{TResult}"/>/<see cref="ValueTask{TResult}"/> Result property
+    /// that Moq allows to be set up even if the underlying property is not overridable.
+    /// </summary>
+    /// <param name="mockedMemberSymbol">The mocked member symbol.</param>
+    /// <param name="knownSymbols">A <see cref="MoqKnownSymbols"/> instance for resolving well-known types.</param>
+    /// <returns>
+    /// <see langword="true"/> when the member is overridable or is a Task/ValueTask Result property;
+    /// otherwise <see langword="false"/>.
+    /// </returns>
+    internal static bool IsOverridableOrAllowedMockMember(this ISymbol mockedMemberSymbol, MoqKnownSymbols knownSymbols)
+    {
+        return mockedMemberSymbol switch
+        {
+            IPropertySymbol propertySymbol =>
+                propertySymbol.IsOverridable() || propertySymbol.IsTaskOrValueResultProperty(knownSymbols),
+            IMethodSymbol methodSymbol =>
+                methodSymbol.IsOverridable(),
+            _ => false,
+        };
+    }
+
+    /// <summary>
     /// Determines whether a symbol is a Moq Raises method.
     /// </summary>
     /// <param name="symbol">The symbol to check.</param>

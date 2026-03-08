@@ -15,12 +15,12 @@ internal static class EventSyntaxExtensions
     /// <param name="rule">The diagnostic rule to report.</param>
     /// <param name="eventName">The event name to include in diagnostic messages.</param>
     internal static void ValidateEventArgumentTypes(
-        SyntaxNodeAnalysisContext context,
+        this SyntaxNodeAnalysisContext context,
         ArgumentSyntax[] eventArguments,
         ITypeSymbol[] expectedParameterTypes,
         InvocationExpressionSyntax invocation,
         DiagnosticDescriptor rule,
-        string? eventName)
+        string? eventName = null)
     {
         if (eventArguments.Length != expectedParameterTypes.Length)
         {
@@ -58,7 +58,7 @@ internal static class EventSyntaxExtensions
     /// - For custom delegates: Returns parameters from the <c>Invoke</c> method
     /// - For non-delegate types: Returns an empty array.
     /// </returns>
-    internal static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType, KnownSymbols knownSymbols)
+    internal static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType, KnownSymbols? knownSymbols = null)
     {
         if (eventType is not INamedTypeSymbol namedType)
         {
@@ -66,9 +66,11 @@ internal static class EventSyntaxExtensions
         }
 
         // Try different delegate type handlers in order of specificity
-        ITypeSymbol[]? parameterTypes = TryGetActionDelegateParameters(namedType, knownSymbols) ??
-                            TryGetEventHandlerDelegateParameters(namedType, knownSymbols) ??
-                            TryGetCustomDelegateParameters(namedType);
+        ITypeSymbol[]? parameterTypes = knownSymbols != null
+            ? TryGetActionDelegateParameters(namedType, knownSymbols) ??
+              TryGetEventHandlerDelegateParameters(namedType, knownSymbols) ??
+              TryGetCustomDelegateParameters(namedType)
+            : TryGetCustomDelegateParameters(namedType);
 
         return parameterTypes ?? [];
     }
@@ -89,7 +91,7 @@ internal static class EventSyntaxExtensions
         out ArgumentSyntax[] eventArguments,
         out ITypeSymbol[] expectedParameterTypes,
         Func<SemanticModel, ExpressionSyntax, (bool Success, ITypeSymbol? EventType)> eventTypeExtractor,
-        KnownSymbols knownSymbols)
+        KnownSymbols? knownSymbols = null)
     {
         eventArguments = [];
         expectedParameterTypes = [];
