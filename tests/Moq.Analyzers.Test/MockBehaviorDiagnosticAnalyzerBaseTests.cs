@@ -91,8 +91,6 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
         const string source = """
             using Moq;
 
-            public interface ISample { }
-
             internal class UnitTest
             {
                 private void Test()
