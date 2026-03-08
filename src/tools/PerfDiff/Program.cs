@@ -3,6 +3,7 @@
 using System;
 using System.CommandLine;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,12 +42,13 @@ internal sealed class Program
     {
         // Setup logging.
         LogLevel logLevel = GetLogLevel(verbosity);
-        (ServiceProvider serviceProvider, ILogger<Program> logger) = SetupLogging(minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
+        ServiceProvider serviceProvider = SetupLogging(minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
+        await using ConfiguredAsyncDisposable asyncDisposal = serviceProvider.ConfigureAwait(false);
+        ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
         try
         {
-            int exitCode = await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationToken).ConfigureAwait(false);
-            return exitCode;
+            return await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationToken).ConfigureAwait(false);
         }
         catch (FileNotFoundException fex)
         {
@@ -61,21 +63,16 @@ internal sealed class Program
         {
             return UnhandledExceptionExitCode;
         }
-        finally
-        {
-            serviceProvider.Dispose();
-        }
 
-        static (ServiceProvider ServiceProvider, ILogger<Program> Logger) SetupLogging(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
+        static ServiceProvider SetupLogging(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(new LoggerFactory().AddSimpleConsole(minimalLogLevel, minimalErrorLevel));
+            LoggerFactory loggerFactory = new LoggerFactory();
+            loggerFactory.AddSimpleConsole(minimalLogLevel, minimalErrorLevel);
+            serviceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
             serviceCollection.AddLogging();
 
-            ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-            ILogger<Program>? logger = serviceProvider.GetService<ILogger<Program>>();
-
-            return (serviceProvider, logger!);
+            return serviceCollection.BuildServiceProvider();
         }
 
         static LogLevel GetLogLevel(string? verbosity)
