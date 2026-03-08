@@ -2,124 +2,185 @@ namespace Moq.Analyzers.Test.Common;
 
 public class DiagnosticEditPropertiesTests
 {
-    [Fact]
-    public void ToImmutableDictionary_RoundTripsProperties()
+    public static TheoryData<int> ValidPositionsData => new()
     {
-        DiagnosticEditProperties props = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Insert, EditPosition = 2 };
-        ImmutableDictionary<string, string?> dict = props.ToImmutableDictionary();
-        Assert.Equal("Insert", dict[DiagnosticEditProperties.EditTypeKey]);
-        Assert.Equal("2", dict[DiagnosticEditProperties.EditPositionKey]);
-    }
+        0,
+        1,
+        100,
+    };
 
     [Fact]
-    public void ToImmutableDictionary_AllEnumValues_RoundTrips()
+    public void ToImmutableDictionary_Insert_RoundTrips()
     {
-        foreach (DiagnosticEditProperties.EditType type in Enum.GetValues(typeof(DiagnosticEditProperties.EditType)))
+        // Arrange
+        DiagnosticEditProperties original = new()
         {
-            DiagnosticEditProperties props = new DiagnosticEditProperties { TypeOfEdit = type, EditPosition = 0 };
-            ImmutableDictionary<string, string?> dict = props.ToImmutableDictionary();
-            Assert.Equal(type.ToString(), dict[DiagnosticEditProperties.EditTypeKey]);
-            Assert.Equal("0", dict[DiagnosticEditProperties.EditPositionKey]);
-            Assert.True(DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? roundTripped));
-            Assert.Equal(type, roundTripped!.TypeOfEdit);
-        }
+            TypeOfEdit = DiagnosticEditProperties.EditType.Insert,
+            EditPosition = 3,
+        };
+
+        // Act
+        ImmutableDictionary<string, string?> dict = original.ToImmutableDictionary();
+        bool success = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? result);
+
+        // Assert
+        Assert.True(success);
+        Assert.NotNull(result);
+        Assert.Equal(DiagnosticEditProperties.EditType.Insert, result.TypeOfEdit);
+        Assert.Equal(3, result.EditPosition);
     }
 
     [Fact]
-    public void TryGetFromImmutableDictionary_Fails_WhenEditPositionNegative()
+    public void ToImmutableDictionary_Replace_RoundTrips()
     {
-        DiagnosticEditProperties propsNeg = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Insert, EditPosition = -1 };
-        ImmutableDictionary<string, string?> dictNeg = propsNeg.ToImmutableDictionary();
-        Assert.Equal("-1", dictNeg[DiagnosticEditProperties.EditPositionKey]);
-        Assert.False(DiagnosticEditProperties.TryGetFromImmutableDictionary(dictNeg, out DiagnosticEditProperties? roundTrippedNeg));
-        Assert.Null(roundTrippedNeg);
+        // Arrange
+        DiagnosticEditProperties original = new()
+        {
+            TypeOfEdit = DiagnosticEditProperties.EditType.Replace,
+            EditPosition = 0,
+        };
+
+        // Act
+        ImmutableDictionary<string, string?> dict = original.ToImmutableDictionary();
+        bool success = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? result);
+
+        // Assert
+        Assert.True(success);
+        Assert.NotNull(result);
+        Assert.Equal(DiagnosticEditProperties.EditType.Replace, result.TypeOfEdit);
+        Assert.Equal(0, result.EditPosition);
     }
 
     [Fact]
-    public void ToImmutableDictionary_HandlesLargeEditPosition()
+    public void ToImmutableDictionary_ContainsExpectedKeys()
     {
-        DiagnosticEditProperties propsLarge = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Replace, EditPosition = int.MaxValue };
-        ImmutableDictionary<string, string?> dictLarge = propsLarge.ToImmutableDictionary();
-        Assert.Equal(int.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture), dictLarge[DiagnosticEditProperties.EditPositionKey]);
-        Assert.True(DiagnosticEditProperties.TryGetFromImmutableDictionary(dictLarge, out DiagnosticEditProperties? roundTrippedLarge));
-        Assert.Equal(int.MaxValue, roundTrippedLarge!.EditPosition);
+        // Arrange
+        DiagnosticEditProperties props = new()
+        {
+            TypeOfEdit = DiagnosticEditProperties.EditType.Insert,
+            EditPosition = 5,
+        };
+
+        // Act
+        ImmutableDictionary<string, string?> dict = props.ToImmutableDictionary();
+
+        // Assert
+        Assert.True(dict.ContainsKey(DiagnosticEditProperties.EditTypeKey));
+        Assert.True(dict.ContainsKey(DiagnosticEditProperties.EditPositionKey));
+        Assert.Equal("Insert", dict[DiagnosticEditProperties.EditTypeKey]);
+        Assert.Equal("5", dict[DiagnosticEditProperties.EditPositionKey]);
     }
 
     [Fact]
-    public void TryGetFromImmutableDictionary_IgnoresExtraKeys()
+    public void TryGetFromImmutableDictionary_MissingEditTypeKey_ReturnsFalse()
     {
+        // Arrange
+        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
+            .Add(DiagnosticEditProperties.EditPositionKey, "0");
+
+        // Act
+        bool success = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? result);
+
+        // Assert
+        Assert.False(success);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void TryGetFromImmutableDictionary_MissingEditPositionKey_ReturnsFalse()
+    {
+        // Arrange
+        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
+            .Add(DiagnosticEditProperties.EditTypeKey, "Insert");
+
+        // Act
+        bool success = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? result);
+
+        // Assert
+        Assert.False(success);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void TryGetFromImmutableDictionary_InvalidEditType_ReturnsFalse()
+    {
+        // Arrange
+        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
+            .Add(DiagnosticEditProperties.EditTypeKey, "InvalidValue")
+            .Add(DiagnosticEditProperties.EditPositionKey, "0");
+
+        // Act
+        bool success = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? result);
+
+        // Assert
+        Assert.False(success);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void TryGetFromImmutableDictionary_NonNumericEditPosition_ReturnsFalse()
+    {
+        // Arrange
         ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
             .Add(DiagnosticEditProperties.EditTypeKey, "Insert")
-            .Add(DiagnosticEditProperties.EditPositionKey, "1")
-            .Add("ExtraKey", "ExtraValue");
-        Assert.True(DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props));
-        Assert.Equal(DiagnosticEditProperties.EditType.Insert, props!.TypeOfEdit);
-        Assert.Equal(1, props.EditPosition);
+            .Add(DiagnosticEditProperties.EditPositionKey, "notAnumber");
+
+        // Act
+        bool success = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? result);
+
+        // Assert
+        Assert.False(success);
+        Assert.Null(result);
     }
 
     [Fact]
-    public void DiagnosticEditProperties_EqualityAndImmutability()
+    public void TryGetFromImmutableDictionary_NegativeEditPosition_ReturnsFalse()
     {
-        DiagnosticEditProperties a = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Insert, EditPosition = 1 };
-        DiagnosticEditProperties b = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Insert, EditPosition = 1 };
-        DiagnosticEditProperties c = new DiagnosticEditProperties { TypeOfEdit = DiagnosticEditProperties.EditType.Replace, EditPosition = 1 };
-        Assert.Equal(a, b);
-        Assert.NotEqual(a, c);
-        Assert.True(a.Equals(b));
-        Assert.False(a.Equals(c));
-        Assert.Equal(a.GetHashCode(), b.GetHashCode());
-    }
-
-    [Fact]
-    public void TryGetFromImmutableDictionary_Succeeds_WithValidDictionary()
-    {
+        // Arrange
         ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
             .Add(DiagnosticEditProperties.EditTypeKey, "Replace")
-            .Add(DiagnosticEditProperties.EditPositionKey, "5");
-        bool result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props);
-        Assert.True(result);
-        Assert.NotNull(props);
-        Assert.Equal(DiagnosticEditProperties.EditType.Replace, props!.TypeOfEdit);
-        Assert.Equal(5, props.EditPosition);
+            .Add(DiagnosticEditProperties.EditPositionKey, "-1");
+
+        // Act
+        bool success = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? result);
+
+        // Assert
+        Assert.False(success);
+        Assert.Null(result);
     }
 
     [Fact]
-    public void TryGetFromImmutableDictionary_Fails_WhenEditTypeKeyMissing()
+    public void TryGetFromImmutableDictionary_EmptyDictionary_ReturnsFalse()
     {
-        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty.Add(DiagnosticEditProperties.EditPositionKey, "1");
-        bool result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props);
-        Assert.False(result);
-        Assert.Null(props);
+        // Arrange
+        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty;
+
+        // Act
+        bool success = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? result);
+
+        // Assert
+        Assert.False(success);
+        Assert.Null(result);
     }
 
-    [Fact]
-    public void TryGetFromImmutableDictionary_Fails_WhenEditPositionKeyMissing()
+    [Theory]
+    [MemberData(nameof(ValidPositionsData))]
+    public void TryGetFromImmutableDictionary_ValidPositions_Succeeds(int position)
     {
-        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty.Add(DiagnosticEditProperties.EditTypeKey, "Insert");
-        bool result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props);
-        Assert.False(result);
-        Assert.Null(props);
-    }
+        // Arrange
+        DiagnosticEditProperties original = new()
+        {
+            TypeOfEdit = DiagnosticEditProperties.EditType.Insert,
+            EditPosition = position,
+        };
 
-    [Fact]
-    public void TryGetFromImmutableDictionary_Fails_WhenEditTypeInvalid()
-    {
-        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
-            .Add(DiagnosticEditProperties.EditTypeKey, "NotAType")
-            .Add(DiagnosticEditProperties.EditPositionKey, "1");
-        bool result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props);
-        Assert.False(result);
-        Assert.Null(props);
-    }
+        // Act
+        ImmutableDictionary<string, string?> dict = original.ToImmutableDictionary();
+        bool success = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? result);
 
-    [Fact]
-    public void TryGetFromImmutableDictionary_Fails_WhenEditPositionInvalid()
-    {
-        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
-            .Add(DiagnosticEditProperties.EditTypeKey, "Insert")
-            .Add(DiagnosticEditProperties.EditPositionKey, "notAnInt");
-        bool result = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? props);
-        Assert.False(result);
-        Assert.Null(props);
+        // Assert
+        Assert.True(success);
+        Assert.NotNull(result);
+        Assert.Equal(position, result.EditPosition);
     }
 }

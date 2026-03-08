@@ -28,11 +28,18 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private static void Analyze(SyntaxNodeAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
+        if (!knownSymbols.IsMockReferenced())
+        {
+            return;
+        }
+
         // Check Moq version and skip analysis if the version is 4.16.0 or later
         AssemblyIdentity? moqAssembly = context.Compilation.ReferencedAssemblyNames.FirstOrDefault(a => a.Name.Equals("Moq", StringComparison.OrdinalIgnoreCase));
 
@@ -42,8 +49,13 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
+        context.RegisterSyntaxNodeAction(
+            syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
+            SyntaxKind.InvocationExpression);
+    }
 
+    private static void Analyze(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
+    {
         InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
 
         if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)

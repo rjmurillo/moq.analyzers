@@ -105,27 +105,27 @@ public class EnumerableExtensionsTests
     }
 
     [Fact]
-    public void DefaultIfNotSingle_ReturnsNull_WhenSourceIsNull()
+    public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenSourceIsNull()
     {
         IEnumerable<object> source = null!;
-        object? result = source.DefaultIfNotSingle();
-        Assert.Null(result);
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle());
+        Assert.Equal("source", ex.ParamName);
     }
 
     [Fact]
-    public void DefaultIfNotSingle_ReturnsNull_WhenSourceIsNullAndPredicateIsNotNull()
+    public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenSourceIsNullAndPredicateIsNotNull()
     {
         IEnumerable<object> source = null!;
-        object? result = source.DefaultIfNotSingle(_ => true);
-        Assert.Null(result);
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(_ => true));
+        Assert.Equal("source", ex.ParamName);
     }
 
     [Fact]
-    public void DefaultIfNotSingle_ReturnsNull_WhenSourceIsNullAndPredicateIsNull()
+    public void DefaultIfNotSingle_ThrowsArgumentNullException_WhenSourceIsNullRegardlessOfPredicate()
     {
         IEnumerable<object> source = null!;
-        object? result = source.DefaultIfNotSingle(null!);
-        Assert.Null(result);
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => source.DefaultIfNotSingle(null!));
+        Assert.Equal("source", ex.ParamName);
     }
 
     [Fact]
@@ -133,6 +133,30 @@ public class EnumerableExtensionsTests
     {
         IEnumerable<int> source = new[] { 1, 2, 2, 3 };
         int? result = source.DefaultIfNotSingle(x => x == 2);
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_IEnumerable_ReturnsDefault_WhenNoMatches()
+    {
+        IEnumerable<int> source = new[] { 1, 2, 3 };
+        int? result = source.DefaultIfNotSingle(x => x == 99);
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_IEnumerable_ReturnsElement_WhenSingleMatch()
+    {
+        IEnumerable<int> source = new[] { 1, 2, 3 };
+        int? result = source.DefaultIfNotSingle(x => x == 2);
+        Assert.Equal(2, result);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_ImmutableArray_ReturnsDefault_WhenNoMatches()
+    {
+        ImmutableArray<int> source = [1, 2, 3];
+        int? result = source.DefaultIfNotSingle(x => x == 99);
         Assert.Equal(0, result);
     }
 }

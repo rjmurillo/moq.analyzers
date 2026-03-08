@@ -116,7 +116,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         LambdaExpressionSyntax? lambdaExpression = delegateConstructor.ArgumentList!.Arguments[0]?.Expression as LambdaExpressionSyntax;
 
         // Simple lambdas are currently skipped to avoid handling edge cases and maintain simplicity.
-        // TODO: Implement support for SimpleLambdaExpressionSyntax in delegate constructors.
+        // TODO(#1012): Implement support for SimpleLambdaExpressionSyntax in delegate constructors.
         if (lambdaExpression is SimpleLambdaExpressionSyntax)
         {
             return null;

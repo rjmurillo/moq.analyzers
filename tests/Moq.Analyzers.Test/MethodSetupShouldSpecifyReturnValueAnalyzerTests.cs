@@ -122,6 +122,15 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
 
             // Mismatched argument type forces Roslyn to report candidates instead of a resolved symbol
             ["""new Mock<IFoo>().Setup(x => x.GetValue()).Returns("wrong type");"""],
+
+            // Overload resolution failure on Throws with wrong argument type
+            ["""new Mock<IFoo>().Setup(x => x.GetValue()).Throws("wrong type");"""],
+
+            // Overload resolution failure on ReturnsAsync with wrong argument type
+            ["""new Mock<IFoo>().Setup(x => x.BarAsync()).ReturnsAsync("wrong type");"""],
+
+            // Overload resolution failure on ThrowsAsync with wrong argument type
+            ["""new Mock<IFoo>().Setup(x => x.BarAsync()).ThrowsAsync("wrong type");"""],
         ];
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
