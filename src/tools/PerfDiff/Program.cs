@@ -47,7 +47,7 @@ internal sealed class Program
         (ILogger<Program> logger, ServiceProvider serviceProvider) = SetupLogging(console, minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
 
         // Hook so we can cancel and exit when ctrl+c is pressed.
-        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         Console.CancelKeyPress += (sender, e) =>
         {
             e.Cancel = true;

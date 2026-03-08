@@ -122,6 +122,7 @@ try {
 
         Show-Invocation -ScriptPath $DiffPerfToBaseLine -Arguments $commandArguments
         & $DiffPerfToBaseLine @commandArguments
+        if ($LASTEXITCODE -ne 0) { throw "Diff perf to baseline failed with exit code $LASTEXITCODE." }
         exit
     }
 
@@ -138,6 +139,7 @@ try {
 
     Show-Invocation -ScriptPath $RunPerfTests -Arguments $commandArguments
     & $RunPerfTests @commandArguments
+    if ($LASTEXITCODE -ne 0) { throw "Performance test run failed with exit code $LASTEXITCODE." }
     exit
 }
 catch {
