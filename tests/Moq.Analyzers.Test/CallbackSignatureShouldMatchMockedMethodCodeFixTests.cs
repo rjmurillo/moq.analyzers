@@ -252,7 +252,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     // infer the delegate type for untyped simple lambdas, preventing the analyzer from
     // reporting Moq1100. The compilable source provides a valid semantic model while
     // the fixer input uses the simple lambda form.
-
     [Theory]
     [MemberData(nameof(SimpleLambdaTestData))]
     public async Task ShouldFixSimpleLambdaCallbackSignature(string referenceAssemblyGroup, string @namespace, string original, string quickFix)
@@ -334,13 +333,13 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         Assert.Single(actions);
 
         // Apply the code action and verify it produced the parenthesized lambda.
-        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
+        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None);
         ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
         Document changedDocument = applyChanges.ChangedSolution.GetDocument(modifiedDoc.Id)!;
-        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
 
-        Assert.Contains("(string x) => { }", changedText);
-        Assert.DoesNotContain("Callback(x => { })", changedText);
+        Assert.Contains("(string x) => { }", changedText, StringComparison.Ordinal);
+        Assert.DoesNotContain("Callback(x => { })", changedText, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -398,13 +397,13 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
 
         Assert.Single(actions);
 
-        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
+        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None);
         ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
         Document changedDocument = applyChanges.ChangedSolution.GetDocument(modifiedDoc.Id)!;
-        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
 
-        Assert.Contains("(string x) => x.ToString()", changedText);
-        Assert.DoesNotContain("Callback(x => x.ToString())", changedText);
+        Assert.Contains("(string x) => x.ToString()", changedText, StringComparison.Ordinal);
+        Assert.DoesNotContain("Callback(x => x.ToString())", changedText, StringComparison.Ordinal);
     }
 
     [Fact]
