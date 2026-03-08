@@ -78,7 +78,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
 
         string eventName = GetEventNameFromSelector(invocation, context.SemanticModel);
 
-        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, Rule, eventName ?? "event");
+        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, Rule, eventName);
     }
 
     private static bool TryGetRaisesMethodArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, KnownSymbols knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes)
