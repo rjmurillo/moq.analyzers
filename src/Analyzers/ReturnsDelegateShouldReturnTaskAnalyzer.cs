@@ -30,13 +30,25 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.InvocationExpression);
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private static void Analyze(SyntaxNodeAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
-        MoqKnownSymbols knownSymbols = new(context.SemanticModel.Compilation);
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
 
+        if (!knownSymbols.IsMockReferenced())
+        {
+            return;
+        }
+
+        context.RegisterSyntaxNodeAction(
+            syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
+            SyntaxKind.InvocationExpression);
+    }
+
+    private static void Analyze(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
+    {
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         if (!IsReturnsMethodCallWithSyncDelegate(invocation, context.SemanticModel, knownSymbols, out MemberAccessExpressionSyntax? memberAccess, out InvocationExpressionSyntax? setupInvocation))

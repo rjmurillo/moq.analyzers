@@ -135,4 +135,28 @@ public class EnumerableExtensionsTests
         int? result = source.DefaultIfNotSingle(x => x == 2);
         Assert.Equal(0, result);
     }
+
+    [Fact]
+    public void DefaultIfNotSingle_IEnumerable_ReturnsDefault_WhenNoMatches()
+    {
+        IEnumerable<int> source = new[] { 1, 2, 3 };
+        int? result = source.DefaultIfNotSingle(x => x == 99);
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_IEnumerable_ReturnsElement_WhenSingleMatch()
+    {
+        IEnumerable<int> source = new[] { 1, 2, 3 };
+        int? result = source.DefaultIfNotSingle(x => x == 2);
+        Assert.Equal(2, result);
+    }
+
+    [Fact]
+    public void DefaultIfNotSingle_ImmutableArray_ReturnsDefault_WhenNoMatches()
+    {
+        ImmutableArray<int> source = [1, 2, 3];
+        int? result = source.DefaultIfNotSingle(x => x == 99);
+        Assert.Equal(0, result);
+    }
 }

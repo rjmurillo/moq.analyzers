@@ -9,9 +9,23 @@ if ($LASTEXITCODE -ne 0 -or -not $repoRoot) {
 . "$PSScriptRoot/../lib/LintHelpers.ps1"
 
 # Allow newer .NET runtimes to run tests targeting older TFMs
+$originalRollForward = $env:DOTNET_ROLL_FORWARD
 $env:DOTNET_ROLL_FORWARD = "LatestMajor"
 
 try {
+    # Run tech debt marker scan to catch unlinked TODOs before push
+    $scanScript = Join-Path $repoRoot "build/scripts/todo-scanner/Scan-TodoComments.ps1"
+    if (Test-Path -LiteralPath $scanScript) {
+        Write-Host "Running tech debt marker scan..." -ForegroundColor Cyan
+        & $scanScript -FailOnUnlinked
+        if ($LASTEXITCODE -ne 0) {
+            Set-HookFailed -Check "todo-scanner"
+        }
+    }
+    else {
+        Write-Warning "Tech debt scanner not found at '$scanScript'. Skipping scan."
+    }
+
     $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
 
     $output = dotnet build $slnPath /p:PedanticMode=true --verbosity quiet 2>&1
@@ -38,6 +52,9 @@ catch {
     Write-Host $_ -ForegroundColor Red
     Write-Host $_.ScriptStackTrace
     $script:HookExitCode = 1
+}
+finally {
+    $env:DOTNET_ROLL_FORWARD = $originalRollForward
 }
 
 if ($script:HookExitCode -ne 0) {
