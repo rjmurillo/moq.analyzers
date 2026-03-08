@@ -89,12 +89,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
     private static async Task<Document> FixSimpleLambdaCallbackSignatureAsync(SyntaxNode root, Document document, SimpleLambdaExpressionSyntax simpleLambda, CancellationToken cancellationToken)
     {
-        if (IsInsideDelegateConstructor(simpleLambda))
-        {
-            return document;
-        }
-
-        SeparatedSyntaxList<ParameterSyntax> originalParams = SyntaxFactory.SeparatedList(new[] { simpleLambda.Parameter });
+        SeparatedSyntaxList<ParameterSyntax> originalParams = SyntaxFactory.SingletonSeparatedList(simpleLambda.Parameter);
         ParameterListSyntax? newParameters = await ResolveNewParameterListAsync(document, simpleLambda, simpleLambda.SpanStart, originalParams, cancellationToken).ConfigureAwait(false);
         if (newParameters is null)
         {
@@ -113,7 +108,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         return document.WithSyntaxRoot(newRoot);
     }
 
-    private static async Task<ParameterListSyntax?> ResolveNewParameterListAsync(Document document, SyntaxNode lambdaNode, int position, SeparatedSyntaxList<ParameterSyntax>? originalParameters, CancellationToken cancellationToken)
+    private static async Task<ParameterListSyntax?> ResolveNewParameterListAsync(Document document, SyntaxNode lambdaNode, int position, SeparatedSyntaxList<ParameterSyntax> originalParameters, CancellationToken cancellationToken)
     {
         SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         if (semanticModel is null)
@@ -173,7 +168,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         return matchingMockedMethods[0];
     }
 
-    private static ParameterListSyntax BuildParameterList(SemanticModel semanticModel, IMethodSymbol mockedMethod, int position, SeparatedSyntaxList<ParameterSyntax>? originalParameters = null)
+    private static ParameterListSyntax BuildParameterList(SemanticModel semanticModel, IMethodSymbol mockedMethod, int position, SeparatedSyntaxList<ParameterSyntax> originalParameters)
     {
         ImmutableArray<IParameterSymbol> parameters = mockedMethod.Parameters;
         List<ParameterSyntax> result = new List<ParameterSyntax>(parameters.Length);
@@ -184,8 +179,8 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
             TypeSyntax type = SyntaxFactory.ParseTypeName(parameterSymbol.Type.ToMinimalDisplayString(semanticModel, position));
             SyntaxTokenList modifiers = GetParameterModifiers(parameterSymbol.RefKind);
 
-            string name = originalParameters.HasValue && index < originalParameters.Value.Count
-                ? originalParameters.Value[index].Identifier.ValueText
+            string name = index < originalParameters.Count
+                ? originalParameters[index].Identifier.ValueText
                 : parameterSymbol.Name;
 
             SyntaxToken identifier = SyntaxFactory.Identifier(name);
@@ -203,7 +198,6 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
             RefKind.Ref => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword)),
             RefKind.Out => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword)),
             RefKind.In => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
-            RefKind.None => SyntaxFactory.TokenList(),
             _ => SyntaxFactory.TokenList(),
         };
     }

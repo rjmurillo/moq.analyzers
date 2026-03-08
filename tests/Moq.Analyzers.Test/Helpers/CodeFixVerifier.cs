@@ -7,7 +7,7 @@ internal static class CodeFixVerifier<TAnalyzer, TCodeFixProvider>
     where TAnalyzer : DiagnosticAnalyzer, new()
     where TCodeFixProvider : CodeFixProvider, new()
 {
-    public static async Task VerifyCodeFixAsync(string originalSource, string fixedSource, string referenceAssemblyGroup, CompilerDiagnostics? compilerDiagnostics = null)
+    public static async Task VerifyCodeFixAsync(string originalSource, string fixedSource, string referenceAssemblyGroup, int? numberOfIncrementalIterations = null, int? numberOfFixAllIterations = null, CompilerDiagnostics? compilerDiagnostics = null)
     {
         ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[referenceAssemblyGroup];
 
@@ -18,26 +18,15 @@ internal static class CodeFixVerifier<TAnalyzer, TCodeFixProvider>
             ReferenceAssemblies = referenceAssemblies,
         };
 
-        if (compilerDiagnostics.HasValue)
+        if (numberOfIncrementalIterations.HasValue)
         {
-            test.CompilerDiagnostics = compilerDiagnostics.Value;
+            test.NumberOfIncrementalIterations = numberOfIncrementalIterations.Value;
         }
 
-        await test.RunAsync().ConfigureAwait(false);
-    }
-
-    public static async Task VerifyCodeFixAsync(string originalSource, string fixedSource, string referenceAssemblyGroup, int numberOfIncrementalIterations, int numberOfFixAllIterations, CompilerDiagnostics? compilerDiagnostics = null)
-    {
-        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[referenceAssemblyGroup];
-
-        Test<TAnalyzer, TCodeFixProvider> test = new Test<TAnalyzer, TCodeFixProvider>
+        if (numberOfFixAllIterations.HasValue)
         {
-            TestCode = originalSource,
-            FixedCode = fixedSource,
-            ReferenceAssemblies = referenceAssemblies,
-            NumberOfIncrementalIterations = numberOfIncrementalIterations,
-            NumberOfFixAllIterations = numberOfFixAllIterations,
-        };
+            test.NumberOfFixAllIterations = numberOfFixAllIterations.Value;
+        }
 
         if (compilerDiagnostics.HasValue)
         {
