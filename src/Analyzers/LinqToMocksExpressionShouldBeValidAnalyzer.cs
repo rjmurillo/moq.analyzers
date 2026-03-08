@@ -30,23 +30,29 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
-        context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    private static void AnalyzeInvocation(OperationAnalysisContext context)
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
+    {
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
+        if (!knownSymbols.IsMockReferenced())
+        {
+            return;
+        }
+
+        context.RegisterOperationAction(
+            operationContext => AnalyzeInvocation(operationContext, knownSymbols),
+            OperationKind.Invocation);
+    }
+
+    private static void AnalyzeInvocation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
             return;
         }
-
-        SemanticModel? semanticModel = invocationOperation.SemanticModel;
-        if (semanticModel == null)
-        {
-            return;
-        }
-
-        MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
 
         // Check if this is a Mock.Of invocation
         if (!IsValidMockOfInvocation(invocationOperation, knownSymbols))
