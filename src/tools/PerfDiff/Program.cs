@@ -26,8 +26,7 @@ internal sealed class Program
             string? verbosity = parseResult.GetValue(DiffCommand.VerbosityOption);
             bool failOnRegression = parseResult.GetValue(DiffCommand.FailOnRegressionOption);
 
-            int exitCode = await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken).ConfigureAwait(false);
-            parseResult.Action!.ExitCode = exitCode;
+            return await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken).ConfigureAwait(false);
         });
 
         return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
