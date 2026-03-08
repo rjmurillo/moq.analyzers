@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+using System.Collections.Frozen;
 using Microsoft.Extensions.Logging;
 
 namespace PerfDiff.Logging;
@@ -15,7 +15,7 @@ internal sealed class SimpleConsoleLogger : ILogger
     private readonly LogLevel _minimalLogLevel;
     private readonly LogLevel _minimalErrorLevel;
 
-    private static readonly ImmutableDictionary<LogLevel, ConsoleColor> LogLevelColorMap = new Dictionary<LogLevel, ConsoleColor>
+    private static readonly FrozenDictionary<LogLevel, ConsoleColor> LogLevelColorMap = new Dictionary<LogLevel, ConsoleColor>
     {
         [LogLevel.Critical] = ConsoleColor.Red,
         [LogLevel.Error] = ConsoleColor.Red,
@@ -24,7 +24,7 @@ internal sealed class SimpleConsoleLogger : ILogger
         [LogLevel.Debug] = ConsoleColor.Gray,
         [LogLevel.Trace] = ConsoleColor.Gray,
         [LogLevel.None] = ConsoleColor.White,
-    }.ToImmutableDictionary();
+    }.ToFrozenDictionary();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SimpleConsoleLogger"/> class.

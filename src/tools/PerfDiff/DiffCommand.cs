@@ -17,12 +17,12 @@ internal static class DiffCommand
     /// <summary>
     /// Gets the baseline option.
     /// </summary>
-    internal static Option<string> BaselineOption { get; } = CreateBaselineOption();
+    internal static Option<string> BaselineOption { get; } = CreateFilePathOption("--baseline", "folder that contains the baseline performance run data");
 
     /// <summary>
     /// Gets the results option.
     /// </summary>
-    internal static Option<string> ResultsOption { get; } = CreateResultsOption();
+    internal static Option<string> ResultsOption { get; } = CreateFilePathOption("--results", "folder that contains the performance results");
 
     /// <summary>
     /// Gets the verbosity option.
@@ -37,16 +37,9 @@ internal static class DiffCommand
         Description = "Should return non-zero exit code if regression detected",
     };
 
-    private static Option<string> CreateBaselineOption()
+    private static Option<string> CreateFilePathOption(string name, string description)
     {
-        Option<string> option = new("--baseline") { Description = "folder that contains the baseline performance run data", Required = true };
-        option.AcceptLegalFilePathsOnly();
-        return option;
-    }
-
-    private static Option<string> CreateResultsOption()
-    {
-        Option<string> option = new("--results") { Description = "folder that contains the performance results", Required = true };
+        Option<string> option = new(name) { Description = description, Required = true };
         option.AcceptLegalFilePathsOnly();
         return option;
     }
