@@ -82,7 +82,7 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             context.SemanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out eventName);
         }
 
-        ValidateArgumentTypesWithEventName(context, eventArguments, expectedParameterTypes, invocation, eventName ?? "event");
+        EventSyntaxExtensions.ValidateEventArgumentTypes(context, eventArguments, expectedParameterTypes, invocation, Rule, eventName ?? "event");
     }
 
     private static bool TryGetRaiseMethodArguments(
@@ -97,49 +97,12 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
             semanticModel,
             out eventArguments,
             out expectedParameterTypes,
-            (sm, selector) =>
+            static (sm, selector) =>
             {
                 bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
                 return (success, eventType);
             },
             knownSymbols);
-    }
-
-    private static void ValidateArgumentTypesWithEventName(SyntaxNodeAnalysisContext context, ArgumentSyntax[] eventArguments, ITypeSymbol[] expectedParameterTypes, InvocationExpressionSyntax invocation, string eventName)
-    {
-        if (eventArguments.Length != expectedParameterTypes.Length)
-        {
-            Location location;
-            if (eventArguments.Length < expectedParameterTypes.Length)
-            {
-                // Too few arguments: report on the invocation
-                location = invocation.GetLocation();
-            }
-            else
-            {
-                // Too many arguments: report on the first extra argument
-                location = eventArguments[expectedParameterTypes.Length].GetLocation();
-            }
-
-            Diagnostic diagnostic = location.CreateDiagnostic(Rule, eventName);
-            context.ReportDiagnostic(diagnostic);
-            return;
-        }
-
-        // Check each argument type matches the expected parameter type
-        for (int i = 0; i < eventArguments.Length; i++)
-        {
-            TypeInfo argumentTypeInfo = context.SemanticModel.GetTypeInfo(eventArguments[i].Expression, context.CancellationToken);
-            ITypeSymbol? argumentType = argumentTypeInfo.Type;
-            ITypeSymbol expectedType = expectedParameterTypes[i];
-
-            if (argumentType != null && !context.SemanticModel.HasConversion(argumentType, expectedType))
-            {
-                // Report on the specific argument with the wrong type
-                Diagnostic diagnostic = eventArguments[i].GetLocation().CreateDiagnostic(Rule, eventName);
-                context.ReportDiagnostic(diagnostic);
-            }
-        }
     }
 
     private static bool IsRaiseMethodCall(SemanticModel semanticModel, InvocationExpressionSyntax invocation, MoqKnownSymbols knownSymbols)

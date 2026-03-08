@@ -13,80 +13,46 @@ public class IsTaskOrValueResultPropertyTests
     private static MetadataReference[] CoreReferencesWithTasks =>
         [CompilationHelper.CorlibReference, CompilationHelper.SystemRuntimeReference, SystemThreadingTasksReference, CompilationHelper.SystemLinqReference];
 
-    // IsTaskOrValueResultProperty - Positive cases
-
-    [Fact]
-    public void IsTaskOrValueResultProperty_TaskGenericResult_ReturnsTrue()
+    // Positive cases: Result property on Task<T> and ValueTask<T> should return true.
+    [Theory]
+    [InlineData("Task<int> t = Task.FromResult(42); int r = t.Result;", "Result")]
+    [InlineData("Task<string> t = Task.FromResult(\"hello\"); string r = t.Result;", "Result")]
+    public void IsTaskOrValueResultProperty_TaskGenericResult_ReturnsTrue(string statement, string propertyName)
     {
-        string code = @"
+        string code = $@"
 using System.Threading.Tasks;
 public class C
-{
+{{
     public void M()
-    {
-        Task<int> t = Task.FromResult(42);
-        int r = t.Result;
-    }
-}";
-        (IPropertySymbol prop, MoqKnownSymbols knownSymbols) = GetPropertyFromMemberAccess(code, "Result");
+    {{
+        {statement}
+    }}
+}}";
+        (IPropertySymbol prop, MoqKnownSymbols knownSymbols) = GetPropertyFromMemberAccess(code, propertyName);
         Assert.True(((ISymbol)prop).IsTaskOrValueResultProperty(knownSymbols));
     }
 
-    [Fact]
-    public void IsTaskOrValueResultProperty_ValueTaskGenericResult_ReturnsTrue()
+    [Theory]
+    [InlineData("int", "42")]
+    [InlineData("string", "\"hello\"")]
+    public void IsTaskOrValueResultProperty_ValueTaskGenericResult_ReturnsTrue(string typeArg, string value)
     {
-        string code = @"
+        string code = $@"
 using System.Threading.Tasks;
 public class C
-{
-    public ValueTask<int> GetValue() => new ValueTask<int>(42);
+{{
+    public ValueTask<{typeArg}> GetValue() => new ValueTask<{typeArg}>({value});
     public void M()
-    {
+    {{
         var vt = GetValue();
-        int r = vt.Result;
-    }
-}";
+        {typeArg} r = vt.Result;
+    }}
+}}";
         (IPropertySymbol prop, MoqKnownSymbols knownSymbols) = GetPropertyFromMemberAccess(code, "Result");
         Assert.True(((ISymbol)prop).IsTaskOrValueResultProperty(knownSymbols));
     }
 
-    [Fact]
-    public void IsTaskOrValueResultProperty_TaskStringResult_ReturnsTrue()
-    {
-        string code = @"
-using System.Threading.Tasks;
-public class C
-{
-    public void M()
-    {
-        Task<string> t = Task.FromResult(""hello"");
-        string r = t.Result;
-    }
-}";
-        (IPropertySymbol prop, MoqKnownSymbols knownSymbols) = GetPropertyFromMemberAccess(code, "Result");
-        Assert.True(((ISymbol)prop).IsTaskOrValueResultProperty(knownSymbols));
-    }
-
-    [Fact]
-    public void IsTaskOrValueResultProperty_ValueTaskStringResult_ReturnsTrue()
-    {
-        string code = @"
-using System.Threading.Tasks;
-public class C
-{
-    public ValueTask<string> GetValue() => new ValueTask<string>(""hello"");
-    public void M()
-    {
-        var vt = GetValue();
-        string r = vt.Result;
-    }
-}";
-        (IPropertySymbol prop, MoqKnownSymbols knownSymbols) = GetPropertyFromMemberAccess(code, "Result");
-        Assert.True(((ISymbol)prop).IsTaskOrValueResultProperty(knownSymbols));
-    }
-
-    // IsTaskOrValueResultProperty - Negative cases
-
+    // Negative cases: non-Result properties, non-Task types, and non-property symbols.
     [Fact]
     public void IsTaskOrValueResultProperty_MethodSymbol_ReturnsFalse()
     {
@@ -213,50 +179,7 @@ public class C
         Assert.False(((ISymbol)prop).IsTaskOrValueResultProperty(knownSymbols));
     }
 
-    // IsGenericResultProperty - Positive cases
-
-    [Fact]
-    public void IsGenericResultProperty_TaskGenericResult_ReturnsTrue()
-    {
-        string code = @"
-using System.Threading.Tasks;
-public class C
-{
-    public void M()
-    {
-        Task<int> t = Task.FromResult(42);
-        int r = t.Result;
-    }
-}";
-        (IPropertySymbol prop, MoqKnownSymbols knownSymbols) = GetPropertyFromMemberAccess(code, "Result");
-
-        // IsGenericResultProperty is private, but we verify it through IsTaskOrValueResultProperty
-        // which delegates to it. The Task<int>.Result case exercises the Task<T> path.
-        Assert.True(((ISymbol)prop).IsTaskOrValueResultProperty(knownSymbols));
-    }
-
-    [Fact]
-    public void IsGenericResultProperty_ValueTaskGenericResult_ReturnsTrue()
-    {
-        string code = @"
-using System.Threading.Tasks;
-public class C
-{
-    public ValueTask<double> GetValue() => new ValueTask<double>(3.14);
-    public void M()
-    {
-        var vt = GetValue();
-        double r = vt.Result;
-    }
-}";
-        (IPropertySymbol prop, MoqKnownSymbols knownSymbols) = GetPropertyFromMemberAccess(code, "Result");
-
-        // Exercises the ValueTask<T> path through IsGenericResultProperty.
-        Assert.True(((ISymbol)prop).IsTaskOrValueResultProperty(knownSymbols));
-    }
-
-    // IsGenericResultProperty - Negative cases
-
+    // IsGenericResultProperty negative cases: non-generic types, wrong property names, unrelated generic types.
     [Fact]
     public void IsGenericResultProperty_NonGenericContainingType_ReturnsFalse()
     {

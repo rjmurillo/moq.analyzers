@@ -431,31 +431,7 @@ class C { event MyDelegate MyEvent; }",
     }
 
     [Fact]
-    public void CreateEventDiagnostic_WithEventName_IncludesNameAsMessageArg()
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
-        Location location = tree.GetRoot().GetLocation();
-
-        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleWithPlaceholder, "MyEvent");
-
-        Assert.Equal("EVT0001", diagnostic.Id);
-        Assert.Contains("MyEvent", diagnostic.GetMessage(), StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void CreateEventDiagnostic_WithEventName_PreservesLocation()
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
-        Location location = tree.GetRoot().GetLocation();
-
-        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleWithPlaceholder, "MyEvent");
-
-        Assert.True(diagnostic.Location.IsInSource);
-        Assert.Equal(location.SourceSpan, diagnostic.Location.SourceSpan);
-    }
-
-    [Fact]
-    public void CreateEventDiagnostic_WithEventName_UsesCorrectRule()
+    public void CreateEventDiagnostic_WithEventName_SetsRuleLocationAndMessage()
     {
         SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
         Location location = tree.GetRoot().GetLocation();
@@ -464,34 +440,13 @@ class C { event MyDelegate MyEvent; }",
 
         Assert.Equal(TestRuleWithPlaceholder.Id, diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-    }
-
-    [Fact]
-    public void CreateEventDiagnostic_WithNullEventName_DoesNotIncludeMessageArgs()
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
-        Location location = tree.GetRoot().GetLocation();
-
-        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleNoPlaceholder, null);
-
-        Assert.Equal("EVT0002", diagnostic.Id);
-        Assert.Equal("Event has wrong args", diagnostic.GetMessage());
-    }
-
-    [Fact]
-    public void CreateEventDiagnostic_WithNullEventName_PreservesLocation()
-    {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
-        Location location = tree.GetRoot().GetLocation();
-
-        Diagnostic diagnostic = EventSyntaxExtensions.CreateEventDiagnostic(location, TestRuleNoPlaceholder, null);
-
+        Assert.Contains("MyEvent", diagnostic.GetMessage(), StringComparison.Ordinal);
         Assert.True(diagnostic.Location.IsInSource);
         Assert.Equal(location.SourceSpan, diagnostic.Location.SourceSpan);
     }
 
     [Fact]
-    public void CreateEventDiagnostic_WithNullEventName_UsesCorrectRule()
+    public void CreateEventDiagnostic_WithNullEventName_SetsRuleLocationAndMessage()
     {
         SyntaxTree tree = CSharpSyntaxTree.ParseText("class C { }");
         Location location = tree.GetRoot().GetLocation();
@@ -500,6 +455,9 @@ class C { event MyDelegate MyEvent; }",
 
         Assert.Equal(TestRuleNoPlaceholder.Id, diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+        Assert.Equal("Event has wrong args", diagnostic.GetMessage());
+        Assert.True(diagnostic.Location.IsInSource);
+        Assert.Equal(location.SourceSpan, diagnostic.Location.SourceSpan);
     }
 
     [Fact]
@@ -531,91 +489,15 @@ class C { event MyDelegate MyEvent; }",
     // unit testing is not feasible.
     [Theory]
     [MemberData(nameof(TooFewArgumentsData))]
-    public async Task ValidateEventArgumentTypes_TooFewArguments_ReportsDiagnosticAtInvocationLocation(
-        string referenceAssemblyGroup,
-        string @namespace,
-        string raisesCall)
-    {
-        await RaisesVerifier.VerifyAnalyzerAsync(
-            CreateRaisesTestCode(@namespace, raisesCall),
-            referenceAssemblyGroup);
-    }
-
-    [Theory]
     [MemberData(nameof(TooManyArgumentsData))]
-    public async Task ValidateEventArgumentTypes_TooManyArguments_ReportsDiagnosticAtFirstExtraArgument(
-        string referenceAssemblyGroup,
-        string @namespace,
-        string raisesCall)
-    {
-        await RaisesVerifier.VerifyAnalyzerAsync(
-            CreateRaisesTestCode(@namespace, raisesCall),
-            referenceAssemblyGroup);
-    }
-
-    [Theory]
     [MemberData(nameof(WrongArgumentTypesData))]
-    public async Task ValidateEventArgumentTypes_WrongArgumentTypes_ReportsDiagnosticAtMismatchedArgument(
-        string referenceAssemblyGroup,
-        string @namespace,
-        string raisesCall)
-    {
-        await RaisesVerifier.VerifyAnalyzerAsync(
-            CreateRaisesTestCode(@namespace, raisesCall),
-            referenceAssemblyGroup);
-    }
-
-    [Theory]
     [MemberData(nameof(ExactMatchData))]
-    public async Task ValidateEventArgumentTypes_ExactMatchCountAndTypes_NoDiagnostic(
-        string referenceAssemblyGroup,
-        string @namespace,
-        string raisesCall)
-    {
-        await RaisesVerifier.VerifyAnalyzerAsync(
-            CreateRaisesTestCode(@namespace, raisesCall),
-            referenceAssemblyGroup);
-    }
-
-    [Theory]
     [MemberData(nameof(EventHandlerSubclassData))]
-    public async Task ValidateEventArgumentTypes_EventHandlerWithCorrectEventArgsSubclass_NoDiagnostic(
-        string referenceAssemblyGroup,
-        string @namespace,
-        string raisesCall)
-    {
-        await RaisesVerifier.VerifyAnalyzerAsync(
-            CreateRaisesTestCode(@namespace, raisesCall),
-            referenceAssemblyGroup);
-    }
-
-    [Theory]
     [MemberData(nameof(ActionDelegateData))]
-    public async Task ValidateEventArgumentTypes_ActionDelegateWithCorrectType_NoDiagnostic(
-        string referenceAssemblyGroup,
-        string @namespace,
-        string raisesCall)
-    {
-        await RaisesVerifier.VerifyAnalyzerAsync(
-            CreateRaisesTestCode(@namespace, raisesCall),
-            referenceAssemblyGroup);
-    }
-
-    [Theory]
     [MemberData(nameof(CustomDelegateData))]
-    public async Task ValidateEventArgumentTypes_CustomDelegateWithCorrectParameters_NoDiagnostic(
-        string referenceAssemblyGroup,
-        string @namespace,
-        string raisesCall)
-    {
-        await RaisesVerifier.VerifyAnalyzerAsync(
-            CreateRaisesTestCode(@namespace, raisesCall),
-            referenceAssemblyGroup);
-    }
-
-    [Theory]
     [MemberData(nameof(ZeroExpectedParametersData))]
-    public async Task ValidateEventArgumentTypes_ZeroExpectedParameters_NoDiagnostic(
+    [MemberData(nameof(ZeroParamsWithExtraArgsData))]
+    public async Task ValidateEventArgumentTypes_RaisesScenarios_VerifiesDiagnostics(
         string referenceAssemblyGroup,
         string @namespace,
         string raisesCall)
@@ -627,43 +509,9 @@ class C { event MyDelegate MyEvent; }",
 
     [Theory]
     [MemberData(nameof(ManyParametersMatchData))]
-    public async Task ValidateEventArgumentTypes_ManyParametersAllMatch_NoDiagnostic(
-        string referenceAssemblyGroup,
-        string @namespace,
-        string raiseCall)
-    {
-        await RaiseVerifier.VerifyAnalyzerAsync(
-            CreateRaiseTestCode(@namespace, raiseCall),
-            referenceAssemblyGroup);
-    }
-
-    [Theory]
     [MemberData(nameof(ManyParametersMismatchData))]
-    public async Task ValidateEventArgumentTypes_ManyParametersWithMismatch_ReportsDiagnostic(
-        string referenceAssemblyGroup,
-        string @namespace,
-        string raiseCall)
-    {
-        await RaiseVerifier.VerifyAnalyzerAsync(
-            CreateRaiseTestCode(@namespace, raiseCall),
-            referenceAssemblyGroup);
-    }
-
-    [Theory]
-    [MemberData(nameof(ZeroParamsWithExtraArgsData))]
-    public async Task ValidateEventArgumentTypes_ZeroExpectedParamsWithExtraArgs_ReportsDiagnostic(
-        string referenceAssemblyGroup,
-        string @namespace,
-        string raisesCall)
-    {
-        await RaisesVerifier.VerifyAnalyzerAsync(
-            CreateRaisesTestCode(@namespace, raisesCall),
-            referenceAssemblyGroup);
-    }
-
-    [Theory]
     [MemberData(nameof(RaiseWithEventNameData))]
-    public async Task ValidateEventArgumentTypes_RaiseWithEventName_ReportsDiagnostic(
+    public async Task ValidateEventArgumentTypes_RaiseScenarios_VerifiesDiagnostics(
         string referenceAssemblyGroup,
         string @namespace,
         string raiseCall)
