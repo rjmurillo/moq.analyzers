@@ -11,7 +11,7 @@ internal static partial class ISymbolExtensions
     /// <param name="typeSymbol">The type symbol to check.</param>
     /// <param name="knownSymbols">The known symbols from the compilation.</param>
     /// <returns>True if the type is Task, Task&lt;T&gt;, ValueTask, or ValueTask&lt;T&gt;; otherwise false.</returns>
-    public static bool IsTaskOrValueTaskType(this ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
+    internal static bool IsTaskOrValueTaskType(this ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
     {
         if (typeSymbol is not INamedTypeSymbol namedType)
         {
@@ -27,7 +27,7 @@ internal static partial class ISymbolExtensions
                SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.ValueTask1);
     }
 
-    public static bool IsTaskOrValueResultProperty(this ISymbol symbol, MoqKnownSymbols knownSymbols)
+    internal static bool IsTaskOrValueResultProperty(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
         if (symbol is IPropertySymbol propertySymbol)
         {

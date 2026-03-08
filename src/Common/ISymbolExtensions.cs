@@ -8,7 +8,7 @@ namespace Moq.Analyzers.Common;
 /// </summary>
 internal static partial class ISymbolExtensions
 {
-    public static bool IsConstructor(this ISymbol symbol)
+    internal static bool IsConstructor(this ISymbol symbol)
     {
         return symbol.DeclaredAccessibility != Accessibility.Private
                 && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } and { IsStatic: false };
@@ -31,7 +31,7 @@ internal static partial class ISymbolExtensions
     /// <example>
     /// <c>MyType{int}()</c> is an instance of <c>MyType{T}()</c>.
     /// </example>
-    public static bool IsInstanceOf<TSymbol>(this ISymbol? symbol, TSymbol? other, SymbolEqualityComparer? symbolEqualityComparer = null)
+    internal static bool IsInstanceOf<TSymbol>(this ISymbol? symbol, TSymbol? other, SymbolEqualityComparer? symbolEqualityComparer = null)
         where TSymbol : class, ISymbol
     {
         symbolEqualityComparer ??= SymbolEqualityComparer.Default;
@@ -77,7 +77,7 @@ internal static partial class ISymbolExtensions
     /// The matching symbol if <paramref name="symbol"/> is an instance of any of <paramref name="others"/>. <see langword="null"/> otherwise.
     /// </param>
     /// <param name="symbolEqualityComparer">The <see cref="SymbolEqualityComparer"/> to use for equality.</param>
-    public static bool IsInstanceOf<TSymbol>(this ISymbol symbol, ImmutableArray<TSymbol> others, [NotNullWhen(true)] out TSymbol? matchingSymbol, SymbolEqualityComparer? symbolEqualityComparer = null)
+    internal static bool IsInstanceOf<TSymbol>(this ISymbol symbol, ImmutableArray<TSymbol> others, [NotNullWhen(true)] out TSymbol? matchingSymbol, SymbolEqualityComparer? symbolEqualityComparer = null)
         where TSymbol : class, ISymbol
     {
         symbolEqualityComparer ??= SymbolEqualityComparer.Default;
@@ -101,14 +101,14 @@ internal static partial class ISymbolExtensions
     /// The symbols to compare to. Returns <see langword="true"/> if <paramref name="symbol"/> matches any of others.
     /// </param>
     /// <param name="symbolEqualityComparer">The <see cref="SymbolEqualityComparer"/> to use for equality.</param>
-    public static bool IsInstanceOf<TSymbol>(this ISymbol symbol, ImmutableArray<TSymbol> others, SymbolEqualityComparer? symbolEqualityComparer = null)
+    internal static bool IsInstanceOf<TSymbol>(this ISymbol symbol, ImmutableArray<TSymbol> others, SymbolEqualityComparer? symbolEqualityComparer = null)
         where TSymbol : class, ISymbol
     {
         return symbol.IsInstanceOf(others, out _, symbolEqualityComparer);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsOverridable(this ISymbol symbol)
+    internal static bool IsOverridable(this ISymbol symbol)
     {
         return symbol switch
         {
