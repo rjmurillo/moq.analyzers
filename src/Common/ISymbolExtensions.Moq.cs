@@ -160,8 +160,6 @@ internal static partial class ISymbolExtensions
     {
         return mockedMemberSymbol switch
         {
-            IEventSymbol eventSymbol =>
-                eventSymbol.IsOverridable(),
             IPropertySymbol propertySymbol =>
                 propertySymbol.IsOverridable() || propertySymbol.IsTaskOrValueResultProperty(knownSymbols),
             IMethodSymbol methodSymbol =>

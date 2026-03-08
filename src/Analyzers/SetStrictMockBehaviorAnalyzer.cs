@@ -27,6 +27,30 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The original strict analyzer resolved the mocked type name from <paramref name="target"/>'s
+    /// type arguments (not the invocation's) and fell back to "Unknown" instead of "T".
+    /// </remarks>
+    internal override string GetMockedTypeName(IOperation operation, IMethodSymbol target)
+    {
+        // For object creation (new Mock<T>), get the type argument from the Mock<T> type
+        if (operation is IObjectCreationOperation objectCreation
+            && objectCreation.Type is INamedTypeSymbol namedType
+            && namedType.TypeArguments.Length > 0)
+        {
+            return namedType.TypeArguments[0].ToDisplayString();
+        }
+
+        // For any other case, use the target method's type arguments
+        if (target.TypeArguments.Length > 0)
+        {
+            return target.TypeArguments[0].ToDisplayString();
+        }
+
+        return "Unknown";
+    }
+
+    /// <inheritdoc />
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
     private protected override void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols)
     {
