@@ -16,7 +16,7 @@ internal static class MockDetectionHelpers
     /// <param name="knownSymbols">The known Moq symbols.</param>
     /// <param name="mockedType">When successful, the mocked type; otherwise, null.</param>
     /// <returns>True if this is a valid <c>Mock{T}</c> creation; otherwise, false.</returns>
-    public static bool IsValidMockCreation(IObjectCreationOperation creation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
+    internal static bool IsValidMockCreation(IObjectCreationOperation creation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
 
@@ -35,7 +35,7 @@ internal static class MockDetectionHelpers
     /// <param name="knownSymbols">The known Moq symbols.</param>
     /// <param name="mockedType">When successful, the mocked type; otherwise, null.</param>
     /// <returns>True if this is a valid <c>Mock.Of{T}()</c> invocation; otherwise, false.</returns>
-    public static bool IsValidMockOfInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
+    internal static bool IsValidMockOfInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
 
@@ -61,7 +61,7 @@ internal static class MockDetectionHelpers
     /// <param name="knownSymbols">The known Moq symbols.</param>
     /// <param name="mockedType">When successful, the mocked type; otherwise, null.</param>
     /// <returns>True if this is a valid mock invocation; otherwise, false.</returns>
-    public static bool IsValidMockInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
+    internal static bool IsValidMockInvocation(IInvocationOperation invocation, MoqKnownSymbols knownSymbols, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
 
@@ -90,7 +90,7 @@ internal static class MockDetectionHelpers
     /// <param name="targetMethod">The method symbol to check.</param>
     /// <param name="knownSymbols">The known Moq symbols.</param>
     /// <returns>True if the method is <c>Mock.Of{T}()</c>; otherwise, false.</returns>
-    public static bool IsValidMockOfMethod(IMethodSymbol? targetMethod, MoqKnownSymbols knownSymbols)
+    internal static bool IsValidMockOfMethod(IMethodSymbol? targetMethod, MoqKnownSymbols knownSymbols)
         => targetMethod is not null && targetMethod.IsInstanceOf(knownSymbols.MockOf);
 
     /// <summary>
@@ -99,7 +99,7 @@ internal static class MockDetectionHelpers
     /// <param name="type">The type symbol to extract from.</param>
     /// <param name="mockedType">When successful, the mocked type; otherwise, null.</param>
     /// <returns>True if the mocked type was extracted; otherwise, false.</returns>
-    public static bool TryGetMockedTypeFromGeneric(ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? mockedType)
+    internal static bool TryGetMockedTypeFromGeneric(ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? mockedType)
     {
         mockedType = null;
 
@@ -118,7 +118,7 @@ internal static class MockDetectionHelpers
     /// <param name="operation">The operation being analyzed.</param>
     /// <param name="fallbackSyntax">The fallback syntax node if type argument cannot be found.</param>
     /// <returns>The location for reporting the diagnostic.</returns>
-    public static Location GetDiagnosticLocation(IOperation operation, SyntaxNode fallbackSyntax)
+    internal static Location GetDiagnosticLocation(IOperation operation, SyntaxNode fallbackSyntax)
     {
         TypeSyntax? typeArgument = operation.Syntax
             .DescendantNodes()

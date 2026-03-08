@@ -18,6 +18,8 @@ something is wrong with your Moq configuration.
 | [Moq1000](docs/rules/Moq1000.md) | Usage         | Sealed classes cannot be mocked                                                         |
 | [Moq1001](docs/rules/Moq1001.md) | Usage         | Mocked interfaces cannot have constructor parameters                                    |
 | [Moq1002](docs/rules/Moq1002.md) | Usage         | Parameters provided into mock do not match any existing constructors                    |
+| [Moq1003](docs/rules/Moq1003.md) | Usage         | Internal type requires InternalsVisibleTo for DynamicProxy                              |
+| [Moq1004](docs/rules/Moq1004.md) | Usage         | ILogger should not be mocked                                                            |
 | [Moq1100](docs/rules/Moq1100.md) | Correctness   | Callback signature must match the signature of the mocked method                        |
 | [Moq1101](docs/rules/Moq1101.md) | Usage         | SetupGet/SetupSet/SetupProperty should be used for properties, not for methods          |
 | [Moq1200](docs/rules/Moq1200.md) | Correctness   | Setup should be used only for overridable members                                       |
@@ -49,7 +51,7 @@ dotnet add package Moq.Analyzers
 ```
 
 > NOTE: You must use a [supported version](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) of
-> the .NET SDK (i.e. 8.0 or later).
+> the .NET SDK.
 
 ### Configuring rules
 

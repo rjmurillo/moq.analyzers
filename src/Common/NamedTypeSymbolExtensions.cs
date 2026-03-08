@@ -3,7 +3,7 @@ namespace Moq.Analyzers.Common;
 /// <summary>
 /// Provides extension methods for <see cref="INamedTypeSymbol"/> to assist with type analysis in analyzers.
 /// </summary>
-public static class NamedTypeSymbolExtensions
+internal static class NamedTypeSymbolExtensions
 {
     /// <summary>
     /// Determines if the given <paramref name="namedType"/> represents the generic <see cref="System.EventHandler{TEventArgs}"/> type.

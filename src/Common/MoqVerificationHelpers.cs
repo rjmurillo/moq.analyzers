@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Moq.Analyzers;
+namespace Moq.Analyzers.Common;
 
 /// <summary>
 /// Shared helper methods for Moq verification analysis and code fixes.
