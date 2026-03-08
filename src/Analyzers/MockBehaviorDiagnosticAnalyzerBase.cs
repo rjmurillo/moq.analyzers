@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
 
@@ -11,6 +11,15 @@ namespace Moq.Analyzers;
 /// </remarks>
 public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
 {
+    /// <inheritdoc />
+    public override void Initialize(AnalysisContext context)
+    {
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
+
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
+    }
+
     /// <summary>
     /// Extracts the mocked type name from the operation for use in diagnostic messages.
     /// </summary>
@@ -41,17 +50,6 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
 
         return "T";
     }
-
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
-    {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private protected abstract void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols);
 
     /// <summary>
     /// Attempts to report a diagnostic for a MockBehavior parameter issue.
@@ -162,6 +160,8 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
             && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out IMethodSymbol? methodMatch, out _, cancellationToken: context.CancellationToken)
             && TryReportMockBehaviorDiagnostic(context, methodMatch, knownSymbols, rule, DiagnosticEditProperties.EditType.Insert, messageArgs);
     }
+
+    private protected abstract void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols);
 
     private void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
     {
