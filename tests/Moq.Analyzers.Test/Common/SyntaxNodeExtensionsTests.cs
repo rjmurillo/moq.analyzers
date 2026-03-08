@@ -188,4 +188,17 @@ class C
         // Assert
         Assert.IsType<BinaryExpressionSyntax>(result);
     }
+
+    [Fact]
+    public void WalkDownParentheses_NullExpression_ReturnsNull()
+    {
+        // Arrange
+        ExpressionSyntax? nullExpr = null;
+
+        // Act
+        ExpressionSyntax? result = nullExpr.WalkDownParentheses();
+
+        // Assert
+        Assert.Null(result);
+    }
 }
