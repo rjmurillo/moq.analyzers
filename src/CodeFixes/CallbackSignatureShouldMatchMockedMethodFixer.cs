@@ -136,7 +136,8 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
             newParameters,
             simpleLambda.ArrowToken,
             simpleLambda.Block,
-            simpleLambda.ExpressionBody);
+            simpleLambda.ExpressionBody)
+            .WithTriviaFrom(simpleLambda);
 
         SyntaxNode newRoot = root.ReplaceNode(simpleLambda, parenthesizedLambda);
         return document.WithSyntaxRoot(newRoot);
