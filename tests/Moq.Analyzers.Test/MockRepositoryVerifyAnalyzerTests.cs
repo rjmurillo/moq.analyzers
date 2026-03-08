@@ -224,6 +224,7 @@ public class MockRepositoryVerifyAnalyzerTests
     {
         // VerifyAll() is a separate method on MockRepository. The analyzer currently
         // only checks for Verify(), not VerifyAll(). These tests document current behavior.
+        // TODO: VerifyAll() should suppress diagnostic (https://github.com/rjmurillo/moq.analyzers/issues/986)
         return new object[][]
         {
             // VerifyAll() called - still reports diagnostic because analyzer only checks Verify()
@@ -241,6 +242,7 @@ public class MockRepositoryVerifyAnalyzerTests
     {
         // The analyzer scopes to the containing method body. Verify() in a different
         // method than Create() results in a diagnostic. This documents the limitation.
+        // TODO: Cross-method scope limitation (https://github.com/rjmurillo/moq.analyzers/issues/986)
         return new object[][]
         {
             // Create() and Verify() in separate methods - diagnostic because analyzer is method-scoped
@@ -342,19 +344,19 @@ public class MockRepositoryVerifyAnalyzerTests
     private static async Task VerifyWithMultiInterfaceTemplate(string referenceAssemblyGroup, string ns, string testCode)
     {
         string code = BuildMultiInterfaceTemplate(ns, testCode);
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup).ConfigureAwait(false);
+        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
     }
 
     private static async Task VerifyWithSingleInterfaceTemplate(string referenceAssemblyGroup, string ns, string testCode)
     {
         string code = BuildSingleInterfaceTemplate(ns, testCode);
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup).ConfigureAwait(false);
+        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
     }
 
     private static async Task VerifyWithNamespacePrefix(string referenceAssemblyGroup, string ns, string testCode)
     {
         string code = BuildNamespacePrefixTemplate(ns, testCode);
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup).ConfigureAwait(false);
+        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
     }
 
     private static string BuildNamespacePrefixTemplate(string ns, string content) =>
