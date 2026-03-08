@@ -41,7 +41,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             """;
 
         // CompilerDiagnostics.None suppresses CS0246 from the global using Moq added by the test infrastructure.
-        await VerifyBothAnalyzersAsync(source, ReferenceAssemblyCatalog.Net80, CompilerDiagnostics.None);
+        await VerifyBothAnalyzersAsync(source, ReferenceAssemblyCatalog.Net80, CompilerDiagnostics.None).ConfigureAwait(false);
     }
 
     [Theory]
@@ -60,7 +60,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup).ConfigureAwait(false);
     }
 
     [Theory]
@@ -79,7 +79,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup).ConfigureAwait(false);
     }
 
     [Theory]
@@ -100,7 +100,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup).ConfigureAwait(false);
     }
 
     [Theory]
@@ -127,7 +127,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup).ConfigureAwait(false);
     }
 
     private static async Task VerifyBothAnalyzersAsync(
@@ -136,8 +136,8 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
         CompilerDiagnostics? compilerDiagnostics = null)
     {
         await ExplicitVerifier.VerifyAnalyzerAsync(
-            source, referenceAssemblyGroup, configFileName: null, configContent: null, compilerDiagnostics);
+            source, referenceAssemblyGroup, configFileName: null, configContent: null, compilerDiagnostics).ConfigureAwait(false);
         await StrictVerifier.VerifyAnalyzerAsync(
-            source, referenceAssemblyGroup, configFileName: null, configContent: null, compilerDiagnostics);
+            source, referenceAssemblyGroup, configFileName: null, configContent: null, compilerDiagnostics).ConfigureAwait(false);
     }
 }
