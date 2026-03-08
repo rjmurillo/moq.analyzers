@@ -274,11 +274,6 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     [Fact]
     public async Task FixerConvertsDirectSimpleLambdaBlockToParenthesized()
     {
-        // Verify the fixer rewrites a bare simple lambda into a parenthesized
-        // lambda with the correct type from the mocked method signature.
-        // We start from compilable source (parenthesized lambda), then replace
-        // it with a simple lambda in the Roslyn workspace so the incremental
-        // semantic model still resolves the Setup/Callback chain.
         const string compilableSource =
             """
             using System;
@@ -299,53 +294,12 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             }
             """;
 
-        (SemanticModel model, SyntaxTree _) = await CompilationHelper.CreateMoqCompilationAsync(compilableSource);
-        using AdhocWorkspace workspace = new();
-        Document compilableDoc = CreateTestDocument(workspace, model, compilableSource);
-
-        // Replace the parenthesized lambda with a simple lambda in the document.
-        SyntaxNode compilableRoot = (await compilableDoc.GetSyntaxRootAsync())!;
-        ParenthesizedLambdaExpressionSyntax parenthesizedLambda = compilableRoot
-            .DescendantNodes()
-            .OfType<ParenthesizedLambdaExpressionSyntax>()
-            .Last();
-
-        SimpleLambdaExpressionSyntax simpleLambda = SyntaxFactory.SimpleLambdaExpression(
-            SyntaxFactory.Parameter(SyntaxFactory.Identifier("x")),
-            parenthesizedLambda.Block,
-            null)
-            .WithArrowToken(parenthesizedLambda.ArrowToken)
-            .WithTriviaFrom(parenthesizedLambda);
-
-        SyntaxNode modifiedRoot = compilableRoot.ReplaceNode(parenthesizedLambda, simpleLambda);
-        Document modifiedDoc = compilableDoc.WithSyntaxRoot(modifiedRoot);
-
-        // Re-fetch the simple lambda from the modified tree for diagnostic span.
-        SyntaxNode modifiedSyntaxRoot = (await modifiedDoc.GetSyntaxRootAsync())!;
-        SimpleLambdaExpressionSyntax targetLambda = modifiedSyntaxRoot
-            .DescendantNodes()
-            .OfType<SimpleLambdaExpressionSyntax>()
-            .Last();
-
-        Diagnostic diagnostic = CreateSyntheticDiagnosticAtSpan(modifiedSyntaxRoot.SyntaxTree, targetLambda.Parameter.Span);
-        List<CodeAction> actions = await InvokeFixerAsync(modifiedDoc, diagnostic);
-
-        Assert.Single(actions);
-
-        // Apply the code action and verify it produced the parenthesized lambda.
-        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None);
-        ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
-        Document changedDocument = applyChanges.ChangedSolution.GetDocument(modifiedDoc.Id)!;
-        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
-
-        Assert.Contains("(string x) => { }", changedText, StringComparison.Ordinal);
-        Assert.DoesNotContain("Callback(x => { })", changedText, StringComparison.Ordinal);
+        await VerifySimpleLambdaConversionAsync(compilableSource, "(string x) => { }", "Callback(x => { })");
     }
 
     [Fact]
     public async Task FixerConvertsDirectSimpleLambdaExpressionToParenthesized()
     {
-        // Same as above but with an expression-bodied simple lambda.
         const string compilableSource =
             """
             using System;
@@ -366,44 +320,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             }
             """;
 
-        (SemanticModel model, SyntaxTree _) = await CompilationHelper.CreateMoqCompilationAsync(compilableSource);
-        using AdhocWorkspace workspace = new();
-        Document compilableDoc = CreateTestDocument(workspace, model, compilableSource);
-
-        SyntaxNode compilableRoot = (await compilableDoc.GetSyntaxRootAsync())!;
-        ParenthesizedLambdaExpressionSyntax parenthesizedLambda = compilableRoot
-            .DescendantNodes()
-            .OfType<ParenthesizedLambdaExpressionSyntax>()
-            .Last();
-
-        SimpleLambdaExpressionSyntax simpleLambda = SyntaxFactory.SimpleLambdaExpression(
-            SyntaxFactory.Parameter(SyntaxFactory.Identifier("x")),
-            null,
-            parenthesizedLambda.ExpressionBody)
-            .WithArrowToken(parenthesizedLambda.ArrowToken)
-            .WithTriviaFrom(parenthesizedLambda);
-
-        SyntaxNode modifiedRoot = compilableRoot.ReplaceNode(parenthesizedLambda, simpleLambda);
-        Document modifiedDoc = compilableDoc.WithSyntaxRoot(modifiedRoot);
-
-        SyntaxNode modifiedSyntaxRoot = (await modifiedDoc.GetSyntaxRootAsync())!;
-        SimpleLambdaExpressionSyntax targetLambda = modifiedSyntaxRoot
-            .DescendantNodes()
-            .OfType<SimpleLambdaExpressionSyntax>()
-            .Last();
-
-        Diagnostic diagnostic = CreateSyntheticDiagnosticAtSpan(modifiedSyntaxRoot.SyntaxTree, targetLambda.Parameter.Span);
-        List<CodeAction> actions = await InvokeFixerAsync(modifiedDoc, diagnostic);
-
-        Assert.Single(actions);
-
-        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None);
-        ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
-        Document changedDocument = applyChanges.ChangedSolution.GetDocument(modifiedDoc.Id)!;
-        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
-
-        Assert.Contains("(string x) => x.ToString()", changedText, StringComparison.Ordinal);
-        Assert.DoesNotContain("Callback(x => x.ToString())", changedText, StringComparison.Ordinal);
+        await VerifySimpleLambdaConversionAsync(compilableSource, "(string x) => x.ToString()", "Callback(x => x.ToString())");
     }
 
     [Fact]
@@ -511,44 +428,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             }
             """;
 
-        (SemanticModel model, SyntaxTree _) = await CompilationHelper.CreateMoqCompilationAsync(compilableSource);
-        using AdhocWorkspace workspace = new();
-        Document compilableDoc = CreateTestDocument(workspace, model, compilableSource);
-
-        SyntaxNode compilableRoot = (await compilableDoc.GetSyntaxRootAsync())!;
-        ParenthesizedLambdaExpressionSyntax parenthesizedLambda = compilableRoot
-            .DescendantNodes()
-            .OfType<ParenthesizedLambdaExpressionSyntax>()
-            .Last();
-
-        SimpleLambdaExpressionSyntax simpleLambda = SyntaxFactory.SimpleLambdaExpression(
-            SyntaxFactory.Parameter(SyntaxFactory.Identifier("x")),
-            null,
-            parenthesizedLambda.ExpressionBody)
-            .WithArrowToken(parenthesizedLambda.ArrowToken)
-            .WithTriviaFrom(parenthesizedLambda);
-
-        SyntaxNode modifiedRoot = compilableRoot.ReplaceNode(parenthesizedLambda, simpleLambda);
-        Document modifiedDoc = compilableDoc.WithSyntaxRoot(modifiedRoot);
-
-        SyntaxNode modifiedSyntaxRoot = (await modifiedDoc.GetSyntaxRootAsync())!;
-        SimpleLambdaExpressionSyntax targetLambda = modifiedSyntaxRoot
-            .DescendantNodes()
-            .OfType<SimpleLambdaExpressionSyntax>()
-            .Last();
-
-        Diagnostic diagnostic = CreateSyntheticDiagnosticAtSpan(modifiedSyntaxRoot.SyntaxTree, targetLambda.Parameter.Span);
-        List<CodeAction> actions = await InvokeFixerAsync(modifiedDoc, diagnostic);
-
-        Assert.Single(actions);
-
-        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None);
-        ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
-        Document changedDocument = applyChanges.ChangedSolution.GetDocument(modifiedDoc.Id)!;
-        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
-
-        Assert.Contains("(string x) => 42", changedText, StringComparison.Ordinal);
-        Assert.DoesNotContain("Returns(x => 42)", changedText, StringComparison.Ordinal);
+        await VerifySimpleLambdaConversionAsync(compilableSource, "(string x) => 42", "Returns(x => 42)");
     }
 
     [Theory]
@@ -627,6 +507,52 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         }
         """;
 
+    /// <summary>
+    /// Verifies that the fixer converts a simple lambda to a parenthesized lambda
+    /// with correct types from the mocked method signature.
+    /// </summary>
+    private async Task VerifySimpleLambdaConversionAsync(string compilableSource, string expectedFragment, string unexpectedFragment)
+    {
+        (SemanticModel model, SyntaxTree _) = await CompilationHelper.CreateMoqCompilationAsync(compilableSource);
+        using AdhocWorkspace workspace = new();
+        Document compilableDoc = CreateTestDocument(workspace, model, compilableSource);
+
+        SyntaxNode compilableRoot = (await compilableDoc.GetSyntaxRootAsync())!;
+        ParenthesizedLambdaExpressionSyntax parenthesizedLambda = compilableRoot
+            .DescendantNodes()
+            .OfType<ParenthesizedLambdaExpressionSyntax>()
+            .Last();
+
+        SimpleLambdaExpressionSyntax simpleLambda = SyntaxFactory.SimpleLambdaExpression(
+            SyntaxFactory.Parameter(SyntaxFactory.Identifier("x")),
+            parenthesizedLambda.Block,
+            parenthesizedLambda.ExpressionBody)
+            .WithArrowToken(parenthesizedLambda.ArrowToken)
+            .WithTriviaFrom(parenthesizedLambda);
+
+        SyntaxNode modifiedRoot = compilableRoot.ReplaceNode(parenthesizedLambda, simpleLambda);
+        Document modifiedDoc = compilableDoc.WithSyntaxRoot(modifiedRoot);
+
+        SyntaxNode modifiedSyntaxRoot = (await modifiedDoc.GetSyntaxRootAsync())!;
+        SimpleLambdaExpressionSyntax targetLambda = modifiedSyntaxRoot
+            .DescendantNodes()
+            .OfType<SimpleLambdaExpressionSyntax>()
+            .Last();
+
+        Diagnostic diagnostic = CreateSyntheticDiagnosticAtSpan(modifiedSyntaxRoot.SyntaxTree, targetLambda.Parameter.Span);
+        List<CodeAction> actions = await InvokeFixerAsync(modifiedDoc, diagnostic);
+
+        Assert.Single(actions);
+
+        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
+        ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
+        Document changedDocument = applyChanges.ChangedSolution.GetDocument(modifiedDoc.Id)!;
+        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+
+        Assert.Contains(expectedFragment, changedText, StringComparison.Ordinal);
+        Assert.DoesNotContain(unexpectedFragment, changedText, StringComparison.Ordinal);
+    }
+
     private static Diagnostic CreateSyntheticDiagnostic(SyntaxNode root, SyntaxTree tree)
     {
         ParameterListSyntax parameterList = root
@@ -635,15 +561,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             .Last()
             .ParameterList;
 
-        DiagnosticDescriptor descriptor = new(
-            DiagnosticIds.BadCallbackParameters,
-            "Bad callback parameters",
-            "Callback signature must match the signature of the mocked method",
-            "Usage",
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-        return Diagnostic.Create(descriptor, Location.Create(tree, parameterList.Span));
+        return CreateSyntheticDiagnosticAtSpan(tree, parameterList.Span);
     }
 
     private static Diagnostic CreateSyntheticDiagnosticAtSpan(SyntaxTree tree, TextSpan span)
