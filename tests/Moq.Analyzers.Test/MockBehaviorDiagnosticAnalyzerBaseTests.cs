@@ -41,7 +41,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             """;
 
         // CompilerDiagnostics.None suppresses CS0246 from the global using Moq added by the test infrastructure.
-        await VerifyBothAnalyzersAsync(source, ReferenceAssemblyCatalog.Net80, CompilerDiagnostics.None).ConfigureAwait(false);
+        await VerifyBothAnalyzersAsync(source, ReferenceAssemblyCatalog.Net80, CompilerDiagnostics.None);
     }
 
     [Theory]
@@ -60,7 +60,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup).ConfigureAwait(false);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
     }
 
     [Theory]
@@ -79,7 +79,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup).ConfigureAwait(false);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
     }
 
     [Theory]
@@ -100,7 +100,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup).ConfigureAwait(false);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
     }
 
     [Theory]
@@ -127,7 +127,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             }
             """;
 
-        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup).ConfigureAwait(false);
+        await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
     }
 
     private static async Task VerifyBothAnalyzersAsync(
