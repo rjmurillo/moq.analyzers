@@ -112,6 +112,33 @@ public class FilteredArgumentListTests
     }
 
     [Fact]
+    public void Indexer_NegativeIndex_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentListSyntax argList = CreateArgumentList("a", "b");
+        FilteredArgumentList sut = new(argList, skipIndex: -1);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => sut[-1]);
+    }
+
+    [Fact]
+    public void Indexer_IndexEqualToCount_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentListSyntax argList = CreateArgumentList("a", "b");
+        FilteredArgumentList sut = new(argList, skipIndex: -1);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => sut[2]);
+    }
+
+    [Fact]
+    public void Indexer_IndexExceedsCount_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentListSyntax argList = CreateArgumentList("a", "b");
+        FilteredArgumentList sut = new(argList, skipIndex: 0);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => sut[1]);
+    }
+
+    [Fact]
     public void FormatArguments_EmptyList_ReturnsEmptyParens()
     {
         ArgumentListSyntax argList = CreateArgumentList();

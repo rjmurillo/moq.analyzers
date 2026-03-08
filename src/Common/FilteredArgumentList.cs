@@ -43,6 +43,11 @@ internal readonly struct FilteredArgumentList
     {
         get
         {
+            if (index < 0 || index >= Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
             int rawIndex = _skipIndex >= 0 && index >= _skipIndex ? index + 1 : index;
             return _arguments[rawIndex];
         }
@@ -59,7 +64,7 @@ internal readonly struct FilteredArgumentList
             return "()";
         }
 
-        System.Text.StringBuilder sb = new();
+        System.Text.StringBuilder sb = new(Count * 16);
         sb.Append('(');
 
         string separator = string.Empty;
