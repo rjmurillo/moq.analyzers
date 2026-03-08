@@ -16,7 +16,8 @@ on:
 jobs:
   lint:
     name: DevSkim
-    runs-on: ubuntu-24.04-arm
+    # DevSkim requires x64 runner
+    runs-on: ubuntu-24.04
     permissions:
       actions: read
       contents: read
