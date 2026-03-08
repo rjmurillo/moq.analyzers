@@ -24,12 +24,7 @@ internal static class EtlDiffer
             Console.WriteLine(string.Join(Environment.NewLine, report.Take(10)));
             return true;
         }
-        catch (InvalidOperationException ex)
-        {
-            Console.Error.WriteLine($"ETL comparison failed: {ex.Message}");
-            return false;
-        }
-        catch (IOException ex)
+        catch (Exception ex) when (ex is InvalidOperationException or IOException)
         {
             Console.Error.WriteLine($"ETL comparison failed: {ex.Message}");
             return false;

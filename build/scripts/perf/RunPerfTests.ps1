@@ -57,12 +57,8 @@ try {
             # The `-Verb RunAs` is only supported on Windows
             Write-Warning "Running with elevated permissions will no longer capture stdout"
 
-            # Start-Process -ArgumentList joins array elements with spaces without quoting,
-            # so we must explicitly quote arguments that may contain spaces.
-            $quotedArgs = $commandArguments | ForEach-Object {
-                if ($_ -match '\s') { "`"$_`"" } else { $_ }
-            }
-            $proc = Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $quotedArgs -PassThru
+            # Reuse $formattedArgs which already quotes arguments containing spaces.
+            $proc = Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $formattedArgs -PassThru
             if ($proc.ExitCode -ne 0) {
                 Write-Warning "dotnet exited with code $($proc.ExitCode) for project $project"
                 $anyFailed = $true
