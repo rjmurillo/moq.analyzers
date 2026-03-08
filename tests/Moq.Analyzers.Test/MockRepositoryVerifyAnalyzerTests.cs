@@ -344,19 +344,19 @@ public class MockRepositoryVerifyAnalyzerTests
     private static async Task VerifyWithMultiInterfaceTemplate(string referenceAssemblyGroup, string ns, string testCode)
     {
         string code = BuildMultiInterfaceTemplate(ns, testCode);
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
+        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup).ConfigureAwait(false);
     }
 
     private static async Task VerifyWithSingleInterfaceTemplate(string referenceAssemblyGroup, string ns, string testCode)
     {
         string code = BuildSingleInterfaceTemplate(ns, testCode);
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
+        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup).ConfigureAwait(false);
     }
 
     private static async Task VerifyWithNamespacePrefix(string referenceAssemblyGroup, string ns, string testCode)
     {
         string code = BuildNamespacePrefixTemplate(ns, testCode);
-        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup);
+        await Verifier.VerifyAnalyzerAsync(code, referenceAssemblyGroup).ConfigureAwait(false);
     }
 
     private static string BuildNamespacePrefixTemplate(string ns, string content) =>
