@@ -37,19 +37,19 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             ],
             [
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(({|Moq1100:int i|}) => { });""",
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback((string s) => { });""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback((string i) => { });""",
             ],
             [
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback({|Moq1100:(string s1, string s2)|} => { });""",
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback((string s) => { });""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback((string s1) => { });""",
             ],
             [
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback({|Moq1100:(string s1, int i1)|} => { });""",
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback((int i, string s, DateTime dt) => { });""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback((int s1, string i1, DateTime dt) => { });""",
             ],
             [
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Callback(({|Moq1100:int i|}) => { });""",
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Callback((List<string> l) => { });""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<List<string>>())).Callback((List<string> i) => { });""",
             ],
             [
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback((string s) => { });""",
@@ -113,11 +113,11 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             ],
             [ // Parenthesized Setup with wrong callback type
                 """(new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>()))).Callback(({|Moq1100:int i|}) => { });""",
-                """(new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>()))).Callback((string s) => { });""",
+                """(new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>()))).Callback((string i) => { });""",
             ],
             [ // Double-parenthesized Setup with wrong callback type
                 """((new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())))).Callback(({|Moq1100:int i|}) => { });""",
-                """((new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())))).Callback((string s) => { });""",
+                """((new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())))).Callback((string i) => { });""",
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
@@ -262,11 +262,15 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         {
             [ // Simple lambda in delegate constructor with wrong type rewrites to parenthesized lambda (issue #1012)
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>({|Moq1100:x|} => { }));""",
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>((string s) => { }));""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>((string x) => { }));""",
             ],
             [ // Simple lambda in delegate constructor with wrong parameter count rewrites to parenthesized lambda (issue #1012)
                 """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>({|Moq1100:x|} => { }));""",
-                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>((int i, string s, DateTime dt) => { }));""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>((int x, string s, DateTime dt) => { }));""",
+            ],
+            [ // Expression-bodied simple lambda in delegate constructor rewrites to parenthesized lambda
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>({|Moq1100:x|} => x.ToString()));""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>((string x) => x.ToString()));""",
             ],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
