@@ -51,7 +51,7 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(RegisterCompilationStartAction);
     }
 
-    internal abstract void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols);
+    private protected abstract void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols);
 
     /// <summary>
     /// Attempts to report a diagnostic for a MockBehavior parameter issue.

@@ -31,25 +31,31 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : Diagno
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
+    }
+
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
+    {
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
+        if (!knownSymbols.IsMockReferenced())
+        {
+            return;
+        }
+
+        context.RegisterOperationAction(
+            operationContext => AnalyzeInvocation(operationContext, knownSymbols),
+            OperationKind.Invocation);
     }
 
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
-    private static void AnalyzeInvocation(OperationAnalysisContext context)
+    private static void AnalyzeInvocation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
         if (context.Operation is not IInvocationOperation invocationOperation)
         {
             return;
         }
 
-        SemanticModel? semanticModel = invocationOperation.SemanticModel;
-
-        if (semanticModel == null)
-        {
-            return;
-        }
-
-        MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
         IMethodSymbol targetMethod = invocationOperation.TargetMethod;
 
         // 1. Check if the invoked method is a Moq SetupSequence method
