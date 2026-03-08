@@ -852,6 +852,51 @@ For full documentation, see [nektosact.com](https://nektosact.com/usage/).
 - Address any security vulnerabilities before merging
 - Document security implications in PR description
 
+### Third-Party License Attribution
+
+When adding or updating dependencies that are **bundled** in the shipped NuGet
+package, you must update `THIRD-PARTY-NOTICES.TXT` at the repository root.
+
+**Which dependencies require attribution?**
+
+Only dependencies whose compiled assemblies are packed into the NuGet package
+(listed as `Pack="true"` items in `Moq.Analyzers.csproj`). Compile-time-only
+references (e.g., Roslyn SDK packages already present in the user's host) and
+dev-only tools (analyzers, test frameworks, benchmarking) do not require
+attribution.
+
+**Procedure for researching and attributing a new bundled dependency:**
+
+1. Identify the package name and version from `Directory.Packages.props`.
+2. Visit the NuGet gallery page (e.g.,
+   `https://www.nuget.org/packages/{PackageName}/{Version}`) and note the
+   declared license type.
+3. Locate the source repository (linked from the NuGet page). Find the
+   license file at the repository root (typically `LICENSE`, `LICENSE.txt`,
+   or `License.md`).
+4. Record the copyright holder. Use the repository license file as the
+   authoritative source. If the nuspec copyright differs from the repository
+   license, include both.
+5. Check the package's dependency list on NuGet. If any transitive
+   dependencies are also bundled, repeat this procedure for each.
+6. Add a new section to `THIRD-PARTY-NOTICES.TXT` following the existing
+   format: component name as a heading, a dashed separator line, the source
+   repository URL, and the full license text.
+7. Include the `THIRD-PARTY-NOTICES.TXT` update in the same PR that adds
+   the dependency.
+
+**License-specific requirements:**
+
+| License    | Attribution requirement                                    |
+| ---------- | ---------------------------------------------------------- |
+| MIT        | Include copyright notice and full license text             |
+| BSD-2/3    | Include copyright notice and full license text             |
+| Apache-2.0 | Include copyright, full license text, NOTICE file (if any) |
+
+**Verification:** Before merging, confirm the notices file renders correctly
+by reviewing the raw text in the PR diff. Ensure no license text is truncated
+or missing.
+
 ## Pull Request Guidelines
 
 ### PR Title and Description
