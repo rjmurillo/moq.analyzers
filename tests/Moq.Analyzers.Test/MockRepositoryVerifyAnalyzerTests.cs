@@ -224,7 +224,7 @@ public class MockRepositoryVerifyAnalyzerTests
     {
         // VerifyAll() is a separate method on MockRepository. The analyzer currently
         // only checks for Verify(), not VerifyAll(). These tests document current behavior.
-        // TODO: VerifyAll() should suppress diagnostic (https://github.com/rjmurillo/moq.analyzers/issues/986)
+        // TODO(#986): VerifyAll() should suppress diagnostic
         return new object[][]
         {
             // VerifyAll() called - still reports diagnostic because analyzer only checks Verify()
@@ -242,7 +242,7 @@ public class MockRepositoryVerifyAnalyzerTests
     {
         // The analyzer scopes to the containing method body. Verify() in a different
         // method than Create() results in a diagnostic. This documents the limitation.
-        // TODO: Cross-method scope limitation (https://github.com/rjmurillo/moq.analyzers/issues/986)
+        // TODO(#986): Cross-method scope limitation
         return new object[][]
         {
             // Create() and Verify() in separate methods - diagnostic because analyzer is method-scoped
