@@ -145,5 +145,3 @@ catch {
     $host.SetShouldExit(1)
     exit 1
 }
-finally {
-}

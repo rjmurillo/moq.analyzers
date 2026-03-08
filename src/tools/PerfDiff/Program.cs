@@ -54,12 +54,9 @@ internal sealed class Program
             cancellationTokenSource.Cancel();
         };
 
-        string currentDirectory = string.Empty;
-
         try
         {
-            int exitCode = await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationTokenSource.Token).ConfigureAwait(false);
-            return exitCode;
+            return await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationTokenSource.Token).ConfigureAwait(false);
         }
         catch (FileNotFoundException fex)
         {
@@ -76,13 +73,6 @@ internal sealed class Program
             logger.LogWarning(ex, "Operation was cancelled.");
 #pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
             return CancelledExitCode;
-        }
-        finally
-        {
-            if (!string.IsNullOrEmpty(currentDirectory))
-            {
-                Environment.CurrentDirectory = currentDirectory;
-            }
         }
 
         static ILogger<Program> SetupLogging(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
