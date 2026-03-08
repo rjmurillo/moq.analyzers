@@ -10,6 +10,8 @@ permissions: {}
 jobs:
   build:
     name: Lint
+    # super-linter requires x86_64; ARM64 is not supported upstream
+    # https://github.com/super-linter/super-linter/issues/5070
     runs-on: ubuntu-latest
 
     permissions:
