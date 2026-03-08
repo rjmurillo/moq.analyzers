@@ -17,26 +17,46 @@ internal static class DiffCommand
     /// <summary>
     /// Gets the baseline option.
     /// </summary>
-    internal static Option<string> BaselineOption { get; } =
-        new Option<string>("--baseline", "folder that contains the baseline performance run data") { IsRequired = true }.LegalFilePathsOnly();
+    internal static Option<string> BaselineOption { get; } = CreateBaselineOption();
 
     /// <summary>
     /// Gets the results option.
     /// </summary>
-    internal static Option<string> ResultsOption { get; } =
-        new Option<string>("--results", "folder that contains the performance results") { IsRequired = true }.LegalFilePathsOnly();
+    internal static Option<string> ResultsOption { get; } = CreateResultsOption();
 
     /// <summary>
     /// Gets the verbosity option.
     /// </summary>
-    internal static Option<string> VerbosityOption { get; } =
-        new Option<string>(["--verbosity", "-v"], "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]").FromAmong(VerbosityLevels);
+    internal static Option<string> VerbosityOption { get; } = CreateVerbosityOption();
 
     /// <summary>
     /// Gets the fail-on-regression option.
     /// </summary>
-    internal static Option<bool> FailOnRegressionOption { get; } =
-        new(["--failOnRegression"], "Should return non-zero exit code if regression detected");
+    internal static Option<bool> FailOnRegressionOption { get; } = new("--failOnRegression")
+    {
+        Description = "Should return non-zero exit code if regression detected",
+    };
+
+    private static Option<string> CreateBaselineOption()
+    {
+        Option<string> option = new("--baseline") { Description = "folder that contains the baseline performance run data", Required = true };
+        option.AcceptLegalFilePathsOnly();
+        return option;
+    }
+
+    private static Option<string> CreateResultsOption()
+    {
+        Option<string> option = new("--results") { Description = "folder that contains the performance results", Required = true };
+        option.AcceptLegalFilePathsOnly();
+        return option;
+    }
+
+    private static Option<string> CreateVerbosityOption()
+    {
+        Option<string> option = new("--verbosity", "-v") { Description = "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]" };
+        option.AcceptOnlyFromAmong(VerbosityLevels);
+        return option;
+    }
 
     /// <summary>
     /// Creates the root command with options for the diff command.

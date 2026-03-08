@@ -50,11 +50,9 @@ internal sealed class Program
         }
         catch (FileNotFoundException fex)
         {
-#pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
-#pragma warning disable CA2254 // The logging message template should not vary between calls to 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
+#pragma warning disable CA1848, CA2254 // LoggerMessage delegates, varying template
             logger.LogError(fex.Message);
-#pragma warning restore CA2254 // The logging message template should not vary between calls to 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
-#pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
+#pragma warning restore CA1848, CA2254
             return UnhandledExceptionExitCode;
         }
         catch (OperationCanceledException)
