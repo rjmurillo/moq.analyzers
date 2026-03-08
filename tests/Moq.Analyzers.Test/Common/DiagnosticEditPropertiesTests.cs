@@ -2,6 +2,13 @@ namespace Moq.Analyzers.Test.Common;
 
 public class DiagnosticEditPropertiesTests
 {
+    public static TheoryData<int> ValidPositionsData => new()
+    {
+        0,
+        1,
+        100,
+    };
+
     [Fact]
     public void ToImmutableDictionary_Insert_RoundTrips()
     {
@@ -157,9 +164,7 @@ public class DiagnosticEditPropertiesTests
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(100)]
+    [MemberData(nameof(ValidPositionsData))]
     public void TryGetFromImmutableDictionary_ValidPositions_Succeeds(int position)
     {
         // Arrange

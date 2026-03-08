@@ -196,7 +196,7 @@ class C
         ExpressionSyntax? nullExpr = null;
 
         // Act
-        ExpressionSyntax? result = nullExpr.WalkDownParentheses();
+        ExpressionSyntax? result = nullExpr!.WalkDownParentheses();
 
         // Assert
         Assert.Null(result);
