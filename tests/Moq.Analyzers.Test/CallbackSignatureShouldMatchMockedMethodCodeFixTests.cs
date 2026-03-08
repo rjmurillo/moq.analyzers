@@ -448,6 +448,109 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         Assert.Empty(actions);
     }
 
+    [Fact]
+    public async Task FixerSkipsParenthesizedLambdaInsideDelegateConstructor()
+    {
+        const string source =
+            """
+            using System;
+            using System.Collections.Generic;
+            using Moq;
+
+            internal interface IFoo
+            {
+                int Do(string s);
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>((int x) => { }));
+                }
+            }
+            """;
+
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(source);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        ParenthesizedLambdaExpressionSyntax parenthesizedLambda = root
+            .DescendantNodes()
+            .OfType<ParenthesizedLambdaExpressionSyntax>()
+            .Last();
+
+        Diagnostic diagnostic = CreateSyntheticDiagnosticAtSpan(tree, parenthesizedLambda.ParameterList.Span);
+        using AdhocWorkspace workspace = new();
+        Document document = CreateTestDocument(workspace, model, source);
+        List<CodeAction> actions = await InvokeFixerAsync(document, diagnostic);
+
+        Assert.Single(actions);
+        await AssertDocumentUnchangedAsync(actions[0], document);
+    }
+
+    [Fact]
+    public async Task FixerConvertsDirectSimpleLambdaForReturns()
+    {
+        const string compilableSource =
+            """
+            using System;
+            using System.Collections.Generic;
+            using Moq;
+
+            internal interface IFoo
+            {
+                int Do(string s);
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Returns((string x) => 42);
+                }
+            }
+            """;
+
+        (SemanticModel model, SyntaxTree _) = await CompilationHelper.CreateMoqCompilationAsync(compilableSource);
+        using AdhocWorkspace workspace = new();
+        Document compilableDoc = CreateTestDocument(workspace, model, compilableSource);
+
+        SyntaxNode compilableRoot = (await compilableDoc.GetSyntaxRootAsync())!;
+        ParenthesizedLambdaExpressionSyntax parenthesizedLambda = compilableRoot
+            .DescendantNodes()
+            .OfType<ParenthesizedLambdaExpressionSyntax>()
+            .Last();
+
+        SimpleLambdaExpressionSyntax simpleLambda = SyntaxFactory.SimpleLambdaExpression(
+            SyntaxFactory.Parameter(SyntaxFactory.Identifier("x")),
+            null,
+            parenthesizedLambda.ExpressionBody)
+            .WithArrowToken(parenthesizedLambda.ArrowToken)
+            .WithTriviaFrom(parenthesizedLambda);
+
+        SyntaxNode modifiedRoot = compilableRoot.ReplaceNode(parenthesizedLambda, simpleLambda);
+        Document modifiedDoc = compilableDoc.WithSyntaxRoot(modifiedRoot);
+
+        SyntaxNode modifiedSyntaxRoot = (await modifiedDoc.GetSyntaxRootAsync())!;
+        SimpleLambdaExpressionSyntax targetLambda = modifiedSyntaxRoot
+            .DescendantNodes()
+            .OfType<SimpleLambdaExpressionSyntax>()
+            .Last();
+
+        Diagnostic diagnostic = CreateSyntheticDiagnosticAtSpan(modifiedSyntaxRoot.SyntaxTree, targetLambda.Parameter.Span);
+        List<CodeAction> actions = await InvokeFixerAsync(modifiedDoc, diagnostic);
+
+        Assert.Single(actions);
+
+        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None);
+        ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
+        Document changedDocument = applyChanges.ChangedSolution.GetDocument(modifiedDoc.Id)!;
+        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
+
+        Assert.Contains("(string x) => 42", changedText, StringComparison.Ordinal);
+        Assert.DoesNotContain("Returns(x => 42)", changedText, StringComparison.Ordinal);
+    }
+
     [Theory]
     [MemberData(nameof(DoppelgangerTestHelper.GetAllCustomMockData), MemberType = typeof(DoppelgangerTestHelper))]
     public async Task ShouldPassIfCustomMockClassIsUsed(string mockCode)
