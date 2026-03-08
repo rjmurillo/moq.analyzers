@@ -20,7 +20,6 @@ internal static class EtlDiffer
             CallTree baselineCallTree = GetCallTree(baselineEtlPath);
             ImmutableArray<OverWeightResult> report = GenerateOverweightReport(sourceCallTree, baselineCallTree);
 
-            // print results
             Console.WriteLine(string.Join(Environment.NewLine, report.Take(10)));
             return true;
         }
@@ -58,7 +57,8 @@ internal static class EtlDiffer
 
     public static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
     {
-        TraceEvents? events = process.EventsInProcess;
+        TraceEvents events = process.EventsInProcess
+            ?? throw new InvalidOperationException($"Process '{process.Name}' has no events.");
         double start = Math.Max(events.StartTimeRelativeMSec, process.StartTimeRelativeMsec);
         double end = Math.Min(events.EndTimeRelativeMSec, process.EndTimeRelativeMsec);
         events = events.FilterByTime(start, end);
@@ -67,7 +67,7 @@ internal static class EtlDiffer
         using SymbolReader symbolReader = new SymbolReader(new StringWriter(), @"SRV*https://msdl.microsoft.com/download/symbols");
         symbolReader.SecurityCheck = path => true;
 
-        TraceLog? traceLog = process.Log;
+        TraceLog traceLog = process.Log;
         foreach (TraceLoadedModule? module in process.LoadedModules)
         {
             traceLog.CodeAddresses.LookupSymbolsForModule(symbolReader, module.ModuleFile);
