@@ -6,7 +6,7 @@ namespace Moq.Analyzers.Common;
 /// <summary>
 /// General-purpose Roslyn symbol extension methods with no Moq-specific dependencies.
 /// </summary>
-internal static class ISymbolExtensions
+internal static partial class ISymbolExtensions
 {
     public static bool IsConstructor(this ISymbol symbol)
     {

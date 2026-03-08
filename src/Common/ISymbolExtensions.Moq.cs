@@ -3,7 +3,7 @@ namespace Moq.Analyzers.Common;
 /// <summary>
 /// Extension methods for detecting Moq-specific symbols (Setup, Verify, Returns, Callback, Raises, etc.).
 /// </summary>
-internal static class MoqSymbolExtensions
+internal static partial class ISymbolExtensions
 {
     /// <summary>
     /// Determines whether a type symbol represents a Task or ValueTask type.
