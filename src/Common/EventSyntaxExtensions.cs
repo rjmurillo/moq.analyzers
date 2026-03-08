@@ -53,10 +53,10 @@ internal static class EventSyntaxExtensions
     /// <param name="knownSymbols">Known symbols for type checking.</param>
     /// <returns>
     /// An array of parameter types expected by the event delegate:
-    /// - For Action delegates: Returns all generic type arguments
-    /// - For EventHandler&lt;T&gt; delegates: Returns the single generic argument T
-    /// - For custom delegates: Returns parameters from the Invoke method
-    /// - For non-delegate types: Returns empty array.
+    /// - For <see cref="System.Action"/> delegates: Returns all generic type arguments
+    /// - For <see cref="System.EventHandler{T}"/> delegates: Returns the single generic argument <c>T</c>
+    /// - For custom delegates: Returns parameters from the <c>Invoke</c> method
+    /// - For non-delegate types: Returns an empty array.
     /// </returns>
     internal static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType, KnownSymbols knownSymbols)
     {
