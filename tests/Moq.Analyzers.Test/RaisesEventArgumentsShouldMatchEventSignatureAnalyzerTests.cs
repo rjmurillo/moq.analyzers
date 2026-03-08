@@ -132,4 +132,83 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
+
+    [Fact]
+    public async Task ShouldNotTriggerOnUserDefinedRaisesMethod()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using System;
+
+            internal class MyEventEmitter
+            {
+                public void Raises(string eventName, EventArgs args) { }
+                public void RaisesAsync(string eventName, EventArgs args) { }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var emitter = new MyEventEmitter();
+                    emitter.Raises("Click", EventArgs.Empty);
+                    emitter.RaisesAsync("Click", EventArgs.Empty);
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldNotTriggerOnUserDefinedRaisesExtensionMethod()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using System;
+
+            internal static class MyExtensions
+            {
+                public static void Raises(this object obj, string name) { }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var target = new object();
+                    target.Raises("test");
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldNotTriggerOnInterfaceWithRaisesMethod()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            using System;
+
+            internal interface IEventRaiser
+            {
+                void Raises(object sender, EventArgs e);
+            }
+
+            internal class MyRaiser : IEventRaiser
+            {
+                public void Raises(object sender, EventArgs e) { }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    IEventRaiser raiser = new MyRaiser();
+                    raiser.Raises(this, EventArgs.Empty);
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
 }
