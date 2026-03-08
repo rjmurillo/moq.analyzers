@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Testing;
 
 namespace Moq.Analyzers.Test.Helpers;

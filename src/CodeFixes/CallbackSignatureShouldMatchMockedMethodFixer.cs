@@ -1,4 +1,4 @@
-﻿using System.Composition;
+using System.Composition;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
@@ -89,6 +89,8 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
     private static async Task<Document> FixSimpleLambdaCallbackSignatureAsync(SyntaxNode root, Document document, SimpleLambdaExpressionSyntax simpleLambda, CancellationToken cancellationToken)
     {
+        // No delegate-constructor guard needed here; RegisterCodeFixesAsync
+        // already filters out simple lambdas inside delegate constructors.
         SeparatedSyntaxList<ParameterSyntax> originalParams = SyntaxFactory.SingletonSeparatedList(simpleLambda.Parameter);
         ParameterListSyntax? newParameters = await ResolveNewParameterListAsync(document, simpleLambda, simpleLambda.SpanStart, originalParams, cancellationToken).ConfigureAwait(false);
         if (newParameters is null)
@@ -171,7 +173,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
     private static ParameterListSyntax BuildParameterList(SemanticModel semanticModel, IMethodSymbol mockedMethod, int position, SeparatedSyntaxList<ParameterSyntax> originalParameters)
     {
         ImmutableArray<IParameterSymbol> parameters = mockedMethod.Parameters;
-        List<ParameterSyntax> result = new List<ParameterSyntax>(parameters.Length);
+        ParameterSyntax[] result = new ParameterSyntax[parameters.Length];
 
         for (int index = 0; index < parameters.Length; index++)
         {
@@ -185,7 +187,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
             SyntaxToken identifier = SyntaxFactory.Identifier(name);
 
-            result.Add(SyntaxFactory.Parameter(default, modifiers, type, identifier, null));
+            result[index] = SyntaxFactory.Parameter(default, modifiers, type, identifier, null);
         }
 
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(result));

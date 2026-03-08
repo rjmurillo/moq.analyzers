@@ -126,36 +126,8 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     [MemberData(nameof(TestData))]
     public async Task ShouldSuggestQuickFixWhenIncorrectCallbacks(string referenceAssemblyGroup, string @namespace, string original, string quickFix)
     {
-        static string Template(string ns, string mock) =>
-            $$"""
-            {{ns}}
-
-            internal interface IFoo
-            {
-                int Do(string s);
-
-                int Do(int i, string s, DateTime dt);
-
-                int Do(List<string> l);
-
-                bool Do(object? bar);
-
-                bool Do(long bar);
-            }
-
-            internal delegate void StringDelegate(string s);
-
-            internal class UnitTest
-            {
-                private void Test()
-                {
-                    {{mock}}
-                }
-            }
-            """;
-
-        string o = Template(@namespace, original);
-        string f = Template(@namespace, quickFix);
+        string o = CallbackTemplate(@namespace, original);
+        string f = CallbackTemplate(@namespace, quickFix);
 
         _output.WriteLine("Original:");
         _output.WriteLine(o);
@@ -279,36 +251,8 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     [MemberData(nameof(SimpleLambdaTestData))]
     public async Task ShouldFixSimpleLambdaCallbackSignature(string referenceAssemblyGroup, string @namespace, string original, string quickFix)
     {
-        static string Template(string ns, string mock) =>
-            $$"""
-            {{ns}}
-
-            internal interface IFoo
-            {
-                int Do(string s);
-
-                int Do(int i, string s, DateTime dt);
-
-                int Do(List<string> l);
-
-                bool Do(object? bar);
-
-                bool Do(long bar);
-            }
-
-            internal delegate void StringDelegate(string s);
-
-            internal class UnitTest
-            {
-                private void Test()
-                {
-                    {{mock}}
-                }
-            }
-            """;
-
-        string o = Template(@namespace, original);
-        string f = Template(@namespace, quickFix);
+        string o = CallbackTemplate(@namespace, original);
+        string f = CallbackTemplate(@namespace, quickFix);
 
         _output.WriteLine("Original:");
         _output.WriteLine(o);
@@ -369,6 +313,34 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         Assert.Single(actions);
         await AssertDocumentUnchangedAsync(actions[0], document);
     }
+
+    private static string CallbackTemplate(string ns, string mock) =>
+        $$"""
+        {{ns}}
+
+        internal interface IFoo
+        {
+            int Do(string s);
+
+            int Do(int i, string s, DateTime dt);
+
+            int Do(List<string> l);
+
+            bool Do(object? bar);
+
+            bool Do(long bar);
+        }
+
+        internal delegate void StringDelegate(string s);
+
+        internal class UnitTest
+        {
+            private void Test()
+            {
+                {{mock}}
+            }
+        }
+        """;
 
     private static Diagnostic CreateSyntheticDiagnostic(SyntaxNode root, SyntaxTree tree)
     {
