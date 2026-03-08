@@ -247,6 +247,10 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    // Direct simple lambda fixer tests are in FixerConvertsDirectSimpleLambdaToParenthesized*
+    // below. They use synthetic diagnostics because the compiler cannot infer the delegate
+    // type for untyped simple lambdas, preventing the analyzer from reporting Moq1100.
+
     [Theory]
     [MemberData(nameof(SimpleLambdaTestData))]
     public async Task ShouldFixSimpleLambdaCallbackSignature(string referenceAssemblyGroup, string @namespace, string original, string quickFix)
@@ -264,6 +268,138 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         // so no fix iterations occur. Compiler diagnostics are suppressed because
         // the delegate constructor type intentionally mismatches the lambda signature.
         await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup, numberOfIncrementalIterations: 0, numberOfFixAllIterations: 0, CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task FixerRegistersActionForDirectSimpleLambdaBlock()
+    {
+        // The compiler cannot infer the delegate type for untyped simple lambdas
+        // passed directly to .Callback(), so the analyzer never reports Moq1100
+        // through normal pipelines. We inject a synthetic diagnostic to exercise
+        // the fixer's simple lambda registration path.
+        // Because the code has compiler errors, the semantic model cannot resolve
+        // the setup method, so the fixer returns the document unchanged.
+        const string source =
+            """
+            using System;
+            using System.Collections.Generic;
+            using Moq;
+
+            internal interface IFoo
+            {
+                int Do(string s);
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(x => { });
+                }
+            }
+            """;
+
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(source);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        SimpleLambdaExpressionSyntax simpleLambda = root
+            .DescendantNodes()
+            .OfType<SimpleLambdaExpressionSyntax>()
+            .Last();
+
+        Diagnostic diagnostic = CreateSyntheticDiagnosticAtSpan(tree, simpleLambda.Parameter.Span);
+        using AdhocWorkspace workspace = new();
+        Document document = CreateTestDocument(workspace, model, source);
+        List<CodeAction> actions = await InvokeFixerAsync(document, diagnostic);
+
+        // Fixer registers a code action for direct simple lambdas (not in delegate constructor).
+        Assert.Single(actions);
+
+        // The fixer returns unchanged because semantic resolution fails on broken code.
+        await AssertDocumentUnchangedAsync(actions[0], document);
+    }
+
+    [Fact]
+    public async Task FixerRegistersActionForDirectSimpleLambdaExpression()
+    {
+        // Same as above but with an expression-bodied simple lambda.
+        const string source =
+            """
+            using System;
+            using System.Collections.Generic;
+            using Moq;
+
+            internal interface IFoo
+            {
+                int Do(string s);
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(x => x.ToString());
+                }
+            }
+            """;
+
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(source);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        SimpleLambdaExpressionSyntax simpleLambda = root
+            .DescendantNodes()
+            .OfType<SimpleLambdaExpressionSyntax>()
+            .Last();
+
+        Diagnostic diagnostic = CreateSyntheticDiagnosticAtSpan(tree, simpleLambda.Parameter.Span);
+        using AdhocWorkspace workspace = new();
+        Document document = CreateTestDocument(workspace, model, source);
+        List<CodeAction> actions = await InvokeFixerAsync(document, diagnostic);
+
+        Assert.Single(actions);
+        await AssertDocumentUnchangedAsync(actions[0], document);
+    }
+
+    [Fact]
+    public async Task FixerSkipsSimpleLambdaInsideDelegateConstructor()
+    {
+        // When a simple lambda is inside a delegate constructor, the fixer
+        // should NOT register a code action (it bails out).
+        const string source =
+            """
+            using System;
+            using System.Collections.Generic;
+            using Moq;
+
+            internal interface IFoo
+            {
+                int Do(string s);
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>(x => { }));
+                }
+            }
+            """;
+
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(source);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        SimpleLambdaExpressionSyntax simpleLambda = root
+            .DescendantNodes()
+            .OfType<SimpleLambdaExpressionSyntax>()
+            .Last();
+
+        Diagnostic diagnostic = CreateSyntheticDiagnosticAtSpan(tree, simpleLambda.Parameter.Span);
+        using AdhocWorkspace workspace = new();
+        Document document = CreateTestDocument(workspace, model, source);
+        List<CodeAction> actions = await InvokeFixerAsync(document, diagnostic);
+
+        // Fixer should NOT register a code action for simple lambdas in delegate constructors.
+        Assert.Empty(actions);
     }
 
     [Theory]
@@ -359,6 +495,19 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
             isEnabledByDefault: true);
 
         return Diagnostic.Create(descriptor, Location.Create(tree, parameterList.Span));
+    }
+
+    private static Diagnostic CreateSyntheticDiagnosticAtSpan(SyntaxTree tree, TextSpan span)
+    {
+        DiagnosticDescriptor descriptor = new(
+            DiagnosticIds.BadCallbackParameters,
+            "Bad callback parameters",
+            "Callback signature must match the signature of the mocked method",
+            "Usage",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        return Diagnostic.Create(descriptor, Location.Create(tree, span));
     }
 
     private static Document CreateTestDocument(AdhocWorkspace workspace, SemanticModel model, string source)

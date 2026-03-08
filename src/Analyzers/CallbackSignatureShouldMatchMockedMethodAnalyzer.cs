@@ -94,6 +94,10 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         }
 
         InvocationExpressionSyntax? setupInvocation = semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, callbackOrReturnsInvocation, context.CancellationToken);
+        if (setupInvocation is null)
+        {
+            return;
+        }
 
         ValidateCallbackAgainstSetup(context, semanticModel, setupInvocation, callbackLambda, lambdaParameters);
     }
@@ -139,7 +143,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
     private static void ValidateCallbackAgainstSetup(
         OperationAnalysisContext context,
         SemanticModel semanticModel,
-        InvocationExpressionSyntax? setupInvocation,
+        InvocationExpressionSyntax setupInvocation,
         LambdaExpressionSyntax callbackLambda,
         SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
     {
