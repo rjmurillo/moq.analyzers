@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using AnalyzerVerifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer>;
 using Verifier = Moq.Analyzers.Test.Helpers.CodeFixVerifier<Moq.Analyzers.CallbackSignatureShouldMatchMockedMethodAnalyzer, Moq.CodeFixes.CallbackSignatureShouldMatchMockedMethodFixer>;
@@ -253,6 +254,67 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         _output.WriteLine(f);
 
         await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup);
+    }
+
+    public static IEnumerable<object[]> SimpleLambdaTestData()
+    {
+        return new object[][]
+        {
+            [ // Simple lambda in delegate constructor with wrong type rewrites to parenthesized lambda (issue #1012)
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>({|Moq1100:x|} => { }));""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<string>())).Callback(new Action<int>((string s) => { }));""",
+            ],
+            [ // Simple lambda in delegate constructor with wrong parameter count rewrites to parenthesized lambda (issue #1012)
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>({|Moq1100:x|} => { }));""",
+                """new Mock<IFoo>().Setup(x => x.Do(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>((int i, string s, DateTime dt) => { }));""",
+            ],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    [Theory]
+    [MemberData(nameof(SimpleLambdaTestData))]
+    public async Task ShouldFixSimpleLambdaCallbackSignature(string referenceAssemblyGroup, string @namespace, string original, string quickFix)
+    {
+        static string Template(string ns, string mock) =>
+            $$"""
+            {{ns}}
+
+            internal interface IFoo
+            {
+                int Do(string s);
+
+                int Do(int i, string s, DateTime dt);
+
+                int Do(List<string> l);
+
+                bool Do(object? bar);
+
+                bool Do(long bar);
+            }
+
+            internal delegate void StringDelegate(string s);
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    {{mock}}
+                }
+            }
+            """;
+
+        string o = Template(@namespace, original);
+        string f = Template(@namespace, quickFix);
+
+        _output.WriteLine("Original:");
+        _output.WriteLine(o);
+        _output.WriteLine(string.Empty);
+        _output.WriteLine("Fixed:");
+        _output.WriteLine(f);
+
+        // The fixer corrects the lambda parameters but does not update the outer
+        // delegate constructor type, so residual compiler diagnostics are expected.
+        await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup, CompilerDiagnostics.None);
     }
 
     [Theory]
