@@ -40,10 +40,24 @@ jobs:
     steps:
       # Renovate handles auto-merge decisions via platformAutomerge and
       # per-package automerge rules in renovate.json. This workflow only
-      # provides the required approval. Packages with automerge: false
-      # (analyzer-compat, benchmark-tooling) will not have auto-merge
-      # enabled by Renovate, so they require manual merge after review.
+      # provides the required approval for non-major updates. Major-version
+      # bumps are excluded from auto-approval and require manual review.
+      # Packages with automerge: false (analyzer-compat, benchmark-tooling)
+      # will not have auto-merge enabled by Renovate, so they require
+      # manual merge after review.
+      - name: Detect major update
+        id: detect-major
+        run: |
+          if echo "$PR_TITLE" | grep -qiE '\(major\)'; then
+            echo "is_major=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_major=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+
       - name: Approve PR
+        if: steps.detect-major.outputs.is_major != 'true'
         run: gh pr review --approve "$PR_URL"
         env:
           GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
