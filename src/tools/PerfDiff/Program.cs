@@ -13,7 +13,7 @@ namespace PerfDiff;
 
 internal sealed class Program
 {
-    internal const int UnhandledExceptionExitCode = 1;
+    internal static readonly int UnhandledExceptionExitCode = 1;
 
     private static async Task<int> Main(string[] args)
     {

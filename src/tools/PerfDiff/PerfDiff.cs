@@ -71,7 +71,7 @@ internal static class PerfDiff
         return (true, regressionDetected);
     }
 
-    private const string ETLFileExtension = "etl.zip";
+    private static readonly string ETLFileExtension = "etl.zip";
 
     private static bool TryGetETLPaths(string path, [NotNullWhen(true)] out string? etlPath)
     {
