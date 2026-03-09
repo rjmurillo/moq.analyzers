@@ -175,6 +175,7 @@ jobs:
   # is generated with correct local paths.
   test:
     needs: [check-paths]
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -281,6 +282,7 @@ jobs:
   #   2. msbuild.exe - csc runs on .NET Framework (VS), tested on Windows x64
   analyzer-load-test:
     needs: [check-paths, build]
+    timeout-minutes: 20
     runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
@@ -453,6 +455,7 @@ jobs:
   # Builds from source on Linux ARM to get consistent benchmark results.
   perf:
     needs: [check-paths, build, test]
+    timeout-minutes: 60
     runs-on: ubuntu-24.04-arm
 
     env:
