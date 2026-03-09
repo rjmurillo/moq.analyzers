@@ -219,9 +219,9 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
     /// <summary>
     /// Verifies that .Callback&lt;T&gt;() with a wrong type parameter produces a diagnostic.
-    /// Symbol-based detection (PR #1030) resolved the previous limitation where the generic
-    /// Callback syntax was not validated. The analyzer now correctly detects the type mismatch
-    /// between .Callback&lt;int&gt;() and the mocked method parameter type (string).
+    /// The analyzer uses symbol-based resolution of the generic type argument to validate the
+    /// callback parameter type. It correctly detects the type mismatch between .Callback&lt;int&gt;()
+    /// and the mocked method parameter type (string).
     /// </summary>
     /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
     /// <returns>A task representing the asynchronous unit test.</returns>
