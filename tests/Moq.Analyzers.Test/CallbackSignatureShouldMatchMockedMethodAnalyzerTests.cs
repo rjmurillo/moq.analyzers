@@ -237,7 +237,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
     [Theory]
     [InlineData("Net80WithOldMoq")]
     [InlineData("Net80WithNewMoq")]
-    public async Task GenericCallbackValidation_CurrentLimitation_IsDocumented(string referenceAssemblyGroup)
+    public async Task GenericCallbackValidation_DetectsTypeMismatch(string referenceAssemblyGroup)
     {
         const string source = """
             using Moq;
@@ -252,15 +252,12 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
                 public void TestGenericCallback()
                 {
                     var mock = new Mock<IFoo>();
-                    // Note: This does NOT trigger a diagnostic (known limitation)
-                    // Best practice: Use .Callback(param => { }) instead of .Callback<T>(param => { })
                     mock.Setup(x => x.DoWork("test"))
-                        .Callback<int>(wrongTypeParam => { }); // Generic syntax not validated
+                        .Callback<int>({|Moq1100:wrongTypeParam|} => { }); // Type mismatch: method takes string, callback uses int
                 }
             }
             """;
 
-        // This test documents the known limitation - no diagnostic is expected
         await AnalyzerVerifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
     }
 }
