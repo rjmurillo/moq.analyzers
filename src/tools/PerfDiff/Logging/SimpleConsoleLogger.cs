@@ -10,7 +10,7 @@ namespace PerfDiff.Logging;
 /// </summary>
 internal sealed class SimpleConsoleLogger : ILogger
 {
-    private readonly Lock _gate = new();
+    private static readonly Lock Gate = new();
 
     private readonly LogLevel _minimalLogLevel;
     private readonly LogLevel _minimalErrorLevel;
@@ -45,7 +45,7 @@ internal sealed class SimpleConsoleLogger : ILogger
             return;
         }
 
-        lock (_gate)
+        lock (Gate)
         {
             string message = formatter(state, exception);
             bool logToErrorStream = logLevel >= _minimalErrorLevel;
