@@ -511,13 +511,13 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     /// Verifies that the fixer converts a simple lambda to a parenthesized lambda
     /// with correct types from the mocked method signature.
     /// </summary>
-    private async Task VerifySimpleLambdaConversionAsync(string compilableSource, string expectedFragment, string unexpectedFragment)
+    private static async Task VerifySimpleLambdaConversionAsync(string compilableSource, string expectedFragment, string unexpectedFragment)
     {
-        (SemanticModel model, SyntaxTree _) = await CompilationHelper.CreateMoqCompilationAsync(compilableSource);
+        (SemanticModel model, SyntaxTree _) = await CompilationHelper.CreateMoqCompilationAsync(compilableSource).ConfigureAwait(false);
         using AdhocWorkspace workspace = new();
         Document compilableDoc = CreateTestDocument(workspace, model, compilableSource);
 
-        SyntaxNode compilableRoot = (await compilableDoc.GetSyntaxRootAsync())!;
+        SyntaxNode compilableRoot = (await compilableDoc.GetSyntaxRootAsync().ConfigureAwait(false))!;
         ParenthesizedLambdaExpressionSyntax parenthesizedLambda = compilableRoot
             .DescendantNodes()
             .OfType<ParenthesizedLambdaExpressionSyntax>()
@@ -533,14 +533,14 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
         SyntaxNode modifiedRoot = compilableRoot.ReplaceNode(parenthesizedLambda, simpleLambda);
         Document modifiedDoc = compilableDoc.WithSyntaxRoot(modifiedRoot);
 
-        SyntaxNode modifiedSyntaxRoot = (await modifiedDoc.GetSyntaxRootAsync())!;
+        SyntaxNode modifiedSyntaxRoot = (await modifiedDoc.GetSyntaxRootAsync().ConfigureAwait(false))!;
         SimpleLambdaExpressionSyntax targetLambda = modifiedSyntaxRoot
             .DescendantNodes()
             .OfType<SimpleLambdaExpressionSyntax>()
             .Last();
 
         Diagnostic diagnostic = CreateSyntheticDiagnosticAtSpan(modifiedSyntaxRoot.SyntaxTree, targetLambda.Parameter.Span);
-        List<CodeAction> actions = await InvokeFixerAsync(modifiedDoc, diagnostic);
+        List<CodeAction> actions = await InvokeFixerAsync(modifiedDoc, diagnostic).ConfigureAwait(false);
 
         Assert.Single(actions);
 
