@@ -218,26 +218,17 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
     }
 
     /// <summary>
-    /// Test to document the known limitation with generic callback validation.
-    /// This test documents that .Callback&lt;T&gt;() with wrong type parameters is NOT currently validated.
-    /// This is an accepted limitation as the explicit generic syntax is rarely used in practice.
+    /// Verifies that <c>.Callback{T}()</c> with a wrong type parameter produces a diagnostic.
+    /// The analyzer uses symbol-based resolution of the generic type argument to validate the
+    /// callback parameter type. It correctly detects the type mismatch between <c>.Callback{int}()</c>
+    /// and the mocked method parameter type (<c>string</c>).
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Analysis shows zero real-world usage of the explicit generic .Callback&lt;T&gt;() syntax in open-source projects.
-    /// The recommended approach is to use lambda parameter inference which provides full type validation:
-    /// <c>.Callback(param => { })</c> or <c>.Callback((string param) => { })</c>.
-    /// </para>
-    /// <para>
-    /// See docs/rules/Moq1100.md "Known Limitations" section for best practices.
-    /// </para>
-    /// </remarks>
     /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
     /// <returns>A task representing the asynchronous unit test.</returns>
     [Theory]
     [InlineData("Net80WithOldMoq")]
     [InlineData("Net80WithNewMoq")]
-    public async Task GenericCallbackValidation_DetectsTypeMismatch(string referenceAssemblyGroup)
+    public async Task GenericCallbackWithWrongType_ProducesDiagnostic(string referenceAssemblyGroup)
     {
         const string source = """
             using Moq;
@@ -252,8 +243,10 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
                 public void TestGenericCallback()
                 {
                     var mock = new Mock<IFoo>();
+                    // .Callback<int>() mismatches the mocked method parameter type (string).
+                    // The analyzer detects this via symbol-based resolution of the generic type argument.
                     mock.Setup(x => x.DoWork("test"))
-                        .Callback<int>({|Moq1100:wrongTypeParam|} => { }); // Type mismatch: method takes string, callback uses int
+                        .Callback<int>({|Moq1100:wrongTypeParam|} => { });
                 }
             }
             """;
