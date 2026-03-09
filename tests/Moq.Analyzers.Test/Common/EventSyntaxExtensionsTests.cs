@@ -152,37 +152,13 @@ public class EventSyntaxExtensionsTests
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
-    [Fact]
-    public void GetEventParameterTypes_MultiArgActionDelegate_FallsBackToCustomDelegateInvoke()
-    {
-        const string code = @"
-using System;
-class C
-{
-    event Action<int, string> MyEvent;
-}";
-        (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(code, "MyEvent");
-
-        ITypeSymbol[] result = EventSyntaxExtensions.GetEventParameterTypes(eventType, knownSymbols);
-
-        Assert.Equal(2, result.Length);
-        Assert.Equal("int", result[0].ToDisplayString());
-        Assert.Equal("string", result[1].ToDisplayString());
-    }
-
     [Theory]
-    [InlineData("Action<double>", "double")]
-    [InlineData("EventHandler<EventArgs>", "System.EventArgs")]
+    [InlineData("using System;\nclass C { event Action<double> MyEvent; }", "double")]
+    [InlineData("using System;\nclass C { event EventHandler<EventArgs> MyEvent; }", "System.EventArgs")]
     public void GetEventParameterTypes_SingleTypeArgDelegate_ReturnsSingleType(
-        string delegateType,
+        string code,
         string expectedTypeName)
     {
-        string code = $@"
-using System;
-class C
-{{
-    event {delegateType} MyEvent;
-}}";
         (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(code, "MyEvent");
 
         ITypeSymbol[] result = EventSyntaxExtensions.GetEventParameterTypes(eventType, knownSymbols);
@@ -191,22 +167,21 @@ class C
         Assert.Equal(expectedTypeName, result[0].ToDisplayString());
     }
 
-    [Fact]
-    public void GetEventParameterTypes_CustomDelegate_ReturnsInvokeMethodParameters()
+    [Theory]
+    [InlineData("using System;\nclass C { event Action<int, string> MyEvent; }", "int", "string")]
+    [InlineData("delegate void MyDelegate(int x, bool y);\nclass C { event MyDelegate MyEvent; }", "int", "bool")]
+    public void GetEventParameterTypes_MultiParamDelegate_ReturnsAllParameterTypes(
+        string code,
+        string expectedFirst,
+        string expectedSecond)
     {
-        const string code = @"
-delegate void MyDelegate(int x, bool y);
-class C
-{
-    event MyDelegate MyEvent;
-}";
         (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(code, "MyEvent");
 
         ITypeSymbol[] result = EventSyntaxExtensions.GetEventParameterTypes(eventType, knownSymbols);
 
         Assert.Equal(2, result.Length);
-        Assert.Equal("int", result[0].ToDisplayString());
-        Assert.Equal("bool", result[1].ToDisplayString());
+        Assert.Equal(expectedFirst, result[0].ToDisplayString());
+        Assert.Equal(expectedSecond, result[1].ToDisplayString());
     }
 
     [Fact]

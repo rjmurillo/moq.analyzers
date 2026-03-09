@@ -682,15 +682,8 @@ public class C
         mock.Setup(x => x.Bar()).Raises(x => x.MyEvent += null, EventArgs.Empty);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
-        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
-        SyntaxNode root = await tree.GetRootAsync();
-        InvocationExpressionSyntax raisesInvocation = root
-            .DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .First(i => i.Expression is MemberAccessExpressionSyntax ma
-                && string.Equals(ma.Name.Identifier.Text, "Raises", StringComparison.Ordinal));
 
-        bool result = model.IsRaisesInvocation(raisesInvocation, knownSymbols);
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "Raises");
 
         Assert.True(result);
     }
@@ -710,15 +703,8 @@ public class C
         mock.Setup(x => x.Bar()).Returns(42).Raises(x => x.MyEvent += null, EventArgs.Empty);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
-        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
-        SyntaxNode root = await tree.GetRootAsync();
-        InvocationExpressionSyntax raisesInvocation = root
-            .DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .First(i => i.Expression is MemberAccessExpressionSyntax ma
-                && string.Equals(ma.Name.Identifier.Text, "Raises", StringComparison.Ordinal));
 
-        bool result = model.IsRaisesInvocation(raisesInvocation, knownSymbols);
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "Raises");
 
         Assert.True(result);
     }
@@ -763,15 +749,8 @@ public class C
         mock.Setup(x => x.Bar());
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
-        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
-        SyntaxNode root = await tree.GetRootAsync();
-        InvocationExpressionSyntax setupInvocation = root
-            .DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .First(i => i.Expression is MemberAccessExpressionSyntax ma
-                && string.Equals(ma.Name.Identifier.Text, "Setup", StringComparison.Ordinal));
 
-        bool result = model.IsRaisesInvocation(setupInvocation, knownSymbols);
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "Setup");
 
         Assert.False(result);
     }
@@ -790,15 +769,8 @@ public class C
         mock.Setup(x => x.Bar()).Callback(() => { });
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
-        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
-        SyntaxNode root = await tree.GetRootAsync();
-        InvocationExpressionSyntax callbackInvocation = root
-            .DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .First(i => i.Expression is MemberAccessExpressionSyntax ma
-                && string.Equals(ma.Name.Identifier.Text, "Callback", StringComparison.Ordinal));
 
-        bool result = model.IsRaisesInvocation(callbackInvocation, knownSymbols);
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "Callback");
 
         Assert.False(result);
     }
@@ -820,15 +792,8 @@ public class C
         obj.Raises();
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
-        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
-        SyntaxNode root = await tree.GetRootAsync();
-        InvocationExpressionSyntax raisesInvocation = root
-            .DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .First(i => i.Expression is MemberAccessExpressionSyntax ma
-                && string.Equals(ma.Name.Identifier.Text, "Raises", StringComparison.Ordinal));
 
-        bool result = model.IsRaisesInvocation(raisesInvocation, knownSymbols);
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "Raises");
 
         Assert.False(result);
     }
@@ -851,15 +816,8 @@ public class C
         obj.RaisesAsync();
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
-        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
-        SyntaxNode root = await tree.GetRootAsync();
-        InvocationExpressionSyntax raisesInvocation = root
-            .DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .First(i => i.Expression is MemberAccessExpressionSyntax ma
-                && string.Equals(ma.Name.Identifier.Text, "RaisesAsync", StringComparison.Ordinal));
 
-        bool result = model.IsRaisesInvocation(raisesInvocation, knownSymbols);
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "RaisesAsync");
 
         Assert.False(result);
     }
@@ -881,6 +839,18 @@ public class C
             declarators.First(d => string.Equals(d.Identifier.Text, secondName, StringComparison.Ordinal)))!;
 
         return (model, firstSymbol.Type, secondSymbol.Type);
+    }
+
+    private static async Task<bool> IsRaisesInvocationForMemberAccessAsync(string code, string methodName)
+    {
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code).ConfigureAwait(false);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync().ConfigureAwait(false);
+        InvocationExpressionSyntax invocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, methodName, StringComparison.Ordinal));
+        return model.IsRaisesInvocation(invocation, knownSymbols);
     }
 
     private static (SemanticModel Model, ExpressionSyntax Lambda) GetLambdaFromVariableInitializer(

@@ -226,6 +226,18 @@ internal static class EventSyntaxExtensions
     private static ITypeSymbol[]? TryGetCustomDelegateParameters(INamedTypeSymbol namedType)
     {
         IMethodSymbol? invokeMethod = namedType.DelegateInvokeMethod;
-        return invokeMethod?.Parameters.Select(p => p.Type).ToArray();
+        if (invokeMethod is null)
+        {
+            return null;
+        }
+
+        ImmutableArray<IParameterSymbol> parameters = invokeMethod.Parameters;
+        ITypeSymbol[] types = new ITypeSymbol[parameters.Length];
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            types[i] = parameters[i].Type;
+        }
+
+        return types;
     }
 }
