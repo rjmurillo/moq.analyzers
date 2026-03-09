@@ -18,7 +18,7 @@ internal sealed class Program
     private static async Task<int> Main(string[] args)
     {
         RootCommand rootCommand = DiffCommand.CreateCommandLineOptions();
-        rootCommand.SetAction(async (parseResult, cancellationToken) =>
+        rootCommand.SetAction(static async (parseResult, cancellationToken) =>
         {
             string baseline = parseResult.GetValue(DiffCommand.BaselineOption)!;
             string results = parseResult.GetValue(DiffCommand.ResultsOption)!;
