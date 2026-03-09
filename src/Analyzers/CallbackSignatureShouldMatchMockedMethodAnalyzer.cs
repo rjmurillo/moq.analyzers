@@ -80,27 +80,31 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
             return;
         }
 
-        ParenthesizedLambdaExpressionSyntax? callbackLambda = TryGetCallbackLambda(callbackOrReturnsInvocation);
+        LambdaExpressionSyntax? callbackLambda = TryGetCallbackLambda(callbackOrReturnsInvocation);
         if (callbackLambda == null)
         {
             return;
         }
 
         // Ignoring calls with no arguments because those are valid in Moq
-        SeparatedSyntaxList<ParameterSyntax> lambdaParameters = callbackLambda.ParameterList.Parameters;
+        SeparatedSyntaxList<ParameterSyntax> lambdaParameters = GetLambdaParameters(callbackLambda);
         if (lambdaParameters.Count == 0)
         {
             return;
         }
 
         InvocationExpressionSyntax? setupInvocation = semanticModel.FindSetupMethodFromCallbackInvocation(knownSymbols, callbackOrReturnsInvocation, context.CancellationToken);
+        if (setupInvocation is null)
+        {
+            return;
+        }
 
         ValidateCallbackAgainstSetup(context, semanticModel, setupInvocation, callbackLambda, lambdaParameters);
     }
 
-    private static ParenthesizedLambdaExpressionSyntax? TryGetCallbackLambda(InvocationExpressionSyntax callbackOrReturnsInvocation)
+    private static LambdaExpressionSyntax? TryGetCallbackLambda(InvocationExpressionSyntax callbackOrReturnsInvocation)
     {
-        if (callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression is ParenthesizedLambdaExpressionSyntax directLambda)
+        if (callbackOrReturnsInvocation.ArgumentList.Arguments[0]?.Expression is LambdaExpressionSyntax directLambda)
         {
             return directLambda;
         }
@@ -113,23 +117,34 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         }
 
         // Extract the lambda from the delegate constructor (support both parenthesized and simple lambdas)
-        LambdaExpressionSyntax? lambdaExpression = delegateConstructor.ArgumentList!.Arguments[0]?.Expression as LambdaExpressionSyntax;
+        return delegateConstructor.ArgumentList!.Arguments[0]?.Expression as LambdaExpressionSyntax;
+    }
 
-        // Simple lambdas are currently skipped to avoid handling edge cases and maintain simplicity.
-        // TODO(#1012): Implement support for SimpleLambdaExpressionSyntax in delegate constructors.
-        if (lambdaExpression is SimpleLambdaExpressionSyntax)
+    private static SeparatedSyntaxList<ParameterSyntax> GetLambdaParameters(LambdaExpressionSyntax lambda)
+    {
+        return lambda switch
         {
-            return null;
-        }
+            ParenthesizedLambdaExpressionSyntax parenthesized => parenthesized.ParameterList.Parameters,
+            SimpleLambdaExpressionSyntax simple => SyntaxFactory.SingletonSeparatedList(simple.Parameter),
+            _ => default,
+        };
+    }
 
-        return lambdaExpression as ParenthesizedLambdaExpressionSyntax;
+    private static SyntaxNode GetDiagnosticNode(LambdaExpressionSyntax lambda)
+    {
+        return lambda switch
+        {
+            ParenthesizedLambdaExpressionSyntax parenthesized => parenthesized.ParameterList,
+            SimpleLambdaExpressionSyntax simple => simple.Parameter,
+            _ => lambda,
+        };
     }
 
     private static void ValidateCallbackAgainstSetup(
         OperationAnalysisContext context,
         SemanticModel semanticModel,
-        InvocationExpressionSyntax? setupInvocation,
-        ParenthesizedLambdaExpressionSyntax callbackLambda,
+        InvocationExpressionSyntax setupInvocation,
+        LambdaExpressionSyntax callbackLambda,
         SeparatedSyntaxList<ParameterSyntax> lambdaParameters)
     {
         InvocationExpressionSyntax? mockedMethodInvocation = setupInvocation.FindMockedMethodInvocationFromSetupMethod();
@@ -143,7 +158,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
 
         if (mockedMethodArguments.Count != lambdaParameters.Count)
         {
-            Diagnostic diagnostic = callbackLambda.ParameterList.CreateDiagnostic(Rule, methodName);
+            Diagnostic diagnostic = GetDiagnosticNode(callbackLambda).CreateDiagnostic(Rule, methodName);
             context.ReportDiagnostic(diagnostic);
         }
         else

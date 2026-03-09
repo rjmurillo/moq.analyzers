@@ -751,6 +751,42 @@ public class C
         Assert.False(result);
     }
 
+    [Fact]
+    public async Task FindSetupMethodFromCallbackInvocation_WithOverloadResolutionFailure_FallsBackToCandidate()
+    {
+        // An untyped simple lambda parameter makes overload resolution ambiguous,
+        // causing GetSymbolInfo to return CandidateSymbols instead of Symbol.
+        // The method should fall back to candidates and still find the Setup invocation.
+        const string code = @"
+using System;
+using Moq;
+public interface IFoo { int Bar(string s); }
+public class C
+{
+    public void M()
+    {
+        new Mock<IFoo>().Setup(x => x.Bar(It.IsAny<string>())).Callback(x => { });
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        // Find the Callback invocation. With an untyped simple lambda, overload
+        // resolution for .Callback(x => { }) fails, producing CandidateSymbols.
+        InvocationExpressionSyntax callbackInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, "Callback", StringComparison.Ordinal));
+
+        InvocationExpressionSyntax? setupInvocation = model.FindSetupMethodFromCallbackInvocation(
+            knownSymbols, callbackInvocation, CancellationToken.None);
+
+        Assert.NotNull(setupInvocation);
+        MemberAccessExpressionSyntax setupAccess = (MemberAccessExpressionSyntax)setupInvocation!.Expression;
+        Assert.Equal("Setup", setupAccess.Name.Identifier.Text);
+    }
+
     private static (SemanticModel Model, ITypeSymbol FirstType, ITypeSymbol SecondType) GetTwoVariableTypes(
         string code,
         string firstName,

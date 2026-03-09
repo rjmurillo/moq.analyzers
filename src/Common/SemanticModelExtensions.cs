@@ -23,12 +23,25 @@ internal static class SemanticModelExtensions
             }
 
             SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(method, cancellationToken);
-            if (symbolInfo.Symbol is null)
+            ISymbol? resolvedSymbol = symbolInfo.Symbol;
+
+            // When overload resolution fails (e.g. untyped simple lambda argument),
+            // fall back to candidate symbols so the walk can continue up the chain.
+            if (resolvedSymbol is null)
             {
-                return null;
+                // CandidateSymbols suffice here because downstream consumers
+                // re-resolve the mocked method from the Setup lambda body independently.
+                if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
+                    && symbolInfo.CandidateSymbols.Any(s => s.IsMoqSetupMethod(knownSymbols)))
+                {
+                    return invocation;
+                }
+
+                expression = method.Expression;
+                continue;
             }
 
-            if (symbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
+            if (resolvedSymbol.IsMoqSetupMethod(knownSymbols))
             {
                 return invocation;
             }

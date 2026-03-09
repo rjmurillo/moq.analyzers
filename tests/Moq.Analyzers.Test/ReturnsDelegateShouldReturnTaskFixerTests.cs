@@ -124,6 +124,6 @@ public class ReturnsDelegateShouldReturnTaskFixerTests(ITestOutputHelper output)
         output.WriteLine("Fixed:");
         output.WriteLine(f);
 
-        await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup, compilerDiagnostics).ConfigureAwait(false);
+        await Verifier.VerifyCodeFixAsync(o, f, referenceAssemblyGroup, compilerDiagnostics: compilerDiagnostics).ConfigureAwait(false);
     }
 }
