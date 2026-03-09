@@ -57,6 +57,15 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Explicitly typed lambda with correct parameter type (exercises GetDeclaredSymbol path)
             ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback((string x) => { });"""],
+
+            // Simple lambda in delegate constructor with correct type (issue #1012)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(new Action<string>(x => { }));"""],
+
+            // Simple lambda in delegate constructor with correct type using Returns (issue #1012)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Returns(new Func<string, int>(x => 42));"""],
+
+            // Parenthesized lambda in delegate constructor with correct type (issue #1012)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(new Action<string>((string x) => { }));"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         // Invalid patterns that SHOULD trigger the analyzer
@@ -82,6 +91,18 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Explicitly typed lambda with wrong parameter type (exercises semantic resolution mismatch)
             ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(({|Moq1100:DateTime wrongParam|}) => { });"""],
+
+            // Simple lambda in delegate constructor with wrong type (issue #1012)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(new Action<int>({|Moq1100:x|} => { }));"""],
+
+            // Simple lambda in delegate constructor with argument count mismatch (issue #1012)
+            ["""new Mock<IFoo>().Setup(x => x.ProcessMultiple(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>({|Moq1100:x|} => { }));"""],
+
+            // Parenthesized lambda in delegate constructor with wrong type (issue #1012)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(new Action<int>(({|Moq1100:int x|}) => { }));"""],
+
+            // Parenthesized lambda in delegate constructor with wrong argument count (issue #1012)
+            ["""new Mock<IFoo>().Setup(x => x.ProcessMultiple(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>({|Moq1100:(int x)|} => { }));"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         return validPatterns.Concat(invalidPatterns);

@@ -1,4 +1,4 @@
-﻿using System.Composition;
+using System.Composition;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
@@ -43,16 +43,20 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
         if (badArgumentListSyntax is not null)
         {
+            ParenthesizedLambdaExpressionSyntax? parenthesizedLambda = badArgumentListSyntax
+                .FirstAncestorOrSelf<ParenthesizedLambdaExpressionSyntax>();
+
             context.RegisterCodeFix(
                 CodeAction.Create(
                     FixTitle,
-                    cancellationToken => FixParenthesizedCallbackSignatureAsync(root, context.Document, badArgumentListSyntax, cancellationToken),
+                    cancellationToken => FixParenthesizedCallbackSignatureAsync(root, context.Document, badArgumentListSyntax, parenthesizedLambda, cancellationToken),
                     FixTitle),
                 diagnostic);
             return;
         }
 
-        // Try simple lambda path (diagnostic on ParameterSyntax within SimpleLambdaExpressionSyntax).
+        // SimpleLambdaExpressionSyntax nodes never contain a ParameterListSyntax,
+        // so the ancestor search above intentionally falls through to this path.
         SimpleLambdaExpressionSyntax? simpleLambda = node?
                                         .AncestorsAndSelf()
                                         .OfType<SimpleLambdaExpressionSyntax>()
@@ -69,20 +73,18 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         }
     }
 
-    private static async Task<Document> FixParenthesizedCallbackSignatureAsync(SyntaxNode root, Document document, ParameterListSyntax oldParameters, CancellationToken cancellationToken)
+    private static async Task<Document> FixParenthesizedCallbackSignatureAsync(SyntaxNode root, Document document, ParameterListSyntax oldParameters, ParenthesizedLambdaExpressionSyntax? parentLambda, CancellationToken cancellationToken)
     {
-        if (IsInsideDelegateConstructor(oldParameters))
+        if (parentLambda is not null && IsInsideDelegateConstructor(parentLambda))
         {
             return document;
         }
 
-        (SemanticModel SemanticModel, IMethodSymbol MockedMethod)? resolved = await ResolveMockedMethodAsync(document, oldParameters, cancellationToken).ConfigureAwait(false);
-        if (resolved is null)
+        ParameterListSyntax? newParameters = await ResolveNewParameterListAsync(document, oldParameters, oldParameters.SpanStart, oldParameters.Parameters, cancellationToken).ConfigureAwait(false);
+        if (newParameters is null)
         {
             return document;
         }
-
-        ParameterListSyntax newParameters = BuildParameterList(resolved.Value.SemanticModel, resolved.Value.MockedMethod, oldParameters.SpanStart);
 
         SyntaxNode newRoot = root.ReplaceNode(oldParameters, newParameters);
         return document.WithSyntaxRoot(newRoot);
@@ -90,26 +92,28 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
     private static async Task<Document> FixSimpleLambdaCallbackSignatureAsync(SyntaxNode root, Document document, SimpleLambdaExpressionSyntax simpleLambda, CancellationToken cancellationToken)
     {
-        (SemanticModel SemanticModel, IMethodSymbol MockedMethod)? resolved = await ResolveMockedMethodAsync(document, simpleLambda, cancellationToken).ConfigureAwait(false);
-        if (resolved is null)
+        // No delegate-constructor guard needed here; RegisterCodeFixesAsync
+        // already filters out simple lambdas inside delegate constructors.
+        SeparatedSyntaxList<ParameterSyntax> originalParams = SyntaxFactory.SingletonSeparatedList(simpleLambda.Parameter);
+        ParameterListSyntax? newParameters = await ResolveNewParameterListAsync(document, simpleLambda, simpleLambda.SpanStart, originalParams, cancellationToken).ConfigureAwait(false);
+        if (newParameters is null)
         {
             return document;
         }
-
-        ParameterListSyntax newParameters = BuildParameterList(resolved.Value.SemanticModel, resolved.Value.MockedMethod, simpleLambda.SpanStart);
 
         ParenthesizedLambdaExpressionSyntax parenthesizedLambda = SyntaxFactory.ParenthesizedLambdaExpression(
             simpleLambda.AsyncKeyword,
             newParameters,
             simpleLambda.ArrowToken,
             simpleLambda.Block,
-            simpleLambda.ExpressionBody);
+            simpleLambda.ExpressionBody)
+            .WithTriviaFrom(simpleLambda);
 
         SyntaxNode newRoot = root.ReplaceNode(simpleLambda, parenthesizedLambda);
         return document.WithSyntaxRoot(newRoot);
     }
 
-    private static async Task<(SemanticModel SemanticModel, IMethodSymbol MockedMethod)?> ResolveMockedMethodAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+    private static async Task<ParameterListSyntax?> ResolveNewParameterListAsync(Document document, SyntaxNode lambdaNode, int position, SeparatedSyntaxList<ParameterSyntax> originalParameters, CancellationToken cancellationToken)
     {
         SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         if (semanticModel is null)
@@ -119,7 +123,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
         MoqKnownSymbols knownSymbols = new(semanticModel.Compilation);
 
-        InvocationExpressionSyntax? callbackInvocation = node
+        InvocationExpressionSyntax? callbackInvocation = lambdaNode
             .Ancestors()
             .OfType<InvocationExpressionSyntax>()
             .FirstOrDefault();
@@ -135,13 +139,12 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
             return null;
         }
 
-        return (semanticModel, mockedMethod);
+        return BuildParameterList(semanticModel, mockedMethod, position, originalParameters);
     }
 
-    private static bool IsInsideDelegateConstructor(SyntaxNode node)
+    private static bool IsInsideDelegateConstructor(LambdaExpressionSyntax lambda)
     {
-        LambdaExpressionSyntax? lambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
-        return lambda?.Parent is ArgumentSyntax
+        return lambda.Parent is ArgumentSyntax
         {
             Parent: ArgumentListSyntax
             {
@@ -158,6 +161,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
             return null;
         }
 
+        // Short-circuit: we only need to know if there is exactly one match.
         IMethodSymbol[] matchingMockedMethods = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupMethodInvocation).Take(2).ToArray();
 
         if (matchingMockedMethods.Length != 1)
@@ -168,15 +172,27 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         return matchingMockedMethods[0];
     }
 
-    private static ParameterListSyntax BuildParameterList(SemanticModel semanticModel, IMethodSymbol mockedMethod, int position)
+    private static ParameterListSyntax BuildParameterList(SemanticModel semanticModel, IMethodSymbol mockedMethod, int position, SeparatedSyntaxList<ParameterSyntax> originalParameters)
     {
-        return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(mockedMethod.Parameters.Select(
-            parameterSymbol =>
-            {
-                TypeSyntax type = SyntaxFactory.ParseTypeName(parameterSymbol.Type.ToMinimalDisplayString(semanticModel, position));
-                SyntaxTokenList modifiers = GetParameterModifiers(parameterSymbol.RefKind);
-                return SyntaxFactory.Parameter(default, modifiers, type, SyntaxFactory.Identifier(parameterSymbol.Name), null);
-            })));
+        ImmutableArray<IParameterSymbol> parameters = mockedMethod.Parameters;
+        ParameterSyntax[] result = new ParameterSyntax[parameters.Length];
+
+        for (int index = 0; index < parameters.Length; index++)
+        {
+            IParameterSymbol parameterSymbol = parameters[index];
+            TypeSyntax type = SyntaxFactory.ParseTypeName(parameterSymbol.Type.ToMinimalDisplayString(semanticModel, position));
+            SyntaxTokenList modifiers = GetParameterModifiers(parameterSymbol.RefKind);
+
+            string name = index < originalParameters.Count
+                ? originalParameters[index].Identifier.ValueText
+                : parameterSymbol.Name;
+
+            SyntaxToken identifier = SyntaxFactory.Identifier(name);
+
+            result[index] = SyntaxFactory.Parameter(default, modifiers, type, identifier, null);
+        }
+
+        return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(result));
     }
 
     private static SyntaxTokenList GetParameterModifiers(RefKind refKind)
@@ -186,7 +202,6 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
             RefKind.Ref => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword)),
             RefKind.Out => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword)),
             RefKind.In => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
-            RefKind.None => SyntaxFactory.TokenList(),
             _ => SyntaxFactory.TokenList(),
         };
     }

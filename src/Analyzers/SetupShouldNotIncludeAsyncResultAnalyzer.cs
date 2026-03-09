@@ -40,12 +40,12 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Check Moq version and skip analysis if the version is 4.16.0 or later
-        AssemblyIdentity? moqAssembly = context.Compilation.ReferencedAssemblyNames.FirstOrDefault(a => a.Name.Equals("Moq", StringComparison.OrdinalIgnoreCase));
+        // Check Moq version once per compilation, skip for 4.16.0 or later
+        AssemblyIdentity? moqAssembly = context.Compilation.ReferencedAssemblyNames
+            .FirstOrDefault(a => a.Name.Equals("Moq", StringComparison.OrdinalIgnoreCase));
 
         if (moqAssembly != null && moqAssembly.Version >= new Version(4, 16, 0))
         {
-            // Skip analysis for Moq 4.16.0 or later
             return;
         }
 
