@@ -28,7 +28,22 @@ try {
 
     $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
 
-    $output = dotnet build $slnPath /p:PedanticMode=true --verbosity quiet 2>&1
+    # Mirror CI build flags from .github/actions/setup-restore-build/action.yml
+    # to prevent issues from escaping the local environment.
+    $buildArgs = @(
+        $slnPath
+        "--configuration", "Release"
+        "--verbosity", "quiet"
+        "/p:PedanticMode=true"
+        "/p:Deterministic=true"
+        "/p:ContinuousIntegrationBuild=true"
+        "/p:UseSharedCompilation=false"
+        "/p:BuildInParallel=false"
+        "/nodeReuse:false"
+    )
+
+    Write-Host "Building (Release, CI-parity flags)..." -ForegroundColor Cyan
+    $output = dotnet build @buildArgs 2>&1
     $buildExitCode = $LASTEXITCODE
     $output = $output | Out-String
 
@@ -39,7 +54,7 @@ try {
     }
     else {
         $runSettings = Join-Path $repoRoot "build/targets/tests/test.runsettings"
-        $output = dotnet test $slnPath --no-build --settings $runSettings --verbosity quiet 2>&1
+        $output = dotnet test $slnPath --no-build --configuration Release --settings $runSettings --verbosity quiet 2>&1
         $testExitCode = $LASTEXITCODE
         $output = $output | Out-String
         if ($testExitCode -ne 0) {
