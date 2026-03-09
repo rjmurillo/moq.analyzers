@@ -159,7 +159,7 @@ internal static class EtlDiffer
                 ));
             }
 
-            results.Sort((left, right) =>
+            results.Sort(static (left, right) =>
             {
                 if (left.Interest < right.Interest)
                     return 1;
