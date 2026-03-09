@@ -54,7 +54,8 @@ internal static class SemanticModelExtensions
         return semanticModel.IsMoqFluentInvocation(
             callbackOrReturnsInvocation,
             CallbackOrReturnNames,
-            symbol => IsCallbackOrReturnSymbol(symbol, knownSymbols));
+            knownSymbols,
+            static (symbol, ks) => IsCallbackOrReturnSymbol(symbol, ks));
     }
 
     internal static bool IsRaisesInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax raisesInvocation, MoqKnownSymbols knownSymbols)
@@ -62,7 +63,8 @@ internal static class SemanticModelExtensions
         return semanticModel.IsMoqFluentInvocation(
             raisesInvocation,
             RaisesNames,
-            symbol => symbol.IsMoqRaisesMethod(knownSymbols));
+            knownSymbols,
+            static (symbol, ks) => symbol.IsMoqRaisesMethod(ks));
     }
 
     /// <summary>
@@ -225,18 +227,21 @@ internal static class SemanticModelExtensions
     /// <remarks>
     /// The <paramref name="fastPathNames"/> string check is an intentional optimization,
     /// not detection logic. The <paramref name="symbolPredicate"/> is the authoritative
-    /// gate for correctness.
+    /// gate for correctness. The <paramref name="knownSymbols"/> parameter is passed
+    /// through to the predicate to avoid closure allocations.
     /// </remarks>
     /// <param name="semanticModel">The semantic model.</param>
     /// <param name="invocation">The invocation to check.</param>
     /// <param name="fastPathNames">Method names for early rejection before the expensive GetSymbolInfo call.</param>
-    /// <param name="symbolPredicate">Predicate that validates the resolved symbol.</param>
+    /// <param name="knownSymbols">Known symbols passed through to the predicate to avoid closure allocations.</param>
+    /// <param name="symbolPredicate">Predicate that validates the resolved symbol against known symbols.</param>
     /// <returns><see langword="true"/> if the invocation matches; otherwise, <see langword="false"/>.</returns>
     private static bool IsMoqFluentInvocation(
         this SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
         string[] fastPathNames,
-        Func<ISymbol, bool> symbolPredicate)
+        MoqKnownSymbols knownSymbols,
+        Func<ISymbol, MoqKnownSymbols, bool> symbolPredicate)
     {
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
         {
@@ -263,8 +268,8 @@ internal static class SemanticModelExtensions
         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
         return symbolInfo.CandidateReason switch
         {
-            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(symbolPredicate.Invoke),
-            CandidateReason.None => symbolInfo.Symbol is not null && symbolPredicate(symbolInfo.Symbol),
+            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(s => symbolPredicate(s, knownSymbols)),
+            CandidateReason.None => symbolInfo.Symbol is not null && symbolPredicate(symbolInfo.Symbol, knownSymbols),
             _ => false,
         };
     }

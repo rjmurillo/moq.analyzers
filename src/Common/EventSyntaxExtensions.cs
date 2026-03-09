@@ -58,7 +58,7 @@ internal static class EventSyntaxExtensions
     /// - For custom delegates: Returns parameters from the <c>Invoke</c> method
     /// - For non-delegate types: Returns an empty array.
     /// </returns>
-    internal static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType, KnownSymbols? knownSymbols = null)
+    internal static ITypeSymbol[] GetEventParameterTypes(ITypeSymbol eventType, KnownSymbols knownSymbols)
     {
         if (eventType is not INamedTypeSymbol namedType)
         {
@@ -66,11 +66,10 @@ internal static class EventSyntaxExtensions
         }
 
         // Try different delegate type handlers in order of specificity
-        ITypeSymbol[]? parameterTypes = knownSymbols != null
-            ? TryGetActionDelegateParameters(namedType, knownSymbols) ??
-              TryGetEventHandlerDelegateParameters(namedType, knownSymbols) ??
-              TryGetCustomDelegateParameters(namedType)
-            : TryGetCustomDelegateParameters(namedType);
+        ITypeSymbol[]? parameterTypes =
+            TryGetActionDelegateParameters(namedType, knownSymbols) ??
+            TryGetEventHandlerDelegateParameters(namedType, knownSymbols) ??
+            TryGetCustomDelegateParameters(namedType);
 
         return parameterTypes ?? [];
     }
@@ -91,7 +90,7 @@ internal static class EventSyntaxExtensions
         out ArgumentSyntax[] eventArguments,
         out ITypeSymbol[] expectedParameterTypes,
         Func<SemanticModel, ExpressionSyntax, (bool Success, ITypeSymbol? EventType)> eventTypeExtractor,
-        KnownSymbols? knownSymbols = null)
+        KnownSymbols knownSymbols)
     {
         eventArguments = [];
         expectedParameterTypes = [];
