@@ -9,8 +9,7 @@ namespace PerfDiff.Logging;
 /// </summary>
 internal sealed class SimpleConsoleLoggerProvider : ILoggerProvider
 {
-    private readonly LogLevel _minimalLogLevel;
-    private readonly LogLevel _minimalErrorLevel;
+    private readonly SimpleConsoleLogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SimpleConsoleLoggerProvider"/> class.
@@ -19,14 +18,13 @@ internal sealed class SimpleConsoleLoggerProvider : ILoggerProvider
     /// <param name="minimalErrorLevel">The minimal log level for error output.</param>
     public SimpleConsoleLoggerProvider(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
     {
-        _minimalLogLevel = minimalLogLevel;
-        _minimalErrorLevel = minimalErrorLevel;
+        _logger = new SimpleConsoleLogger(minimalLogLevel, minimalErrorLevel);
     }
 
     /// <inheritdoc/>
     public ILogger CreateLogger(string categoryName)
     {
-        return new SimpleConsoleLogger(_minimalLogLevel, _minimalErrorLevel);
+        return _logger;
     }
 
     /// <inheritdoc/>

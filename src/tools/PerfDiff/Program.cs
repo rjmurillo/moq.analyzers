@@ -13,12 +13,12 @@ namespace PerfDiff;
 
 internal sealed class Program
 {
-    internal const int UnhandledExceptionExitCode = 1;
+    internal static readonly int UnhandledExceptionExitCode = 1;
 
     private static async Task<int> Main(string[] args)
     {
         RootCommand rootCommand = DiffCommand.CreateCommandLineOptions();
-        rootCommand.SetAction(async (parseResult, cancellationToken) =>
+        rootCommand.SetAction(static async (parseResult, cancellationToken) =>
         {
             string baseline = parseResult.GetValue(DiffCommand.BaselineOption)!;
             string results = parseResult.GetValue(DiffCommand.ResultsOption)!;
@@ -63,7 +63,11 @@ internal sealed class Program
         static ServiceProvider SetupLogging(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddLogging(builder => builder.AddProvider(new SimpleConsoleLoggerProvider(minimalLogLevel, minimalErrorLevel)));
+            serviceCollection.AddLogging(builder =>
+            {
+                builder.SetMinimumLevel(minimalLogLevel);
+                builder.AddProvider(new SimpleConsoleLoggerProvider(minimalLogLevel, minimalErrorLevel));
+            });
 
             return serviceCollection.BuildServiceProvider();
         }
