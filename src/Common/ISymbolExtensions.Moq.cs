@@ -18,7 +18,6 @@ internal static partial class ISymbolExtensions
             return false;
         }
 
-        // Check for Task, Task<T>, ValueTask, or ValueTask<T>
         INamedTypeSymbol originalDefinition = namedType.OriginalDefinition;
 
         return SymbolEqualityComparer.Default.Equals(originalDefinition, knownSymbols.Task) ||
@@ -29,13 +28,13 @@ internal static partial class ISymbolExtensions
 
     internal static bool IsTaskOrValueResultProperty(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        if (symbol is IPropertySymbol propertySymbol)
+        if (symbol is not IPropertySymbol propertySymbol)
         {
-            return IsGenericResultProperty(propertySymbol, knownSymbols.Task1)
-                   || IsGenericResultProperty(propertySymbol, knownSymbols.ValueTask1);
+            return false;
         }
 
-        return false;
+        return IsGenericResultProperty(propertySymbol, knownSymbols.Task1)
+               || IsGenericResultProperty(propertySymbol, knownSymbols.ValueTask1);
     }
 
     internal static bool IsMoqSetupMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
@@ -253,22 +252,17 @@ internal static partial class ISymbolExtensions
     /// <summary>
     /// Checks if a property is the 'Result' property on <see cref="Task{TResult}"/> or <see cref="ValueTask{TResult}"/>.
     /// </summary>
-    private static bool IsGenericResultProperty(this ISymbol symbol, INamedTypeSymbol? genericType)
+    private static bool IsGenericResultProperty(IPropertySymbol propertySymbol, INamedTypeSymbol? genericType)
     {
-        if (symbol is IPropertySymbol propertySymbol)
+        // "Result" is a stable BCL property name on Task<T> and ValueTask<T>.
+        // The string check is safe here because the containing type is verified
+        // against the known generic type symbol below.
+        if (!string.Equals(propertySymbol.Name, "Result", StringComparison.Ordinal))
         {
-            // Check if the property is named "Result"
-            if (!string.Equals(propertySymbol.Name, "Result", StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            return genericType != null &&
-
-                   // If Task<T> type cannot be found, we skip it
-                   SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType.OriginalDefinition, genericType);
+            return false;
         }
 
-        return false;
+        return genericType != null &&
+               SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType.OriginalDefinition, genericType);
     }
 }

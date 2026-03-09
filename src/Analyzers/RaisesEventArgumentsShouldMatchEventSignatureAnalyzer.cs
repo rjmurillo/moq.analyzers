@@ -66,39 +66,18 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
     {
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
-        // Check if this is a Raises method call using symbol-based detection
-        if (!context.SemanticModel.IsRaisesInvocation(invocation, knownSymbols) && !invocation.IsRaisesMethodCall(context.SemanticModel, knownSymbols))
+        if (!context.SemanticModel.IsRaisesInvocation(invocation, knownSymbols))
         {
             return;
         }
 
-        if (!TryGetRaisesMethodArguments(invocation, context.SemanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
+        if (!EventSyntaxExtensions.TryGetEventMethodArgumentsFromLambdaSelector(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes))
         {
             return;
         }
 
-        // Extract event name from the first argument (event selector lambda)
-        string? eventName = null;
-        if (invocation.ArgumentList.Arguments.Count > 0)
-        {
-            ExpressionSyntax eventSelector = invocation.ArgumentList.Arguments[0].Expression;
-            context.SemanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out eventName);
-        }
+        string eventName = EventSyntaxExtensions.GetEventNameFromSelector(invocation, context.SemanticModel);
 
-        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, Rule, eventName ?? "event");
-    }
-
-    private static bool TryGetRaisesMethodArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes)
-    {
-        return EventSyntaxExtensions.TryGetEventMethodArguments(
-            invocation,
-            semanticModel,
-            out eventArguments,
-            out expectedParameterTypes,
-            (sm, selector) =>
-            {
-                bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
-                return (success, eventType);
-            });
+        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, invocation, Rule, eventName);
     }
 }
