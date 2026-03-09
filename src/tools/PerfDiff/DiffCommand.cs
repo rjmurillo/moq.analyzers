@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Frozen;
 using System.CommandLine;
+using Microsoft.Extensions.Logging;
 
 namespace PerfDiff;
 
@@ -10,9 +12,21 @@ namespace PerfDiff;
 internal static class DiffCommand
 {
     /// <summary>
-    /// Gets the allowed verbosity levels for the command.
+    /// Maps verbosity strings to their corresponding log levels.
     /// </summary>
-    private static readonly string[] VerbosityLevels = ["q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic"];
+    private static readonly FrozenDictionary<string, LogLevel> VerbosityMap = new Dictionary<string, LogLevel>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["q"] = LogLevel.Error,
+        ["quiet"] = LogLevel.Error,
+        ["m"] = LogLevel.Warning,
+        ["minimal"] = LogLevel.Warning,
+        ["n"] = LogLevel.Information,
+        ["normal"] = LogLevel.Information,
+        ["d"] = LogLevel.Debug,
+        ["detailed"] = LogLevel.Debug,
+        ["diag"] = LogLevel.Trace,
+        ["diagnostic"] = LogLevel.Trace,
+    }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Gets the baseline option.
@@ -44,10 +58,21 @@ internal static class DiffCommand
         return option;
     }
 
+    /// <summary>
+    /// Returns the <see cref="LogLevel"/> for the given verbosity string.
+    /// Falls back to <see cref="LogLevel.Information"/> when the value is null or unrecognized.
+    /// </summary>
+    /// <param name="verbosity">The verbosity string from the command line.</param>
+    /// <returns>The corresponding <see cref="LogLevel"/>.</returns>
+    internal static LogLevel GetLogLevel(string? verbosity)
+        => verbosity is not null && VerbosityMap.TryGetValue(verbosity, out LogLevel level)
+            ? level
+            : LogLevel.Information;
+
     private static Option<string> CreateVerbosityOption()
     {
         Option<string> option = new("--verbosity", "-v") { Description = "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]" };
-        option.AcceptOnlyFromAmong(VerbosityLevels);
+        option.AcceptOnlyFromAmong(VerbosityMap.Keys.ToArray());
         return option;
     }
 

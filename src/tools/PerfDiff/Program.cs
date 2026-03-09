@@ -39,7 +39,7 @@ internal sealed class Program
         CancellationToken cancellationToken)
     {
         // Setup logging.
-        LogLevel logLevel = GetLogLevel(verbosity);
+        LogLevel logLevel = DiffCommand.GetLogLevel(verbosity);
         ServiceProvider serviceProvider = SetupLogging(minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
         await using ConfiguredAsyncDisposable asyncDisposal = serviceProvider.ConfigureAwait(false);
         ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
@@ -67,16 +67,5 @@ internal sealed class Program
 
             return serviceCollection.BuildServiceProvider();
         }
-
-        static LogLevel GetLogLevel(string? verbosity)
-            => verbosity switch
-            {
-                "q" or "quiet" => LogLevel.Error,
-                "m" or "minimal" => LogLevel.Warning,
-                "n" or "normal" => LogLevel.Information,
-                "d" or "detailed" => LogLevel.Debug,
-                "diag" or "diagnostic" => LogLevel.Trace,
-                _ => LogLevel.Information,
-            };
     }
 }
