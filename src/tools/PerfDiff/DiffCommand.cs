@@ -14,7 +14,7 @@ internal static class DiffCommand
     /// <summary>
     /// Maps verbosity strings to their corresponding log levels.
     /// </summary>
-    private static readonly FrozenDictionary<string, LogLevel> VerbosityMap = new Dictionary<string, LogLevel>
+    private static readonly FrozenDictionary<string, LogLevel> VerbosityMap = new Dictionary<string, LogLevel>(10)
     {
         ["q"] = LogLevel.Error,
         ["quiet"] = LogLevel.Error,
