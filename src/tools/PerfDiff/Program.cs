@@ -51,7 +51,7 @@ internal sealed class Program
         catch (FileNotFoundException fex)
         {
 #pragma warning disable CA1848, CA2254 // LoggerMessage delegates, varying template
-            logger.LogError(fex.Message);
+            logger.LogError(fex, "File not found: {FileName}", fex.FileName);
 #pragma warning restore CA1848, CA2254
             return UnhandledExceptionExitCode;
         }
