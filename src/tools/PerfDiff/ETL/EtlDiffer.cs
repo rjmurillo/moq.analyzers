@@ -45,11 +45,11 @@ internal static class EtlDiffer
     private static TraceProcess GetTraceProcessFromTraceLog(TraceLog traceLog, string eltPath)
     {
         TraceProcess? process = traceLog.Processes
-            .FirstOrDefault(p => string.Equals(p.Name, "dotnet", StringComparison.OrdinalIgnoreCase) && p.EventsInProcess is not null);
+            .FirstOrDefault(static p => string.Equals(p.Name, "dotnet", StringComparison.OrdinalIgnoreCase) && p.EventsInProcess is not null);
 
         if (process is null)
         {
-            string available = string.Join(", ", traceLog.Processes.Select(p => p.Name));
+            string available = string.Join(", ", traceLog.Processes.Select(static p => p.Name));
             throw new InvalidOperationException(
                 $"No 'dotnet' process found in ETL file: {eltPath}. Available processes: {available}");
         }
