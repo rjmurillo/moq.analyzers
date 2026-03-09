@@ -7,8 +7,16 @@ namespace Moq.Analyzers.Common;
 /// </summary>
 internal static class SemanticModelExtensions
 {
-    private static readonly string[] CallbackOrReturnNames = ["Callback", "Returns"];
-    private static readonly string[] RaisesNames = ["Raises", "RaisesAsync"];
+    private static readonly string[] CallbackOrReturnNames;
+    private static readonly string[] RaisesNames;
+
+#pragma warning disable S3963 // "static fields" should be initialized inline - ECS1300 requires static constructor
+    static SemanticModelExtensions()
+    {
+        CallbackOrReturnNames = ["Callback", "Returns"];
+        RaisesNames = ["Raises", "RaisesAsync"];
+    }
+#pragma warning restore S3963
 
     internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(
         this SemanticModel semanticModel,
