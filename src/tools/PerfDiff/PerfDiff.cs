@@ -33,13 +33,13 @@ internal static class PerfDiff
         (bool etlCompareSucceeded, bool etlRegressionDetected) = CheckEltTraces(baselineFolder, resultsFolder);
         if (!etlCompareSucceeded)
         {
-            logger.LogTrace("We detected a regression in BenchmarkDotNet and there is no ETL info.");
+            logger.LogWarning("We detected a regression in BenchmarkDotNet and there is no ETL info.");
             return failOnRegression ? 1 : 0;
         }
 
         if (etlRegressionDetected)
         {
-            logger.LogTrace("We detected a regression in BenchmarkDotNet and there _is_ ETL info which agrees there was a regression.");
+            logger.LogWarning("We detected a regression in BenchmarkDotNet and there _is_ ETL info which agrees there was a regression.");
             return failOnRegression ? 1 : 0;
         }
 

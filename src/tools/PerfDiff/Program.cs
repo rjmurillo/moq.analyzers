@@ -63,7 +63,11 @@ internal sealed class Program
         static ServiceProvider SetupLogging(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddLogging(builder => builder.AddProvider(new SimpleConsoleLoggerProvider(minimalLogLevel, minimalErrorLevel)));
+            serviceCollection.AddLogging(builder =>
+            {
+                builder.SetMinimumLevel(minimalLogLevel);
+                builder.AddProvider(new SimpleConsoleLoggerProvider(minimalLogLevel, minimalErrorLevel));
+            });
 
             return serviceCollection.BuildServiceProvider();
         }
