@@ -544,10 +544,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
 
         Assert.Single(actions);
 
-        ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
-        ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
-        Document changedDocument = applyChanges.ChangedSolution.GetDocument(modifiedDoc.Id)!;
-        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+        string changedText = await GetChangedTextAsync(actions[0], modifiedDoc).ConfigureAwait(false);
 
         Assert.Contains(expectedFragment, changedText, StringComparison.Ordinal);
         Assert.DoesNotContain(unexpectedFragment, changedText, StringComparison.Ordinal);
@@ -601,17 +598,16 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
 
     private static async Task AssertDocumentUnchangedAsync(CodeAction action, Document document)
     {
-        ImmutableArray<CodeActionOperation> operations = await action.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
-        ApplyChangesOperation? applyChanges = operations.OfType<ApplyChangesOperation>().FirstOrDefault();
-
-        if (applyChanges is null)
-        {
-            return;
-        }
-
-        Document changedDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
         string originalText = (await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
-        string changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+        string changedText = await GetChangedTextAsync(action, document).ConfigureAwait(false);
         Assert.Equal(originalText, changedText);
+    }
+
+    private static async Task<string> GetChangedTextAsync(CodeAction action, Document document)
+    {
+        ImmutableArray<CodeActionOperation> operations = await action.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
+        ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
+        Document changedDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
+        return (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
     }
 }
