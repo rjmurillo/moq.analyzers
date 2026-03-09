@@ -19,7 +19,7 @@ public static class BenchmarkFileReader
     public static async Task<BdnResults> TryGetBdnResultAsync(string[] paths, ILogger logger)
     {
         BdnResult?[] results = await Task.WhenAll(paths.Select(path => ReadFromFileAsync(path, logger))).ConfigureAwait(false);
-        return new BdnResults(!results.Any(x => x is null), results);
+        return new BdnResults(!results.Any(static x => x is null), results);
     }
 
     private static async Task<BdnResult?> ReadFromFileAsync(string resultFilePath, ILogger logger)
@@ -30,7 +30,9 @@ public static class BenchmarkFileReader
         }
         catch (Exception ex) when (ex is JsonReaderException or JsonSerializationException or IOException or UnauthorizedAccessException or SecurityException)
         {
+#pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
             logger.LogError(ex, "Failed to read benchmark file {ResultFilePath}.", resultFilePath);
+#pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
             return null;
         }
     }

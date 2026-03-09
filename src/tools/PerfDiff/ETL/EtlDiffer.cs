@@ -45,11 +45,11 @@ internal static class EtlDiffer
     private static TraceProcess GetTraceProcessFromTraceLog(TraceLog traceLog, string eltPath)
     {
         TraceProcess? process = traceLog.Processes
-            .FirstOrDefault(p => string.Equals(p.Name, "dotnet", StringComparison.OrdinalIgnoreCase) && p.EventsInProcess is not null);
+            .FirstOrDefault(static p => string.Equals(p.Name, "dotnet", StringComparison.OrdinalIgnoreCase) && p.EventsInProcess is not null);
 
         if (process is null)
         {
-            string available = string.Join(", ", traceLog.Processes.Select(p => p.Name));
+            string available = string.Join(", ", traceLog.Processes.Select(static p => p.Name));
             throw new InvalidOperationException(
                 $"No 'dotnet' process found in ETL file: {eltPath}. Available processes: {available}");
         }
@@ -69,7 +69,7 @@ internal static class EtlDiffer
         events = events.Filter(x => x is SampledProfileTraceData && x.ProcessID == process.ProcessID);
 
         using SymbolReader symbolReader = new SymbolReader(new StringWriter(), @"SRV*https://msdl.microsoft.com/download/symbols");
-        symbolReader.SecurityCheck = path => true;
+        symbolReader.SecurityCheck = static path => true;
 
         TraceLog traceLog = process.Log;
         foreach (TraceLoadedModule? module in process.LoadedModules)
@@ -159,7 +159,7 @@ internal static class EtlDiffer
                 ));
             }
 
-            results.Sort((left, right) =>
+            results.Sort(static (left, right) =>
             {
                 if (left.Interest < right.Interest)
                     return 1;
