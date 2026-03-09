@@ -69,7 +69,7 @@ internal static class EtlDiffer
         events = events.Filter(x => x is SampledProfileTraceData && x.ProcessID == process.ProcessID);
 
         using SymbolReader symbolReader = new SymbolReader(new StringWriter(), @"SRV*https://msdl.microsoft.com/download/symbols");
-        symbolReader.SecurityCheck = path => true;
+        symbolReader.SecurityCheck = static path => true;
 
         TraceLog traceLog = process.Log;
         foreach (TraceLoadedModule? module in process.LoadedModules)
