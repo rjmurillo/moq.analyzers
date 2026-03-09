@@ -43,10 +43,13 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
 
         if (badArgumentListSyntax is not null)
         {
+            ParenthesizedLambdaExpressionSyntax? parenthesizedLambda = badArgumentListSyntax
+                .FirstAncestorOrSelf<ParenthesizedLambdaExpressionSyntax>();
+
             context.RegisterCodeFix(
                 CodeAction.Create(
                     FixTitle,
-                    cancellationToken => FixParenthesizedCallbackSignatureAsync(root, context.Document, badArgumentListSyntax, cancellationToken),
+                    cancellationToken => FixParenthesizedCallbackSignatureAsync(root, context.Document, badArgumentListSyntax, parenthesizedLambda, cancellationToken),
                     FixTitle),
                 diagnostic);
             return;
@@ -70,9 +73,9 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         }
     }
 
-    private static async Task<Document> FixParenthesizedCallbackSignatureAsync(SyntaxNode root, Document document, ParameterListSyntax oldParameters, CancellationToken cancellationToken)
+    private static async Task<Document> FixParenthesizedCallbackSignatureAsync(SyntaxNode root, Document document, ParameterListSyntax oldParameters, ParenthesizedLambdaExpressionSyntax? parentLambda, CancellationToken cancellationToken)
     {
-        if (IsInsideDelegateConstructor(oldParameters))
+        if (parentLambda is not null && IsInsideDelegateConstructor(parentLambda))
         {
             return document;
         }
@@ -139,10 +142,9 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         return BuildParameterList(semanticModel, mockedMethod, position, originalParameters);
     }
 
-    private static bool IsInsideDelegateConstructor(SyntaxNode node)
+    private static bool IsInsideDelegateConstructor(LambdaExpressionSyntax lambda)
     {
-        LambdaExpressionSyntax? lambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
-        return lambda?.Parent is ArgumentSyntax
+        return lambda.Parent is ArgumentSyntax
         {
             Parent: ArgumentListSyntax
             {

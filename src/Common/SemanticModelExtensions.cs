@@ -29,6 +29,8 @@ internal static class SemanticModelExtensions
             // fall back to candidate symbols so the walk can continue up the chain.
             if (resolvedSymbol is null)
             {
+                // CandidateSymbols suffice here because downstream consumers
+                // re-resolve the mocked method from the Setup lambda body independently.
                 if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
                     && symbolInfo.CandidateSymbols.Any(s => s.IsMoqSetupMethod(knownSymbols)))
                 {
