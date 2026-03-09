@@ -8,7 +8,7 @@ namespace PerfDiff.BDN;
 /// <summary>
 /// Reads benchmark results from files and deserializes them.
 /// </summary>
-public static class BenchmarkFileReader
+internal static class BenchmarkFileReader
 {
     /// <summary>
     /// Attempts to read and deserialize benchmark results from the specified file paths.
