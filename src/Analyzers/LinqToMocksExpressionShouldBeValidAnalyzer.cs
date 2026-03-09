@@ -71,14 +71,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     {
         IMethodSymbol targetMethod = invocation.TargetMethod;
 
-        // Check if this is a static method call to Mock.Of()
-        if (!targetMethod.IsStatic || !string.Equals(targetMethod.Name, "Of", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return targetMethod.ContainingType is not null &&
-               targetMethod.ContainingType.Equals(knownSymbols.Mock, SymbolEqualityComparer.Default);
+        return targetMethod.IsStatic && targetMethod.IsInstanceOf(knownSymbols.MockOf);
     }
 
     private static void AnalyzeMockOfArguments(OperationAnalysisContext context, IInvocationOperation invocationOperation, MoqKnownSymbols knownSymbols)

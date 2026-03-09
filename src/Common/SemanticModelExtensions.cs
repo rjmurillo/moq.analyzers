@@ -7,6 +7,11 @@ namespace Moq.Analyzers.Common;
 /// </summary>
 internal static class SemanticModelExtensions
 {
+#pragma warning disable ECS1300 // Conflicts with ECS1200; inline initialization is clearer
+    private static readonly string[] CallbackOrReturnNames = ["Callback", "Returns"];
+    private static readonly string[] RaisesNames = ["Raises", "RaisesAsync"];
+#pragma warning restore ECS1300
+
     internal static InvocationExpressionSyntax? FindSetupMethodFromCallbackInvocation(
         this SemanticModel semanticModel,
         MoqKnownSymbols knownSymbols,
@@ -23,12 +28,25 @@ internal static class SemanticModelExtensions
             }
 
             SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(method, cancellationToken);
-            if (symbolInfo.Symbol is null)
+            ISymbol? resolvedSymbol = symbolInfo.Symbol;
+
+            // When overload resolution fails (e.g. untyped simple lambda argument),
+            // fall back to candidate symbols so the walk can continue up the chain.
+            if (resolvedSymbol is null)
             {
-                return null;
+                // CandidateSymbols suffice here because downstream consumers
+                // re-resolve the mocked method from the Setup lambda body independently.
+                if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
+                    && symbolInfo.CandidateSymbols.Any(s => s.IsMoqSetupMethod(knownSymbols)))
+                {
+                    return invocation;
+                }
+
+                expression = method.Expression;
+                continue;
             }
 
-            if (symbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
+            if (resolvedSymbol.IsMoqSetupMethod(knownSymbols))
             {
                 return invocation;
             }
@@ -48,53 +66,20 @@ internal static class SemanticModelExtensions
 
     internal static bool IsCallbackOrReturnInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation, MoqKnownSymbols knownSymbols)
     {
-        MemberAccessExpressionSyntax? callbackOrReturnsMethod = callbackOrReturnsInvocation.Expression as MemberAccessExpressionSyntax;
-
-        if (callbackOrReturnsMethod == null)
-        {
-            return false;
-        }
-
-        string methodName = callbackOrReturnsMethod.Name.ToString();
-
-        // First fast check before walking semantic model
-        if (!string.Equals(methodName, "Callback", StringComparison.Ordinal)
-            && !string.Equals(methodName, "Returns", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(callbackOrReturnsMethod);
-        return symbolInfo.CandidateReason switch
-        {
-            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(symbol => IsCallbackOrReturnSymbol(symbol, knownSymbols)),
-            CandidateReason.None => IsCallbackOrReturnSymbol(symbolInfo.Symbol, knownSymbols),
-            _ => false,
-        };
+        return semanticModel.IsMoqFluentInvocation(
+            callbackOrReturnsInvocation,
+            CallbackOrReturnNames,
+            knownSymbols,
+            static (symbol, ks) => IsCallbackOrReturnSymbol(symbol, ks));
     }
 
     internal static bool IsRaisesInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax raisesInvocation, MoqKnownSymbols knownSymbols)
     {
-        if (raisesInvocation.Expression is not MemberAccessExpressionSyntax raisesMethod)
-        {
-            return false;
-        }
-
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(raisesMethod);
-
-        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
-        {
-            return symbolInfo.CandidateSymbols.Any(symbol => symbol.IsMoqRaisesMethod(knownSymbols));
-        }
-
-        if (symbolInfo.CandidateReason == CandidateReason.None)
-        {
-            return IsRaisesSymbol(symbolInfo.Symbol, knownSymbols);
-        }
-
-        // If symbol resolution failed for other reasons, return false.
-        // All valid Raises invocations should be detected via symbol-based analysis above.
-        return false;
+        return semanticModel.IsMoqFluentInvocation(
+            raisesInvocation,
+            RaisesNames,
+            knownSymbols,
+            static (symbol, ks) => symbol.IsMoqRaisesMethod(ks));
     }
 
     /// <summary>
@@ -251,6 +236,59 @@ internal static class SemanticModelExtensions
         return true;
     }
 
+    /// <summary>
+    /// Determines whether an invocation matches a Moq fluent-chain method by name and symbol.
+    /// </summary>
+    /// <remarks>
+    /// The <paramref name="fastPathNames"/> string check is an intentional optimization,
+    /// not detection logic. The <paramref name="symbolPredicate"/> is the authoritative
+    /// gate for correctness. The <paramref name="knownSymbols"/> parameter is passed
+    /// through to the predicate to avoid closure allocations.
+    /// </remarks>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="invocation">The invocation to check.</param>
+    /// <param name="fastPathNames">Method names for early rejection before the expensive GetSymbolInfo call.</param>
+    /// <param name="knownSymbols">Known symbols passed through to the predicate to avoid closure allocations.</param>
+    /// <param name="symbolPredicate">Predicate that validates the resolved symbol against known symbols.</param>
+    /// <returns><see langword="true"/> if the invocation matches; otherwise, <see langword="false"/>.</returns>
+    private static bool IsMoqFluentInvocation(
+        this SemanticModel semanticModel,
+        InvocationExpressionSyntax invocation,
+        string[] fastPathNames,
+        MoqKnownSymbols knownSymbols,
+        Func<ISymbol, MoqKnownSymbols, bool> symbolPredicate)
+    {
+        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return false;
+        }
+
+        string methodName = memberAccess.Name.Identifier.ValueText;
+
+        bool nameMatches = false;
+        for (int i = 0; i < fastPathNames.Length; i++)
+        {
+            if (string.Equals(methodName, fastPathNames[i], StringComparison.Ordinal))
+            {
+                nameMatches = true;
+                break;
+            }
+        }
+
+        if (!nameMatches)
+        {
+            return false;
+        }
+
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+        return symbolInfo.CandidateReason switch
+        {
+            CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(s => symbolPredicate(s, knownSymbols)),
+            CandidateReason.None => symbolInfo.Symbol is not null && symbolPredicate(symbolInfo.Symbol, knownSymbols),
+            _ => false,
+        };
+    }
+
     private static bool IsCallbackOrReturnSymbol(ISymbol? symbol, MoqKnownSymbols knownSymbols)
     {
         if (symbol is null)
@@ -259,10 +297,5 @@ internal static class SemanticModelExtensions
         }
 
         return symbol.IsMoqCallbackMethod(knownSymbols) || symbol.IsMoqReturnsMethod(knownSymbols);
-    }
-
-    private static bool IsRaisesSymbol(ISymbol? symbol, MoqKnownSymbols knownSymbols)
-    {
-        return symbol?.IsMoqRaisesMethod(knownSymbols) == true;
     }
 }

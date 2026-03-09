@@ -1,9 +1,8 @@
 namespace Moq.Analyzers.Test;
 
 /// <summary>
-/// Tests for the symbol-based Raises method detection functionality.
-/// These tests verify that IsRaisesMethodCall and IsRaisesInvocation correctly identify
-/// valid and invalid Raises patterns using symbol-based detection.
+/// Verifies that symbol-based Raises detection does not produce
+/// false-positive diagnostics on valid code patterns.
 /// </summary>
 public class IsRaisesMethodTests
 {
@@ -38,7 +37,6 @@ public class IsRaisesMethodTests
     [MemberData(nameof(ValidRaisesPatterns))]
     public async Task ShouldDetectValidRaisesPatterns(string referenceAssemblyGroup, string @namespace, string raisesCall)
     {
-        // Test that valid Raises patterns don't trigger unwanted diagnostics
         static string Template(string ns, string call) =>
 $$"""
 {{ns}}
@@ -71,7 +69,6 @@ public class TestClass
     [MemberData(nameof(InvalidRaisesPatterns))]
     public async Task ShouldNotDetectInvalidRaisesPatterns(string referenceAssemblyGroup, string @namespace, string nonRaisesCall)
     {
-        // Test that non-Raises patterns don't get false positives
         static string Template(string ns, string call) =>
 $$"""
 {{ns}}
@@ -122,8 +119,7 @@ public class TestSimpleRaises
     public void TestMethod()
     {
         var mock = new Mock<ISimpleService>(MockBehavior.Strict);
-        
-        // Simple Raises call
+
         mock.Setup(x => x.ProcessData())
             .Raises(x => x.SimpleEvent += null, "data");
     }

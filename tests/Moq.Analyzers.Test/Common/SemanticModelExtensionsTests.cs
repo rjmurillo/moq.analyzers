@@ -682,15 +682,29 @@ public class C
         mock.Setup(x => x.Bar()).Raises(x => x.MyEvent += null, EventArgs.Empty);
     }
 }";
-        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
-        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
-        SyntaxNode root = await tree.GetRootAsync();
-        InvocationExpressionSyntax raisesInvocation = root
-            .DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .First(i => i.Expression is MemberAccessExpressionSyntax ma
-                && string.Equals(ma.Name.Identifier.Text, "Raises", StringComparison.Ordinal));
 
-        bool result = model.IsRaisesInvocation(raisesInvocation, knownSymbols);
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "Raises");
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task IsRaisesInvocation_RaisesOnReturnsChain_ReturnsTrue()
+    {
+        const string code = @"
+using Moq;
+using System;
+public interface IFoo { event EventHandler MyEvent; int Bar(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Bar()).Returns(42).Raises(x => x.MyEvent += null, EventArgs.Empty);
+    }
+}";
+
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "Raises");
 
         Assert.True(result);
     }
@@ -722,6 +736,46 @@ public class C
     }
 
     [Fact]
+    public async Task IsRaisesInvocation_SetupMethodName_ReturnsFalse()
+    {
+        const string code = @"
+using Moq;
+public interface IFoo { void Bar(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Bar());
+    }
+}";
+
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "Setup");
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task IsRaisesInvocation_CallbackMethodName_ReturnsFalse()
+    {
+        const string code = @"
+using Moq;
+public interface IFoo { void Bar(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Setup(x => x.Bar()).Callback(() => { });
+    }
+}";
+
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "Callback");
+
+        Assert.False(result);
+    }
+
+    [Fact]
     public async Task IsRaisesInvocation_NonMoqMethodNamedRaises_ReturnsFalse()
     {
         const string code = @"
@@ -738,17 +792,70 @@ public class C
         obj.Raises();
     }
 }";
+
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "Raises");
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task IsRaisesInvocation_NonMoqMethodNamedRaisesAsync_ReturnsFalse()
+    {
+        const string code = @"
+using Moq;
+using System.Threading.Tasks;
+public class MyClass
+{
+    public Task RaisesAsync() => Task.CompletedTask;
+}
+public class C
+{
+    public void M()
+    {
+        var obj = new MyClass();
+        obj.RaisesAsync();
+    }
+}";
+
+        bool result = await IsRaisesInvocationForMemberAccessAsync(code, "RaisesAsync");
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task FindSetupMethodFromCallbackInvocation_WithOverloadResolutionFailure_FallsBackToCandidate()
+    {
+        // An untyped simple lambda parameter makes overload resolution ambiguous,
+        // causing GetSymbolInfo to return CandidateSymbols instead of Symbol.
+        // The method should fall back to candidates and still find the Setup invocation.
+        const string code = @"
+using System;
+using Moq;
+public interface IFoo { int Bar(string s); }
+public class C
+{
+    public void M()
+    {
+        new Mock<IFoo>().Setup(x => x.Bar(It.IsAny<string>())).Callback(x => { });
+    }
+}";
         (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
         MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
         SyntaxNode root = await tree.GetRootAsync();
-        InvocationExpressionSyntax raisesInvocation = root
+
+        // Find the Callback invocation. With an untyped simple lambda, overload
+        // resolution for .Callback(x => { }) fails, producing CandidateSymbols.
+        InvocationExpressionSyntax callbackInvocation = root
             .DescendantNodes().OfType<InvocationExpressionSyntax>()
             .First(i => i.Expression is MemberAccessExpressionSyntax ma
-                && string.Equals(ma.Name.Identifier.Text, "Raises", StringComparison.Ordinal));
+                && string.Equals(ma.Name.Identifier.Text, "Callback", StringComparison.Ordinal));
 
-        bool result = model.IsRaisesInvocation(raisesInvocation, knownSymbols);
+        InvocationExpressionSyntax? setupInvocation = model.FindSetupMethodFromCallbackInvocation(
+            knownSymbols, callbackInvocation, CancellationToken.None);
 
-        Assert.False(result);
+        Assert.NotNull(setupInvocation);
+        MemberAccessExpressionSyntax setupAccess = (MemberAccessExpressionSyntax)setupInvocation!.Expression;
+        Assert.Equal("Setup", setupAccess.Name.Identifier.Text);
     }
 
     private static (SemanticModel Model, ITypeSymbol FirstType, ITypeSymbol SecondType) GetTwoVariableTypes(
@@ -768,6 +875,18 @@ public class C
             declarators.First(d => string.Equals(d.Identifier.Text, secondName, StringComparison.Ordinal)))!;
 
         return (model, firstSymbol.Type, secondSymbol.Type);
+    }
+
+    private static async Task<bool> IsRaisesInvocationForMemberAccessAsync(string code, string methodName)
+    {
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code).ConfigureAwait(false);
+        MoqKnownSymbols knownSymbols = new MoqKnownSymbols(model.Compilation);
+        SyntaxNode root = await tree.GetRootAsync().ConfigureAwait(false);
+        InvocationExpressionSyntax invocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.Expression is MemberAccessExpressionSyntax ma
+                && string.Equals(ma.Name.Identifier.Text, methodName, StringComparison.Ordinal));
+        return model.IsRaisesInvocation(invocation, knownSymbols);
     }
 
     private static (SemanticModel Model, ExpressionSyntax Lambda) GetLambdaFromVariableInitializer(
