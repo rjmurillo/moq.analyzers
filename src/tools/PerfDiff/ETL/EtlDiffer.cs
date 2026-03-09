@@ -57,7 +57,7 @@ internal static class EtlDiffer
         return process;
     }
 
-    public static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
+    private static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
     {
         // Defensive null guard: EventsInProcess was checked during process selection in
         // GetTraceProcessFromTraceLog, but TraceProcess is mutable, so guard against race conditions.
@@ -80,14 +80,14 @@ internal static class EtlDiffer
         return new TraceEventStackSource(events);
     }
 
-    public static CallTree CreateCallTreeFromStackSource(StackSource stackSource)
+    private static CallTree CreateCallTreeFromStackSource(StackSource stackSource)
     {
         CallTree calltree = new CallTree(ScalingPolicyKind.ScaleToData);
         calltree.StackSource = stackSource;
         return calltree;
     }
 
-    public static ImmutableArray<OverWeightResult> GenerateOverweightReport(CallTree source, CallTree baseline)
+    private static ImmutableArray<OverWeightResult> GenerateOverweightReport(CallTree source, CallTree baseline)
     {
         float sourceTotal = LoadTrace(source, out Dictionary<string, float> sourceData);
         float baselineTotal = LoadTrace(baseline, out Dictionary<string, float> baselineData);
