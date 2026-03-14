@@ -24,7 +24,9 @@ try {
     foreach ($project in $projectsList) {
         $projectFullPath = Join-Path $perftestRootFolder $project
         & dotnet restore $projectFullPath
+        if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed with exit code $LASTEXITCODE for project $project" }
         & dotnet build -c Release --no-incremental $projectFullPath
+        if ($LASTEXITCODE -ne 0) { throw "dotnet build failed with exit code $LASTEXITCODE for project $project" }
         $commandArguments = @("run", "-c", "Release", "--no-build", "--project", $projectFullPath, "--", "--outliers", "DontRemove", "--memory", "--threading", "--exceptions", "--exporters", "JSON", "--artifacts", $output)
         if ($ci) {
             $commandArguments += @("--stopOnFirstError", "--keepFiles")
