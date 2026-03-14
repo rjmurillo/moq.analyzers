@@ -340,7 +340,7 @@ ci(workflow): add performance testing to nightly builds
 
 - All PRs are validated by GitHub Actions.
 - PRs that fail CI (format, build, test, or Codacy) will be closed without review.
-- `DotNet.ReproducibleBuilds` auto-detects GitHub Actions and sets `ContinuousIntegrationBuild=true` during build. However, package props are unavailable during restore (before packages exist). CI explicitly passes `/p:ContinuousIntegrationBuild=true` to `dotnet restore` to close this gap. This activates `PedanticMode`, which promotes all warnings to errors. NuGet warning NU1608 (version outside dependency constraint) fails restore, not just build.
+- `DotNet.ReproducibleBuilds` auto-detects GitHub Actions and sets `ContinuousIntegrationBuild=true`. This activates `PedanticMode`, which promotes all compiler and NuGet warnings to errors.
 
 **Merge Strategy:**
 
@@ -817,46 +817,62 @@ For full documentation, see [nektosact.com](https://nektosact.com/usage/).
 
 - New analyzers or fixers
 - Changes to existing analyzer logic
-- Dependency updates that might affect performance
-- CI/CD changes that impact build times
+- Dependency updates that affect performance
 
-**Performance Testing Process:**
+**Running Benchmarks:**
 
-1. Run benchmarks locally using `dotnet run --project tests/Moq.Analyzers.Benchmarks/`
-2. Compare results against baseline
-3. Document any performance regressions or improvements
-4. Include benchmark results in PR description
+Run benchmarks locally using `build/scripts/perf/PerfCore.ps1`. This script provides consistent benchmark execution. See [`build/scripts/perf/README.md`](build/scripts/perf/README.md) for details.
 
-**Performance Validation Evidence:**
+**CI Performance Pipeline:**
 
-- Benchmark output showing no significant regressions
-- Comparison with previous baseline results
-- Explanation of any performance changes
+CI runs benchmarks on every PR with code changes. Baseline results are cached per OS and SHA. The `perf` job is a required status check.
+
+PerfDiff hardcodes regression detection thresholds:
+
+| Metric | Threshold |
+|--------|-----------|
+| Mean (absolute) | 100 ms increase |
+| Mean (relative) | 5% increase and at least 0.5 ms |
+| 95th percentile | 250 ms |
+| Median (percentage) | 35% increase |
+| Statistical significance | Mann-Whitney test, user-supplied threshold |
+
+PR benchmarks use 1 file for fast feedback. Nightly runs use 1,000 files for statistically significant results. See [issue #563](https://github.com/rjmurillo/moq.analyzers/issues/563) for planned migration to practical performance budgets.
+
+**Manual Performance Runs:**
+
+Trigger via GitHub Actions UI. Set `run_performance` to `true`. Set `force_baseline` to `true` to ignore cached baselines.
 
 ## Dependency Management
 
 ### Dependency Update Guidelines
 
+This project uses Renovate for automated dependency updates. For detailed package categories, version constraints, and Renovate rules, see [`docs/dependency-management.md`](docs/dependency-management.md).
+
+#### Version Constraints
+
+- `System.Collections.Immutable` and `System.Reflection.Metadata` must not exceed .NET 8 SDK host assembly versions. Renovate caps these at `<=8.0.0`. `ValidateAnalyzerHostCompatibility` and `AnalyzerAssemblyCompatibilityTests` enforce this. See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
+- Renovate disables `Perfolizer`. BenchmarkDotNet declares an exact version constraint (`[0.6.1]`). Update Perfolizer only when BenchmarkDotNet targets a newer version.
+- Renovate disables `System.CommandLine`. Updates require PerfDiff code changes.
+- Renovate ignores `Microsoft.CodeAnalysis.CSharp` core packages. Update manually when raising the minimum supported SDK.
+- Non-shipped projects use `VersionOverride` in their `.csproj` to float above central pins. Maintainers manage these overrides manually.
+
 **For Renovate PRs:**
 
-- Review changelog and release notes
-- Test locally to ensure compatibility
-- Check for breaking changes
-- Verify all tests pass with new dependency
-- Include testing evidence in PR description
+- Minor/patch updates with `automerge: true` merge automatically after CI passes.
+- Packages with the `analyzer-compat` label require manual review of assembly version compatibility.
+- Packages with the `benchmark-tooling` label require verification of transitive dependency compatibility.
 
-**For Manual Dependency Updates:**
+**For manual dependency updates:**
 
-- Follow the same process as automated updates
-- Document the reason for the update
-- Include compatibility testing results
+- Follow the same review process as automated updates.
+- Document the reason for the update.
 
 ### Security Considerations
 
-- **All dependency updates require security scanning**
-- Run Trivy scan after dependency changes
-- Address any security vulnerabilities before merging
-- Document security implications in PR description
+- GitHub may open Dependabot security alert PRs regardless of Renovate configuration.
+- Address security vulnerabilities before merging.
+- Document security implications in PR description.
 
 ### Third-Party License Attribution
 
