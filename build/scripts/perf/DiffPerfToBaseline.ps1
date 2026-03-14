@@ -84,6 +84,7 @@ try {
         # Checkout SHA
         $baselineFolder = Join-Path $Temp "perfBaseline"
         & git worktree add $baselineFolder $baselineSHA -f
+        if ($LASTEXITCODE -ne 0) { throw "git worktree add failed with exit code $LASTEXITCODE" }
 
         $baselineCommandArgs = @{
             perftestRootFolder = $baselineFolder
