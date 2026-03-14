@@ -19,7 +19,7 @@ public static class BenchmarkFileReader
     public static async Task<BdnResults> TryGetBdnResultAsync(string[] paths, ILogger logger, CancellationToken cancellationToken)
     {
         BdnResult?[] results = await Task.WhenAll(paths.Select(path => ReadFromFileAsync(path, logger, cancellationToken))).ConfigureAwait(false);
-        return new BdnResults(Array.TrueForAll(results, static x => x is not null), results);
+        return new BdnResults(!results.Any(x => x is null), results);
     }
 
     private static async Task<BdnResult?> ReadFromFileAsync(string resultFilePath, ILogger logger, CancellationToken cancellationToken)
