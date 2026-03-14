@@ -16,7 +16,7 @@ internal static class PerfDiff
     {
         token.ThrowIfCancellationRequested();
 
-        (bool compareSucceeded, bool regressionDetected) = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger).ConfigureAwait(false);
+        (bool compareSucceeded, bool regressionDetected) = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger, token).ConfigureAwait(false);
 
         if (!compareSucceeded)
         {
