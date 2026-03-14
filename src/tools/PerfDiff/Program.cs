@@ -89,7 +89,7 @@ internal sealed class Program
         static (ILogger<Program> Logger, ServiceProvider ServiceProvider) SetupLogging(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(new LoggerFactory().AddSimpleConsole(console, minimalLogLevel, minimalErrorLevel));
+            serviceCollection.AddSingleton<ILoggerFactory>(new LoggerFactory().AddSimpleConsole(console, minimalLogLevel, minimalErrorLevel));
             serviceCollection.AddLogging();
 
             ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
