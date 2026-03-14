@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Check for code changes
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
         id: filter
         if: github.event_name == 'pull_request'
         with:
@@ -200,7 +200,7 @@ jobs:
 
       - name: Restore Code Coverage history
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: CoverageHistory-${{ matrix.os }}
           path: ./artifacts/TestResults/coveragehistory
@@ -331,7 +331,7 @@ jobs:
     steps:
       - name: Setup .NET ${{ matrix.dotnet-version }}
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
@@ -341,7 +341,7 @@ jobs:
 
       - name: Download nupkg artifact
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: packages
           path: ./local-feed
@@ -494,7 +494,7 @@ jobs:
 
       - name: Setup .NET for performance baseline
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
           global-json-file: ./global.json
 

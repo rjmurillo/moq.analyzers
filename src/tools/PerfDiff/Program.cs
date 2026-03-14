@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.CommandLine;
 using System.IO;
@@ -13,6 +13,7 @@ namespace PerfDiff;
 internal sealed class Program
 {
     internal const int UnhandledExceptionExitCode = 1;
+    internal const int CancelledExitCode = 2;
 
     private static async Task<int> Main(string[] args)
     {
@@ -56,9 +57,12 @@ internal sealed class Program
 #pragma warning restore CA1848, CA2254
                 return UnhandledExceptionExitCode;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
-                return UnhandledExceptionExitCode;
+#pragma warning disable CA1848 // LoggerMessage delegates
+                logger.LogWarning(ex, "Operation was cancelled.");
+#pragma warning restore CA1848
+                return CancelledExitCode;
             }
         }
         finally

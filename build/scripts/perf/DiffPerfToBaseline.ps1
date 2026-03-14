@@ -84,6 +84,7 @@ try {
         # Checkout SHA
         $baselineFolder = Join-Path $Temp "perfBaseline"
         & git worktree add $baselineFolder $baselineSHA -f
+        if ($LASTEXITCODE -ne 0) { throw "git worktree add failed with exit code $LASTEXITCODE" }
 
         $baselineCommandArgs = @{
             perftestRootFolder = $baselineFolder
@@ -96,6 +97,7 @@ try {
 
         Show-Invocation -ScriptPath $RunPerfTests -Arguments $baselineCommandArgs
         & $RunPerfTests @baselineCommandArgs
+        if ($LASTEXITCODE -ne 0) { throw "Baseline perf test run failed with exit code $LASTEXITCODE." }
 
         # Ensure the results exist
         $needRerun = -not (Test-PerfResults $resultsOutput)
@@ -107,6 +109,7 @@ try {
 
                 Show-Invocation -ScriptPath $RunPerfTests -Arguments $baselineCommandArgs
                 & $RunPerfTests @baselineCommandArgs
+                if ($LASTEXITCODE -ne 0) { throw "Baseline rerun failed with exit code $LASTEXITCODE." }
             }
 
             if (-not (Test-Path $resultsOutput)) {
@@ -137,6 +140,7 @@ try {
     # Get perf results
     Write-Host "Running performance tests"
     & $RunPerfTests @commandArgs
+    if ($LASTEXITCODE -ne 0) { throw "Performance test run failed with exit code $LASTEXITCODE." }
     Write-Host "Done with performance run"
 
     # Diff perf results
@@ -148,13 +152,10 @@ try {
 
     Show-Invocation -ScriptPath $ComparePerfResults -Arguments $ComparePerfResultsArgs
     & $ComparePerfResults @ComparePerfResultsArgs
+    if ($LASTEXITCODE -ne 0) { throw "Performance comparison failed with exit code $LASTEXITCODE." }
 }
 catch {
-    Write-Host $_
-    Write-Host $_.Exception
-    Write-Host $_.ScriptStackTrace
+    Write-Error "$_`n$($_.Exception)`n$($_.ScriptStackTrace)"
     $host.SetShouldExit(1)
     exit 1
-}
-finally {
 }

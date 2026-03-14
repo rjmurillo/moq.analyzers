@@ -20,14 +20,13 @@ try {
     $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
     $perfDiff = Join-Path $RepoRoot "src\tools\PerfDiff\PerfDiff.csproj"
     & dotnet build $perfDiff -c Release
+    if ($LASTEXITCODE -ne 0) { throw "dotnet build failed with exit code $LASTEXITCODE" }
     & dotnet run -c Release --project $perfDiff -- --baseline $baselineFolder --results $resultsFolder --failOnRegression
     $host.SetShouldExit($LASTEXITCODE)
     exit
 }
 catch {
-    Write-Host $_
-    Write-Host $_.Exception
-    Write-Host $_.ScriptStackTrace
+    Write-Error "$_`n$($_.Exception)`n$($_.ScriptStackTrace)"
     $host.SetShouldExit(1)
     exit 1
 }
