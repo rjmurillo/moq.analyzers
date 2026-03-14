@@ -338,8 +338,14 @@ ci(workflow): add performance testing to nightly builds
 
 **CI Pipeline:**
 
-- All PRs are validated by GitHub Actions.  
+- All PRs are validated by GitHub Actions.
 - PRs that fail CI (format, build, test, or Codacy) will be closed without review.
+- CI passes `/p:ContinuousIntegrationBuild=true` to `dotnet restore` and `dotnet build`. This activates `PedanticMode`. `PedanticMode` promotes all warnings to errors, including NuGet warning NU1608. A local warning-only version mismatch fails the CI build.
+
+**Merge Strategy:**
+
+- All PRs use `squash merge`. Merge commits and rebase merges are disabled.
+- The `release-drafter` label check may show as failed on some PRs. This check is not a required status check. It does not block merge. Labels are defined in `.github/release-drafter.yml`.
 
 **Summary:**
 If your PR does not pass all checks locally and in CI, it will not be reviewed. Always verify and document your results before submitting.

@@ -24,8 +24,10 @@ These packages are bundled in the analyzer NuGet package and run inside the **us
 **Upgrade policy:**
 
 - `Microsoft.CodeAnalysis.*` core packages are **ignored** in the Renovate config (`ignoreDeps`). Renovate does not manage these packages. Update manually when raising the minimum supported SDK version.
-- `System.Collections.Immutable`, `System.Formats.Asn1`, `System.Reflection.Metadata`, and `AnalyzerUtilities` have `automerge: false` and the `analyzer-compat` label. Every update requires manual validation that assembly versions stay within host bounds.
-- The `ValidateAnalyzerHostCompatibility` MSBuild target and `AnalyzerAssemblyCompatibilityTests` enforce this at build and test time.
+- Renovate caps `System.Collections.Immutable` and `System.Reflection.Metadata` at `<=8.0.0` via `allowedVersions`. `AnalyzerAssemblyCompatibilityTests` enforces the same bound (`MaxImmutableVersion = 8.0.0.0`). Renovate will not propose versions above this cap.
+- Renovate caps `AnalyzerUtilities` at `<4.14.0`. Version 4.14.0+ pulls `System.Collections.Immutable` 9.0.0.0 transitively.
+- `System.Formats.Asn1` has `automerge: false` and the `analyzer-compat` label for manual review.
+- The `ValidateAnalyzerHostCompatibility` MSBuild target blocks the build if shipped assemblies exceed host bounds. `AnalyzerAssemblyCompatibilityTests` provides test-level verification.
 
 ### Build-time Code Analysis - SAFE
 
@@ -67,7 +69,11 @@ BenchmarkDotNet and Perfolizer have intertwined version requirements. BenchmarkD
 | BenchmarkDotNet | Directory.Packages.props | Transitive dep on Perfolizer and Roslyn |
 | Perfolizer      | Directory.Packages.props | Used directly by PerfDiff tool          |
 
-**Upgrade policy:** Grouped in Renovate as `benchmark-tooling` with `automerge: false`. Both packages must be updated together. The benchmark project uses `VersionOverride` for packages whose central pins are constrained by shipped analyzer compatibility (e.g., `System.Collections.Immutable`).
+**Upgrade policy:**
+
+- **Perfolizer is disabled in Renovate.** BenchmarkDotNet declares an exact version constraint on Perfolizer (e.g., `[0.6.1]`). Updating Perfolizer alone produces NuGet warning NU1608 and risks PerfDiff runtime failures. Update Perfolizer only when BenchmarkDotNet targets a newer version.
+- **BenchmarkDotNet** has `automerge: false` and the `benchmark-tooling` label. Updates require manual verification that the new Perfolizer transitive pin is compatible.
+- The benchmark project uses `VersionOverride` for packages whose central pins are constrained by shipped analyzer compatibility (e.g., `System.Collections.Immutable`).
 
 ### PerfDiff Tool - SPECIAL HANDLING
 
@@ -109,6 +115,8 @@ Non-shipped projects (benchmarks, PerfDiff) that need higher versions of central
 ```
 
 This allows the central pin (8.0.0) to protect shipped analyzer DLLs while letting tools use newer versions.
+
+**Interaction with Renovate:** Renovate `allowedVersions` caps apply globally by package name. They only affect upgrade proposals. Renovate does not propose downgrades. A `<=8.0.0` cap on `System.Collections.Immutable` does not affect `VersionOverride` entries at 10.x. Manage those overrides manually.
 
 ## Workflow
 
