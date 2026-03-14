@@ -54,9 +54,9 @@ public static class BenchmarkDotNetDiffer
             return null;
         }
 
-        if (!baseFiles.Any() || !resultsFiles.Any())
+        if (baseFiles.Length == 0 || resultsFiles.Length == 0)
         {
-            logger.LogError($"Provided paths contained no '{FullBdnJsonFileExtension}' files.");
+            logger.LogError("Provided paths contained no '{FileExtension}' files.", FullBdnJsonFileExtension);
             return null;
         }
 
@@ -80,10 +80,16 @@ public static class BenchmarkDotNetDiffer
             .SelectMany(result => result?.Benchmarks ?? Enumerable.Empty<Benchmark>())
             .ToDictionary(benchmarkResult => benchmarkResult.FullName ?? $"Unknown-{Guid.NewGuid():N}", benchmarkResult => benchmarkResult);
 
-        return benchmarkIdToBaseResults
-            .Where(baseResult => benchmarkIdToDiffResults.ContainsKey(baseResult.Key))
-            .Select(baseResult => new BdnComparisonResult(baseResult.Key, baseResult.Value, benchmarkIdToDiffResults[baseResult.Key]))
-            .ToArray();
+        List<BdnComparisonResult> matched = [];
+        foreach (KeyValuePair<string, Benchmark> baseResult in benchmarkIdToBaseResults)
+        {
+            if (benchmarkIdToDiffResults.TryGetValue(baseResult.Key, out Benchmark? diffBenchmark))
+            {
+                matched.Add(new BdnComparisonResult(baseResult.Key, baseResult.Value, diffBenchmark));
+            }
+        }
+
+        return matched.ToArray();
     }
 
     private static bool TryGetFilesToParse(string path, [NotNullWhen(true)] out string[]? files)

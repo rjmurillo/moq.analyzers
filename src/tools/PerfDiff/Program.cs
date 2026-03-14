@@ -2,7 +2,6 @@
 
 using System.CommandLine;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,23 +40,30 @@ internal sealed class Program
         // Setup logging.
         LogLevel logLevel = DiffCommand.GetLogLevel(verbosity);
         ServiceProvider serviceProvider = SetupLogging(minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
-        await using ConfiguredAsyncDisposable asyncDisposal = serviceProvider.ConfigureAwait(false);
-        ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
         try
         {
-            return await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationToken).ConfigureAwait(false);
-        }
-        catch (FileNotFoundException fex)
-        {
+            ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+
+            try
+            {
+                return await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationToken).ConfigureAwait(false);
+            }
+            catch (FileNotFoundException fex)
+            {
 #pragma warning disable CA1848, CA2254 // LoggerMessage delegates, varying template
-            logger.LogError(fex, "File not found: {FileName}", fex.FileName);
+                logger.LogError(fex, "File not found: {FileName}", fex.FileName);
 #pragma warning restore CA1848, CA2254
-            return UnhandledExceptionExitCode;
+                return UnhandledExceptionExitCode;
+            }
+            catch (OperationCanceledException)
+            {
+                return UnhandledExceptionExitCode;
+            }
         }
-        catch (OperationCanceledException)
+        finally
         {
-            return UnhandledExceptionExitCode;
+            await serviceProvider.DisposeAsync().ConfigureAwait(false);
         }
 
         static ServiceProvider SetupLogging(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
