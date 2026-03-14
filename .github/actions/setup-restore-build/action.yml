@@ -25,7 +25,7 @@ runs:
 
     - name: NuGet Restore
       shell: pwsh
-      run: dotnet restore
+      run: dotnet restore /p:ContinuousIntegrationBuild=true
 
     - name: Build
       shell: pwsh
