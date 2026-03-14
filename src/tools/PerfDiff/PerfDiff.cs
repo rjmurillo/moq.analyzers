@@ -30,7 +30,7 @@ internal static class PerfDiff
             return 0;
         }
 
-        (bool etlCompareSucceeded, bool etlRegressionDetected) = CheckEltTraces(baselineFolder, resultsFolder);
+        (bool etlCompareSucceeded, bool etlRegressionDetected) = CheckEltTraces(baselineFolder, resultsFolder, logger);
         if (!etlCompareSucceeded)
         {
             logger.LogWarning("We detected a regression in BenchmarkDotNet and there is no ETL info.");
@@ -49,15 +49,15 @@ internal static class PerfDiff
 #pragma warning restore CA2254
 #pragma warning restore CA1848
 
-    private static (bool compareSucceeded, bool regressionDetected) CheckEltTraces(string baselineFolder, string resultsFolder)
+    private static (bool compareSucceeded, bool regressionDetected) CheckEltTraces(string baselineFolder, string resultsFolder, ILogger logger)
     {
         // try look for ETL traces
-        if (!TryGetETLPaths(baselineFolder, out string? baselineEtlPath))
+        if (!TryGetETLPaths(baselineFolder, logger, out string? baselineEtlPath))
         {
             return (false, false);
         }
 
-        if (!TryGetETLPaths(resultsFolder, out string? resultsEtlPath))
+        if (!TryGetETLPaths(resultsFolder, logger, out string? resultsEtlPath))
         {
             return (false, false);
         }
@@ -73,12 +73,17 @@ internal static class PerfDiff
 
     private const string ETLFileExtension = "etl.zip";
 
-    private static bool TryGetETLPaths(string path, [NotNullWhen(true)] out string? etlPath)
+    private static bool TryGetETLPaths(string path, ILogger logger, [NotNullWhen(true)] out string? etlPath)
     {
         if (Directory.Exists(path))
         {
             string[] files = Directory.GetFiles(path, $"*{ETLFileExtension}", SearchOption.AllDirectories);
-            etlPath = files.SingleOrDefault();
+            if (files.Length > 1)
+            {
+                logger.LogWarning("Found {Count} ETL files in '{Path}'; using first match.", files.Length, path);
+            }
+
+            etlPath = files.FirstOrDefault();
             return etlPath is not null;
         }
         else if (File.Exists(path) && path.EndsWith(ETLFileExtension, StringComparison.OrdinalIgnoreCase))
