@@ -56,12 +56,17 @@
       "addLabels": ["analyzer-compat"]
     },
     {
-      "description": "Benchmark tooling (BenchmarkDotNet, Perfolizer) requires coordinated updates due to transitive dependency constraints. See docs/dependency-management.md.",
+      "description": "Perfolizer version is dictated by BenchmarkDotNet's exact version constraint [0.6.1]. Updating independently causes NU1608 warnings and potential runtime failures. Disable Renovate for Perfolizer; update manually when BenchmarkDotNet bumps its Perfolizer dependency. See PR #968 for context.",
       "matchPackageNames": [
-        "BenchmarkDotNet",
         "Perfolizer"
       ],
-      "groupName": "benchmark-tooling",
+      "enabled": false
+    },
+    {
+      "description": "BenchmarkDotNet updates require manual review to verify Perfolizer transitive pin compatibility.",
+      "matchPackageNames": [
+        "BenchmarkDotNet"
+      ],
       "automerge": false,
       "addLabels": ["benchmark-tooling"]
     },
