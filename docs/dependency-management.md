@@ -110,13 +110,13 @@ The PerfDiff tool (`src/tools/PerfDiff/`) uses System.CommandLine, which had bre
 Non-shipped projects (benchmarks, PerfDiff) that need higher versions of centrally pinned packages use `VersionOverride` in their `.csproj`:
 
 ```xml
-<!-- Benchmarks are not shipped. Allow higher SCI for TraceEvent dependency. -->
-<PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.0" />
+<!-- Benchmarks are not shipped. Allow higher versions for BenchmarkDotNet/TraceEvent dependencies. -->
+<PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.5" />
 ```
 
 This allows the central pin (8.0.0) to protect shipped analyzer DLLs while letting tools use newer versions.
 
-**Interaction with Renovate:** Renovate `allowedVersions` caps apply globally by package name. They only affect upgrade proposals. Renovate does not propose downgrades. A `<=8.0.0` cap on `System.Collections.Immutable` does not affect `VersionOverride` entries at 10.x. Manage those overrides manually.
+**Interaction with Renovate:** Renovate `allowedVersions` caps apply globally by package name. They only affect upgrade proposals. By default, Renovate does not propose downgrades (see [Renovate docs on allowedVersions](https://docs.renovatebot.com/configuration-options/#allowedversions)). A `<=8.0.0` cap on `System.Collections.Immutable` does not affect `VersionOverride` entries at 10.x. Manage those overrides manually.
 
 ## Workflow
 
