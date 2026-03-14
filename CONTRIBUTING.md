@@ -340,7 +340,7 @@ ci(workflow): add performance testing to nightly builds
 
 - All PRs are validated by GitHub Actions.
 - PRs that fail CI (format, build, test, or Codacy) will be closed without review.
-- CI passes `/p:ContinuousIntegrationBuild=true` to `dotnet restore` and `dotnet build`. This activates `PedanticMode`. `PedanticMode` promotes all warnings to errors, including NuGet warning NU1608. A local warning-only version mismatch fails the CI build.
+- `DotNet.ReproducibleBuilds` auto-detects GitHub Actions and sets `ContinuousIntegrationBuild=true` during build. However, package props are unavailable during restore (before packages exist). CI explicitly passes `/p:ContinuousIntegrationBuild=true` to `dotnet restore` to close this gap. This activates `PedanticMode`, which promotes all warnings to errors. NuGet warning NU1608 (version outside dependency constraint) fails restore, not just build.
 
 **Merge Strategy:**
 
