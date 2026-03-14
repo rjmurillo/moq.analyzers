@@ -34,7 +34,7 @@
         "System.Collections.Immutable",
         "System.Reflection.Metadata"
       ],
-      "allowedVersions": "<9.0.0",
+      "allowedVersions": "<=8.0.0",
       "automerge": false,
       "addLabels": ["analyzer-compat"]
     },
