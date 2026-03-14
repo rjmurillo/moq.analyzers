@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <NonShipping>true</NonShipping>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Version overrides required: PerfDiff has higher transitive versions than the central pin -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+</Project>
