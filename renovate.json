@@ -29,12 +29,28 @@
       "automerge": true
     },
     {
-      "description": "Analyzer-shipped BCL packages must match minimum supported SDK host. Manual review required. See: https://github.com/rjmurillo/moq.analyzers/issues/850",
+      "description": "Transitive pins for the shipped analyzer DLL. These run inside the user's compiler host (.NET 8 SDK minimum), so major versions must not exceed what that host provides. Caps: System.Collections.Immutable <=8.x, System.Reflection.Metadata <=8.x. See: https://github.com/rjmurillo/moq.analyzers/issues/850",
       "matchPackageNames": [
         "System.Collections.Immutable",
-        "System.Formats.Asn1",
-        "System.Reflection.Metadata",
+        "System.Reflection.Metadata"
+      ],
+      "allowedVersions": "<9.0.0",
+      "automerge": false,
+      "addLabels": ["analyzer-compat"]
+    },
+    {
+      "description": "AnalyzerUtilities is bundled in the shipped analyzer. Version 4.14.0+ pulls System.Collections.Immutable 9.0.0.0, which fails in .NET 8 SDK hosts (CS8032). Capped at <4.14.0. See: https://github.com/rjmurillo/moq.analyzers/issues/850",
+      "matchPackageNames": [
         "Microsoft.CodeAnalysis.AnalyzerUtilities"
+      ],
+      "allowedVersions": "<4.14.0",
+      "automerge": false,
+      "addLabels": ["analyzer-compat"]
+    },
+    {
+      "description": "System.Formats.Asn1 is a transitive pin for the shipped analyzer. Manual review required for major updates. See: https://github.com/rjmurillo/moq.analyzers/issues/850",
+      "matchPackageNames": [
+        "System.Formats.Asn1"
       ],
       "automerge": false,
       "addLabels": ["analyzer-compat"]
