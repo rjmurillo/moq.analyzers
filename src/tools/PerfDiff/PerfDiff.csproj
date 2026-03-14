@@ -5,7 +5,6 @@
     <TargetFramework>net8.0</TargetFramework>
     <NonShipping>true</NonShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
-
   </PropertyGroup>
 
   <ItemGroup>
