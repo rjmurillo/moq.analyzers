@@ -16,6 +16,7 @@ namespace PerfDiff;
 internal sealed class Program
 {
     internal const int UnhandledExceptionExitCode = 1;
+    internal const int CancelledExitCode = 2;
     private static ParseResult? s_parseResult;
 
     private static async Task<int> Main(string[] args)
@@ -43,45 +44,56 @@ internal sealed class Program
 
         // Setup logging.
         LogLevel logLevel = GetLogLevel(verbosity);
-        ILogger<Program> logger = SetupLogging(console, minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
+        (ILogger<Program> logger, ServiceProvider serviceProvider) = SetupLogging(console, minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
 
         // Hook so we can cancel and exit when ctrl+c is pressed.
-        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        Console.CancelKeyPress += (sender, e) =>
+        using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        ConsoleCancelEventHandler cancelHandler = (sender, e) =>
         {
             e.Cancel = true;
-            cancellationTokenSource.Cancel();
+            try
+            {
+                cancellationTokenSource.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+                // CTS already disposed; safe to ignore.
+            }
         };
+        Console.CancelKeyPress += cancelHandler;
 
         try
         {
-            int exitCode = await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationTokenSource.Token).ConfigureAwait(false);
-            return exitCode;
+            return await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationTokenSource.Token).ConfigureAwait(false);
         }
         catch (FileNotFoundException fex)
         {
 #pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
-#pragma warning disable CA2254 // The logging message template should not vary between calls to 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
-            logger.LogError(fex.Message);
-#pragma warning restore CA2254 // The logging message template should not vary between calls to 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
+            logger.LogError(fex, "File not found: {FileName}", fex.FileName);
 #pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
             return UnhandledExceptionExitCode;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            return UnhandledExceptionExitCode;
+#pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+            logger.LogWarning(ex, "Operation was cancelled.");
+#pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+            return CancelledExitCode;
+        }
+        finally
+        {
+            Console.CancelKeyPress -= cancelHandler;
+            await serviceProvider.DisposeAsync().ConfigureAwait(false);
         }
 
-        static ILogger<Program> SetupLogging(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
+        static (ILogger<Program> Logger, ServiceProvider ServiceProvider) SetupLogging(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(new LoggerFactory().AddSimpleConsole(console, minimalLogLevel, minimalErrorLevel));
+            serviceCollection.AddSingleton<ILoggerFactory>(new LoggerFactory().AddSimpleConsole(console, minimalLogLevel, minimalErrorLevel));
             serviceCollection.AddLogging();
 
             ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-            ILogger<Program>? logger = serviceProvider.GetService<ILogger<Program>>();
-
-            return logger!;
+            return (serviceProvider.GetRequiredService<ILogger<Program>>(), serviceProvider);
         }
 
         static LogLevel GetLogLevel(string? verbosity)

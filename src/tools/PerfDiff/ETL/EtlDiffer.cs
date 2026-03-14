@@ -13,41 +13,65 @@ internal static class EtlDiffer
     public static bool TryCompareETL(string sourceEtlPath, string baselineEtlPath, out bool regression)
     {
         regression = false;
-        CallTree sourceCallTree = GetCallTree(sourceEtlPath);
-        CallTree baselineCallTree = GetCallTree(baselineEtlPath);
-        ImmutableArray<OverWeightResult> report = GenerateOverweightReport(sourceCallTree, baselineCallTree);
 
-        // print results
-        Console.WriteLine(string.Join(Environment.NewLine, report.Take(10)));
-        return true;
+        try
+        {
+            using TraceLog sourceTraceLog = TraceLog.OpenOrConvert(sourceEtlPath)
+                ?? throw new InvalidOperationException($"Failed to open ETL trace file: {sourceEtlPath}");
+            using TraceLog baselineTraceLog = TraceLog.OpenOrConvert(baselineEtlPath)
+                ?? throw new InvalidOperationException($"Failed to open ETL trace file: {baselineEtlPath}");
+
+            CallTree sourceCallTree = GetCallTree(sourceTraceLog, sourceEtlPath);
+            CallTree baselineCallTree = GetCallTree(baselineTraceLog, baselineEtlPath);
+            ImmutableArray<OverWeightResult> report = GenerateOverweightReport(sourceCallTree, baselineCallTree);
+
+            Console.WriteLine(string.Join(Environment.NewLine, report.Take(10)));
+            return true;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            Console.Error.WriteLine($"ETL comparison failed: {ex.Message}");
+            return false;
+        }
     }
 
-    private static CallTree GetCallTree(string eltPath)
+    private static CallTree GetCallTree(TraceLog traceLog, string eltPath)
     {
-        TraceProcess traceProcess = GetTraceProcessFromETLFile(eltPath);
+        TraceProcess traceProcess = GetTraceProcessFromTraceLog(traceLog, eltPath);
         StackSource stackSource = CreateStackSourceFromTraceProcess(traceProcess);
         return CreateCallTreeFromStackSource(stackSource);
     }
 
-    public static TraceProcess GetTraceProcessFromETLFile(string eltPath)
+    private static TraceProcess GetTraceProcessFromTraceLog(TraceLog traceLog, string eltPath)
     {
-        TraceLog? traceLog = TraceLog.OpenOrConvert(eltPath);
-        return traceLog.Processes
-            .First(p => p.Name.Equals("dotnet", StringComparison.OrdinalIgnoreCase));
+        TraceProcess? process = traceLog.Processes
+            .FirstOrDefault(static p => string.Equals(p.Name, "dotnet", StringComparison.OrdinalIgnoreCase) && p.EventsInProcess is not null);
+
+        if (process is null)
+        {
+            string available = string.Join(", ", traceLog.Processes.Select(static p => p.Name));
+            throw new InvalidOperationException(
+                $"No 'dotnet' process found in ETL file: {eltPath}. Available processes: {available}");
+        }
+
+        return process;
     }
 
-    public static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
+    private static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
     {
-        TraceEvents? events = process.EventsInProcess;
+        // Defensive null guard: EventsInProcess was checked during process selection in
+        // GetTraceProcessFromTraceLog, but TraceProcess is mutable, so guard against race conditions.
+        TraceEvents events = process.EventsInProcess
+            ?? throw new ArgumentException("Process has no events.", nameof(process));
         double start = Math.Max(events.StartTimeRelativeMSec, process.StartTimeRelativeMsec);
         double end = Math.Min(events.EndTimeRelativeMSec, process.EndTimeRelativeMsec);
         events = events.FilterByTime(start, end);
         events = events.Filter(x => x is SampledProfileTraceData && x.ProcessID == process.ProcessID);
 
         using SymbolReader symbolReader = new SymbolReader(new StringWriter(), @"SRV*https://msdl.microsoft.com/download/symbols");
-        symbolReader.SecurityCheck = path => true;
+        symbolReader.SecurityCheck = static path => true;
 
-        TraceLog? traceLog = process.Log;
+        TraceLog traceLog = process.Log;
         foreach (TraceLoadedModule? module in process.LoadedModules)
         {
             traceLog.CodeAddresses.LookupSymbolsForModule(symbolReader, module.ModuleFile);
@@ -56,14 +80,14 @@ internal static class EtlDiffer
         return new TraceEventStackSource(events);
     }
 
-    public static CallTree CreateCallTreeFromStackSource(StackSource stackSource)
+    private static CallTree CreateCallTreeFromStackSource(StackSource stackSource)
     {
         CallTree calltree = new CallTree(ScalingPolicyKind.ScaleToData);
         calltree.StackSource = stackSource;
         return calltree;
     }
 
-    public static ImmutableArray<OverWeightResult> GenerateOverweightReport(CallTree source, CallTree baseline)
+    private static ImmutableArray<OverWeightResult> GenerateOverweightReport(CallTree source, CallTree baseline)
     {
         float sourceTotal = LoadTrace(source, out Dictionary<string, float> sourceData);
         float baselineTotal = LoadTrace(baseline, out Dictionary<string, float> baselineData);
@@ -135,7 +159,7 @@ internal static class EtlDiffer
                 ));
             }
 
-            results.Sort((left, right) =>
+            results.Sort(static (left, right) =>
             {
                 if (left.Interest < right.Interest)
                     return 1;

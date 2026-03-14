@@ -1,3 +1,4 @@
+using System.Security;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PerfDiff.BDN.DataContracts;
@@ -7,7 +8,7 @@ namespace PerfDiff.BDN;
 /// <summary>
 /// Reads benchmark results from files and deserializes them.
 /// </summary>
-public static class BenchmarkFileReader
+internal static class BenchmarkFileReader
 {
     /// <summary>
     /// Attempts to read and deserialize benchmark results from the specified file paths.
@@ -18,7 +19,7 @@ public static class BenchmarkFileReader
     public static async Task<BdnResults> TryGetBdnResultAsync(string[] paths, ILogger logger)
     {
         BdnResult?[] results = await Task.WhenAll(paths.Select(path => ReadFromFileAsync(path, logger))).ConfigureAwait(false);
-        return new BdnResults(!results.Any(x => x is null), results);
+        return new BdnResults(!results.Any(static x => x is null), results);
     }
 
     private static async Task<BdnResult?> ReadFromFileAsync(string resultFilePath, ILogger logger)
@@ -27,9 +28,11 @@ public static class BenchmarkFileReader
         {
             return JsonConvert.DeserializeObject<BdnResult>(await File.ReadAllTextAsync(resultFilePath).ConfigureAwait(false));
         }
-        catch (JsonSerializationException)
+        catch (Exception ex) when (ex is JsonReaderException or JsonSerializationException or IOException or UnauthorizedAccessException or SecurityException)
         {
-            logger.LogError("Exception while reading the {ResultFilePath} file.", resultFilePath);
+#pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
+            logger.LogError(ex, "Failed to read benchmark file {ResultFilePath}.", resultFilePath);
+#pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
             return null;
         }
     }
