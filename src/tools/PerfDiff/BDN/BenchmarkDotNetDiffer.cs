@@ -24,6 +24,7 @@ public static class BenchmarkDotNetDiffer
     /// <param name="baselineFolder">The folder containing baseline results.</param>
     /// <param name="resultsFolder">The folder containing new results.</param>
     /// <param name="logger">Logger for reporting errors.</param>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
     /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating comparison success and regression detection.</returns>
     public static async Task<BenchmarkComparisonResult> TryCompareBenchmarkDotNetResultsAsync(string baselineFolder, string resultsFolder, ILogger logger, CancellationToken cancellationToken)
     {
@@ -37,6 +38,7 @@ public static class BenchmarkDotNetDiffer
     /// <param name="baselineFolder">The folder containing baseline results.</param>
     /// <param name="resultsFolder">The folder containing new results.</param>
     /// <param name="logger">Logger for reporting errors.</param>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
     /// <returns>An array of <see cref="BdnComparisonResult"/> if successful; otherwise, <see langword="null"/>.</returns>
     internal static async Task<BdnComparisonResult[]?> TryGetBdnResultsAsync(string baselineFolder, string resultsFolder, ILogger logger, CancellationToken cancellationToken)
     {

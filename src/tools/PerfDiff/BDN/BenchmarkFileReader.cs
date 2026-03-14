@@ -14,6 +14,7 @@ public static class BenchmarkFileReader
     /// </summary>
     /// <param name="paths">Array of file paths to read.</param>
     /// <param name="logger">Logger for reporting errors.</param>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
     /// <returns>A <see cref="BdnResults"/> containing the loaded results and success status.</returns>
     public static async Task<BdnResults> TryGetBdnResultAsync(string[] paths, ILogger logger, CancellationToken cancellationToken)
     {

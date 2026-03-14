@@ -23,6 +23,7 @@ public class BenchmarkComparisonService(ILogger logger)
     /// </summary>
     /// <param name="baselineFolder">The folder containing baseline results.</param>
     /// <param name="resultsFolder">The folder containing new results.</param>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
     /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating comparison success and regression detection.</returns>
     public async Task<BenchmarkComparisonResult> CompareAsync(string baselineFolder, string resultsFolder, CancellationToken cancellationToken)
     {
