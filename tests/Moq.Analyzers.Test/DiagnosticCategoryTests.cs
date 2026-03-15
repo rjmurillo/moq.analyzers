@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Moq.Analyzers.Common;
 
@@ -55,5 +56,47 @@ public class DiagnosticCategoryTests
 
         Assert.NotNull(descriptor);
         Assert.Equal(expectedCategory, descriptor.Category);
+    }
+
+    [Fact]
+    public void AllAnalyzers_ShouldHaveCategoryTest()
+    {
+        // Discover every concrete DiagnosticAnalyzer in the Analyzers assembly.
+        Assembly analyzersAssembly = typeof(NoSealedClassMocksAnalyzer).Assembly;
+        IEnumerable<Type> analyzerTypes = analyzersAssembly
+            .GetTypes()
+            .Where(t => !t.IsAbstract && typeof(DiagnosticAnalyzer).IsAssignableFrom(t));
+
+        // Collect the rule IDs already covered by the three theory data sets.
+        HashSet<string> coveredIds = new(StringComparer.Ordinal);
+        foreach (object[] row in UsageAnalyzers)
+        {
+            coveredIds.Add((string)row[1]);
+        }
+
+        foreach (object[] row in CorrectnessAnalyzers)
+        {
+            coveredIds.Add((string)row[1]);
+        }
+
+        foreach (object[] row in BestPracticeAnalyzers)
+        {
+            coveredIds.Add((string)row[1]);
+        }
+
+        List<string> missing = [];
+        foreach (Type t in analyzerTypes)
+        {
+            DiagnosticAnalyzer instance = (DiagnosticAnalyzer)Activator.CreateInstance(t)!;
+            foreach (DiagnosticDescriptor descriptor in instance.SupportedDiagnostics)
+            {
+                if (!coveredIds.Contains(descriptor.Id))
+                {
+                    missing.Add($"{t.Name} / {descriptor.Id}");
+                }
+            }
+        }
+
+        Assert.Empty(missing);
     }
 }
