@@ -17,7 +17,7 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
         DiagnosticIds.SetExplicitMockBehavior,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.BestPractice,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: Description,

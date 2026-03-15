@@ -14,7 +14,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         DiagnosticIds.EventSetupHandlerShouldMatchEventType,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.Correctness,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: Description,
