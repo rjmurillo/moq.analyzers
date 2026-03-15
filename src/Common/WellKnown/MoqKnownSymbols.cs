@@ -411,6 +411,18 @@ internal class MoqKnownSymbols : KnownSymbols
     internal ImmutableArray<IMethodSymbol> IReturns2Raises => _iReturns2Raises.Value;
 
     /// <summary>
+    /// Gets the interface <c>Moq.Language.Flow.IReturnsResult{TMock}</c>.
+    /// This is the actual return type of <c>.Returns()</c> and <c>.ReturnsAsync()</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IReturnsResult1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.IReturnsResult`1");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.Flow.IThrowsResult</c>.
+    /// This is the return type of <c>.Throws()</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IThrowsResult => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.IThrowsResult");
+
+    /// <summary>
     /// Gets the interface <c>Moq.Language.Flow.ISetup{T}</c>.
     /// </summary>
     internal INamedTypeSymbol? ISetup1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.ISetup`1");

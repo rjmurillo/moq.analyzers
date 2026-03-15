@@ -322,21 +322,30 @@ internal static partial class ISymbolExtensions
     /// that indicate a return value has been or can be configured.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// This method intentionally excludes <c>ICallback</c>, <c>ICallback{TMock}</c>, and
     /// <c>ICallback{TMock, TResult}</c> because these interfaces do not inherit from
     /// <c>IReturns</c> and do not indicate that a return value has been configured.
     /// Types like <c>ISetup{TMock, TResult}</c> that inherit from <c>IReturns</c> are
     /// still caught via <see cref="HasMoqFluentInterfaceInHierarchy"/> when checking
     /// <see cref="ITypeSymbol.AllInterfaces"/>.
+    /// </para>
+    /// <para>
+    /// Only symbols that exist in Moq are checked. <c>Moq.Language.IReturns</c> (arity 0)
+    /// and <c>Moq.Language.IReturns`1</c> (arity 1) do not exist in Moq; only
+    /// <c>Moq.Language.IReturns`2</c> exists. <c>IReturnsResult{TMock}</c> is the actual
+    /// return type of <c>.Returns()</c> and <c>.ReturnsAsync()</c>, and
+    /// <c>IThrowsResult</c> is the return type of <c>.Throws()</c>.
+    /// </para>
     /// </remarks>
     private static bool IsMatchingFluentSymbol(INamedTypeSymbol type, MoqKnownSymbols knownSymbols)
     {
-        return SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns)
-            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns1)
-            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns2)
+        return SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns2)
             || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IThrows)
             || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetup1)
             || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetupGetter)
-            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetupSetter);
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetupSetter)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturnsResult1)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IThrowsResult);
     }
 }

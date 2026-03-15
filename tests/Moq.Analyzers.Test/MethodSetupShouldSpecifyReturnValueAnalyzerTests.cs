@@ -447,6 +447,18 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             var moq = new Mock<IFoo>();
             moq.Setup(x => x.BarAsync()).ReturnsOneAsync();
             """],
+
+            // Extension method returning IReturnsResult<TMock> (actual return type of .Returns())
+            ["""
+            var moq = new Mock<IFoo>(MockBehavior.Strict);
+            moq.Setup(x => x.DoSomething("test")).ReturnsTrueViaResult();
+            """],
+
+            // Extension method returning IThrowsResult (actual return type of .Throws())
+            ["""
+            var moq = new Mock<IFoo>();
+            moq.Setup(x => x.GetValue()).ThrowsInvalidOp();
+            """],
         ];
 
         return data.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
@@ -661,6 +673,18 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
                 {
                     mock.Returns(Task.FromResult(1));
                     return mock;
+                }
+
+                public static IReturnsResult<TMock> ReturnsTrueViaResult<TMock>(this ISetup<TMock, bool> setup)
+                    where TMock : class
+                {
+                    return setup.Returns(true);
+                }
+
+                public static IThrowsResult ThrowsInvalidOp<TMock, TResult>(this ISetup<TMock, TResult> setup)
+                    where TMock : class
+                {
+                    return setup.Throws(new InvalidOperationException());
                 }
 
                 public static void LogSetup<TMock, TResult>(this ISetup<TMock, TResult> setup)
