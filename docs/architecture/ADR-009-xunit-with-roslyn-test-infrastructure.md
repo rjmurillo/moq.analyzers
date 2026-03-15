@@ -67,5 +67,5 @@ All analyzer and code fix tests use xUnit with `CSharpAnalyzerVerifier<TAnalyzer
 
 - **REF-001**: `tests/Moq.Analyzers.Test/` -- test project
 - **REF-002**: `tests/Moq.Analyzers.Test/Helpers/` -- shared test infrastructure
-- **REF-003**: Microsoft.CodeAnalysis.Testing documentation: <https://github.com/dotnet/roslyn-sdk/tree/src/Microsoft.CodeAnalysis.Testing>
+- **REF-003**: Microsoft.CodeAnalysis.Testing documentation: <https://github.com/dotnet/roslyn-sdk/tree/main/src/Microsoft.CodeAnalysis.Testing>
 - **REF-004**: ADR-001 -- Symbol-Based Detection Over String Matching

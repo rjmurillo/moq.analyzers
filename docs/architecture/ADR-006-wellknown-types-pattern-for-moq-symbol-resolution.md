@@ -53,7 +53,7 @@ A dedicated `MoqKnownSymbols` class in `src/Common/WellKnown/` resolves all Moq 
 
 ## Implementation Notes
 
-- **IMP-001**: `MoqKnownSymbols.Create(compilation)` is called once inside `context.RegisterCompilationStartAction(compilationContext => { var symbols = MoqKnownSymbols.Create(compilationContext.Compilation); ... })`.
+- **IMP-001**: `MoqKnownSymbols` is instantiated with its constructor (`new MoqKnownSymbols(compilationContext.Compilation)`) once inside `context.RegisterCompilationStartAction(compilationContext => { ... })`. The instance is captured in a closure and passed to inner `RegisterOperationAction` or `RegisterSyntaxNodeAction` callbacks.
 - **IMP-002**: Analyzers receive `MoqKnownSymbols` via closure capture or method parameter. They do not create new instances.
 - **IMP-003**: Each property on `MoqKnownSymbols` that returns null when Moq is not referenced is documented with an XML comment explaining the null condition.
 
