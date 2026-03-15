@@ -125,11 +125,7 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
         MoqKnownSymbols knownSymbols)
     {
         // Unwrap all conversions (both implicit and explicit) to handle casts like (object)It.IsAny<string>()
-        IOperation current = operation;
-        while (current is IConversionOperation conversion)
-        {
-            current = conversion.Operand;
-        }
+        IOperation current = operation.WalkDownConversion();
 
         // Direct It.* call as argument
         if (current is IInvocationOperation matcherInvocation)
@@ -157,11 +153,7 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
 
         foreach (IOperation element in arrayCreation.Initializer.ElementValues)
         {
-            IOperation unwrapped = element;
-            while (unwrapped is IConversionOperation conversion)
-            {
-                unwrapped = conversion.Operand;
-            }
+            IOperation unwrapped = element.WalkDownConversion();
 
             if (unwrapped is IInvocationOperation elementInvocation)
             {
