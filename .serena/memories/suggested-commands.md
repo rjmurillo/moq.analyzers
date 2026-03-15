@@ -46,6 +46,8 @@ No separate lint command needed.
 dotnet format
 ```
 
+Note: `dotnet format` handles whitespace and style (editorconfig rules). It is distinct from build-time Roslyn analyzer diagnostics, which run during `dotnet build`. Both must pass before committing.
+
 ## Package
 
 ```bash

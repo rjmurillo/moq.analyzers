@@ -16,12 +16,14 @@ After adding, restart Claude Code session for `mcp__forgetful__*` tools to appea
 
 ## Moq.Analyzers Project
 
-**Forgetful Project ID**: 27
+**Forgetful Project ID**: 27 (environment-specific, stored in `~/.forgetful/forgetful.db` — re-verify after any reset or migration)
 **Project Name**: `moq-analyzers`
 **Repo**: `rjmurillo/moq.analyzers`
 **Encoded**: 2026-03-15
 
 ### Memory IDs (511–532)
+
+> **Warning**: These IDs are row identifiers in the local SQLite database. They differ across machines and resets. Re-verify by listing memories for project ID 27 after any migration.
 
 | ID | Title |
 |----|-------|

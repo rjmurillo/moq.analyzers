@@ -2,7 +2,7 @@
 
 ## Critical Rule
 
-Packages that ship inside the analyzer NuGet run in the **user's** compiler host, not our build environment. Versions must not exceed what the minimum supported SDK host provides (currently **.NET 8 SDK, assembly version 8.0.0.0**).
+Packages that ship inside the analyzer NuGet run in the **user's** compiler host, not our build environment. Versions must not exceed what the minimum supported SDK host provides (currently **.NET 8 SDK, assembly version 8.0.0.0**). This is the runtime host version in user IDEs, not the build SDK version (which is .NET 10).
 
 ## Enforcement
 
