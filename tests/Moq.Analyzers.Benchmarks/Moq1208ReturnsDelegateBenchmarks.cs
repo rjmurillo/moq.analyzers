@@ -8,6 +8,7 @@ namespace Moq.Analyzers.Benchmarks;
 
 [InProcess]
 [MemoryDiagnoser]
+[BenchmarkCategory("Moq1208")]
 public class Moq1208ReturnsDelegateBenchmarks
 {
 #pragma warning disable ECS0900

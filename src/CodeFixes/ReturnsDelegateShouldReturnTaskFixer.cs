@@ -61,19 +61,10 @@ public sealed class ReturnsDelegateShouldReturnTaskFixer : CodeFixProvider
         MemberAccessExpressionSyntax memberAccess)
     {
         SimpleNameSyntax oldName = memberAccess.Name;
-        SimpleNameSyntax newName;
-        if (oldName is GenericNameSyntax genericName)
-        {
-            newName = SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier("ReturnsAsync"),
-                genericName.TypeArgumentList);
-        }
-        else
-        {
-            newName = SyntaxFactory.IdentifierName("ReturnsAsync");
-        }
 
-        newName = newName
+        // Moq's Returns() has no generic overload, so the name is always a plain
+        // IdentifierName. The GenericNameSyntax branch was dead code.
+        SimpleNameSyntax newName = SyntaxFactory.IdentifierName("ReturnsAsync")
             .WithLeadingTrivia(oldName.GetLeadingTrivia())
             .WithTrailingTrivia(oldName.GetTrailingTrivia());
 
