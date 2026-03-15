@@ -68,6 +68,7 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
         ImmutableArray<IMethodSymbol>.Builder builder = ImmutableArray.CreateBuilder<IMethodSymbol>();
         AddStringOverloads(builder, knownSymbols.IProtectedMock1Setup);
         AddStringOverloads(builder, knownSymbols.IProtectedMock1SetupSet);
+        AddStringOverloads(builder, knownSymbols.IProtectedMock1SetupSequence);
         AddStringOverloads(builder, knownSymbols.IProtectedMock1Verify);
         AddStringOverloads(builder, knownSymbols.IProtectedMock1VerifySet);
         return builder.ToImmutable();
@@ -175,7 +176,9 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Check if the containing type is Moq.It (not Moq.Protected.ItExpr)
+        // Check if the containing type is Moq.It (not Moq.Protected.ItExpr).
+        // TODO: It.Ref<T>.IsAny is a nested type (Moq.It+Ref<T>) with a different containing
+        // type symbol than Moq.It, so this check does not detect it. Track in a future issue.
         if (!SymbolEqualityComparer.Default.Equals(containingType, knownSymbols.It))
         {
             return;

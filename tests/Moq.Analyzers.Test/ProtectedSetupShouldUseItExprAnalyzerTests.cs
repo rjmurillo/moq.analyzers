@@ -58,6 +58,15 @@ public class ProtectedSetupShouldUseItExprAnalyzerTests(ITestOutputHelper output
 
             // It.IsInRange should diagnose
             ["""mock.Protected().Setup<bool>("Foo", {|Moq1600:It.IsInRange<string>("a", "z", Moq.Range.Inclusive)|}).Returns(true);"""],
+
+            // SetupSequence (void) with It.IsAny should diagnose
+            ["""mock.Protected().SetupSequence("Bar", {|Moq1600:It.IsAny<string>()|});"""],
+
+            // SetupSequence<TResult> with It.IsAny should diagnose
+            ["""mock.Protected().SetupSequence<bool>("Foo", {|Moq1600:It.IsAny<string>()|}).Returns(true).Returns(false);"""],
+
+            // SetupSequence with multiple incorrect args
+            ["""mock.Protected().SetupSequence<bool>("Foo", {|Moq1600:It.IsAny<string>()|}, {|Moq1600:It.IsAny<int>()|}).Returns(true);"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
     }
 
@@ -88,6 +97,12 @@ public class ProtectedSetupShouldUseItExprAnalyzerTests(ITestOutputHelper output
 
             // VerifySet with ItExpr is correct
             ["""mock.Protected().VerifySet<string>("Baz", Times.Once(), ItExpr.IsAny<string>());"""],
+
+            // SetupSequence with ItExpr.IsAny is correct
+            ["""mock.Protected().SetupSequence<bool>("Foo", ItExpr.IsAny<string>()).Returns(true).Returns(false);"""],
+
+            // SetupSequence without matchers (no arguments after method name)
+            ["""mock.Protected().SetupSequence<int>("Execute");"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
     }
 

@@ -50,6 +50,7 @@ internal class MoqKnownSymbols : KnownSymbols
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _nonVoidSetupPhrase2Raises;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1Setup;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1SetupSet;
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1SetupSequence;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1Verify;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1VerifySet;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _itIsAny;
@@ -96,6 +97,7 @@ internal class MoqKnownSymbols : KnownSymbols
         // IProtectedMock members (only those used by analyzers)
         _iProtectedMock1Setup = CreateLazyMethods(IProtectedMock1, "Setup");
         _iProtectedMock1SetupSet = CreateLazyMethods(IProtectedMock1, "SetupSet");
+        _iProtectedMock1SetupSequence = CreateLazyMethods(IProtectedMock1, "SetupSequence");
         _iProtectedMock1Verify = CreateLazyMethods(IProtectedMock1, "Verify");
         _iProtectedMock1VerifySet = CreateLazyMethods(IProtectedMock1, "VerifySet");
 
@@ -494,6 +496,11 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.Protected.IProtectedMock{T}.SetupSet</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> IProtectedMock1SetupSet => _iProtectedMock1SetupSet.Value;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Protected.IProtectedMock{T}.SetupSequence</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IProtectedMock1SetupSequence => _iProtectedMock1SetupSequence.Value;
 
     /// <summary>
     /// Gets the methods for <c>Moq.Protected.IProtectedMock{T}.Verify</c>.
