@@ -73,6 +73,6 @@ Analyzers use `context.RegisterOperationAction()` with `OperationKind` values as
 
 ## References
 
-- **REF-001**: Roslyn IOperation documentation: <https://github.com/dotnet/roslyn/blob/main/docs/compilers/CSharp/IOperation.md>
+- **REF-001**: Roslyn IOperation documentation: <https://learn.microsoft.com/dotnet/api/microsoft.codeanalysis.operations>
 - **REF-002**: ADR-001 -- Symbol-Based Detection Over String Matching
 - **REF-003**: `src/Analyzers/` -- existing analyzer implementations demonstrating the pattern

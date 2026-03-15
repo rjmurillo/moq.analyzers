@@ -37,8 +37,20 @@ Perf.cmd
 
 ## Lint / Code Analysis
 
-Code analysis runs automatically during build via MSBuild targets in `build/targets/codeanalysis/`.
-No separate lint command needed.
+Roslyn code analysis runs automatically during build via MSBuild targets in `build/targets/codeanalysis/`.
+
+Repo linting (markdown, YAML, shell, JSON) runs via pre-commit hook and CI (super-linter). To run manually:
+
+```bash
+# Markdown
+markdownlint-cli2 "**/*.md"
+
+# YAML
+yamllint -c .yamllint.yml .github/workflows/*.yml
+
+# Shell
+shellcheck **/*.sh
+```
 
 ## Format
 

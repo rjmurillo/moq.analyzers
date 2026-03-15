@@ -19,7 +19,7 @@
 
 ## Key Pattern: Dependency Update PRs Dominate
 
-49.5% of all PRs are dependency updates via Renovate/Dependabot.
+56.5% of all PRs are dependency updates via Renovate/Dependabot.
 18 dependency PRs were closed without merging due to analyzer host compatibility.
 This led to Renovate version cap configuration (#1072).
 
