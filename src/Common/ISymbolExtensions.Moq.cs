@@ -188,6 +188,24 @@ internal static partial class ISymbolExtensions
     }
 
     /// <summary>
+    /// Determines whether a type symbol implements any Moq fluent interface from the
+    /// <c>Moq.Language</c> or <c>Moq.Language.Flow</c> namespaces. Used to detect
+    /// wrapper methods (e.g., extension methods) that internally configure the setup
+    /// chain and return a Moq fluent type.
+    /// </summary>
+    /// <param name="typeSymbol">The return type of the method to check.</param>
+    /// <param name="knownSymbols">Known Moq symbols resolved from the compilation.</param>
+    /// <returns>
+    /// <see langword="true"/> if the type implements or is a Moq fluent interface;
+    /// otherwise, <see langword="false"/>.
+    /// </returns>
+    internal static bool ImplementsMoqFluentInterface(this ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
+    {
+        return IsMoqFluentType(typeSymbol, knownSymbols)
+            || HasMoqFluentInterfaceInHierarchy(typeSymbol, knownSymbols);
+    }
+
+    /// <summary>
     /// Checks if the symbol is a Raises method from ISetup / ISetupPhrase interfaces.
     /// </summary>
     private static bool IsSetupRaisesMethod(ISymbol symbol, MoqKnownSymbols knownSymbols)
@@ -264,5 +282,55 @@ internal static partial class ISymbolExtensions
 
         return genericType != null &&
                SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType.OriginalDefinition, genericType);
+    }
+
+    /// <summary>
+    /// Checks if the type itself is a known Moq fluent interface.
+    /// </summary>
+    private static bool IsMoqFluentType(ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
+    {
+        if (typeSymbol is not INamedTypeSymbol namedType)
+        {
+            return false;
+        }
+
+        INamedTypeSymbol original = namedType.IsGenericType ? namedType.ConstructedFrom : namedType;
+
+        return IsMatchingFluentSymbol(original, knownSymbols);
+    }
+
+    /// <summary>
+    /// Walks the AllInterfaces list to find any Moq fluent interface in the type hierarchy.
+    /// </summary>
+    private static bool HasMoqFluentInterfaceInHierarchy(ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
+    {
+        foreach (INamedTypeSymbol iface in typeSymbol.AllInterfaces)
+        {
+            INamedTypeSymbol original = iface.IsGenericType ? iface.ConstructedFrom : iface;
+
+            if (IsMatchingFluentSymbol(original, knownSymbols))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Compares a type symbol against the set of known Moq fluent interface symbols.
+    /// </summary>
+    private static bool IsMatchingFluentSymbol(INamedTypeSymbol type, MoqKnownSymbols knownSymbols)
+    {
+        return SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns1)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns2)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IThrows)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ICallback)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ICallback1)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ICallback2)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetup1)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetupGetter)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetupSetter);
     }
 }

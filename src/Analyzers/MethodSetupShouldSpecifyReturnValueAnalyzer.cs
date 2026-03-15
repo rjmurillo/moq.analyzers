@@ -188,6 +188,15 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
                 return true;
             }
 
+            // When a non-Moq method (e.g., an extension method) appears in the chain,
+            // check if its return type implements a Moq fluent interface. A return type
+            // like IReturns<TMock, TResult> indicates the method wraps the setup
+            // configuration internally and preserves the fluent chain.
+            if (IsFluentChainWrapperMethod(symbolInfo, knownSymbols))
+            {
+                return true;
+            }
+
             current = memberAccess.Parent as InvocationExpressionSyntax;
         }
 
@@ -228,5 +237,31 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         return symbolInfo.CandidateSymbols
             .OfType<IMethodSymbol>()
             .Any(method => method.IsMoqReturnValueSpecificationMethod(knownSymbols));
+    }
+
+    /// <summary>
+    /// Determines whether a method in the chain is a wrapper (e.g., an extension method)
+    /// whose return type implements a Moq fluent interface. Such methods wrap the setup
+    /// configuration internally (calling Returns/Throws inside) and return the fluent chain.
+    /// </summary>
+    private static bool IsFluentChainWrapperMethod(SymbolInfo symbolInfo, MoqKnownSymbols knownSymbols)
+    {
+        IMethodSymbol? method = symbolInfo.Symbol as IMethodSymbol
+            ?? symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().FirstOrDefault();
+
+        if (method == null)
+        {
+            return false;
+        }
+
+        // Skip known Moq methods; they are already handled by HasReturnValueSymbol
+        // and IsKnownReturnValueMethodName. This check targets user-defined wrappers.
+        if (method.IsMoqReturnValueSpecificationMethod(knownSymbols)
+            || method.IsMoqCallbackMethod(knownSymbols))
+        {
+            return false;
+        }
+
+        return method.ReturnType.ImplementsMoqFluentInterface(knownSymbols);
     }
 }

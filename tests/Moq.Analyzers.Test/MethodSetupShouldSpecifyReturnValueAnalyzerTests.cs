@@ -418,6 +418,62 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    // Regression test data for https://github.com/rjmurillo/moq.analyzers/issues/1067
+    // Extension methods wrapping Returns/ReturnsAsync should suppress Moq1203.
+    public static IEnumerable<object[]> Issue1067_WrappedSetupTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // Extension method returning IReturns<TMock, bool> that calls Returns internally
+            ["""
+            var moq = new Mock<IFoo>(MockBehavior.Strict);
+            moq.Setup(x => x.DoSomething("test")).ReturnsTrue();
+            """],
+
+            // Extension method returning IReturns<TMock, int> that calls Returns internally
+            ["""
+            var moq = new Mock<IFoo>();
+            moq.Setup(x => x.GetValue()).ReturnsFortyTwo();
+            """],
+
+            // Chained extension methods: Setup().ReturnsTrue() where ReturnsTrue returns IReturns
+            ["""
+            new Mock<IFoo>().Setup(x => x.DoSomething("test")).ReturnsTrue();
+            """],
+
+            // Extension method on async setup returning Task result wrapper
+            ["""
+            var moq = new Mock<IFoo>();
+            moq.Setup(x => x.BarAsync()).ReturnsOneAsync();
+            """],
+        ];
+
+        return data.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+    }
+
+    // Extension methods that do NOT return a Moq fluent interface should still trigger Moq1203.
+    public static IEnumerable<object[]> Issue1067_NonFluentExtensionTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // Extension method returning void (should still flag)
+            ["""
+            var moq = new Mock<IFoo>();
+            {|Moq1203:moq.Setup(x => x.DoSomething("test"))|}.LogSetup();
+            """],
+
+            // Extension method returning unrelated type (should still flag)
+            ["""
+            var moq = new Mock<IFoo>();
+            {|Moq1203:moq.Setup(x => x.GetValue())|}.ToDescription();
+            """],
+        ];
+
+        return data.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeMethodSetupReturnValue(string referenceAssemblyGroup, string @namespace, string mock)
@@ -504,6 +560,20 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         await VerifyCustomSourceMockAsync(referenceAssemblyGroup, @namespace, mock, recordDeclaration, interfaceMethod);
     }
 
+    [Theory]
+    [MemberData(nameof(Issue1067_WrappedSetupTestData))]
+    public async Task ShouldNotFlagSetupWrappedInFluentExtensionMethod(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await VerifyWrappedSetupMockAsync(referenceAssemblyGroup, @namespace, mock);
+    }
+
+    [Theory]
+    [MemberData(nameof(Issue1067_NonFluentExtensionTestData))]
+    public async Task ShouldFlagSetupWithNonFluentExtensionMethod(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await VerifyWrappedSetupMockAsync(referenceAssemblyGroup, @namespace, mock);
+    }
+
     private static string BuildSource(string @namespace, string mock)
     {
         return $$"""
@@ -552,6 +622,70 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             """;
     }
 
+    private static string BuildWrappedSetupSource(string @namespace, string mock)
+    {
+        return $$"""
+            {{@namespace}}
+            using Moq.Language;
+            using Moq.Language.Flow;
+
+            public interface IFoo
+            {
+                bool DoSomething(string value);
+                int GetValue();
+                int Calculate(int a, int b);
+                Task<int> BarAsync();
+                void DoVoidMethod();
+                void ProcessData(string data);
+                string Name { get; set; }
+            }
+
+            public static class MoqExtensions
+            {
+                public static IReturns<TMock, bool> ReturnsTrue<TMock>(this IReturns<TMock, bool> mock)
+                    where TMock : class
+                {
+                    mock.Returns(true);
+                    return mock;
+                }
+
+                public static IReturns<TMock, int> ReturnsFortyTwo<TMock>(this IReturns<TMock, int> mock)
+                    where TMock : class
+                {
+                    mock.Returns(42);
+                    return mock;
+                }
+
+                public static IReturns<TMock, Task<int>> ReturnsOneAsync<TMock>(this IReturns<TMock, Task<int>> mock)
+                    where TMock : class
+                {
+                    mock.Returns(Task.FromResult(1));
+                    return mock;
+                }
+
+                public static void LogSetup<TMock, TResult>(this ISetup<TMock, TResult> setup)
+                    where TMock : class
+                {
+                    // Does not configure return value, returns void
+                }
+
+                public static string ToDescription<TMock, TResult>(this ISetup<TMock, TResult> setup)
+                    where TMock : class
+                {
+                    return "description";
+                }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    {{mock}}
+                }
+            }
+            """;
+    }
+
     private async Task VerifyMockAsync(string referenceAssemblyGroup, string @namespace, string mock)
     {
         string source = BuildSource(@namespace, mock);
@@ -581,5 +715,15 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             source,
             referenceAssemblyGroup,
             CompilerDiagnostics.None).ConfigureAwait(false);
+    }
+
+    private async Task VerifyWrappedSetupMockAsync(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        string source = BuildWrappedSetupSource(@namespace, mock);
+        output.WriteLine(source);
+
+        await Verifier.VerifyAnalyzerAsync(
+            source,
+            referenceAssemblyGroup).ConfigureAwait(false);
     }
 }
