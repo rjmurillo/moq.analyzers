@@ -46,7 +46,7 @@ try {
     # YAML linting (lint only) and GitHub Actions linting share the file list
     $yamlFiles = Get-StagedFiles -Extensions @('.yml', '.yaml')
     if ($yamlFiles.Count -gt 0) {
-        if (Test-ToolAvailable -Command "yamllint" -InstallHint "pip install yamllint") {
+        if (Test-ToolAvailable -Command "yamllint" -InstallHint "pipx install yamllint") {
             $fullPaths = $yamlFiles | ForEach-Object { Join-Path $repoRoot $_ }
             $output = & yamllint -c (Join-Path $repoRoot ".yamllint.yml") @fullPaths 2>&1
             if ($LASTEXITCODE -ne 0) {
