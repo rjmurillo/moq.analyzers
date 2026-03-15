@@ -257,7 +257,8 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         // Skip known Moq methods; they are already handled by HasReturnValueSymbol
         // and IsKnownReturnValueMethodName. This check targets user-defined wrappers.
         if (method.IsMoqReturnValueSpecificationMethod(knownSymbols)
-            || method.IsMoqCallbackMethod(knownSymbols))
+            || method.IsMoqCallbackMethod(knownSymbols)
+            || method.IsMoqRaisesMethod(knownSymbols))
         {
             return false;
         }
