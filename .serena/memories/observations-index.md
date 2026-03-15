@@ -42,6 +42,10 @@ Index of session-derived learnings stored in Serena memories.
 - `complete-analyzer-catalog` — All 24 rules, 5 fixers, registration patterns, code fix coverage gaps
 - `pr-and-issue-patterns` — PR/issue distribution, dependency update dominance, v0.4.0 risk lesson, label signals
 
+## Configuration and Infrastructure
+
+- `local-and-ci-configuration` -- Git hooks (pre-commit, pre-push), CI workflows (14 total), linter configs, build flags, AI editor rules, known broken configs (#1081, #1084, #1085)
+
 ## Cross-Machine Knowledge Base
 
 - `forgetful-knowledge-base` — Forgetful project ID, all memory/entity/document IDs, setup instructions
