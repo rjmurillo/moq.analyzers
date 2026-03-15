@@ -4,17 +4,23 @@ Patterns used consistently across all 23 analyzers and 5 fixers. Follow these wh
 
 ## WellKnown Types Pattern
 
-Resolves and caches Moq framework symbols once per compilation.
+Resolves and caches Moq framework symbols once per compilation via `RegisterCompilationStartAction`.
 
 ```csharp
 // In Initialize():
-context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
+context.RegisterCompilationStartAction(compilationContext =>
+{
+    MoqKnownSymbols knownSymbols = new(compilationContext.Compilation);
+    if (!knownSymbols.IsMockReferenced()) return; // Moq not referenced in this project
+
+    compilationContext.RegisterOperationAction(
+        ctx => AnalyzeOperation(ctx, knownSymbols),
+        OperationKind.Invocation);
+});
 
 // In AnalyzeOperation():
-var moqSymbols = MoqKnownSymbols.Create(context.Compilation);
-if (moqSymbols.Mock == null) return; // Moq not referenced in this project
-
-if (typeSymbol.Equals(moqSymbols.Mock, SymbolEqualityComparer.Default)) {
+// knownSymbols is received as a parameter — created once, reused across all operations
+if (typeSymbol.Equals(knownSymbols.Mock1, SymbolEqualityComparer.Default)) {
     // This is Moq.Mock<T>
 }
 ```
@@ -26,29 +32,34 @@ Files: `src/Common/WellKnown/MoqKnownSymbols.cs`, `KnownSymbols.cs`, `MoqKnownSy
 Exit immediately when the code under analysis is not relevant. Order checks cheapest-first.
 
 ```csharp
-// 1. Check if Moq is even referenced
-if (moqSymbols.Mock == null) return;
+// 1. Check if Moq is even referenced (uses IsMockReferenced(), not a null check on a property)
+if (!knownSymbols.IsMockReferenced()) return;
 // 2. Check containing type (cheaper than full symbol comparison)
 if (invocation.TargetMethod.ContainingType.Name != "Mock") return;
 // 3. Full symbol comparison (expensive — only do if cheap checks pass)
-if (!invocation.TargetMethod.ContainingType.Equals(moqSymbols.Mock, SymbolEqualityComparer.Default)) return;
+if (!invocation.TargetMethod.ContainingType.Equals(knownSymbols.Mock1, SymbolEqualityComparer.Default)) return;
 // 4. Perform actual analysis
 ```
 
 ## MoqKnownSymbols Lifetime
 
-Create once at the entry point; pass through call chains. Do NOT create per-operation.
+Create once inside `RegisterCompilationStartAction`; pass through call chains via closure or parameter. Do NOT create inside per-operation callbacks.
 
 ```csharp
-// Correct:
-private static void AnalyzeInvocation(OperationAnalysisContext context) {
-    var moqSymbols = MoqKnownSymbols.Create(context.Compilation); // once
-    ValidateMember(operation, moqSymbols);                         // passed down
-}
+// Correct — created once at compilation start, passed via closure:
+context.RegisterCompilationStartAction(compilationContext =>
+{
+    MoqKnownSymbols knownSymbols = new(compilationContext.Compilation);
+    if (!knownSymbols.IsMockReferenced()) return;
+    compilationContext.RegisterOperationAction(
+        ctx => AnalyzeInvocation(ctx, knownSymbols), // knownSymbols captured once
+        OperationKind.Invocation);
+});
 
-// Wrong — allocates on every operation:
-private static void ValidateMember(IOperation op, OperationAnalysisContext context) {
-    var moqSymbols = MoqKnownSymbols.Create(context.Compilation); // repeated allocation
+// Wrong — allocates a new MoqKnownSymbols on every analyzed operation:
+private static void AnalyzeInvocation(OperationAnalysisContext context) {
+    MoqKnownSymbols knownSymbols = new(context.Compilation); // repeated per operation
+    ValidateMember(context.Operation, knownSymbols);
 }
 ```
 
@@ -75,9 +86,16 @@ public class YourAnalyzer : DiagnosticAnalyzer
 {
     public override void Initialize(AnalysisContext context)
     {
-        context.ConfigureGeneratedCodeAnalysisMode(GeneratedCodeAnalysisMode.None);
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
-        context.RegisterOperationAction(Analyze, OperationKind.Invocation);
+        context.RegisterCompilationStartAction(compilationContext =>
+        {
+            MoqKnownSymbols knownSymbols = new(compilationContext.Compilation);
+            if (!knownSymbols.IsMockReferenced()) return;
+            compilationContext.RegisterOperationAction(
+                ctx => Analyze(ctx, knownSymbols),
+                OperationKind.Invocation);
+        });
     }
 }
 ```
