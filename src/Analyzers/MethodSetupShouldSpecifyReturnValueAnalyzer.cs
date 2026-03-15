@@ -246,16 +246,27 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static bool IsFluentChainWrapperMethod(SymbolInfo symbolInfo, MoqKnownSymbols knownSymbols)
     {
-        IMethodSymbol? method = symbolInfo.Symbol as IMethodSymbol
-            ?? symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().FirstOrDefault();
-
-        if (method == null)
+        if (symbolInfo.Symbol is IMethodSymbol resolved)
         {
-            return false;
+            return IsWrapperMethod(resolved, knownSymbols);
         }
 
-        // Skip known Moq methods; they are already handled by HasReturnValueSymbol
-        // and IsKnownReturnValueMethodName. This check targets user-defined wrappers.
+        // When overload resolution fails, check all candidates. A false negative
+        // occurs if only the first candidate is inspected and it does not return a
+        // Moq fluent type while another candidate does.
+        return symbolInfo.CandidateSymbols
+            .OfType<IMethodSymbol>()
+            .Any(candidate => IsWrapperMethod(candidate, knownSymbols));
+    }
+
+    /// <summary>
+    /// Returns true when <paramref name="method"/> is a user-defined wrapper whose return
+    /// type implements a Moq fluent interface. Known Moq return-value and callback methods
+    /// are excluded because they are already handled by <see cref="HasReturnValueSymbol"/>
+    /// and <see cref="IsKnownReturnValueMethodName"/>.
+    /// </summary>
+    private static bool IsWrapperMethod(IMethodSymbol method, MoqKnownSymbols knownSymbols)
+    {
         if (method.IsMoqReturnValueSpecificationMethod(knownSymbols)
             || method.IsMoqCallbackMethod(knownSymbols)
             || method.IsMoqRaisesMethod(knownSymbols))
