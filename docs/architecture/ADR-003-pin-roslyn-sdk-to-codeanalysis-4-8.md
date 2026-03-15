@@ -38,6 +38,10 @@ Roslyn 4.8 corresponds to Visual Studio 2022 17.8, released in November 2023. Th
 - **NEG-002**: Users on Visual Studio 2022 releases earlier than 17.8 do not receive diagnostics. The package loads but reports no results.
 - **NEG-003**: The pin must be reviewed when VS 2022 17.8 reaches end-of-support or when a required API exists only in a later Roslyn release.
 
+### Reversibility
+
+This decision is **reversible**. Raising the pin to a newer Roslyn version requires updating `Directory.Packages.props`, running the full test suite, verifying benchmarks, and updating documentation. The cost is low; the constraint is user impact assessment.
+
 ## Alternatives Considered
 
 ### Latest 4.x Roslyn Release
@@ -53,7 +57,7 @@ Roslyn 4.8 corresponds to Visual Studio 2022 17.8, released in November 2023. Th
 ## Implementation Notes
 
 - **IMP-001**: The version pin is declared in `Directory.Packages.props`. All `.csproj` references to `Microsoft.CodeAnalysis.CSharp` omit version attributes per central package management policy.
-- **IMP-002**: When evaluating a pin upgrade, verify the new minimum VS version is acceptable, run all benchmark baselines, and update this ADR.
+- **IMP-002**: **Upgrade Trigger Criteria**: Evaluate a pin upgrade when (a) VS 2022 17.8 falls below 10% market share in Visual Studio telemetry, (b) a required Roslyn API exists only in a later version, or (c) 18 months have elapsed since the last evaluation. When upgrading, verify the new minimum VS version is acceptable, run all benchmark baselines, and update this ADR.
 - **IMP-003**: The `ValidateAnalyzerHostCompatibility` MSBuild target checks Roslyn version compatibility as part of the build.
 
 ## References

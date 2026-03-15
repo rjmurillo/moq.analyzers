@@ -14,28 +14,42 @@ Roslyn analyzer NuGet package for the Moq mocking framework. Detects common mist
 - **Reproducible builds**: DotNet.ReproducibleBuilds.Isolated
 - **Testing**: xUnit with Roslyn test infrastructure
 - **Benchmarks**: BenchmarkDotNet
-- **Perf tooling**: PerfDiff CLI tool (src/tools/PerfDiff)
+- **Perf tooling**: PerfDiff CLI tool (src/tools/PerfDiff), uses System.CommandLine 2.0.3
+
+## Counts (verified 2026-03-15)
+
+- **23 DiagnosticAnalyzer classes** in src/Analyzers/ (Moq1001–Moq1023 range, some gaps)
+- **5 CodeFixProvider classes** in src/CodeFixes/
+- **10 projects** in Moq.Analyzers.sln
 
 ## Solution Structure
 
 ```text
 Moq.Analyzers.sln
   src/
-    Analyzers/       - DiagnosticAnalyzer implementations (~20 analyzers)
-    CodeFixes/       - CodeFixProvider implementations (~7 fixers)
+    Analyzers/       - 23 DiagnosticAnalyzer implementations
+    CodeFixes/       - 5 CodeFixProvider implementations
     Common/          - Shared helpers, extension methods, well-known types
+      WellKnown/     - MoqKnownSymbols.cs, KnownSymbols.cs, MoqKnownSymbolExtensions.cs
   tests/
     Moq.Analyzers.Test/       - Unit tests for analyzers and code fixes
-    Moq.Analyzers.Benchmarks/ - Performance benchmarks
-    PerfDiff.Tests/            - Tests for PerfDiff tool
+    Moq.Analyzers.Benchmarks/ - Performance benchmarks (baselines in build/perf/)
+    PerfDiff.Tests/           - Tests for PerfDiff tool
   build/
-    targets/         - MSBuild imports (compiler, code analysis, tests, versioning, packaging, etc.)
-    perf/            - Performance baseline data
-    scripts/         - Build/CI helper scripts
+    targets/         - MSBuild imports (compiler, code analysis, tests, versioning, packaging)
+    perf/            - Performance baseline data (compared by PerfDiff in CI)
+    scripts/         - Build/CI helper scripts (Perf.sh, Perf.cmd)
   docs/
-    rules/           - Per-rule documentation
+    rules/           - Per-rule documentation (Moq1XXX.md)
     dependency-management.md
 ```
+
+## Extension Methods in src/Common/ (verified 2026-03-15)
+
+ArrayExtensions, DiagnosticExtensions, EnumerableExtensions, EventSyntaxExtensions,
+IMethodSymbolExtensions, IOperationExtensions, ISymbolExtensions, ITypeSymbolExtensions,
+InvocationExpressionSyntaxExtensions, NamedTypeSymbolExtensions, SemanticModelExtensions,
+SyntaxNodeExtensions
 
 ## Key Design Principles
 

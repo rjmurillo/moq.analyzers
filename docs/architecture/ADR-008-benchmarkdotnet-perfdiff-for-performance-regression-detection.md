@@ -62,7 +62,7 @@ PerfDiff uses System.CommandLine 2.0.3 for CLI argument parsing.
 
 - **IMP-001**: `tests/Moq.Analyzers.Benchmarks/` contains one benchmark class per analyzer. Benchmarks analyze representative C# source files.
 - **IMP-002**: Baseline JSON files in `build/perf/` are updated by running `dotnet run --project src/tools/PerfDiff/ -- update` after a confirmed improvement.
-- **IMP-003**: PerfDiff threshold configuration is in `build/perf/thresholds.json`. Thresholds are expressed as percentage regression limits per benchmark.
+- **IMP-003**: PerfDiff threshold configuration is in `build/perf/thresholds.json`. Thresholds are expressed as percentage regression limits per benchmark. Default threshold is 10% regression for mean execution time. Thresholds may be tightened for hot-path analyzers or loosened for cold-path initialization benchmarks. When CI fails due to threshold breach, contributors should (a) verify the regression is real by running locally, (b) optimize if real, or (c) update the baseline if the regression is acceptable.
 - **IMP-004**: PerfDiff uses System.CommandLine 2.0.3. Any update to that dependency must go through the central package management review process per ADR-005.
 
 ## References

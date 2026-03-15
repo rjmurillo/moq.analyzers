@@ -40,6 +40,12 @@ The minimum host SDK will be raised to .NET 9 at a future date. Until then, the 
 - **NEG-002**: The cap creates friction when Dependabot proposes version upgrades. Each proposal requires a manual rejection with a comment referencing this ADR.
 - **NEG-003**: When the minimum host SDK is raised to .NET 9, this cap must be revisited and the `ValidateAnalyzerHostCompatibility` target updated.
 
+### Reversibility and Exit Condition
+
+This decision is **reversible** when: (a) the minimum supported SDK is raised to .NET 9 or later (which provides System.Collections.Immutable 9.0.0), or (b) Microsoft releases an AnalyzerUtilities version that does not require System.Collections.Immutable 9.0.0. When either condition is met, remove the cap, verify CI passes on all supported host environments, and supersede this ADR.
+
+**Dependency**: This ADR depends on ADR-003 (Roslyn SDK pin). If ADR-003 raises the Roslyn floor to a version requiring .NET 9 SDK hosts, revisit this cap simultaneously.
+
 ## Alternatives Considered
 
 ### Use AnalyzerUtilities 4.x

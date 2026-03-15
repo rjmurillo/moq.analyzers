@@ -1,43 +1,43 @@
 # Observations Index
 
-Cross-cutting observations extracted from retrospectives and session learnings.
+Index of session-derived learnings stored in Serena memories.
 
-## False Positive Patterns
+## Architecture and Patterns
 
-### Expression-tree semantic role confusion
+- `architectural-patterns` — WellKnown types, early exit, MoqKnownSymbols lifetime, diagnostic location, template method base class, analyzer/fixer boilerplate
+- `architecture-decision-records` — Index of 9 ADRs covering core design choices
 
-Moq analyzer false positives cluster around expression-tree nodes with multiple semantic roles (binary ops, method chains, parenthesized expressions). Treating operands symmetrically causes false positives on the "value" operand. Prior occurrences: Moq1200 (PR #301), Moq1203 (PRs #886, #895, #919), Moq1302 (Issue #1010).
+## Code Style
 
-- Source: moq1302 retrospective, Phase 1 Pattern analysis
-- See also: `analyzer-testing-observations.md` Patterns section
+- `style-and-conventions` — Naming, analyzer conventions, testing, build properties, test marker syntax
 
-### Binary operation operand roles
+## Quality and Standards
 
-In binary expressions within lambda analysis, only recurse into the operand referencing the lambda parameter. The other operand is a value expression (literal, local, static member, const, method call) and must not be validated for mockability.
+- `quality-standards` — Correctness requirements, performance constraints, symbol-based detection policy
 
-- Source: moq1302 retrospective, Learning 1 (Atomicity 90%)
-- Fix: `AnalyzeLambdaBody` IBinaryOperation case in `LinqToMocksExpressionShouldBeValidAnalyzer.cs`
+## Project Reference
 
-## Test Authorship
+- `project-overview` — Purpose, tech stack, counts (23 analyzers, 5 fixers), solution structure, extension method list
+- `dependency-constraints` — AnalyzerUtilities cap at 3.3.4, ValidateAnalyzerHostCompatibility, transitive pinning rules
 
-### Co-authored implementation and tests share blind spots
+## Tooling
 
-When AI generates both implementation and tests in a single PR, the test suite inherits the same assumptions as the implementation. Require independent adversarial boundary cases from a human reviewer covering each RHS category: literal, local variable, static member, const field, and method call.
+- `suggested-commands` — Build, test, benchmark, format, package commands
 
-- Source: moq1302 retrospective, Learning 2 (Atomicity 85%)
-- Evidence: PR #511 Copilot-generated impl+tests; RHS static member cases absent until issue #1010
+## Testing
 
-### RHS boundary test checklist for binary comparisons
+- `analyzer-testing-observations` — Boundary case testing, AI blind spots, expression-walking patterns
+- `roslyn-analyzer-best-practices` — IOperation patterns, lambda analysis, IMemberReferenceOperation
 
-For any binary/comparison operation in an analyzer, test all RHS types: literal, local variable, static member of unrelated type, const field, method call on unrelated type, nested property chain on unrelated type.
+## Workflow
 
-- Source: moq1302 retrospective, Learning 3 (Atomicity 80%)
-- Evidence: 5 missing RHS boundary categories allowed issue #1010 to escape
+- `task-completion-checklist` — Pre-commit checklist
+- `push-pr-observations` — PR workflow observations
 
-## Process
+## Cross-Machine Knowledge Base
 
-### Retrospective methodology
+- `forgetful-knowledge-base` — Forgetful project ID, all memory/entity/document IDs, setup instructions
 
-The moq1302 retrospective used a structured format: Data Gathering (4-step debrief), Insights (Five Whys, fishbone), Diagnosis (atomicity scoring), Decisions (SMART validation), Extracted Learnings, Recursive Learning Extraction. This format produced 4 atomic skills with atomicity scores >= 75%.
+## Code Review
 
-- Source: moq1302 retrospective, Phases 0-6
+- `code-review/reuse-analysis-diff` — Code review pattern observations

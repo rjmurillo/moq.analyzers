@@ -56,7 +56,7 @@ Analyzers use `context.RegisterOperationAction()` with `OperationKind` values as
 
 ## Implementation Notes
 
-- **IMP-001**: Use `OperationKind.Invocation` for method call analysis, `OperationKind.ObjectCreation` for constructor analysis, and `OperationKind.SimpleAssignment` / `OperationKind.PropertyReference` for property patterns.
+- **IMP-001**: Use `OperationKind.Invocation` for method call analysis, `OperationKind.ObjectCreation` for constructor analysis, and `OperationKind.SimpleAssignment` / `OperationKind.PropertyReference` for property patterns. **Base-class delegation**: Analyzers that inherit from a base class (e.g., `MockBehaviorDiagnosticAnalyzerBase`) satisfy this decision when the base class registers the operation action. The derived analyzer does not need its own registration.
 - **IMP-002**: When `RegisterSyntaxNodeAction` is required, document in the analyzer class why `IOperation` was insufficient for that specific check.
 - **IMP-003**: New analyzers must default to `RegisterOperationAction`. Use of `RegisterSyntaxNodeAction` requires justification in the PR description.
 
