@@ -481,6 +481,12 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             var moq = new Mock<IFoo>();
             {|Moq1203:moq.Setup(x => x.GetValue())|}.ToDescription();
             """],
+
+            // Extension method returning Task (not a Moq fluent type, should still flag)
+            ["""
+            var moq = new Mock<IFoo>();
+            {|Moq1203:moq.Setup(x => x.GetValue())|}.AsTask();
+            """],
         ];
 
         return data.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
@@ -697,6 +703,12 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
                     where TMock : class
                 {
                     return "description";
+                }
+
+                public static Task AsTask<TMock, TResult>(this ISetup<TMock, TResult> setup)
+                    where TMock : class
+                {
+                    return Task.CompletedTask;
                 }
             }
 
