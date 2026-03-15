@@ -103,6 +103,15 @@ public class ProtectedSetupShouldUseItExprAnalyzerTests(ITestOutputHelper output
 
             // SetupSequence without matchers (no arguments after method name)
             ["""mock.Protected().SetupSequence<int>("Execute");"""],
+
+            // Literal string value is not a matcher (should not diagnose)
+            ["""mock.Protected().Setup<bool>("Foo", "literal").Returns(true);"""],
+
+            // Literal int value is not a matcher (should not diagnose)
+            ["""mock.Protected().Setup<bool>("Foo", 42).Returns(true);"""],
+
+            // Literal bool value is not a matcher (should not diagnose)
+            ["""mock.Protected().Setup<bool>("Foo", true).Returns(true);"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
     }
 
