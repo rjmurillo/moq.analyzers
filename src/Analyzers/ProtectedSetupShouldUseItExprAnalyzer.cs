@@ -10,7 +10,7 @@ namespace Moq.Analyzers;
 public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
 {
     private static readonly LocalizableString Title = "Moq: Protected setup should use ItExpr";
-    private static readonly LocalizableString Message = "Protected member setup uses 'It.{0}' but should use 'ItExpr.{1}' for string-based overloads";
+    private static readonly LocalizableString Message = "Protected member setup uses 'It.{0}' but should use 'ItExpr.{0}' for string-based overloads";
     private static readonly LocalizableString Description = "Protected member setups using string-based overloads must use ItExpr matchers instead of It matchers.";
 
     private static readonly DiagnosticDescriptor Rule = new(
@@ -192,6 +192,6 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
         string itMethodName = matcherMethod.Name;
 
         context.ReportDiagnostic(
-            invocation.Syntax.GetLocation().CreateDiagnostic(Rule, itMethodName, itMethodName));
+            invocation.Syntax.GetLocation().CreateDiagnostic(Rule, itMethodName));
     }
 }

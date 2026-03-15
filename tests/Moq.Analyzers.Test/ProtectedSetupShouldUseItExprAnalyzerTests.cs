@@ -40,6 +40,24 @@ public class ProtectedSetupShouldUseItExprAnalyzerTests(ITestOutputHelper output
 
             // Setup with exactParameterMatch overload
             ["""mock.Protected().Setup<bool>("Foo", true, {|Moq1600:It.IsAny<string>()|}).Returns(true);"""],
+
+            // VerifySet with It.IsAny should diagnose (value parameter)
+            ["""mock.Protected().VerifySet<string>("Baz", Times.Once(), {|Moq1600:It.IsAny<string>()|});"""],
+
+            // It.Is should diagnose (additional It matcher variants)
+            ["""mock.Protected().Setup<bool>("Foo", {|Moq1600:It.IsIn<string>("a", "b")|}).Returns(true);"""],
+
+            // It.IsNotIn should diagnose
+            ["""mock.Protected().Setup<bool>("Foo", {|Moq1600:It.IsNotIn<string>("a", "b")|}).Returns(true);"""],
+
+            // It.IsRegex should diagnose
+            ["""mock.Protected().Setup<bool>("Foo", {|Moq1600:It.IsRegex(".*")|}).Returns(true);"""],
+
+            // It.IsNotNull should diagnose
+            ["""mock.Protected().Setup<bool>("Foo", {|Moq1600:It.IsNotNull<string>()|}).Returns(true);"""],
+
+            // It.IsInRange should diagnose
+            ["""mock.Protected().Setup<bool>("Foo", {|Moq1600:It.IsInRange<string>("a", "z", Moq.Range.Inclusive)|}).Returns(true);"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
     }
 
@@ -67,6 +85,9 @@ public class ProtectedSetupShouldUseItExprAnalyzerTests(ITestOutputHelper output
 
             // VerifyGet takes only property name and Times
             ["""mock.Protected().VerifyGet<string>("Baz", Times.Once());"""],
+
+            // VerifySet with ItExpr is correct
+            ["""mock.Protected().VerifySet<string>("Baz", Times.Once(), ItExpr.IsAny<string>());"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
     }
 
@@ -84,7 +105,6 @@ public class ProtectedSetupShouldUseItExprAnalyzerTests(ITestOutputHelper output
     public async Task ShouldNotDiagnoseCorrectProtectedSetup(string referenceAssemblyGroup, string @namespace, string testCode)
     {
         string source = Template(@namespace, testCode);
-        output.WriteLine(source);
         await Verifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup);
     }
 
@@ -102,6 +122,33 @@ public class ProtectedSetupShouldUseItExprAnalyzerTests(ITestOutputHelper output
             """;
 
         await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80, CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task ShouldNotDiagnoseUserDefinedProtectedClassWithSetup()
+    {
+        // Doppelganger: a user-defined class named Protected with a string-based Setup method
+        // and a user-defined It-like class must not trigger the diagnostic.
+        // The analyzer uses symbol equality against Moq.Protected.IProtectedMock<T>, not name matching.
+        const string source = """
+            using Moq;
+
+            public class MyProtected
+            {
+                public void Setup(string name, object arg) { }
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    var p = new MyProtected();
+                    p.Setup("Foo", Moq.It.IsAny<string>());
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
     private static string Template(string ns, string testCode) =>
