@@ -48,6 +48,14 @@ internal class MoqKnownSymbols : KnownSymbols
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iSetupSetter1Raises;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _voidSetupPhrase1Raises;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _nonVoidSetupPhrase2Raises;
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _protectedExtensionProtected;
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1Setup;
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1SetupGet;
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1SetupSet;
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1Verify;
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1VerifyGet;
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1VerifySet;
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _iProtectedMock1As;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _itIsAny;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iRaiseableRaises;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iRaiseableAsyncRaisesAsync;
@@ -88,6 +96,16 @@ internal class MoqKnownSymbols : KnownSymbols
         _mockBehaviorStrict = CreateLazySingleField(MockBehavior, "Strict");
         _mockBehaviorLoose = CreateLazySingleField(MockBehavior, "Loose");
         _mockBehaviorDefault = CreateLazySingleField(MockBehavior, "Default");
+
+        // Protected extension and IProtectedMock members
+        _protectedExtensionProtected = CreateLazyMethods(ProtectedExtension, "Protected");
+        _iProtectedMock1Setup = CreateLazyMethods(IProtectedMock1, "Setup");
+        _iProtectedMock1SetupGet = CreateLazyMethods(IProtectedMock1, "SetupGet");
+        _iProtectedMock1SetupSet = CreateLazyMethods(IProtectedMock1, "SetupSet");
+        _iProtectedMock1Verify = CreateLazyMethods(IProtectedMock1, "Verify");
+        _iProtectedMock1VerifyGet = CreateLazyMethods(IProtectedMock1, "VerifyGet");
+        _iProtectedMock1VerifySet = CreateLazyMethods(IProtectedMock1, "VerifySet");
+        _iProtectedMock1As = CreateLazyMethods(IProtectedMock1, "As");
 
         // It members
         _itIsAny = CreateLazyMethods(It, "IsAny");
@@ -469,6 +487,61 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.Language.Flow.NonVoidSetupPhrase{T,TResult}.Raises</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> NonVoidSetupPhrase2Raises => _nonVoidSetupPhrase2Raises.Value;
+
+    /// <summary>
+    /// Gets the class <c>Moq.Protected.ProtectedExtension</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ProtectedExtension => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Protected.ProtectedExtension");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Protected.ProtectedExtension.Protected</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> ProtectedExtensionProtected => _protectedExtensionProtected.Value;
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Protected.IProtectedMock{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IProtectedMock1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Protected.IProtectedMock`1");
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Protected.IProtectedMock{T}.Setup</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IProtectedMock1Setup => _iProtectedMock1Setup.Value;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Protected.IProtectedMock{T}.SetupGet</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IProtectedMock1SetupGet => _iProtectedMock1SetupGet.Value;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Protected.IProtectedMock{T}.SetupSet</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IProtectedMock1SetupSet => _iProtectedMock1SetupSet.Value;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Protected.IProtectedMock{T}.Verify</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IProtectedMock1Verify => _iProtectedMock1Verify.Value;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Protected.IProtectedMock{T}.VerifyGet</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IProtectedMock1VerifyGet => _iProtectedMock1VerifyGet.Value;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Protected.IProtectedMock{T}.VerifySet</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IProtectedMock1VerifySet => _iProtectedMock1VerifySet.Value;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.Protected.IProtectedMock{T}.As</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> IProtectedMock1As => _iProtectedMock1As.Value;
+
+    /// <summary>
+    /// Gets the class <c>Moq.Protected.ItExpr</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ItExpr => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Protected.ItExpr");
 
     /// <summary>
     /// Gets the class <c>Moq.It</c>.
