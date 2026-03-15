@@ -318,17 +318,23 @@ internal static partial class ISymbolExtensions
     }
 
     /// <summary>
-    /// Compares a type symbol against the set of known Moq fluent interface symbols.
+    /// Compares a type symbol against the set of known Moq fluent interface symbols
+    /// that indicate a return value has been or can be configured.
     /// </summary>
+    /// <remarks>
+    /// This method intentionally excludes <c>ICallback</c>, <c>ICallback{TMock}</c>, and
+    /// <c>ICallback{TMock, TResult}</c> because these interfaces do not inherit from
+    /// <c>IReturns</c> and do not indicate that a return value has been configured.
+    /// Types like <c>ISetup{TMock, TResult}</c> that inherit from <c>IReturns</c> are
+    /// still caught via <see cref="HasMoqFluentInterfaceInHierarchy"/> when checking
+    /// <see cref="ITypeSymbol.AllInterfaces"/>.
+    /// </remarks>
     private static bool IsMatchingFluentSymbol(INamedTypeSymbol type, MoqKnownSymbols knownSymbols)
     {
         return SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns)
             || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns1)
             || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns2)
             || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IThrows)
-            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ICallback)
-            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ICallback1)
-            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ICallback2)
             || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetup1)
             || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetupGetter)
             || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetupSetter);
