@@ -124,9 +124,9 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
         IOperation operation,
         MoqKnownSymbols knownSymbols)
     {
-        // Unwrap implicit conversions
+        // Unwrap all conversions (both implicit and explicit) to handle casts like (object)It.IsAny<string>()
         IOperation current = operation;
-        while (current is IConversionOperation conversion && conversion.IsImplicit)
+        while (current is IConversionOperation conversion)
         {
             current = conversion.Operand;
         }
