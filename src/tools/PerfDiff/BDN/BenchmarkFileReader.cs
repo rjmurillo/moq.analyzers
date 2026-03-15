@@ -15,18 +15,19 @@ internal static class BenchmarkFileReader
     /// </summary>
     /// <param name="paths">Array of file paths to read.</param>
     /// <param name="logger">Logger for reporting errors.</param>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
     /// <returns>A <see cref="BdnResults"/> containing the loaded results and success status.</returns>
-    public static async Task<BdnResults> TryGetBdnResultAsync(string[] paths, ILogger logger)
+    public static async Task<BdnResults> TryGetBdnResultAsync(string[] paths, ILogger logger, CancellationToken cancellationToken)
     {
-        BdnResult?[] results = await Task.WhenAll(paths.Select(path => ReadFromFileAsync(path, logger))).ConfigureAwait(false);
-        return new BdnResults(!results.Any(static x => x is null), results);
+        BdnResult?[] results = await Task.WhenAll(paths.Select(path => ReadFromFileAsync(path, logger, cancellationToken))).ConfigureAwait(false);
+        return new BdnResults(Array.TrueForAll(results, static x => x is not null), results);
     }
 
-    private static async Task<BdnResult?> ReadFromFileAsync(string resultFilePath, ILogger logger)
+    private static async Task<BdnResult?> ReadFromFileAsync(string resultFilePath, ILogger logger, CancellationToken cancellationToken)
     {
         try
         {
-            return JsonConvert.DeserializeObject<BdnResult>(await File.ReadAllTextAsync(resultFilePath).ConfigureAwait(false));
+            return JsonConvert.DeserializeObject<BdnResult>(await File.ReadAllTextAsync(resultFilePath, cancellationToken).ConfigureAwait(false));
         }
         catch (Exception ex) when (ex is JsonReaderException or JsonSerializationException or IOException or UnauthorizedAccessException or SecurityException)
         {

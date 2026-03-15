@@ -1,9 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
-using System.CommandLine.Parsing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,94 +14,72 @@ internal sealed class Program
 {
     internal const int UnhandledExceptionExitCode = 1;
     internal const int CancelledExitCode = 2;
-    private static ParseResult? s_parseResult;
 
     private static async Task<int> Main(string[] args)
     {
         RootCommand rootCommand = DiffCommand.CreateCommandLineOptions();
-        rootCommand.Handler = CommandHandler.Create(new DiffCommand.Handler(RunAsync));
+        rootCommand.SetAction(static async (parseResult, cancellationToken) =>
+        {
+            string baseline = parseResult.GetValue(DiffCommand.BaselineOption)!;
+            string results = parseResult.GetValue(DiffCommand.ResultsOption)!;
+            string? verbosity = parseResult.GetValue(DiffCommand.VerbosityOption);
+            bool failOnRegression = parseResult.GetValue(DiffCommand.FailOnRegressionOption);
 
-        // Parse the incoming args so we can give warnings when deprecated options are used.
-        s_parseResult = rootCommand.Parse(args);
+            return await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken).ConfigureAwait(false);
+        });
 
-        return await rootCommand.InvokeAsync(args).ConfigureAwait(false);
+        return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
     }
 
-    public static async Task<int> RunAsync(
+    internal static async Task<int> RunAsync(
         string baseline,
         string results,
         string? verbosity,
         bool failOnRegression,
-        IConsole console)
+        CancellationToken cancellationToken)
     {
-        if (s_parseResult == null)
-        {
-            return 1;
-        }
-
         // Setup logging.
-        LogLevel logLevel = GetLogLevel(verbosity);
-        (ILogger<Program> logger, ServiceProvider serviceProvider) = SetupLogging(console, minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
-
-        // Hook so we can cancel and exit when ctrl+c is pressed.
-        using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        ConsoleCancelEventHandler cancelHandler = (sender, e) =>
-        {
-            e.Cancel = true;
-            try
-            {
-                cancellationTokenSource.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-                // CTS already disposed; safe to ignore.
-            }
-        };
-        Console.CancelKeyPress += cancelHandler;
+        LogLevel logLevel = DiffCommand.GetLogLevel(verbosity);
+        ServiceProvider serviceProvider = SetupLogging(minimalLogLevel: logLevel, minimalErrorLevel: LogLevel.Warning);
 
         try
         {
-            return await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationTokenSource.Token).ConfigureAwait(false);
-        }
-        catch (FileNotFoundException fex)
-        {
-#pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
-            logger.LogError(fex, "File not found: {FileName}", fex.FileName);
-#pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
-            return UnhandledExceptionExitCode;
-        }
-        catch (OperationCanceledException ex)
-        {
-#pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
-            logger.LogWarning(ex, "Operation was cancelled.");
-#pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
-            return CancelledExitCode;
+            ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+
+            try
+            {
+                return await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationToken).ConfigureAwait(false);
+            }
+            catch (FileNotFoundException fex)
+            {
+#pragma warning disable CA1848, CA2254 // LoggerMessage delegates, varying template
+                logger.LogError(fex, "File not found: {FileName}", fex.FileName);
+#pragma warning restore CA1848, CA2254
+                return UnhandledExceptionExitCode;
+            }
+            catch (OperationCanceledException ex)
+            {
+#pragma warning disable CA1848 // LoggerMessage delegates
+                logger.LogWarning(ex, "Operation was cancelled.");
+#pragma warning restore CA1848
+                return CancelledExitCode;
+            }
         }
         finally
         {
-            Console.CancelKeyPress -= cancelHandler;
             await serviceProvider.DisposeAsync().ConfigureAwait(false);
         }
 
-        static (ILogger<Program> Logger, ServiceProvider ServiceProvider) SetupLogging(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
+        static ServiceProvider SetupLogging(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<ILoggerFactory>(new LoggerFactory().AddSimpleConsole(console, minimalLogLevel, minimalErrorLevel));
-            serviceCollection.AddLogging();
-
-            ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-            return (serviceProvider.GetRequiredService<ILogger<Program>>(), serviceProvider);
-        }
-
-        static LogLevel GetLogLevel(string? verbosity)
-            => verbosity switch
+            serviceCollection.AddLogging(builder =>
             {
-                "q" or "quiet" => LogLevel.Error,
-                "m" or "minimal" => LogLevel.Warning,
-                "n" or "normal" => LogLevel.Information,
-                "d" or "detailed" => LogLevel.Debug,
-                "diag" or "diagnostic" => LogLevel.Trace,
-                _ => LogLevel.Information,
-            };
+                builder.SetMinimumLevel(minimalLogLevel);
+                builder.AddProvider(new SimpleConsoleLoggerProvider(minimalLogLevel, minimalErrorLevel));
+            });
+
+            return serviceCollection.BuildServiceProvider();
+        }
     }
 }

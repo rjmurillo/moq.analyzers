@@ -24,11 +24,12 @@ public static class BenchmarkDotNetDiffer
     /// <param name="baselineFolder">The folder containing baseline results.</param>
     /// <param name="resultsFolder">The folder containing new results.</param>
     /// <param name="logger">Logger for reporting errors.</param>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
     /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating comparison success and regression detection.</returns>
-    public static async Task<BenchmarkComparisonResult> TryCompareBenchmarkDotNetResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
+    public static async Task<BenchmarkComparisonResult> TryCompareBenchmarkDotNetResultsAsync(string baselineFolder, string resultsFolder, ILogger logger, CancellationToken cancellationToken)
     {
         BenchmarkComparisonService service = new(logger);
-        return await service.CompareAsync(baselineFolder, resultsFolder).ConfigureAwait(false);
+        return await service.CompareAsync(baselineFolder, resultsFolder, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -37,8 +38,9 @@ public static class BenchmarkDotNetDiffer
     /// <param name="baselineFolder">The folder containing baseline results.</param>
     /// <param name="resultsFolder">The folder containing new results.</param>
     /// <param name="logger">Logger for reporting errors.</param>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
     /// <returns>An array of <see cref="BdnComparisonResult"/> if successful; otherwise, <see langword="null"/>.</returns>
-    internal static async Task<BdnComparisonResult[]?> TryGetBdnResultsAsync(string baselineFolder, string resultsFolder, ILogger logger)
+    internal static async Task<BdnComparisonResult[]?> TryGetBdnResultsAsync(string baselineFolder, string resultsFolder, ILogger logger, CancellationToken cancellationToken)
     {
         if (!TryGetFilesToParse(baselineFolder, out string[]? baseFiles))
         {
@@ -52,19 +54,19 @@ public static class BenchmarkDotNetDiffer
             return null;
         }
 
-        if (!baseFiles.Any() || !resultsFiles.Any())
+        if (baseFiles.Length == 0 || resultsFiles.Length == 0)
         {
-            logger.LogError($"Provided paths contained no '{FullBdnJsonFileExtension}' files.");
+            logger.LogError("Provided paths contained no '{FileExtension}' files.", FullBdnJsonFileExtension);
             return null;
         }
 
-        (bool baseResultsSuccess, BdnResult?[] baseResults) = await BenchmarkFileReader.TryGetBdnResultAsync(baseFiles, logger).ConfigureAwait(false);
+        (bool baseResultsSuccess, BdnResult?[] baseResults) = await BenchmarkFileReader.TryGetBdnResultAsync(baseFiles, logger, cancellationToken).ConfigureAwait(false);
         if (!baseResultsSuccess)
         {
             return null;
         }
 
-        (bool resultsSuccess, BdnResult?[] diffResults) = await BenchmarkFileReader.TryGetBdnResultAsync(resultsFiles, logger).ConfigureAwait(false);
+        (bool resultsSuccess, BdnResult?[] diffResults) = await BenchmarkFileReader.TryGetBdnResultAsync(resultsFiles, logger, cancellationToken).ConfigureAwait(false);
         if (!resultsSuccess)
         {
             return null;
@@ -78,10 +80,16 @@ public static class BenchmarkDotNetDiffer
             .SelectMany(result => result?.Benchmarks ?? Enumerable.Empty<Benchmark>())
             .ToDictionary(benchmarkResult => benchmarkResult.FullName ?? $"Unknown-{Guid.NewGuid():N}", benchmarkResult => benchmarkResult);
 
-        return benchmarkIdToBaseResults
-            .Where(baseResult => benchmarkIdToDiffResults.ContainsKey(baseResult.Key))
-            .Select(baseResult => new BdnComparisonResult(baseResult.Key, baseResult.Value, benchmarkIdToDiffResults[baseResult.Key]))
-            .ToArray();
+        List<BdnComparisonResult> matched = [];
+        foreach (KeyValuePair<string, Benchmark> baseResult in benchmarkIdToBaseResults)
+        {
+            if (benchmarkIdToDiffResults.TryGetValue(baseResult.Key, out Benchmark? diffBenchmark))
+            {
+                matched.Add(new BdnComparisonResult(baseResult.Key, baseResult.Value, diffBenchmark));
+            }
+        }
+
+        return matched.ToArray();
     }
 
     private static bool TryGetFilesToParse(string path, [NotNullWhen(true)] out string[]? files)

@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.CommandLine;
-using System.CommandLine.Rendering;
+using System.Collections.Frozen;
 using Microsoft.Extensions.Logging;
 
 namespace PerfDiff.Logging;
@@ -12,14 +10,12 @@ namespace PerfDiff.Logging;
 /// </summary>
 internal sealed class SimpleConsoleLogger : ILogger
 {
-    private readonly Lock _gate = new();
+    private static readonly Lock Gate = new();
 
-    private readonly IConsole _console;
-    private readonly ITerminal _terminal;
     private readonly LogLevel _minimalLogLevel;
     private readonly LogLevel _minimalErrorLevel;
 
-    private static ImmutableDictionary<LogLevel, ConsoleColor> LogLevelColorMap => new Dictionary<LogLevel, ConsoleColor>
+    private static readonly FrozenDictionary<LogLevel, ConsoleColor> LogLevelColorMap = new Dictionary<LogLevel, ConsoleColor>
     {
         [LogLevel.Critical] = ConsoleColor.Red,
         [LogLevel.Error] = ConsoleColor.Red,
@@ -28,18 +24,15 @@ internal sealed class SimpleConsoleLogger : ILogger
         [LogLevel.Debug] = ConsoleColor.Gray,
         [LogLevel.Trace] = ConsoleColor.Gray,
         [LogLevel.None] = ConsoleColor.White,
-    }.ToImmutableDictionary();
+    }.ToFrozenDictionary();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SimpleConsoleLogger"/> class.
     /// </summary>
-    /// <param name="console">The console to write output to.</param>
     /// <param name="minimalLogLevel">The minimal log level for output.</param>
     /// <param name="minimalErrorLevel">The minimal log level for error output.</param>
-    public SimpleConsoleLogger(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
+    public SimpleConsoleLogger(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
     {
-        _terminal = console.GetTerminal();
-        _console = console;
         _minimalLogLevel = minimalLogLevel;
         _minimalErrorLevel = minimalErrorLevel;
     }
@@ -52,17 +45,20 @@ internal sealed class SimpleConsoleLogger : ILogger
             return;
         }
 
-        lock (_gate)
+        lock (Gate)
         {
             string message = formatter(state, exception);
             bool logToErrorStream = logLevel >= _minimalErrorLevel;
-            if (_terminal is null)
+            ConsoleColor messageColor = LogLevelColorMap[logLevel];
+
+            Console.ForegroundColor = messageColor;
+            try
             {
-                LogToConsole(_console, message, logToErrorStream);
+                LogToConsole(message, logToErrorStream);
             }
-            else
+            finally
             {
-                LogToTerminal(message, logLevel, logToErrorStream);
+                Console.ResetColor();
             }
         }
     }
@@ -80,25 +76,15 @@ internal sealed class SimpleConsoleLogger : ILogger
         return NullScope.Instance;
     }
 
-    private void LogToTerminal(string message, LogLevel logLevel, bool logToErrorStream)
-    {
-        ConsoleColor messageColor = LogLevelColorMap[logLevel];
-        _terminal.ForegroundColor = messageColor;
-
-        LogToConsole(_terminal, message, logToErrorStream);
-
-        _terminal.ResetColor();
-    }
-
-    private static void LogToConsole(IConsole console, string message, bool logToErrorStream)
+    private static void LogToConsole(string message, bool logToErrorStream)
     {
         if (logToErrorStream)
         {
-            console.Error.Write($"{message}{Environment.NewLine}");
+            Console.Error.Write($"{message}{Environment.NewLine}");
         }
         else
         {
-            console.Out.Write($"  {message}{Environment.NewLine}");
+            Console.Out.Write($"  {message}{Environment.NewLine}");
         }
     }
 }

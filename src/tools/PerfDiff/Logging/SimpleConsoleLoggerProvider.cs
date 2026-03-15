@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using System.CommandLine;
 using Microsoft.Extensions.Logging;
 
 namespace PerfDiff.Logging;
@@ -10,27 +9,22 @@ namespace PerfDiff.Logging;
 /// </summary>
 internal sealed class SimpleConsoleLoggerProvider : ILoggerProvider
 {
-    private readonly IConsole _console;
-    private readonly LogLevel _minimalLogLevel;
-    private readonly LogLevel _minimalErrorLevel;
+    private readonly SimpleConsoleLogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SimpleConsoleLoggerProvider"/> class.
     /// </summary>
-    /// <param name="console">The console to write output to.</param>
     /// <param name="minimalLogLevel">The minimal log level for output.</param>
     /// <param name="minimalErrorLevel">The minimal log level for error output.</param>
-    public SimpleConsoleLoggerProvider(IConsole console, LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
+    public SimpleConsoleLoggerProvider(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
     {
-        _console = console;
-        _minimalLogLevel = minimalLogLevel;
-        _minimalErrorLevel = minimalErrorLevel;
+        _logger = new SimpleConsoleLogger(minimalLogLevel, minimalErrorLevel);
     }
 
     /// <inheritdoc/>
     public ILogger CreateLogger(string categoryName)
     {
-        return new SimpleConsoleLogger(_console, _minimalLogLevel, _minimalErrorLevel);
+        return _logger;
     }
 
     /// <inheritdoc/>
