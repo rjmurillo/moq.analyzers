@@ -6,7 +6,7 @@ Roslyn analyzer NuGet package for the Moq mocking framework. Detects common mist
 
 ## Tech Stack
 
-- **Language**: C# 13, .NET 10 SDK (pinned via global.json, currently 10.0.201)
+- **Language**: C# 14, .NET 10 SDK (pinned via global.json; see global.json for the exact version)
 - **Analyzer target**: .NET Standard 2.0 (runs inside compiler hosts)
 - **Roslyn SDK**: Microsoft.CodeAnalysis 4.8 (supports VS 2022 17.8+)
 - **Build**: SDK-style projects, Central Package Management (Directory.Packages.props)
@@ -18,7 +18,7 @@ Roslyn analyzer NuGet package for the Moq mocking framework. Detects common mist
 
 ## Counts (verified 2026-03-15)
 
-- **23 DiagnosticAnalyzer classes** in src/Analyzers/
+- **24 DiagnosticAnalyzer classes** in src/Analyzers/
 - **5 CodeFixProvider classes** in src/CodeFixes/
 - **7 .csproj projects** in Moq.Analyzers.sln
 
@@ -27,7 +27,7 @@ Roslyn analyzer NuGet package for the Moq mocking framework. Detects common mist
 ```text
 Moq.Analyzers.sln
   src/
-    Analyzers/       - 23 DiagnosticAnalyzer implementations
+    Analyzers/       - 24 DiagnosticAnalyzer implementations
     CodeFixes/       - 5 CodeFixProvider implementations
     Common/          - Shared helpers, extension methods, well-known types
       WellKnown/     - MoqKnownSymbols.cs, KnownSymbols.cs, MoqKnownSymbolExtensions.cs

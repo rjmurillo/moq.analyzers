@@ -1,6 +1,6 @@
 # Core Architectural Patterns
 
-Patterns used consistently across all 23 analyzers and 5 fixers. Follow these when adding new components.
+Patterns used consistently across all 24 analyzers and 5 fixers. Follow these when adding new components.
 
 ## WellKnown Types Pattern
 
@@ -34,7 +34,7 @@ Exit immediately when the code under analysis is not relevant. Order checks chea
 ```csharp
 // 1. Check if Moq is even referenced (uses IsMockReferenced(), not a null check on a property)
 if (!knownSymbols.IsMockReferenced()) return;
-// 2. Check containing type (cheaper than full symbol comparison)
+// 2. Name pre-filter (performance hint only — NOT a semantic check; must be followed by step 3)
 if (invocation.TargetMethod.ContainingType.Name != "Mock") return;
 // 3. Full symbol comparison (expensive — only do if cheap checks pass)
 if (!invocation.TargetMethod.ContainingType.Equals(knownSymbols.Mock1, SymbolEqualityComparer.Default)) return;
@@ -46,7 +46,6 @@ if (!invocation.TargetMethod.ContainingType.Equals(knownSymbols.Mock1, SymbolEqu
 Create once inside `RegisterCompilationStartAction`; pass through call chains via closure or parameter. Do NOT create inside per-operation callbacks.
 
 ```csharp
-// Correct — created once at compilation start, passed via closure:
 context.RegisterCompilationStartAction(compilationContext =>
 {
     MoqKnownSymbols knownSymbols = new(compilationContext.Compilation);
@@ -55,12 +54,6 @@ context.RegisterCompilationStartAction(compilationContext =>
         ctx => AnalyzeInvocation(ctx, knownSymbols), // knownSymbols captured once
         OperationKind.Invocation);
 });
-
-// Wrong — allocates a new MoqKnownSymbols on every analyzed operation:
-private static void AnalyzeInvocation(OperationAnalysisContext context) {
-    MoqKnownSymbols knownSymbols = new(context.Compilation); // repeated per operation
-    ValidateMember(context.Operation, knownSymbols);
-}
 ```
 
 ## Diagnostic Location Precision

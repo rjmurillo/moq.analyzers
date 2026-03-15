@@ -64,12 +64,12 @@ Analyzers use `context.RegisterOperationAction()` with `OperationKind` values as
   | Analyzer | Reason |
   |---|---|
   | `ConstructorArgumentsShouldMatchAnalyzer` | Uses ObjectCreationExpression + InvocationExpression; `IOperation` cannot distinguish implicit vs explicit object creation |
-  | `EventSetupHandlerShouldMatchEventTypeAnalyzer` | |
-  | `RaiseEventArgumentsShouldMatchEventSignatureAnalyzer` | |
-  | `RaisesEventArgumentsShouldMatchEventSignatureAnalyzer` | |
-  | `ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer` | |
-  | `ReturnsDelegateShouldReturnTaskAnalyzer` | |
-  | `SetupShouldNotIncludeAsyncResultAnalyzer` | |
+  | `EventSetupHandlerShouldMatchEventTypeAnalyzer` | Inspects `+=`/`-=` operator tokens (`SyntaxKind.PlusEqualsToken`) on event handler arguments; these assignment operator tokens are not exposed through `IOperation` for invocation arguments |
+  | `RaiseEventArgumentsShouldMatchEventSignatureAnalyzer` | Walks `InvocationExpressionSyntax` to resolve chained Raise/event argument structure; relies on syntax shape of method call chains not represented in `IOperation` |
+  | `RaisesEventArgumentsShouldMatchEventSignatureAnalyzer` | Same as `RaiseEventArgumentsShouldMatchEventSignatureAnalyzer` for the `Raises` variant |
+  | `ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer` | Detects `async` keyword on lambda syntax (`lambda.AsyncKeyword`); `IAnonymousFunctionOperation` does not expose the async modifier as a queryable property |
+  | `ReturnsDelegateShouldReturnTaskAnalyzer` | Checks absence of `AsyncKeyword` on anonymous function syntax to identify sync delegates; same `IAnonymousFunctionOperation` limitation as above |
+  | `SetupShouldNotIncludeAsyncResultAnalyzer` | Matches chained `.Setup(x => x.Method().Result)` patterns via syntax tree shape; the `.Result` access inside a lambda argument requires syntax-level walking not available through `IOperation` |
 
 ## References
 

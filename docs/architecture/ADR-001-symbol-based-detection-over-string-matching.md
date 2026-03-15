@@ -48,7 +48,7 @@ All analyzers use Roslyn symbol APIs (`ISymbol`, `INamedTypeSymbol`, `SymbolEqua
 
 ## Implementation Notes
 
-- **IMP-001**: `MoqKnownSymbols` is constructed via `MoqKnownSymbols.Create(compilation)` at the start of each `CompilationStartAnalysisContext` callback.
+- **IMP-001**: `MoqKnownSymbols` is constructed via `new MoqKnownSymbols(compilation)` at the start of each `CompilationStartAnalysisContext` callback and passed to operation action callbacks via closure capture.
 - **IMP-002**: Analyzers check for null symbols from `MoqKnownSymbols` before proceeding. A null symbol means Moq is not referenced; the analyzer returns without reporting.
 - **IMP-003**: `SymbolEqualityComparer.Default` is used for all symbol equality checks to avoid accidental reference equality.
 

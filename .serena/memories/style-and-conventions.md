@@ -3,7 +3,7 @@
 ## General
 
 - Follow .NET Framework Design Guidelines
-- C# 13 language features allowed
+- C# 14 language features allowed
 - Conventional Commits format for git messages (e.g., `feat:`, `fix:`, `chore:`, `docs:`)
 - EditorConfig enforces formatting rules (tabs/spaces, line endings, etc.)
 
@@ -11,7 +11,7 @@
 
 - PascalCase for public types, methods, properties
 - camelCase for local variables and parameters
-- Prefix interfaces with `I` (e.g., `ITypeSymbolExtensions`)
+- Prefix interfaces with `I` (e.g., `IAnalysisService`)
 - Suffix analyzers with `Analyzer` (e.g., `NoSealedClassMocksAnalyzer`)
 - Suffix code fixes with `Fixer` (e.g., `SetExplicitMockBehaviorFixer`)
 - Extension method classes named `{Type}Extensions` (e.g., `IMethodSymbolExtensions`)
