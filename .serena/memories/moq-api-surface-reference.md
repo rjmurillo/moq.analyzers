@@ -13,6 +13,7 @@ dotnet-inspect member "TypeName" --package Moq --all  # All members
 ## Complete Type Catalog (73 types)
 
 ### Public Classes (21)
+
 - `Moq.It` (17 members): IsAny, Is (3), IsIn (3), IsInRange, IsNotIn (3), IsNotNull, IsRegex (2)
 - `Moq.Mock` (60 members): Static helpers (Get, Of, Verify)
 - `Moq.Mock<T>` (98 members): Core mock class
@@ -24,6 +25,7 @@ dotnet-inspect member "TypeName" --package Moq --all  # All members
 - `Moq.CaptureMatch<T>`, `Moq.Capture`, `Moq.Match`, `Moq.Match<T>`, etc.
 
 ### Extension Method Classes (critical for analyzer detection)
+
 - `Moq.ReturnsExtensions` (27 members): ReturnsAsync and related
 - `Moq.GeneratedReturnsExtensions` (30 members): Generated Returns overloads
 - `Moq.SequenceExtensions` (12 members): SetupSequence result extensions
@@ -38,6 +40,7 @@ dotnet-inspect member "TypeName" --package Moq --all  # All members
 Mock<T>.Setup(expr) returns ISetup<TMock> or ISetup<TMock, TResult>
 
 IReturnsThrows<TMock, TResult> (0 own members, composes IReturns + IThrows)
+
 - IReturns<TMock, TResult> (21 members: Returns x20, CallBase x1)
 - IThrows (20 members: Throws overloads)
 
@@ -45,12 +48,14 @@ ICallback<TMock, TResult> (19 Callback overloads) returns IReturnsThrows<TMock, 
 ICallback (19 Callback overloads) returns ICallbackResult
 
 ### Return Types (what .Returns()/.Throws() etc. return)
+
 - IReturnsResult<TMock> (0 own members, marker for completed setup)
 - IThrowsResult (0 own members, marker for completed throws)
 - ICallbackResult (0 own members, marker for completed callback)
 - ICallBaseResult (0 own members, marker for completed callbase)
 
 ### Getter/Setter Setup Chain
+
 - Mock<T>.SetupGet(expr) returns ISetupGetter<TMock, TProperty>
 - Mock<T>.SetupSet(expr) returns ISetupSetter<TMock, TProperty>
 - IReturnsGetter<TMock, TProperty> (3 members: Returns x2, CallBase x1)
@@ -58,14 +63,17 @@ ICallback (19 Callback overloads) returns ICallbackResult
 - ICallbackSetter<TProperty> (1 member: Callback)
 
 ### Sequential Setup Chain
+
 - Mock<T>.SetupSequence(expr) returns ISetupSequentialResult<TResult> or ISetupSequentialAction
 - ISetupSequentialResult<TResult> (6 members: Returns x2, Throws x3, CallBase)
 - ISetupSequentialAction (4 members: Pass, Throws x3)
 
 ### Conditional Setup
+
 - mock.When(condition) returns ISetupConditionResult<T> (5 members: Setup x2, SetupGet, SetupSet x2)
 
 ### Raises and Verification
+
 - IRaise<T> (19 members: Raises overloads)
 - IVerifies (2 members: Verifiable overloads)
 - IOccurrence (2 members: AtMostOnce, AtMost)
@@ -73,13 +81,14 @@ ICallback (19 Callback overloads) returns ICallbackResult
 ## IReturns<TMock, TResult> - 20 Returns Overloads
 
 All return IReturnsResult<TMock>:
+
 1. Returns(TResult value) - direct value
 2. Returns(Func<TResult>) - zero-arg factory
 3. Returns<T1>(Func<T1, TResult>) - 1-arg factory
 4. Returns<T1, T2>(Func<T1, T2, TResult>) - 2-arg factory
 5-18. Returns<T1..T16>(Func<T1..T16, TResult>) - up to 16-arg factory
-19. Returns(Delegate) - catch-all delegate
-20. CallBase() - call base implementation
+5. Returns(Delegate) - catch-all delegate
+6. CallBase() - call base implementation
 
 IMPORTANT: T1..T16 are ARGUMENT types, not return types. Returns<string>(s => ...) produces GenericNameSyntax in Roslyn.
 
@@ -95,6 +104,7 @@ IMPORTANT: T1..T16 are ARGUMENT types, not return types. Returns<string>(s => ..
 - As<TAnalog>() x1 returns IProtectedAsMock<TMock, TAnalog>
 
 ### IProtectedAsMock<TMock, TAnalog> - 12 Members
+
 Lambda-based protected setup/verify. Uses regular It matchers (NOT ItExpr).
 
 ## Mock<T> Key Method Return Types
@@ -149,6 +159,7 @@ Tests run against BOTH versions. Analyzers must handle both.
 | ISetupSequentialAction | 3 members | 4 members | +1 (Pass added) |
 
 ### Key API Additions in 4.18.4 (not in 4.8.2)
+
 - Returns(Delegate) catch-all overload (the one that causes Moq1208 issues)
 - IThrows generic overloads Throws<T1>..Throws<T16>
 - Protected Setup<TResult> generic overloads (3 added)
@@ -157,6 +168,7 @@ Tests run against BOTH versions. Analyzers must handle both.
 - It.Is<TValue> additional overloads
 
 ### Stable Across Both Versions
+
 - All fluent interface types exist in both versions (same namespaces, same arity)
 - ItExpr: identical 5 methods in both versions
 - IReturnsResult<TMock>, IThrowsResult, ICallbackResult: exist in both
@@ -164,7 +176,9 @@ Tests run against BOTH versions. Analyzers must handle both.
 - Mock<T>.Setup/Verify core methods: same signatures
 
 ### Test Version Configuration
+
 Defined in tests/Moq.Analyzers.Test/Helpers/ReferenceAssemblyCatalog.cs:
+
 - Net80: .NET 8.0 without Moq (tests early exit via IsMockReferenced)
 - Net80WithOldMoq: Moq 4.8.2 (pre-4.13.1, before As<T>() internal change)
 - Net80WithNewMoq: Moq 4.18.4 (most downloaded version)

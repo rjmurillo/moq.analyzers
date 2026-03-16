@@ -47,6 +47,7 @@ Index of session-derived learnings stored in Serena memories.
 - `local-and-ci-configuration` -- Git hooks (pre-commit, pre-push), CI workflows (14 total), linter configs, build flags, AI editor rules, known broken configs (#1081, #1084, #1085)
 
 ## API Reference
+
 - `moq-api-surface-reference` -- Complete Moq 4.18.4 API surface verified via dotnet-inspect. 73 types, all fluent interfaces, 20 Returns overloads, IProtectedMock 25 members, It vs ItExpr comparison. LOAD THIS before implementing any analyzer.
 - `critical-mistakes-prevention` -- Hard-won lessons: phantom symbols, Returns<T> trap, Roslyn target-type inference, testing requirements
 
