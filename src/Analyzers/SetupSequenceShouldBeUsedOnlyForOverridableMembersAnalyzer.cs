@@ -16,7 +16,7 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : Diagno
         DiagnosticIds.SetupSequenceOnlyUsedForOverridableMembers,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.Correctness,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         Description,

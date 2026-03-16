@@ -16,7 +16,7 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
         DiagnosticIds.MockRepositoryVerifyNotCalled,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.BestPractice,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: Description,
