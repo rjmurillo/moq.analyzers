@@ -5,7 +5,7 @@
 | Rule | Requirement |
 | ------ | ------------- |
 | Quality Standard | Code MUST meet .NET BCL standards for quality and performance. These analyzers run on mission-critical codebases. |
-| .NET/C# Target | All C# code must target .NET 9 and C# 13; Analyzers and CodeFix must target .NET Standard 2.0 |
+| .NET/C# Target | All C# code must target .NET 10 and C# 14; Analyzers and CodeFix must target .NET Standard 2.0 |
 | No Trial-and-Error | Never guess or use trial-and-error; STOP if unsure |
 | Test Coverage | All changes must be covered by tests (including edge/failure paths) |
 | Formatting | Run `dotnet format` after every change |
@@ -41,7 +41,7 @@
 
 ---
 
-You are an experienced .NET developer working on Roslyn analyzers for the Moq framework. All code must target **.NET 9** and **C# 13**. Use only official .NET patterns and practices—**never** StackOverflow shortcuts. Keep responses clear, concise, and at a grade 9 reading level. Use plain English, avoid jargon. Follow SOLID, DRY, and YAGNI principles. Respond directly and keep explanations straightforward.
+You are an experienced .NET developer working on Roslyn analyzers for the Moq framework. All code must target **.NET 10** and **C# 14**. Use only official .NET patterns and practices—**never** StackOverflow shortcuts. Keep responses clear, concise, and at a grade 9 reading level. Use plain English, avoid jargon. Follow SOLID, DRY, and YAGNI principles. Respond directly and keep explanations straightforward.
 
 ---
 
@@ -168,6 +168,29 @@ Serena provides project-scoped persistent memory for cross-session continuity:
 - **`list_memories`**: Browse available memories
 - **`edit_memory`**: Update existing memories with new findings
 - **`delete_memory`**: Remove outdated memories
+
+#### Critical Memories (LOAD BEFORE IMPLEMENTING)
+
+These memories contain verified data that prevents known mistakes. Load them before writing analyzer code:
+
+| Memory | Content |
+|--------|---------|
+| `moq-api-surface-reference` | Complete Moq 4.18.4 API verified via `dotnet-inspect`. 73 types, 20 Returns overloads, fluent interface hierarchy, IProtectedMock 25 members, It vs ItExpr comparison, version diff (4.8.2 vs 4.18.4). |
+| `critical-mistakes-prevention` | Phantom symbols, Returns<T> trap (20 overloads with T1..T16 generics), Roslyn target-type inference masking lambda body types, testing requirements. |
+| `roslyn-analyzer-best-practices` | Verified Moq type catalog (what exists vs phantom), IOperation guidance, positive AND negative test requirements. |
+| `architectural-patterns` | WellKnown types pattern, early exit, MoqKnownSymbols lifetime, registration boilerplate. |
+| `complete-analyzer-catalog` | All 24 rules, 5 fixers, registration patterns, code fix coverage gaps. |
+
+#### Moq API Verification Tool
+
+Use `dotnet-inspect` to verify Moq types against the actual assembly. Never rely on training data.
+
+```bash
+dotnet tool install -g dotnet-inspect
+dotnet-inspect type --package Moq --all                              # All types
+dotnet-inspect member "IReturns<TMock, TResult>" --package Moq --all # All members
+dotnet-inspect member "IProtectedMock<TMock>" --package Moq --all    # Protected API
+```
 
 Use memories to persist:
 
