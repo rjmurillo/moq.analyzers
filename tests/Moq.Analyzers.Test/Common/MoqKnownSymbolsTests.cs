@@ -159,6 +159,20 @@ public class MoqKnownSymbolsTests
     }
 
     [Fact]
+    public void IReturnsResult1_WithoutMoqReference_ReturnsNull()
+    {
+        MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
+        Assert.Null(symbols.IReturnsResult1);
+    }
+
+    [Fact]
+    public void IThrowsResult_WithoutMoqReference_ReturnsNull()
+    {
+        MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
+        Assert.Null(symbols.IThrowsResult);
+    }
+
+    [Fact]
     public void ReturnsExtensions_WithoutMoqReference_ReturnsNull()
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
@@ -824,6 +838,23 @@ public class MoqKnownSymbolsTests
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.IThrows);
         Assert.Equal("IThrows", symbols.IThrows!.Name);
+    }
+
+    [Fact]
+    public async Task IReturnsResult1_WithMoqReference_ReturnsNamedTypeSymbol()
+    {
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
+        Assert.NotNull(symbols.IReturnsResult1);
+        Assert.Equal("IReturnsResult", symbols.IReturnsResult1!.Name);
+        Assert.Equal(1, symbols.IReturnsResult1.Arity);
+    }
+
+    [Fact]
+    public async Task IThrowsResult_WithMoqReference_ReturnsNamedTypeSymbol()
+    {
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
+        Assert.NotNull(symbols.IThrowsResult);
+        Assert.Equal("IThrowsResult", symbols.IThrowsResult!.Name);
     }
 
     [Fact]
