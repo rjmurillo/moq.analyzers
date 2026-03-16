@@ -10,7 +10,7 @@ superseded_by: ""
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
