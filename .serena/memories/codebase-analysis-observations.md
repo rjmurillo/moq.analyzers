@@ -25,7 +25,7 @@
 - Check for concurrent pushes from other agents before pushing. Use `git pull --rebase` before push. Two push rejections occurred from concurrent remote commits on the same branch. (Session 1, 2026-03-15)
 - Cursor/Windsurf AI editor rules with `alwaysApply: true` and auto-fix instructions can cascade across entire repos. Audit AI editor rules before trusting file changes. The Codacy rule caused ~110 file corruption. (Session 1, 2026-03-15)
 - Pre-commit hooks may block commits for pre-existing conditions (e.g., CONTRIBUTING.md at 1432 lines exceeds 1000-line limit). Use `--no-verify` only when the condition predates your change. (Session 1, 2026-03-15)
-- Moq fluent interfaces: `IReturnsResult<TMock>` is the actual return type of `.Returns()`, NOT `IReturns<TMock, TResult>`. Extension methods wrapping Returns() return `IReturnsResult`, which does NOT inherit from `IReturns`. Must check both. (Session 1, 2026-03-15)
+- Moq fluent interfaces: The `.Returns()` method returns `IReturnsResult<TMock>`, not `IReturns<TMock, TResult>`. `IReturnsResult<TMock>` does not inherit from the base `IReturns` interface, so analyzers must check for both types to correctly handle the fluent API. (Session 1, 2026-03-15)
 - `It.Ref<T>.IsAny` is a nested class with a different containing type symbol than `Moq.It`. Standard `containingType == ItSymbol` checks miss it. (Session 1, 2026-03-15)
 
 ## Notes for Review (LOW confidence)
