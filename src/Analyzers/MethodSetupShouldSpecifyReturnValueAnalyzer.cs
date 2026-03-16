@@ -18,7 +18,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         DiagnosticIds.MethodSetupShouldSpecifyReturnValue,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.Correctness,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: Description,

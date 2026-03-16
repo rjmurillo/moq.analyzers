@@ -17,7 +17,7 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         DiagnosticIds.SetupOnlyUsedForOverridableMembers,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.Correctness,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: Description,

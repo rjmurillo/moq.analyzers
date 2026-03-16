@@ -17,7 +17,7 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
         DiagnosticIds.SetStrictMockBehavior,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.BestPractice,
         DiagnosticSeverity.Info,
         isEnabledByDefault: true,
         description: Description,

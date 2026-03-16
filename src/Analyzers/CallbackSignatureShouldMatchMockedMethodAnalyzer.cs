@@ -17,7 +17,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         DiagnosticIds.BadCallbackParameters,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.Correctness,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: Description,

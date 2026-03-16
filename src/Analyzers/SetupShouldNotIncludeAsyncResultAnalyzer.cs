@@ -14,7 +14,7 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
         DiagnosticIds.AsyncUsesReturnsAsyncInsteadOfResult,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.Correctness,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: Description,
