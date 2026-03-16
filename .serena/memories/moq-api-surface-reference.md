@@ -129,3 +129,43 @@ Lambda-based protected setup/verify. Uses regular It matchers (NOT ItExpr).
 | Ref | It.Ref<T>.IsAny (nested class) | ItExpr.Ref<T>.IsAny |
 
 IMPORTANT: It.Ref<T> is a nested class. ContainingType is NOT Moq.It. Symbol detection must handle this.
+
+## Version Differences: Moq 4.8.2 vs 4.18.4
+
+Tests run against BOTH versions. Analyzers must handle both.
+
+### Member Count Differences
+
+| Type | 4.8.2 | 4.18.4 | Delta |
+|------|-------|--------|-------|
+| Moq.It | 10 methods | 17 methods | +7 (Is x2, IsIn x1, IsNotIn x1 added) |
+| IReturns<TMock, TResult> | 19 Returns + CallBase | 20 Returns + CallBase | +1 (Delegate overload added) |
+| IThrows | 2 Throws | 20 Throws | +18 (generic overloads T1..T16 added) |
+| ICallback | 18 Callback | 19 Callback | +1 |
+| ICallback<TMock, TResult> | 18 Callback | 19 Callback | +1 |
+| IProtectedMock<TMock> | 14 members | 25 members | +11 (Setup x3, SetupSequence x2, Verify x6) |
+| IProtectedAsMock<T, TAnalog> | 9 members | 12 members | +3 |
+| ISetupSequentialResult<TResult> | 4 members | 6 members | +2 (Returns, Throws overloads) |
+| ISetupSequentialAction | 3 members | 4 members | +1 (Pass added) |
+
+### Key API Additions in 4.18.4 (not in 4.8.2)
+- Returns(Delegate) catch-all overload (the one that causes Moq1208 issues)
+- IThrows generic overloads Throws<T1>..Throws<T16>
+- Protected Setup<TResult> generic overloads (3 added)
+- Protected Verify<TResult> generic overloads (4 added)
+- ISetupSequentialAction.Pass() method
+- It.Is<TValue> additional overloads
+
+### Stable Across Both Versions
+- All fluent interface types exist in both versions (same namespaces, same arity)
+- ItExpr: identical 5 methods in both versions
+- IReturnsResult<TMock>, IThrowsResult, ICallbackResult: exist in both
+- ISetupGetter, ISetupSetter: exist in both (arity 2)
+- Mock<T>.Setup/Verify core methods: same signatures
+
+### Test Version Configuration
+Defined in tests/Moq.Analyzers.Test/Helpers/ReferenceAssemblyCatalog.cs:
+- Net80: .NET 8.0 without Moq (tests early exit via IsMockReferenced)
+- Net80WithOldMoq: Moq 4.8.2 (pre-4.13.1, before As<T>() internal change)
+- Net80WithNewMoq: Moq 4.18.4 (most downloaded version)
+- Net80WithNewMoqAndLogging: Moq 4.18.4 + Microsoft.Extensions.Logging.Abstractions 8.0.0
