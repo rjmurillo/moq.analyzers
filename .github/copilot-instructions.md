@@ -5,7 +5,7 @@
 | Rule | Requirement |
 | ------ | ------------- |
 | Quality Standard | Code MUST meet .NET BCL standards for quality and performance. These analyzers run on mission-critical codebases. |
-| .NET/C# Target | All C# code must target .NET 10 and C# 14; Analyzers and CodeFix must target .NET Standard 2.0 |
+| .NET/C# Target | Development uses .NET 10 SDK (per global.json) with C# 14 language features; Analyzers and CodeFix must target .NET Standard 2.0 |
 | No Trial-and-Error | Never guess or use trial-and-error; STOP if unsure |
 | Test Coverage | All changes must be covered by tests (including edge/failure paths) |
 | Formatting | Run `dotnet format` after every change |

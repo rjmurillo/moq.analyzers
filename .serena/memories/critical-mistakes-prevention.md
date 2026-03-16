@@ -33,11 +33,11 @@ IReturns<TMock, TResult> has 20 Returns overloads + 1 CallBase. All return IRetu
 - VerifySet: 1 overload (string, Times, object)
 - As: 1 overload, returns IProtectedAsMock<TMock, TAnalog>
 
-### ItExpr has 5 methods (verified via dotnet-inspect)
+### ItExpr has 5 distinct method names, 6 total members (verified via dotnet-inspect)
 - IsAny, Is, IsInRange, IsNull, IsRegex (2 overloads)
 - All return Expression, not T (unlike Moq.It which returns TValue)
 
-### It has 7 methods (verified via dotnet-inspect)
+### It has 7 distinct method names, 17 total members (verified via dotnet-inspect)
 - IsAny, Is (3 overloads), IsIn (3), IsInRange, IsNotIn (3), IsNotNull, IsRegex (2)
 - All return TValue
 
@@ -57,9 +57,10 @@ EXISTS:
 - Moq.Language.Flow.ISetupGetter<TMock, TProperty> (arity 2)
 - Moq.Language.Flow.ISetupSetter<TMock, TProperty> (arity 2)
 
-DO NOT EXIST (phantom):
-- IReturns (non-generic) - DOES NOT EXIST
-- IReturns<T> (arity 1) - DOES NOT EXIST
+DO NOT EXIST (phantom - confirmed by dotnet-inspect AND MoqKnownSymbolsTests Assert.Null):
+- IReturns (non-generic) - DOES NOT EXIST. MoqKnownSymbols.IReturns resolves to null. Test: MoqKnownSymbolsTests.cs line 116 Assert.Null(symbols.IReturns)
+- IReturns<T> (arity 1) - DOES NOT EXIST. MoqKnownSymbols.IReturns1 resolves to null. Test: MoqKnownSymbolsTests.cs line 123 Assert.Null(symbols.IReturns1)
+- WARNING: MoqKnownSymbols.cs still defines properties for these phantom types. The properties exist in C# code but resolve to null at runtime. Do not be fooled by their existence in the source. The tests prove they are null.
 
 ### Protected API
 - ItExpr is in Moq.Protected namespace, returns Expression<T> not T
@@ -86,4 +87,4 @@ The v0.4.1 and v0.4.2 releases were caused by missing negative tests for simple 
 - Always verify MoqKnownSymbols resolve to non-null
 - Always run build with PedanticMode AND all tests before claiming done
 - Documentation (README, docs/rules/, AnalyzerReleases) is part of done for new analyzers
-- source ~/.zshrc before any dotnet command (snap SDK differs from required SDK)
+- Verify `dotnet --version` matches global.json before running commands. Multiple SDK installs (e.g., snap vs manual) can cause version mismatch. Run `dotnet --info` to check.

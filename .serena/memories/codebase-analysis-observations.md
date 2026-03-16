@@ -17,7 +17,7 @@
 
 - Use GraphQL batch mutations for resolving multiple PR review threads. One API call replaces N individual calls. Resolved 22 threads in 4 batch calls. (Session 1, 2026-03-15)
 - Use reflection-based completeness tests to guard against gaps. Example: AllAnalyzers_ShouldHaveCategoryTest discovers all DiagnosticAnalyzer types and verifies each has a test. Pit of success design. (Session 1, 2026-03-15)
-- `source ~/.zshrc` is required before any `dotnet` command. The snap-installed SDK (10.0.104) differs from the required SDK (10.0.201 at ~/.dotnet). (Session 1, 2026-03-15)
+- Verify `dotnet --version` matches global.json before running commands. Multiple SDK installs can cause version mismatch. Use `dotnet --info` to diagnose. (Session 1, 2026-03-15)
 - Use `pipx install` instead of `pip install` for Python tools on modern Debian/Ubuntu. PEP 668 blocks pip in externally-managed environments. (Session 1, 2026-03-15)
 
 ## Edge Cases (MED confidence)

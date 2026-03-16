@@ -1,5 +1,8 @@
 # Roslyn Analyzer Best Practices
 
+**Last Updated**: 2026-03-15
+**Sessions Analyzed**: 1
+
 ## IOperation-Specific Guidance
 
 ### Lambda-Parameter Guards
