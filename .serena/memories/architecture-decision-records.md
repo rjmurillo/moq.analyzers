@@ -15,7 +15,7 @@ Location: `docs/architecture/ADR-NNN-subject-in-kebab-case.md`
 | ADR-007 | Prefer RegisterOperationAction Over RegisterSyntaxNodeAction | Accepted |
 | ADR-008 | BenchmarkDotNet and PerfDiff for Performance Regression Detection | Accepted |
 | ADR-009 | xUnit with Roslyn Test Infrastructure | Accepted |
-| ADR-010 | Use eol=lf for PowerShell Files in .gitattributes | Proposed |
+| ADR-010 | Use eol=lf for PowerShell Files in .gitattributes | Accepted |
 
 ## ADR Format
 
