@@ -16,7 +16,7 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         DiagnosticIds.VerifyOnlyUsedForOverridableMembers,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.Correctness,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: Description,

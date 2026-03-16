@@ -21,7 +21,7 @@ something is wrong with your Moq configuration.
 | [Moq1003](docs/rules/Moq1003.md) | Usage         | Internal type requires InternalsVisibleTo for DynamicProxy                              |
 | [Moq1004](docs/rules/Moq1004.md) | Usage         | ILogger should not be mocked                                                            |
 | [Moq1100](docs/rules/Moq1100.md) | Correctness   | Callback signature must match the signature of the mocked method                        |
-| [Moq1101](docs/rules/Moq1101.md) | Usage         | SetupGet/SetupSet/SetupProperty should be used for properties, not for methods          |
+| [Moq1101](docs/rules/Moq1101.md) | Correctness   | SetupGet/SetupSet/SetupProperty should be used for properties, not for methods          |
 | [Moq1200](docs/rules/Moq1200.md) | Correctness   | Setup should be used only for overridable members                                       |
 | [Moq1201](docs/rules/Moq1201.md) | Correctness   | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result`         |
 | [Moq1202](docs/rules/Moq1202.md) | Correctness   | Raise event arguments should match the event delegate signature                         |
@@ -37,7 +37,7 @@ something is wrong with your Moq configuration.
 | [Moq1302](docs/rules/Moq1302.md) | Usage         | LINQ to Mocks expression should be valid                                                |
 | [Moq1400](docs/rules/Moq1400.md) | Best Practice | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior |
 | [Moq1410](docs/rules/Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              |
-| [Moq1420](docs/rules/Moq1420.md) | Best Practice | Redundant `Times.AtLeastOnce()` specification can be removed                            |
+| [Moq1420](docs/rules/Moq1420.md) | Usage         | Redundant `Times.AtLeastOnce()` specification can be removed                            |
 | [Moq1500](docs/rules/Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                |
 
 See [docs/rules/README.md](docs/rules/README.md) for full documentation.

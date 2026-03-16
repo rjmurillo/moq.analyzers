@@ -17,7 +17,7 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
         DiagnosticIds.PropertySetupUsedForMethod,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.Correctness,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: Description,

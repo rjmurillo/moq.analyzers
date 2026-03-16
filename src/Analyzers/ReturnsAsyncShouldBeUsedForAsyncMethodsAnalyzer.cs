@@ -14,7 +14,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         DiagnosticIds.ReturnsAsyncShouldBeUsedForAsyncMethods,
         Title,
         Message,
-        DiagnosticCategory.Usage,
+        DiagnosticCategory.Correctness,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: Description,
