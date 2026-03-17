@@ -61,7 +61,7 @@ The global rule was chosen over path-specific rules (e.g., `build/scripts/**`) b
 
 - **IMP-001**: Add the three glob rules (`*.ps1`, `*.psm1`, `*.psd1`) to `.gitattributes` in the file-type section alongside existing extension-based rules.
 - **IMP-001a**: Add a corresponding `[*.{ps1,psm1,psd1}]` section to `.editorconfig` with `end_of_line = lf` so editors enforce LF on save, preventing CRLF from being introduced during editing.
-- **IMP-002**: After pulling the merged fix, contributors should run `git add --renormalize . && git checkout .` to apply the new line ending rules. Alternatively, a fresh clone applies the rules automatically. Document this in the PR description and CONTRIBUTING.md.
+- **IMP-002**: After pulling the merged fix, contributors should run `git add --renormalize . && git checkout .` to apply the new line ending rules. Alternatively, a fresh clone applies the rules automatically. Document this in the PR description.
 - **IMP-003**: Verify the fix by running the pre-push hook on Windows (Git Bash), macOS, and Linux. The `Scan-TodoComments.ps1` script must parse without errors on all three platforms.
 
 ## References
