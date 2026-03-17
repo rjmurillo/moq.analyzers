@@ -50,37 +50,34 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
    - [yamllint](https://yamllint.readthedocs.io/) (Python): `pipx install yamllint`
    - [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2) (Node.js): `npm install -g markdownlint-cli2`
 
-6. **Git hooks** auto-configure on first `dotnet build` or `dotnet restore`.
-   Hooks require [PowerShell Core](https://aka.ms/powershell) (`pwsh`).
+6. **Git hooks** are managed by [Husky.NET](https://github.com/alirezanet/Husky.Net) and auto-configure on first `dotnet build` or `dotnet restore`. Hook tasks are defined in `.husky/task-runner.json`.
 
-   **What each hook checks:**
-
-   | Hook | Check | Mode | Tool |
-   | ------ | ------- | ------ | ------ |
-   | pre-commit | Large file detection | Fail on error | Built-in (500 KB / 1000 lines) |
-   | pre-commit | C# formatting | Auto-fix + re-stage | `dotnet format` |
-   | pre-commit | Markdown lint | Auto-fix + re-stage | `markdownlint-cli2` |
-   | pre-commit | YAML lint | Lint only | `yamllint` |
-   | pre-commit | JSON validation | Lint only | `python3 -m json.tool` |
-   | pre-commit | Shell scripts | Lint only | `shellcheck` |
-   | pre-commit | GitHub Actions | Lint only | `actionlint` |
-   | pre-push | Build | Fail on error | `dotnet build` |
-   | pre-push | Tests | Fail on error | `dotnet test` |
-
-   **Optional tool installation:**
+   Hooks require [PowerShell Core](https://aka.ms/powershell) (`pwsh`) and the following tools on PATH:
 
    ```bash
-   npm install -g markdownlint-cli2   # Markdown auto-fix
+   npm install -g markdownlint-cli2   # Markdown lint
    pipx install yamllint               # YAML lint
    # shellcheck: apt install shellcheck / brew install shellcheck
    # actionlint: go install github.com/rhysd/actionlint/cmd/actionlint@latest
    ```
 
-   Missing optional tools are skipped with a warning. C# formatting via `dotnet format` is always available.
+   **What each hook checks:**
+
+   | Hook | Check | Tool |
+   | ------ | ------- | ------ |
+   | pre-commit | Large file detection (500 KB / 1000 lines) | `pwsh` |
+   | pre-commit | C# formatting | `dotnet format` |
+   | pre-commit | Markdown lint | `markdownlint-cli2` |
+   | pre-commit | YAML lint | `yamllint` |
+   | pre-commit | JSON validation | `python3` |
+   | pre-commit | Shell scripts | `shellcheck` |
+   | pre-commit | GitHub Actions | `actionlint` |
+   | pre-push | Tech debt scan | `pwsh` |
+   | pre-push | Build and test (CI-parity flags) | `dotnet build` + `dotnet test` |
+
+   All tools are required. Missing tools fail the hook.
 
    Bypass hooks for WIP commits: `git commit --no-verify`
-
-   Manual setup (if auto-configure fails): `git config core.hooksPath .githooks`
 
 ## Universal Agent Success Principles for Project Maintainers
 
