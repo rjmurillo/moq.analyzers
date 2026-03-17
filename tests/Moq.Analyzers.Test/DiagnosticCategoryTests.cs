@@ -18,6 +18,7 @@ public class DiagnosticCategoryTests
             { new MockGetShouldNotTakeLiteralsAnalyzer(), "Moq1301", DiagnosticCategory.Usage },
             { new LinqToMocksExpressionShouldBeValidAnalyzer(), "Moq1302", DiagnosticCategory.Usage },
             { new RedundantTimesSpecificationAnalyzer(), "Moq1420", DiagnosticCategory.Usage },
+            { new ProtectedSetupShouldUseItExprAnalyzer(), "Moq1600", DiagnosticCategory.Usage },
         };
 
     public static TheoryData<DiagnosticAnalyzer, string, string> CorrectnessAnalyzers =>
