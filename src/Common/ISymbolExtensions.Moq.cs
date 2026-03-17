@@ -188,15 +188,13 @@ internal static partial class ISymbolExtensions
     }
 
     /// <summary>
-    /// Determines whether a type symbol implements any Moq fluent interface from the
-    /// <c>Moq.Language</c> or <c>Moq.Language.Flow</c> namespaces. Used to detect
-    /// wrapper methods (e.g., extension methods) that internally configure the setup
-    /// chain and return a Moq fluent type.
+    /// Determines whether a type symbol is or implements any Moq fluent interface from
+    /// the <c>Moq.Language</c> or <c>Moq.Language.Flow</c> namespaces.
     /// </summary>
-    /// <param name="typeSymbol">The return type of the method to check.</param>
+    /// <param name="typeSymbol">The type symbol to check.</param>
     /// <param name="knownSymbols">Known Moq symbols resolved from the compilation.</param>
     /// <returns>
-    /// <see langword="true"/> if the type implements or is a Moq fluent interface;
+    /// <see langword="true"/> if the type is or implements a Moq fluent interface;
     /// otherwise, <see langword="false"/>.
     /// </returns>
     internal static bool ImplementsMoqFluentInterface(this ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
@@ -226,11 +224,11 @@ internal static partial class ISymbolExtensions
     }
 
     /// <summary>
-    /// Checks if the symbol is a Raises method from ICallback interfaces.
+    /// Checks if the symbol is a Raises method from ICallback, ISetupGetter, or ISetupSetter interfaces.
     /// </summary>
     /// <param name="symbol">The symbol to check.</param>
     /// <param name="knownSymbols">The known symbols for type checking.</param>
-    /// <returns>True if the symbol is a callback Raises method; otherwise false.</returns>
+    /// <returns>True if the symbol is a Raises method from one of these interfaces; otherwise false.</returns>
     private static bool IsCallbackRaisesMethod(ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
         return symbol.IsInstanceOf(knownSymbols.ICallbackRaises) ||
@@ -319,23 +317,29 @@ internal static partial class ISymbolExtensions
 
     /// <summary>
     /// Compares a type symbol against the set of known Moq fluent interface symbols
-    /// that indicate a return value has been or can be configured.
+    /// that indicate the fluent chain is active and a return value can be configured.
     /// </summary>
     /// <remarks>
     /// <para>
     /// This method intentionally excludes <c>ICallback</c>, <c>ICallback{TMock}</c>, and
     /// <c>ICallback{TMock, TResult}</c> because these interfaces do not inherit from
-    /// <c>IReturns</c> and do not indicate that a return value has been configured.
-    /// Types like <c>ISetup{TMock, TResult}</c> that inherit from <c>IReturns</c> are
-    /// still caught via <see cref="HasMoqFluentInterfaceInHierarchy"/> when checking
+    /// <c>IReturns{TMock, TResult}</c> and do not indicate that a return value can be
+    /// configured. Types like <c>ISetup{TMock, TResult}</c> that inherit from
+    /// <c>IReturns{TMock, TResult}</c> are still caught via
+    /// <see cref="HasMoqFluentInterfaceInHierarchy"/> when checking
     /// <see cref="ITypeSymbol.AllInterfaces"/>.
     /// </para>
     /// <para>
-    /// Only symbols that exist in Moq are checked. <c>Moq.Language.IReturns</c> (arity 0)
-    /// and <c>Moq.Language.IReturns`1</c> (arity 1) do not exist in Moq; only
-    /// <c>Moq.Language.IReturns`2</c> exists. <c>IReturnsResult{TMock}</c> is the actual
-    /// return type of <c>.Returns()</c> and <c>.ReturnsAsync()</c>, and
-    /// <c>IThrowsResult</c> is the return type of <c>.Throws()</c>.
+    /// Only <c>IReturns{TMock, TResult}</c> (arity 2) is checked. <c>Moq.Language.IReturns</c>
+    /// (arity 0) and <c>Moq.Language.IReturns{T}</c> (arity 1) resolve to null in Moq 4.18+
+    /// and are not part of the fluent setup chain.
+    /// </para>
+    /// <para>
+    /// <c>IThrows</c>, <c>ISetup{TResult}</c>, <c>ISetupGetter{TMock, TProperty}</c>, and
+    /// <c>ISetupSetter{TMock, TProperty}</c> are included because a wrapper method may
+    /// return these types directly. <c>IReturnsResult{TMock}</c> is the return type of
+    /// <c>.Returns()</c> and <c>.ReturnsAsync()</c>. <c>IThrowsResult</c> is the return
+    /// type of <c>.Throws()</c>.
     /// </para>
     /// </remarks>
     private static bool IsMatchingFluentSymbol(INamedTypeSymbol type, MoqKnownSymbols knownSymbols)

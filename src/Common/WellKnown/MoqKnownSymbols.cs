@@ -246,7 +246,7 @@ internal class MoqKnownSymbols : KnownSymbols
     internal INamedTypeSymbol? MockRepository => TypeProvider.GetOrCreateTypeByMetadataName("Moq.MockRepository");
 
     /// <summary>
-    /// Gets the methods for <c>Moq.MockRepository.Of</c>.
+    /// Gets the methods for <c>Moq.MockRepository.Create</c>.
     /// </summary>
     /// <remarks>
     /// <c>MockRepository</c> is a subclass of <c>MockFactory</c>.

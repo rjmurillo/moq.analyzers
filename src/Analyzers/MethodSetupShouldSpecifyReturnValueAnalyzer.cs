@@ -189,9 +189,9 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
             }
 
             // When a non-Moq method (e.g., an extension method) appears in the chain,
-            // check if its return type implements a Moq fluent interface. A return type
-            // like IReturns<TMock, TResult> indicates the method wraps the setup
-            // configuration internally and preserves the fluent chain.
+            // check if its return type implements a Moq fluent interface. The analyzer
+            // assumes such methods handle return value specification internally or pass
+            // the chain through for further configuration.
             if (IsFluentChainWrapperMethod(symbolInfo, knownSymbols))
             {
                 return true;
@@ -241,8 +241,9 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     /// <summary>
     /// Determines whether a method in the chain is a wrapper (e.g., an extension method)
-    /// whose return type implements a Moq fluent interface. Such methods wrap the setup
-    /// configuration internally (calling Returns/Throws inside) and return the fluent chain.
+    /// whose return type implements a Moq fluent interface. Such methods are assumed to
+    /// handle return value specification internally, as indicated by their Moq fluent
+    /// return type.
     /// </summary>
     private static bool IsFluentChainWrapperMethod(SymbolInfo symbolInfo, MoqKnownSymbols knownSymbols)
     {
@@ -261,9 +262,9 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     /// <summary>
     /// Returns true when <paramref name="method"/> is a user-defined wrapper whose return
-    /// type implements a Moq fluent interface. Known Moq return-value and callback methods
-    /// are excluded because they are already handled by <see cref="HasReturnValueSymbol"/>
-    /// and <see cref="IsKnownReturnValueMethodName"/>.
+    /// type implements a Moq fluent interface. Known Moq return-value, callback, and raises
+    /// methods are excluded because they are already handled by earlier checks in the
+    /// chain walk.
     /// </summary>
     private static bool IsWrapperMethod(IMethodSymbol method, MoqKnownSymbols knownSymbols)
     {

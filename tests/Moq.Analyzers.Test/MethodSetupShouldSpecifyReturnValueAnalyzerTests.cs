@@ -442,7 +442,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             new Mock<IFoo>().Setup(x => x.DoSomething("test")).ReturnsTrue();
             """],
 
-            // Extension method on async setup returning Task result wrapper
+            // Extension method returning IReturns<TMock, Task<int>> that calls Returns internally
             ["""
             var moq = new Mock<IFoo>();
             moq.Setup(x => x.BarAsync()).ReturnsOneAsync();
@@ -458,6 +458,27 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
             ["""
             var moq = new Mock<IFoo>();
             moq.Setup(x => x.GetValue()).ThrowsInvalidOp();
+            """],
+
+            // Extension method on async setup that calls ReturnsAsync internally
+            ["""
+            var moq = new Mock<IFoo>();
+            moq.Setup(x => x.BarAsync()).ReturnsOneAsyncViaReturnsAsync();
+            """],
+
+            // Extension method on ValueTask setup using Returns(new ValueTask<T>(...))
+            ["""
+            var moq = new Mock<IFoo>();
+            moq.Setup(x => x.BazValueTaskAsync()).ReturnsOneValueTask();
+            """],
+
+            // Accepted false negative: no-op passthrough returning a fluent type without
+            // calling Returns. The analyzer cannot inspect the wrapper body, so it assumes
+            // methods returning fluent types handle configuration internally. Documented
+            // tradeoff: this suppresses Moq1203 even though no return value is configured.
+            ["""
+            var moq = new Mock<IFoo>();
+            moq.Setup(x => x.GetValue()).NoOpPassthrough();
             """],
         ];
 
@@ -653,6 +674,7 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
                 int GetValue();
                 int Calculate(int a, int b);
                 Task<int> BarAsync();
+                ValueTask<int> BazValueTaskAsync();
                 void DoVoidMethod();
                 void ProcessData(string data);
                 string Name { get; set; }
@@ -709,6 +731,26 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
                     where TMock : class
                 {
                     return Task.CompletedTask;
+                }
+
+                public static IReturns<TMock, Task<int>> ReturnsOneAsyncViaReturnsAsync<TMock>(this IReturns<TMock, Task<int>> mock)
+                    where TMock : class
+                {
+                    mock.ReturnsAsync(1);
+                    return mock;
+                }
+
+                public static IReturns<TMock, ValueTask<int>> ReturnsOneValueTask<TMock>(this IReturns<TMock, ValueTask<int>> mock)
+                    where TMock : class
+                {
+                    mock.Returns(new ValueTask<int>(1));
+                    return mock;
+                }
+
+                public static ISetup<TMock, TResult> NoOpPassthrough<TMock, TResult>(this ISetup<TMock, TResult> setup)
+                    where TMock : class
+                {
+                    return setup;
                 }
             }
 
