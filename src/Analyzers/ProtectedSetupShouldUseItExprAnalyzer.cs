@@ -44,7 +44,7 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Require both Protected API types and It type to be available
+        // Require IProtectedMock<T> and It types to be resolvable
         if (knownSymbols.IProtectedMock1 is null || knownSymbols.It is null)
         {
             return;
@@ -128,14 +128,21 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
         // Unwrap all conversions (both implicit and explicit) to handle casts like (object)It.IsAny<string>()
         IOperation current = operation.WalkDownConversion();
 
-        // Direct It.* call as argument
+        // Direct It.* call as argument (e.g., It.IsAny<string>())
         if (current is IInvocationOperation matcherInvocation)
         {
             ReportIfItMatcher(context, matcherInvocation, knownSymbols);
             return;
         }
 
-        // params array: It.* calls appear inside array creation
+        // It.Ref<T>.IsAny is a field access, not a method call
+        if (current is IFieldReferenceOperation fieldReference)
+        {
+            ReportIfItRefField(context, fieldReference, knownSymbols);
+            return;
+        }
+
+        // params array: It.* calls or It.Ref<T>.IsAny appear inside array creation
         if (current is IArrayCreationOperation arrayCreation)
         {
             ScanArrayInitializer(context, arrayCreation, knownSymbols);
@@ -160,6 +167,10 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
             {
                 ReportIfItMatcher(context, elementInvocation, knownSymbols);
             }
+            else if (unwrapped is IFieldReferenceOperation elementFieldReference)
+            {
+                ReportIfItRefField(context, elementFieldReference, knownSymbols);
+            }
         }
     }
 
@@ -168,25 +179,63 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
         IInvocationOperation invocation,
         MoqKnownSymbols knownSymbols)
     {
-        IMethodSymbol matcherMethod = invocation.TargetMethod;
-        INamedTypeSymbol? containingType = matcherMethod.ContainingType;
+        INamedTypeSymbol? containingType = invocation.TargetMethod.ContainingType;
 
         if (containingType is null)
         {
             return;
         }
 
-        // Check if the containing type is Moq.It (not Moq.Protected.ItExpr).
-        // TODO: It.Ref<T>.IsAny is a nested type (Moq.It+Ref<T>) with a different containing
-        // type symbol than Moq.It, so this check does not detect it. Track in a future issue.
-        if (!SymbolEqualityComparer.Default.Equals(containingType, knownSymbols.It))
+        if (!IsContainedInMoqIt(containingType, knownSymbols))
         {
             return;
         }
 
-        string itMethodName = matcherMethod.Name;
+        context.ReportDiagnostic(
+            invocation.Syntax.GetLocation().CreateDiagnostic(Rule, invocation.TargetMethod.Name));
+    }
+
+    private static void ReportIfItRefField(
+        OperationAnalysisContext context,
+        IFieldReferenceOperation fieldReference,
+        MoqKnownSymbols knownSymbols)
+    {
+        INamedTypeSymbol? containingType = fieldReference.Field.ContainingType;
+
+        if (containingType is null)
+        {
+            return;
+        }
+
+        if (!IsContainedInMoqIt(containingType, knownSymbols))
+        {
+            return;
+        }
+
+        string typeDisplay = fieldReference.Field.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+        string diagnosticArg = $"Ref<{typeDisplay}>.{fieldReference.Field.Name}";
 
         context.ReportDiagnostic(
-            invocation.Syntax.GetLocation().CreateDiagnostic(Rule, itMethodName));
+            fieldReference.Syntax.GetLocation().CreateDiagnostic(Rule, diagnosticArg));
+    }
+
+    private static bool IsContainedInMoqIt(INamedTypeSymbol containingType, MoqKnownSymbols knownSymbols)
+    {
+        INamedTypeSymbol? moqIt = knownSymbols.It;
+
+        // Direct match: Moq.It (covers It.IsAny, It.Is, etc.)
+        if (SymbolEqualityComparer.Default.Equals(containingType, moqIt))
+        {
+            return true;
+        }
+
+        // Nested type match: Moq.It+Ref<T> (covers It.Ref<T>.IsAny)
+        if (containingType.ContainingType is not null
+            && SymbolEqualityComparer.Default.Equals(containingType.ContainingType, moqIt))
+        {
+            return true;
+        }
+
+        return false;
     }
 }
