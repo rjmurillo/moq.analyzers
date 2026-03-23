@@ -26,6 +26,7 @@
 | [Moq1410](./Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              | [SetStrictMockBehaviorAnalyzer.cs](../../src/Analyzers/SetStrictMockBehaviorAnalyzer.cs)                                                           |
 | [Moq1420](./Moq1420.md) | Usage         | Redundant Times.AtLeastOnce() specification can be removed                              | [RedundantTimesSpecificationAnalyzer.cs](../../src/Analyzers/RedundantTimesSpecificationAnalyzer.cs)                                               |
 | [Moq1500](./Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                | [MockRepositoryVerifyAnalyzer.cs](../../src/Analyzers/MockRepositoryVerifyAnalyzer.cs)                                                             |
+| [Moq1600](./Moq1600.md) | Usage         | Protected setup should use `ItExpr` matchers                                            | [ProtectedSetupShouldUseItExprAnalyzer.cs](../../src/Analyzers/ProtectedSetupShouldUseItExprAnalyzer.cs)                                           |
 
 ## Guidance for Future Rules
 
@@ -45,7 +46,8 @@
 | Moq1300-1399 | Usage         | Restricts use of literals, enforces API usage patterns      |
 | Moq1400-1499 | Best Practice | Encourages explicit/strict mock behavior                    |
 | Moq1500-1599 | Best Practice | Repository and verification patterns                        |
-| Moq1600-1999 | Reserved      | Reserved for future rules                                   |
+| Moq1600-1699 | Usage         | Protected member setup and verification patterns            |
+| Moq1700-1999 | Reserved      | Reserved for future rules                                   |
 
 - When adding new rules, assign the next available ID in the appropriate category range.
 - Document new rules in this table, including their category, a concise title, and links to both documentation and implementation.

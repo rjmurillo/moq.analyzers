@@ -8,6 +8,7 @@ Rule ID | Category | Severity | Notes
 Moq1003 | Usage | Warning | InternalTypeMustHaveInternalsVisibleToAnalyzer
 Moq1004 | Usage | Warning | NoMockOfLoggerAnalyzer
 Moq1208 | Correctness | Warning | ReturnsDelegateShouldReturnTaskAnalyzer
+Moq1600 | Usage | Warning | ProtectedSetupShouldUseItExprAnalyzer
 
 ### Changed Rules
 
