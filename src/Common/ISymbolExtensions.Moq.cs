@@ -188,6 +188,22 @@ internal static partial class ISymbolExtensions
     }
 
     /// <summary>
+    /// Determines whether a type symbol is or implements any Moq fluent interface from
+    /// the <c>Moq.Language</c> or <c>Moq.Language.Flow</c> namespaces.
+    /// </summary>
+    /// <param name="typeSymbol">The type symbol to check.</param>
+    /// <param name="knownSymbols">Known Moq symbols resolved from the compilation.</param>
+    /// <returns>
+    /// <see langword="true"/> if the type is or implements a Moq fluent interface;
+    /// otherwise, <see langword="false"/>.
+    /// </returns>
+    internal static bool ImplementsMoqFluentInterface(this ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
+    {
+        return IsMoqFluentType(typeSymbol, knownSymbols)
+            || HasMoqFluentInterfaceInHierarchy(typeSymbol, knownSymbols);
+    }
+
+    /// <summary>
     /// Checks if the symbol is a Raises method from ISetup / ISetupPhrase interfaces.
     /// </summary>
     private static bool IsSetupRaisesMethod(ISymbol symbol, MoqKnownSymbols knownSymbols)
@@ -208,11 +224,11 @@ internal static partial class ISymbolExtensions
     }
 
     /// <summary>
-    /// Checks if the symbol is a Raises method from ICallback interfaces.
+    /// Checks if the symbol is a Raises method from ICallback, ISetupGetter, or ISetupSetter interfaces.
     /// </summary>
     /// <param name="symbol">The symbol to check.</param>
     /// <param name="knownSymbols">The known symbols for type checking.</param>
-    /// <returns>True if the symbol is a callback Raises method; otherwise false.</returns>
+    /// <returns>True if the symbol is a Raises method from one of these interfaces; otherwise false.</returns>
     private static bool IsCallbackRaisesMethod(ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
         return symbol.IsInstanceOf(knownSymbols.ICallbackRaises) ||
@@ -264,5 +280,76 @@ internal static partial class ISymbolExtensions
 
         return genericType != null &&
                SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType.OriginalDefinition, genericType);
+    }
+
+    /// <summary>
+    /// Checks if the type itself is a known Moq fluent interface.
+    /// </summary>
+    private static bool IsMoqFluentType(ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
+    {
+        if (typeSymbol is not INamedTypeSymbol namedType)
+        {
+            return false;
+        }
+
+        INamedTypeSymbol original = namedType.IsGenericType ? namedType.ConstructedFrom : namedType;
+
+        return IsMatchingFluentSymbol(original, knownSymbols);
+    }
+
+    /// <summary>
+    /// Walks the AllInterfaces list to find any Moq fluent interface in the type hierarchy.
+    /// </summary>
+    private static bool HasMoqFluentInterfaceInHierarchy(ITypeSymbol typeSymbol, MoqKnownSymbols knownSymbols)
+    {
+        foreach (INamedTypeSymbol iface in typeSymbol.AllInterfaces)
+        {
+            INamedTypeSymbol original = iface.IsGenericType ? iface.ConstructedFrom : iface;
+
+            if (IsMatchingFluentSymbol(original, knownSymbols))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Compares a type symbol against the set of known Moq fluent interface symbols
+    /// that indicate the fluent chain is active and a return value can be configured.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This method intentionally excludes <c>ICallback</c>, <c>ICallback{TMock}</c>, and
+    /// <c>ICallback{TMock, TResult}</c> because these interfaces do not inherit from
+    /// <c>IReturns{TMock, TResult}</c> and do not indicate that a return value can be
+    /// configured. Types like <c>ISetup{TMock, TResult}</c> that inherit from
+    /// <c>IReturns{TMock, TResult}</c> are still caught via
+    /// <see cref="HasMoqFluentInterfaceInHierarchy"/> when checking
+    /// <see cref="ITypeSymbol.AllInterfaces"/>.
+    /// </para>
+    /// <para>
+    /// Only <c>IReturns{TMock, TResult}</c> (arity 2) is checked. <c>Moq.Language.IReturns</c>
+    /// (arity 0) and <c>Moq.Language.IReturns{T}</c> (arity 1) resolve to null in Moq 4.18+
+    /// and are not part of the fluent setup chain.
+    /// </para>
+    /// <para>
+    /// <c>IThrows</c>, <c>ISetup{TResult}</c>, <c>ISetupGetter{TMock, TProperty}</c>, and
+    /// <c>ISetupSetter{TMock, TProperty}</c> are included because a wrapper method may
+    /// return these types directly. <c>IReturnsResult{TMock}</c> is the return type of
+    /// <c>.Returns()</c> and <c>.ReturnsAsync()</c>. <c>IThrowsResult</c> is the return
+    /// type of <c>.Throws()</c>.
+    /// </para>
+    /// </remarks>
+    private static bool IsMatchingFluentSymbol(INamedTypeSymbol type, MoqKnownSymbols knownSymbols)
+    {
+        return SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturns2)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IThrows)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetup1)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetupGetter)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.ISetupSetter)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IReturnsResult1)
+            || SymbolEqualityComparer.Default.Equals(type, knownSymbols.IThrowsResult);
     }
 }
