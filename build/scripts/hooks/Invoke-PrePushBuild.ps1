@@ -9,9 +9,16 @@
 [CmdletBinding()]
 param()
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 $env:DOTNET_ROLL_FORWARD = "LatestMajor"
 
 $repoRoot = git rev-parse --show-toplevel
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Unable to determine repository root" -ForegroundColor Red
+    exit 1
+}
 $sln = Join-Path $repoRoot "Moq.Analyzers.sln"
 
 Write-Host "Building (Release, CI-parity flags)..."

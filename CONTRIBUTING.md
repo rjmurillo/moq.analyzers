@@ -52,7 +52,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
 
 6. **Git hooks** are managed by [Husky.NET](https://github.com/alirezanet/Husky.Net) and auto-configure on first `dotnet build` or `dotnet restore`. Hook tasks are defined in `.husky/task-runner.json`.
 
-   Hooks require [PowerShell Core](https://aka.ms/powershell) (`pwsh`) and the following tools on PATH:
+   Hooks require [PowerShell Core](https://aka.ms/powershell) (`pwsh`), [Python 3](https://www.python.org/downloads/) (`python3` or `python`), and the following tools on PATH:
 
    ```bash
    npm install -g markdownlint-cli2   # Markdown lint
@@ -69,7 +69,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE-OF-CONDU
    | pre-commit | C# formatting | `dotnet format` |
    | pre-commit | Markdown lint | `markdownlint-cli2` |
    | pre-commit | YAML lint | `yamllint` |
-   | pre-commit | JSON validation | `python3` |
+   | pre-commit | JSON validation | `pwsh` (Test-JsonValid.ps1, calls `python3`/`python`) |
    | pre-commit | Shell scripts | `shellcheck` |
    | pre-commit | GitHub Actions | `actionlint` |
    | pre-push | Tech debt scan | `pwsh` |

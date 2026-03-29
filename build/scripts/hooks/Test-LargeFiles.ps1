@@ -19,7 +19,14 @@ param(
     [string[]]$SourceExtensions = @('.cs', '.ps1', '.sh', '.yaml', '.yml', '.json', '.xml', '.md')
 )
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 $repoRoot = git rev-parse --show-toplevel
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Unable to determine repository root" -ForegroundColor Red
+    exit 1
+}
 $stagedFiles = git diff --cached --name-only --diff-filter=d
 if ($LASTEXITCODE -ne 0 -or -not $stagedFiles) {
     exit 0

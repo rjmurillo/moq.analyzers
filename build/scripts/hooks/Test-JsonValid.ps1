@@ -12,6 +12,9 @@ param(
     [string[]]$Files
 )
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 if (-not $Files -or $Files.Count -eq 0) {
     exit 0
 }

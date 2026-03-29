@@ -12,7 +12,7 @@ All tools are required. Missing tools fail the hook (no soft-skip).
 2. **C# formatting**: `dotnet format --verify-no-changes` on staged `.cs` files
 3. **Markdown linting**: `markdownlint-cli2` on staged `.md` files (lint only)
 4. **YAML linting**: `yamllint` on staged `.yml`/`.yaml` files
-5. **GitHub Actions linting**: `actionlint` on `.github/workflows/*.yml`
+5. **GitHub Actions linting**: `actionlint` on `.github/workflows/*.{yml,yaml}`
 6. **JSON validation**: `build/scripts/hooks/Test-JsonValid.ps1` on staged `.json` files (excludes `.verified.json`)
 7. **Shell linting**: `shellcheck` on staged `.sh`/`.bash` files
 
