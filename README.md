@@ -39,6 +39,7 @@ something is wrong with your Moq configuration.
 | [Moq1410](docs/rules/Moq1410.md) | Best Practice | Explicitly set the Strict mocking behavior                                              |
 | [Moq1420](docs/rules/Moq1420.md) | Usage         | Redundant `Times.AtLeastOnce()` specification can be removed                            |
 | [Moq1500](docs/rules/Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                |
+| [Moq1600](docs/rules/Moq1600.md) | Usage         | Protected setup should use `ItExpr` matchers                                            |
 
 See [docs/rules/README.md](docs/rules/README.md) for full documentation.
 

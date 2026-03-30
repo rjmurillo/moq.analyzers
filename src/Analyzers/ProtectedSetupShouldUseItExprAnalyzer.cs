@@ -1,0 +1,241 @@
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
+namespace Moq.Analyzers;
+
+/// <summary>
+/// Protected member setups using string-based overloads must use ItExpr matchers, not It matchers.
+/// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly LocalizableString Title = "Moq: Protected setup should use ItExpr";
+    private static readonly LocalizableString Message = "Protected member setup uses 'It.{0}' which is not compatible with string-based overloads; use an ItExpr matcher instead";
+    private static readonly LocalizableString Description = "Protected member setups using string-based overloads must use ItExpr matchers instead of It matchers.";
+
+    private static readonly DiagnosticDescriptor Rule = new(
+        DiagnosticIds.ProtectedSetupUsesItMatcherInsteadOfItExpr,
+        Title,
+        Message,
+        DiagnosticCategory.Usage,
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: Description,
+        helpLinkUri: $"https://github.com/rjmurillo/moq.analyzers/blob/{ThisAssembly.GitCommitId}/docs/rules/{DiagnosticIds.ProtectedSetupUsesItMatcherInsteadOfItExpr}.md");
+
+    /// <inheritdoc />
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
+
+    /// <inheritdoc />
+    public override void Initialize(AnalysisContext context)
+    {
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
+
+        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
+    }
+
+    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
+    {
+        MoqKnownSymbols knownSymbols = new(context.Compilation);
+
+        if (!knownSymbols.IsMockReferenced())
+        {
+            return;
+        }
+
+        // Require IProtectedMock<T> and It types to be resolvable
+        if (knownSymbols.IProtectedMock1 is null || knownSymbols.It is null)
+        {
+            return;
+        }
+
+        // Collect all string-based protected Setup/Verify methods
+        ImmutableArray<IMethodSymbol> protectedStringMethods = BuildProtectedStringMethods(knownSymbols);
+
+        if (protectedStringMethods.IsEmpty)
+        {
+            return;
+        }
+
+        context.RegisterOperationAction(
+            operationAnalysisContext => Analyze(operationAnalysisContext, knownSymbols, protectedStringMethods),
+            OperationKind.Invocation);
+    }
+
+    private static ImmutableArray<IMethodSymbol> BuildProtectedStringMethods(MoqKnownSymbols knownSymbols)
+    {
+        ImmutableArray<IMethodSymbol>.Builder builder = ImmutableArray.CreateBuilder<IMethodSymbol>();
+        AddStringOverloads(builder, knownSymbols.IProtectedMock1Setup);
+        AddStringOverloads(builder, knownSymbols.IProtectedMock1SetupSet);
+        AddStringOverloads(builder, knownSymbols.IProtectedMock1SetupSequence);
+        AddStringOverloads(builder, knownSymbols.IProtectedMock1Verify);
+        AddStringOverloads(builder, knownSymbols.IProtectedMock1VerifySet);
+        return builder.ToImmutable();
+    }
+
+    private static void AddStringOverloads(ImmutableArray<IMethodSymbol>.Builder builder, ImmutableArray<IMethodSymbol> methods)
+    {
+        foreach (IMethodSymbol method in methods)
+        {
+            if (HasStringFirstParameter(method))
+            {
+                builder.Add(method);
+            }
+        }
+    }
+
+    private static bool HasStringFirstParameter(IMethodSymbol method)
+    {
+        if (method.Parameters.IsEmpty)
+        {
+            return false;
+        }
+
+        return method.Parameters[0].Type.SpecialType == SpecialType.System_String;
+    }
+
+    private static void Analyze(
+        OperationAnalysisContext context,
+        MoqKnownSymbols knownSymbols,
+        ImmutableArray<IMethodSymbol> protectedStringMethods)
+    {
+        Debug.Assert(context.Operation is IInvocationOperation, "Expected IInvocationOperation");
+
+        if (context.Operation is not IInvocationOperation invocationOperation)
+        {
+            return;
+        }
+
+        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
+        if (!targetMethod.IsInstanceOf(protectedStringMethods))
+        {
+            return;
+        }
+
+        // Scan all arguments for It.* matcher usage
+        foreach (IArgumentOperation argument in invocationOperation.Arguments)
+        {
+            ScanForItMatchers(context, argument.Value, knownSymbols);
+        }
+    }
+
+    private static void ScanForItMatchers(
+        OperationAnalysisContext context,
+        IOperation operation,
+        MoqKnownSymbols knownSymbols)
+    {
+        // Unwrap all conversions (both implicit and explicit) to handle casts like (object)It.IsAny<string>()
+        IOperation current = operation.WalkDownConversion();
+
+        // Direct It.* call as argument (e.g., It.IsAny<string>())
+        if (current is IInvocationOperation matcherInvocation)
+        {
+            ReportIfItMatcher(context, matcherInvocation, knownSymbols);
+            return;
+        }
+
+        // It.Ref<T>.IsAny is a field access, not a method call
+        if (current is IFieldReferenceOperation fieldReference)
+        {
+            ReportIfItRefField(context, fieldReference, knownSymbols);
+            return;
+        }
+
+        // params array: It.* calls or It.Ref<T>.IsAny appear inside array creation
+        if (current is IArrayCreationOperation arrayCreation)
+        {
+            ScanArrayInitializer(context, arrayCreation, knownSymbols);
+        }
+    }
+
+    private static void ScanArrayInitializer(
+        OperationAnalysisContext context,
+        IArrayCreationOperation arrayCreation,
+        MoqKnownSymbols knownSymbols)
+    {
+        if (arrayCreation.Initializer is null)
+        {
+            return;
+        }
+
+        foreach (IOperation element in arrayCreation.Initializer.ElementValues)
+        {
+            IOperation unwrapped = element.WalkDownConversion();
+
+            if (unwrapped is IInvocationOperation elementInvocation)
+            {
+                ReportIfItMatcher(context, elementInvocation, knownSymbols);
+            }
+            else if (unwrapped is IFieldReferenceOperation elementFieldReference)
+            {
+                ReportIfItRefField(context, elementFieldReference, knownSymbols);
+            }
+        }
+    }
+
+    private static void ReportIfItMatcher(
+        OperationAnalysisContext context,
+        IInvocationOperation invocation,
+        MoqKnownSymbols knownSymbols)
+    {
+        INamedTypeSymbol? containingType = invocation.TargetMethod.ContainingType;
+
+        if (containingType is null)
+        {
+            return;
+        }
+
+        if (!IsContainedInMoqIt(containingType, knownSymbols))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(
+            invocation.Syntax.GetLocation().CreateDiagnostic(Rule, invocation.TargetMethod.Name));
+    }
+
+    private static void ReportIfItRefField(
+        OperationAnalysisContext context,
+        IFieldReferenceOperation fieldReference,
+        MoqKnownSymbols knownSymbols)
+    {
+        INamedTypeSymbol? containingType = fieldReference.Field.ContainingType;
+
+        if (containingType is null)
+        {
+            return;
+        }
+
+        if (!IsContainedInMoqIt(containingType, knownSymbols))
+        {
+            return;
+        }
+
+        string typeDisplay = fieldReference.Field.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+        string diagnosticArg = $"Ref<{typeDisplay}>.{fieldReference.Field.Name}";
+
+        context.ReportDiagnostic(
+            fieldReference.Syntax.GetLocation().CreateDiagnostic(Rule, diagnosticArg));
+    }
+
+    private static bool IsContainedInMoqIt(INamedTypeSymbol containingType, MoqKnownSymbols knownSymbols)
+    {
+        INamedTypeSymbol? moqIt = knownSymbols.It;
+
+        // Direct match: Moq.It (covers It.IsAny, It.Is, etc.)
+        if (SymbolEqualityComparer.Default.Equals(containingType, moqIt))
+        {
+            return true;
+        }
+
+        // Nested type match: Moq.It+Ref<T> (covers It.Ref<T>.IsAny)
+        if (containingType.ContainingType is not null
+            && SymbolEqualityComparer.Default.Equals(containingType.ContainingType, moqIt))
+        {
+            return true;
+        }
+
+        return false;
+    }
+}
