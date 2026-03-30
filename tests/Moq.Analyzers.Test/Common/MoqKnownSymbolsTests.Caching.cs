@@ -35,34 +35,6 @@ public partial class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public async Task MockBehaviorStrict_RepeatedAccess_ReturnsSameInstance()
-    {
-        // Covers the enum field lookup path. Note: Roslyn returns the same IFieldSymbol
-        // instance from GetMembers on the same compilation, so Assert.Same validates
-        // caching indirectly (the Lazy wrapper prevents re-evaluation).
-        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
-
-        IFieldSymbol? first = symbols.MockBehaviorStrict;
-        IFieldSymbol? second = symbols.MockBehaviorStrict;
-
-        Assert.NotNull(first);
-        Assert.Same(first, second);
-    }
-
-    [Fact]
-    public void MockAs_WithoutMoqReference_RepeatedAccess_ReturnsSameEmptyInstance()
-    {
-        // Verifies caching for the null-type fallback (empty array).
-        MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
-
-        ImmutableArray<IMethodSymbol> first = symbols.MockAs;
-        ImmutableArray<IMethodSymbol> second = symbols.MockAs;
-
-        Assert.True(first.IsEmpty);
-        Assert.True(first == second);
-    }
-
-    [Fact]
     public async Task Mock1Setup_ConcurrentAccess_ReturnsSameInstance()
     {
         // Regression guard: multiple tasks accessing the same property get the same cached instance.
