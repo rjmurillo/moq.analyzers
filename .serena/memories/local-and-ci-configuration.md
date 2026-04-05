@@ -2,27 +2,24 @@
 
 ## Git Hooks
 
-Located in `.githooks/`, shared via `LintHelpers.ps1`. Require PowerShell Core (`pwsh`).
+Managed by [Husky.NET](https://github.com/alirezanet/Husky.Net) v0.9.1. Tasks defined in `.husky/task-runner.json`. Auto-installs on `dotnet restore` via MSBuild target in `Directory.Build.targets`. Requires PowerShell Core (`pwsh`).
 
-### Pre-Commit (.githooks/hooks/Invoke-PreCommit.ps1)
+### Pre-Commit (7 tasks)
 
-Runs on staged files only, scoped by extension:
+All tools are required. Missing tools fail the hook (no soft-skip).
 
-1. **Large file detection**: Max 500 KB file size, max 1000 lines for source files
-2. **C# formatting**: `dotnet format` with auto-fix and re-stage (only for cleanly staged files)
-3. **Markdown linting**: `markdownlint-cli2 --fix` on `.md` files only, with auto-fix and re-stage
-4. **YAML linting**: `yamllint` on `.yml`/`.yaml` files (lint only, no auto-fix)
-5. **GitHub Actions linting**: `actionlint` on `.github/workflows/*.yml` (lint only)
-6. **JSON validation**: Python `json.tool` on `.json` files (excludes `.verified.json`)
-7. **Shell linting**: `shellcheck` on `.sh`/`.bash` files (lint only)
+1. **Large file detection**: `build/scripts/hooks/Test-LargeFiles.ps1` (500 KB / 1000 lines)
+2. **C# formatting**: `dotnet format --verify-no-changes` on staged `.cs` files
+3. **Markdown linting**: `markdownlint-cli2` on staged `.md` files (lint only)
+4. **YAML linting**: `yamllint` on staged `.yml`/`.yaml` files
+5. **GitHub Actions linting**: `actionlint` on `.github/workflows/*.{yml,yaml}`
+6. **JSON validation**: `build/scripts/hooks/Test-JsonValid.ps1` on staged `.json` files (excludes `.verified.json`)
+7. **Shell linting**: `shellcheck` on staged `.sh`/`.bash` files
 
-Auto-fix safety: `Invoke-AutoFix` snapshots dirty files before fixing and only re-stages files that were clean before the fix ran.
+### Pre-Push (2 tasks)
 
-### Pre-Push (.githooks/hooks/Invoke-PrePush.ps1)
-
-1. **Tech debt scanner**: `Scan-TodoComments.ps1 -FailOnUnlinked` (BROKEN: #1081)
-2. **Build**: `dotnet build` with CI-parity flags (Release, PedanticMode, Deterministic, ContinuousIntegrationBuild)
-3. **Test**: `dotnet test` with runsettings (skipped if build fails)
+1. **Tech debt scanner**: `Scan-TodoComments.ps1 -FailOnUnlinked`
+2. **Build and test**: `build/scripts/hooks/Invoke-PrePushBuild.ps1` runs `dotnet build` (CI-parity flags) then `dotnet test`. Sets `DOTNET_ROLL_FORWARD=LatestMajor` for cross-TFM test execution.
 
 ## CI Workflows (.github/workflows/)
 
@@ -83,6 +80,6 @@ Located in `.cursor/rules/`, `.windsurf/rules/`, `.github/chatmodes/`.
 
 ## Known Broken Configurations
 
-- #1081: Pre-push hook fails on Scan-TodoComments.ps1 parse error (workaround: `--no-verify`)
+- #1081: Pre-push hook parse error (fixed by Husky.NET migration and *.ps1 eol=lf in .gitattributes)
 - #1084: Codacy rule files cause cascading file corruption (remove both files)
 - #1085: Low-value AI editor rules and chatmodes to remove

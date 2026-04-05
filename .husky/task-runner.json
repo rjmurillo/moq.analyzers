@@ -1,0 +1,110 @@
+{
+  "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
+  "tasks": [
+    {
+      "name": "large-file-detection",
+      "group": "pre-commit",
+      "command": "pwsh",
+      "args": [
+        "-NonInteractive",
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File",
+        "build/scripts/hooks/Test-LargeFiles.ps1"
+      ]
+    },
+    {
+      "name": "dotnet-format",
+      "group": "pre-commit",
+      "command": "dotnet",
+      "args": [
+        "format",
+        "Moq.Analyzers.sln",
+        "--verify-no-changes",
+        "--include",
+        "${staged}",
+        "--verbosity",
+        "quiet"
+      ],
+      "include": ["**/*.cs"]
+    },
+    {
+      "name": "markdownlint",
+      "group": "pre-commit",
+      "command": "markdownlint-cli2",
+      "args": [
+        "${staged}"
+      ],
+      "include": ["**/*.md"]
+    },
+    {
+      "name": "yamllint",
+      "group": "pre-commit",
+      "command": "yamllint",
+      "args": [
+        "--config-file",
+        ".yamllint.yml",
+        "${staged}"
+      ],
+      "include": ["**/*.yml", "**/*.yaml"]
+    },
+    {
+      "name": "actionlint",
+      "group": "pre-commit",
+      "command": "actionlint",
+      "args": [
+        "${staged}"
+      ],
+      "include": [".github/workflows/*.yml", ".github/workflows/*.yaml"]
+    },
+    {
+      "name": "json-validate",
+      "group": "pre-commit",
+      "command": "pwsh",
+      "args": [
+        "-NonInteractive",
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File",
+        "build/scripts/hooks/Test-JsonValid.ps1",
+        "${staged}"
+      ],
+      "include": ["**/*.json"],
+      "exclude": ["**/*.verified.json"]
+    },
+    {
+      "name": "shellcheck",
+      "group": "pre-commit",
+      "command": "shellcheck",
+      "args": [
+        "${staged}"
+      ],
+      "include": ["**/*.sh", "**/*.bash"]
+    },
+    {
+      "name": "todo-scanner",
+      "group": "pre-push",
+      "command": "pwsh",
+      "args": [
+        "-NonInteractive",
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File",
+        "build/scripts/todo-scanner/Scan-TodoComments.ps1",
+        "-FailOnUnlinked"
+      ]
+    },
+    {
+      "name": "build-and-test",
+      "group": "pre-push",
+      "command": "pwsh",
+      "args": [
+        "-NonInteractive",
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File",
+        "build/scripts/hooks/Invoke-PrePushBuild.ps1"
+      ]
+    }
+  ]
+}

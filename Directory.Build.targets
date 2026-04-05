@@ -6,5 +6,20 @@
   <Import Project="build/targets/tests/Tests.targets" />
   <Import Project="build/targets/codeanalysis/CodeAnalysis.targets" />
   <Import Project="build/targets/packaging/Packaging.targets" />
-  <Import Project="build/targets/githooks/GitHooks.targets" />
+
+  <!--
+    Husky.NET: auto-install Git hooks on dotnet restore/build.
+    Skips design-time builds, CI, and when HUSKY=0 is set.
+    Uses a stamp file to avoid re-running on every restore.
+  -->
+  <Target
+    Name="HuskyInstall"
+    AfterTargets="Restore"
+    Condition=" '$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND '$(HUSKY)' != '0' "
+    Inputs="$(RepoRoot).config/dotnet-tools.json"
+    Outputs="$(RepoRoot).husky/_/install.stamp">
+    <Exec Command="dotnet tool restore" StandardOutputImportance="Low" StandardErrorImportance="High" />
+    <Exec Command="dotnet husky install" StandardOutputImportance="Low" StandardErrorImportance="High" WorkingDirectory="$(RepoRoot)" />
+    <Touch Files="$(RepoRoot).husky/_/install.stamp" AlwaysCreate="true" Condition="Exists('$(RepoRoot).husky/_')" />
+  </Target>
 </Project>
