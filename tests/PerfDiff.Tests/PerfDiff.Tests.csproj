@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <!-- Version overrides required: PerfDiff has higher transitive versions than the central pin -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.6" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 
