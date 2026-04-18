@@ -160,6 +160,12 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
 
             // Invocation as value, not delegate: GetInt() is a call, not a method group (GH PR #942 review thread)
             ["""new Mock<AsyncService>().Setup(c => c.GetValueAsync()).Returns(GetInt());"""],
+
+            // Generic Returns<T> with sync lambda: target-type inference masks the mismatch (analyzer gap, see PR #1089)
+            ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).Returns<string>(s => s.Length);"""],
+
+            // Generic Returns<T> with async lambda (no mismatch)
+            ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).Returns<string>(async s => s.Length);"""],
         };
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
