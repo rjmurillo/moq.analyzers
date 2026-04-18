@@ -246,7 +246,7 @@ internal class MoqKnownSymbols : KnownSymbols
     internal INamedTypeSymbol? MockRepository => TypeProvider.GetOrCreateTypeByMetadataName("Moq.MockRepository");
 
     /// <summary>
-    /// Gets the methods for <c>Moq.MockRepository.Of</c>.
+    /// Gets the methods for <c>Moq.MockRepository.Create</c>.
     /// </summary>
     /// <remarks>
     /// <c>MockRepository</c> is a subclass of <c>MockFactory</c>.
@@ -421,6 +421,18 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.Language.IReturns{TMock, TResult}.Raises</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> IReturns2Raises => _iReturns2Raises.Value;
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.Flow.IReturnsResult{TMock}</c>.
+    /// This is the actual return type of <c>.Returns()</c> and <c>.ReturnsAsync()</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IReturnsResult1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.IReturnsResult`1");
+
+    /// <summary>
+    /// Gets the interface <c>Moq.Language.Flow.IThrowsResult</c>.
+    /// This is the return type of <c>.Throws()</c>.
+    /// </summary>
+    internal INamedTypeSymbol? IThrowsResult => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Language.Flow.IThrowsResult");
 
     /// <summary>
     /// Gets the interface <c>Moq.Language.Flow.ISetup{T}</c>.
