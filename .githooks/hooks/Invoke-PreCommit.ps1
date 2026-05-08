@@ -16,7 +16,7 @@ try {
     $csFiles = Get-StagedFiles -Extensions @('.cs')
     if ($csFiles.Count -gt 0) {
         $slnPath = Join-Path $repoRoot "Moq.Analyzers.sln"
-        $includePaths = ($csFiles | ForEach-Object { "--include", (Join-Path $repoRoot $_) })
+        $includePaths = @($csFiles | ForEach-Object { "--include", (Join-Path $repoRoot $_) })
         Invoke-AutoFix -Files $csFiles -FixCommand {
             dotnet format $slnPath --verbosity quiet @includePaths 2>&1 | Out-Null
         }
@@ -31,7 +31,7 @@ try {
     $mdFiles = Get-StagedFiles -Extensions @('.md')
     if ($mdFiles.Count -gt 0) {
         if (Test-ToolAvailable -Command "markdownlint-cli2" -InstallHint "npm install -g markdownlint-cli2") {
-            $fullPaths = $mdFiles | ForEach-Object { Join-Path $repoRoot $_ }
+            $fullPaths = @($mdFiles | ForEach-Object { Join-Path $repoRoot $_ })
             Invoke-AutoFix -Files $mdFiles -FixCommand {
                 & markdownlint-cli2 --fix @fullPaths 2>&1 | Out-Null
             }
@@ -47,7 +47,7 @@ try {
     $yamlFiles = Get-StagedFiles -Extensions @('.yml', '.yaml')
     if ($yamlFiles.Count -gt 0) {
         if (Test-ToolAvailable -Command "yamllint" -InstallHint "pipx install yamllint") {
-            $fullPaths = $yamlFiles | ForEach-Object { Join-Path $repoRoot $_ }
+            $fullPaths = @($yamlFiles | ForEach-Object { Join-Path $repoRoot $_ })
             $output = & yamllint -c (Join-Path $repoRoot ".yamllint.yml") @fullPaths 2>&1
             if ($LASTEXITCODE -ne 0) {
                 Set-HookFailed -Check "yamllint"
@@ -59,7 +59,7 @@ try {
         $workflowFiles = $yamlFiles | Where-Object { $_ -match '^\.github/workflows/' }
         if ($workflowFiles.Count -gt 0) {
             if (Test-ToolAvailable -Command "actionlint" -InstallHint "https://github.com/rhysd/actionlint#install") {
-                $fullPaths = $workflowFiles | ForEach-Object { Join-Path $repoRoot $_ }
+                $fullPaths = @($workflowFiles | ForEach-Object { Join-Path $repoRoot $_ })
                 $output = & actionlint @fullPaths 2>&1
                 if ($LASTEXITCODE -ne 0) {
                     Set-HookFailed -Check "actionlint"
@@ -94,7 +94,7 @@ try {
     $shellFiles = Get-StagedFiles -Extensions @('.sh', '.bash')
     if ($shellFiles.Count -gt 0) {
         if (Test-ToolAvailable -Command "shellcheck" -InstallHint "https://github.com/koalaman/shellcheck#installing") {
-            $fullPaths = $shellFiles | ForEach-Object { Join-Path $repoRoot $_ }
+            $fullPaths = @($shellFiles | ForEach-Object { Join-Path $repoRoot $_ })
             $output = & shellcheck @fullPaths 2>&1
             if ($LASTEXITCODE -ne 0) {
                 Set-HookFailed -Check "shellcheck"
