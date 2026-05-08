@@ -2,16 +2,17 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-
   <PropertyGroup>
     <RootNamespace>Moq.Analyzers</RootNamespace>
     <AssemblyName>Moq.Analyzers</AssemblyName>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeBuildOutput>false</IncludeBuildOutput><!-- Don't place the output assembly in the package's lib/ folder -->
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking><!-- Don't add the TargetFramework as a package dependency -->
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies><!-- Because we're a compiler plugin, we need to bundle any dependencies into our package -->
+    <!-- Don't place the output assembly in the package's lib/ folder -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Don't add the TargetFramework as a package dependency -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <!-- Because we're a compiler plugin, we need to bundle any dependencies into our package -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
-
   <PropertyGroup Label="Package metadata">
     <PackageId>Moq.Analyzers</PackageId>
     <Authors>Matt Kotsenas, Andrey "Litee" Lipatkin, Richard Murillo</Authors>
@@ -27,18 +28,14 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" PrivateAssets="all" />
   </ItemGroup>
-
   <Import Project="$(RepoRoot)/src/Common/Common.projitems" Label="Shared" />
-
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="$(RepoRoot)\README.md" Pack="true" PackagePath="/" />
     <None Include="$(RepoRoot)\THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="/" />
@@ -47,9 +44,7 @@
     <None Include="$(OutputPath)\Moq.CodeFixes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)\Microsoft.CodeAnalysis.AnalyzerUtilities.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)/src/CodeFixes/Moq.CodeFixes.csproj" />
   </ItemGroup>
-
 </Project>

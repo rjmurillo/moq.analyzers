@@ -34,8 +34,7 @@ param(
         '(^|[\\/])\.serena[\\/]',
         '(^|[\\/])node_modules[\\/]',
         '\.verified\.(txt|xml|json)$',
-        'Scan-TodoComments\.ps1$',
-        'Invoke-PrePush\.ps1$'
+        'Scan-TodoComments\.ps1$'
     ),
 
     [switch]$FailOnUnlinked

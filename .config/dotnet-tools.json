@@ -36,6 +36,13 @@
         "snitch"
       ],
       "rollForward": false
+    },
+    "husky": {
+      "version": "0.9.1",
+      "commands": [
+        "husky"
+      ],
+      "rollForward": false
     }
   }
 }
