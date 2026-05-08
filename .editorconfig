@@ -29,6 +29,12 @@ insert_final_newline = false
 tab_width = unset
 trim_trailing_whitespace = false
 
+# PowerShell scripts - LF required for cross-platform compatibility (ADR-010)
+[*.{ps1,psm1,psd1}]
+end_of_line = lf
+indent_size = 4
+insert_final_newline = true
+
 # C# files
 [*.cs]
 

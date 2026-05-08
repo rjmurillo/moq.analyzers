@@ -62,6 +62,10 @@ public sealed class ReturnsDelegateShouldReturnTaskFixer : CodeFixProvider
     {
         SimpleNameSyntax oldName = memberAccess.Name;
         SimpleNameSyntax newName;
+
+        // Moq's IReturns<TMock, TResult> interface defines method-level generic overloads
+        // like Returns<T1>(Func<T1, TResult>). When a user writes .Returns<string>(s => 42),
+        // the syntax is GenericNameSyntax. Preserve type arguments to maintain developer intent.
         if (oldName is GenericNameSyntax genericName)
         {
             newName = SyntaxFactory.GenericName(

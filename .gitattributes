@@ -66,8 +66,8 @@
 *.ksh      text eol=lf
 *.sh       text eol=lf
 *.zsh      text eol=lf
-# PowerShell scripts must use LF; CRLF causes parse failures in
-# block comments (<# ... #>) when invoked from Git Bash. See #1081.
+# PowerShell scripts must use LF; PowerShell 7+ is cross-platform and
+# CRLF causes parse failures in block comments (<# ... #>). See #1081.
 *.ps1      text eol=lf
 *.psm1     text eol=lf
 *.psd1     text eol=lf

@@ -188,6 +188,15 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
                 return true;
             }
 
+            // When a non-Moq method (e.g., an extension method) appears in the chain,
+            // check if its return type implements a Moq fluent interface. The analyzer
+            // assumes such methods handle return value specification internally or pass
+            // the chain through for further configuration.
+            if (IsFluentChainWrapperMethod(symbolInfo, knownSymbols))
+            {
+                return true;
+            }
+
             current = memberAccess.Parent as InvocationExpressionSyntax;
         }
 
@@ -228,5 +237,44 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
         return symbolInfo.CandidateSymbols
             .OfType<IMethodSymbol>()
             .Any(method => method.IsMoqReturnValueSpecificationMethod(knownSymbols));
+    }
+
+    /// <summary>
+    /// Determines whether a method in the chain is a wrapper (e.g., an extension method)
+    /// whose return type implements a Moq fluent interface. Such methods are assumed to
+    /// handle return value specification internally, as indicated by their Moq fluent
+    /// return type.
+    /// </summary>
+    private static bool IsFluentChainWrapperMethod(SymbolInfo symbolInfo, MoqKnownSymbols knownSymbols)
+    {
+        if (symbolInfo.Symbol is IMethodSymbol resolved)
+        {
+            return IsWrapperMethod(resolved, knownSymbols);
+        }
+
+        // When overload resolution fails, check all candidates. A false negative
+        // occurs if only the first candidate is inspected and it does not return a
+        // Moq fluent type while another candidate does.
+        return symbolInfo.CandidateSymbols
+            .OfType<IMethodSymbol>()
+            .Any(candidate => IsWrapperMethod(candidate, knownSymbols));
+    }
+
+    /// <summary>
+    /// Returns true when <paramref name="method"/> is a user-defined wrapper whose return
+    /// type implements a Moq fluent interface. Known Moq return-value, callback, and raises
+    /// methods are excluded because they are already handled by earlier checks in the
+    /// chain walk.
+    /// </summary>
+    private static bool IsWrapperMethod(IMethodSymbol method, MoqKnownSymbols knownSymbols)
+    {
+        if (method.IsMoqReturnValueSpecificationMethod(knownSymbols)
+            || method.IsMoqCallbackMethod(knownSymbols)
+            || method.IsMoqRaisesMethod(knownSymbols))
+        {
+            return false;
+        }
+
+        return method.ReturnType.ImplementsMoqFluentInterface(knownSymbols);
     }
 }
