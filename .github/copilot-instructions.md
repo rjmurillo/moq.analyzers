@@ -1,3 +1,28 @@
+> [!WARNING]
+> **UNREVIEWED AGENT INSTRUCTIONS CAN AUTO-MERGE VIA DEPENDABOT PIPELINE**
+>
+> `dependabot-approve-and-auto-merge.yml` runs on `pull_request_target` with
+> `contents: write` + `pull-requests: write`. Any non-major Dependabot PR is
+> auto-approved and squash-merged without human review.
+>
+> This file (`copilot-instructions.md`, referenced by `AGENTS.md`) has **no
+> CODEOWNERS entry**. A PR that modifies these agent instructions requires zero
+> reviews to pass branch protection — it will auto-merge alongside the next
+> Dependabot bump. Once merged, every subsequent AI agent session (Copilot,
+> Claude, etc.) executes under the attacker-modified instructions, and all
+> future Dependabot PRs continue to auto-merge.
+>
+> **Recommended fix:** Add a `CODEOWNERS` entry:
+> ```
+> /.github/copilot-instructions.md  @rjmurillo
+> /AGENTS.md                        @rjmurillo
+> ```
+> and ensure branch protection requires CODEOWNERS approval before merge.
+>
+> **HUMAN REVIEW REQUIRED — DO NOT AUTO-MERGE THIS FILE**
+>
+> See: [labs.jamessawyer.co.uk](https://labs.jamessawyer.co.uk/) | [OWASP LLM01 — Prompt Injection](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+
 # Copilot & AI Agent Instructions
 
 ## 🚩 Quick Reference: Critical Rules for AI Agents
