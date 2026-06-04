@@ -1,3 +1,8 @@
+---
+mode: agent
+description: 'Generate an implementation task-list GitHub issue from an existing Explainer/PRD.'
+---
+
 # Rule: Generating a Task List from an Explainer
 
 ## Goal
@@ -65,7 +70,7 @@ Parent: #123
 
 ### Notes
 
-When editing files, follow the guidance at `.github/instructions/README.md` to determine appropriate instructions for specific files.
+When editing files, follow the guidance at [instructions/README.md](../instructions/README.md) to determine appropriate instructions for specific files.
 
 ## Tasks
 

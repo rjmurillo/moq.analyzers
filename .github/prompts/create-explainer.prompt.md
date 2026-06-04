@@ -1,3 +1,8 @@
+---
+mode: agent
+description: 'Generate an Explainer/PRD GitHub issue from an initial feature prompt.'
+---
+
 # Rule: Generating an Explainer or a Product Requirements Document (PRD)
 
 ## Goal

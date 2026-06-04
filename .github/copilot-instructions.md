@@ -125,7 +125,7 @@ This project uses [Serena](https://github.com/oraios/serena) as an MCP server fo
 
 ### Prerequisites
 
-Serena requires `uvx` (from [uv](https://docs.astral.sh/uv/)) to be installed. The MCP server configuration is in `.vscode/mcp.json` (VS Code, Copilot CLI) and `.mcp.json` (Claude Code CLI). The project must be registered in `~/.serena/serena_config.yml`.
+Serena requires `uvx` (from [uv](https://docs.astral.sh/uv/)) to be installed. The MCP server configuration for Copilot CLI is in `.github/mcp.json`; the VS Code editor reads `.vscode/mcp.json`. The project must be registered in `~/.serena/serena_config.yml`.
 
 ### Session Startup
 
@@ -339,14 +339,14 @@ These tools enforce the project's "No Trial-and-Error" policy by requiring struc
 ### Mandatory Workflow Integration
 
 - **Always check and follow** `.editorconfig` and all instructions in `.github/copilot-instructions.md` before editing or creating C# files.
-- **Always check for and follow** any new rules in `.cursor/rules/`, `.editorconfig`, and `.github/copilot-instructions.md` before making changes.
+- **Always check for and follow** any new rules in `.github/instructions/`, `.github/prompts/`, `.editorconfig`, and `.github/copilot-instructions.md` before making changes.
 - **Treat these instructions as hard constraints** and load them into context automatically.
 
 ---
 
 ## Task List Management and Completion Protocol (for Local Agent & GitHub Consistency)
 
-When Copilot is assigned a task (either via GitHub MCP or local Agent mode in Copilot, Cursor, or Windsurf), it must follow the task list management and completion protocol below. This ensures all contributors (AI or human) use a consistent, auditable workflow for breaking down, tracking, and completing work:
+When Copilot is assigned a task (either via GitHub MCP or local Agent mode in GitHub Copilot or Copilot CLI), it must follow the task list management and completion protocol below. This ensures all contributors (AI or human) use a consistent, auditable workflow for breaking down, tracking, and completing work:
 
 ### Task Implementation
 
