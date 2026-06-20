@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena@v0.1.4",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "."
+      ],
+      "tools": ["*"]
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "tools": ["*"]
+    },
+    "codacy": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@codacy/codacy-mcp"],
+      "env": { "CODACY_ACCOUNT_TOKEN": "${CODACY_ACCOUNT_TOKEN}" },
+      "tools": ["*"]
+    },
+    "mcp-supermemory-ai": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "supergateway", "--sse", "${SUPERMEMORY_URL}"],
+      "tools": ["*"]
+    }
+  }
+}
