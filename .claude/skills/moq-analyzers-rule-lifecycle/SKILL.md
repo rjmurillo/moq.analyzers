@@ -199,7 +199,7 @@ Category: pick per the ID-range table in Part 1 — the ID range, the `Diagnosti
 A rule is "shipped" once it appears in `src/Analyzers/AnalyzerReleases.Shipped.md`. The repo's rules, quoted from `.github/copilot-instructions.md:552-553` (2026-07-02):
 
 > **CRITICAL: Do not modify `AnalyzerReleases.Shipped.md`**. This file is an immutable record of past releases. All changes, including category or severity updates to existing rules, **MUST** be documented in `AnalyzerReleases.Unshipped.md`.
-
+>
 > **Analyzer Release Notes Logic:** For this repository, `AnalyzerReleases.Unshipped.md` must **only** contain a `### New Rules` section. Any modification to a previously shipped rule (e.g., changing its category or severity) is listed as if it were a new rule in this file. The `Changed Rules` and `Removed Rules` sections are only used in `AnalyzerReleases.Shipped.md` when a release is being finalized.
 
 So: change the descriptor in code, then record the rule's NEW state in `Unshipped.md`, never edit `Shipped.md` (the only exception is release promotion, Part 4). Also update: the rule's `docs/rules/MoqXXXX.md` metadata table, both README tables if category/title changed, and `DiagnosticCategoryTests.cs`.

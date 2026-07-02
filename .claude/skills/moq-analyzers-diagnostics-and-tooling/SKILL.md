@@ -366,7 +366,7 @@ teaches the tool.
 
 | If you need... | Load instead |
 |---|---|
-| Test-suite structure, `{|MoqXXXX:...|}` markup, ReferenceAssemblyCatalog, Verify snapshots | moq-analyzers-validation-and-qa |
+| Test-suite structure, `{\|MoqXXXX:...\|}` markup, ReferenceAssemblyCatalog, Verify snapshots | moq-analyzers-validation-and-qa |
 | Statistical/proof methodology (corpus runs, FP-rate claims) that consumes these tools' output | moq-analyzers-proof-toolkit |
 | Build failures, SDK/global.json issues, PedanticMode, hooks, environment setup | moq-analyzers-build-and-env |
 | A diagnosis strategy for a bug (which tool to point where, in what order) | moq-analyzers-debugging-playbook |
@@ -388,7 +388,7 @@ teaches the tool.
 - Rule ID list source: `grep -c '"Moq[0-9]' src/Common/DiagnosticIds.cs` (25 IDs as of 2026-07-02; Moq1209 reserved)
 - PerfDiff thresholds: `grep -rn 'Threshold.Parse\|ThresholdValueNs' src/tools/PerfDiff/BDN/Regression/` (35%; 5%+0.5ms ×2; 250ms; 100ms as of 2026-07-02)
 - Strategy set: `grep -n "new .*Strategy()" src/tools/PerfDiff/BDN/BenchmarkComparisonService.cs` (5 strategies)
-- PerfDiff defect issues still open: check https://github.com/rjmurillo/moq.analyzers/issues/1265 (and 1266–1269) — remove the honesty-note rows as they close
+- PerfDiff defect issues still open: check <https://github.com/rjmurillo/moq.analyzers/issues/1265> (and 1266–1269) — remove the honesty-note rows as they close
 - Perf baseline SHA: `cat build/perf/baseline.json` (sha `0cbc088`, release 0.1.1 as of 2026-07-02)
 - PR fast-path filter unchanged: `grep -n "FileCount: 1" .github/workflows/main.yml`
 - Binlog path in CI: `grep -n "/bl:" .github/actions/setup-restore-build/action.yml`

@@ -190,8 +190,8 @@ negative result on #904 and stop.
 
 ### Ground truth first (this is where stale context bites)
 
-Issues #614 (gap analysis), #615 (InSequence/MockSequence coordination),
-#616 (incomplete sequence configuration), #617 (mixed Returns/Throws type
+Issues #614 (gap analysis), #615 (InSequence/MockSequence coordination), #616
+(incomplete sequence configuration), #617 (mixed Returns/Throws type
 validation) were **closed on 2026-05-09 with "Closing due to inactivity
 (6+ months stale)"** — their GitHub `state_reason` says "completed" but the
 closing comments say inactivity, and the work was **not** done: `grep -rn
@@ -364,8 +364,8 @@ guarantee today.
 
 Five PerfDiff correctness defects — #1265 (ETL veto disarms the gate), #1266
 (mismatched benchmark sets silently intersected), #1267 (absolute budgets
-never read the baseline), #1268 (infinite ratios dropped from the verdict),
-#1269 (degenerate-input crashes/skips) — mean the gate can pass green while a
+never read the baseline), #1268 (infinite ratios dropped from the verdict), #1269
+(degenerate-input crashes/skips) — mean the gate can pass green while a
 real regression ships, or block an innocent PR. The canonical per-strategy
 threshold/defect table lives in **moq-analyzers-diagnostics-and-tooling §2**;
 re-derive thresholds from `grep -rn 'Threshold' src/tools/PerfDiff/BDN/Regression/`.
@@ -451,7 +451,7 @@ Re-verify before relying on any volatile claim above:
 
 - Commit context: `git log -1 --format='%h %s'` (expect `05135b2` lineage or later).
 - Rule count (25): `grep -c '= "Moq' src/Common/DiagnosticIds.cs`
-- Issue states (use GitHub UI/API; `gh` is not installed in all sandboxes): check #904, #615–#617, #1264, #1265–#1269, #1270, #594–#602 at https://github.com/rjmurillo/moq.analyzers/issues — and read closing comments, not just `state_reason`.
+- Issue states (use GitHub UI/API; `gh` is not installed in all sandboxes): check #904, #615–#617, #1264, #1265–#1269, #1270, #594–#602 at <https://github.com/rjmurillo/moq.analyzers/issues> — and read closing comments, not just `state_reason`.
 - Sequence work still unbuilt: `grep -rn "MockSequence\|InSequence" src/ --include=*.cs` (expect no hits).
 - Non-generic Setup FN root cause: `grep -n "IsGenericMethod" src/Common/ISymbolExtensions.Moq.cs`
 - MockBehavior data-flow limitation comment: `grep -n "data flow analysis" src/Analyzers/SetExplicitMockBehaviorAnalyzer.cs`

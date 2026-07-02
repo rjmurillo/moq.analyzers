@@ -251,11 +251,13 @@ identify Moq API (ADR-001; `Compilation.GetTypeByMetadataName` is banned by
 in any Moq version; they resolve null forever, and
 `tests/Moq.Analyzers.Test/Common/MoqKnownSymbolsTests.ReturnsAndThrows.cs`
 pins that. So for every symbol you register, add BOTH:
+
 1. a with-Moq test asserting the property is **non-null** (else you may
    have registered a phantom and your analyzer silently never fires — an FN
    you shipped while "fixing" an FP), and
 2. a without-Moq test asserting **null**/empty (the existing pattern in the
    `MoqKnownSymbolsTests.*.cs` partials).
+
 Verify the metadata name against BOTH Moq packages before registering
 (`dotnet tool install -g dotnet-inspect; dotnet-inspect member "<Type>"
 --package Moq --all`, or decompile the packages the tests restore).
@@ -283,6 +285,7 @@ patch #5 of the Moq1203 saga. Copy the issue-linked `MemberData` naming from
 ### (c) Guard the operation with precision — for Classes 4 and 6
 
 The Moq1302 three-phase walker discipline (from #1017):
+
 1. register the narrowest `OperationKind`/`SyntaxKind`;
 2. **guard before interpreting** — `operation.Instance is null` means a
    static/value expression, skip; `TypeKind.Error` means mid-edit, skip;
@@ -322,7 +325,7 @@ across the **mandatory axes**:
 | Axis | Mechanism | Non-negotiable? |
 |---|---|---|
 | 2 namespaces × 2 Moq versions | end every data set with `.WithNamespaces().WithMoqReferenceAssemblyGroups()` (`tests/.../Helpers/TestDataExtensions.cs`) | Yes (split versions only for genuine Class-5 surface diffs) |
-| Exact span | `{|Moq1202:...|}` markup asserts ID + character-precise span | Yes |
+| Exact span | `{\|Moq1202:...\|}` markup asserts ID + character-precise span | Yes |
 | Issue linkage | `Issue<N>_<Behavior>TestData` member name + issue URL comment | Yes |
 | Wrapper shapes | the four shapes from 3(b), for Class 1/2 fixes | Yes for those classes |
 | Negative rows | unmarked legal code = genuine "no diagnostic" assertion | Yes |

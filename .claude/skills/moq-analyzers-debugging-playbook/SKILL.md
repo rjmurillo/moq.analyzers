@@ -24,7 +24,7 @@ Terms used throughout:
 | AD0001 | Compiler diagnostic: "Analyzer ... threw an exception". Roslyn disables the crashing analyzer for the rest of the session. |
 | CS8032 | Compiler warning: an analyzer assembly could not be loaded (usually a dependency version the host doesn't have). |
 | FP / FN | False positive (diagnostic fires on correct code) / false negative (diagnostic misses bad code). |
-| Span | The exact character range a diagnostic underlines. Tests pin spans with markup like `{|Moq1002:(1, true)|}`. |
+| Span | The exact character range a diagnostic underlines. Tests pin spans with markup like `{\|Moq1002:(1, true)\|}`. |
 | Verify | Verify.Xunit/Verify.Nupkg snapshot testing: compares output to a committed `*.verified.*` file; a mismatch writes a `*.received.*` file. |
 | PedanticMode | MSBuild property (`build/targets/codeanalysis/CodeAnalysis.targets`) that turns all warnings into errors. Defaults to the value of `ContinuousIntegrationBuild`: **off locally, on in CI**. |
 | binlog | MSBuild binary log (`/bl:` flag), openable with the MSBuild Structured Log Viewer; contains full diagnostic text including exception stacks. |
@@ -390,10 +390,10 @@ only the triage decision: real regression vs. tool bug.
 4. If the failing strategy is ratio-based (35% / 5%) and baseline vs diff
    genuinely differ → treat as a real regression; reproduce locally:
 
-```bash
-./build/scripts/perf/CIPerf.sh -filter "'*(FileCount: 1)'"
-# equivalent to: pwsh build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter "'*(FileCount: 1)'"
-```
+   ```bash
+   ./build/scripts/perf/CIPerf.sh -filter "'*(FileCount: 1)'"
+   # equivalent to: pwsh build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter "'*(FileCount: 1)'"
+   ```
 
 5. If the job crashed with a stack trace rather than a verdict → likely #1269;
    check for stale `full-compressed.json` files or a benchmark that produced
@@ -476,7 +476,7 @@ Re-verify before trusting anything volatile:
 - PedanticMode default: `sed -n 3,5p build/targets/codeanalysis/CodeAnalysis.targets`
 - Perf thresholds: `grep -rn "Threshold.Parse" src/tools/PerfDiff/BDN/Regression/`
 - Perf filter fast path: `grep -n "FileCount" .github/workflows/main.yml`
-- PerfDiff defect issue states: check https://github.com/rjmurillo/moq.analyzers/issues/1265 through /1269 (all open on 2026-07-02); once fixed, delete the "tool bug" branch of section 10
+- PerfDiff defect issue states: check <https://github.com/rjmurillo/moq.analyzers/issues/1265> through /1269 (all open on 2026-07-02); once fixed, delete the "tool bug" branch of section 10
 - AllAnalyzersVerifier namespace contract: `grep -n '"Moq.Analyzers"' tests/Moq.Analyzers.Test/Helpers/AllAnalyzersVerifier.cs`
 - Hook task list: `cat .husky/task-runner.json`
 - Test count (3,357): `dotnet test --settings ./build/targets/tests/test.runsettings` summary line

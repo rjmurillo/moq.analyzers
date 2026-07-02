@@ -108,7 +108,7 @@ internal INamedTypeSymbol? Mock  => TypeProvider.GetOrCreateTypeByMetadataName("
 internal INamedTypeSymbol? Mock1 => TypeProvider.GetOrCreateTypeByMetadataName("Moq.Mock`1");
 ```
 
-`"Moq.Mock"` (the static class) and `"Moq.Mock`1"` (the generic `Mock<T>`) are
+`"Moq.Mock"` (the static class) and ``"Moq.Mock`1"`` (the generic `Mock<T>`) are
 **different types**. Forgetting the backtick resolves null and silently disables
 your check. When you register a new symbol, add a resolves-non-null test — this
 repo has "phantom" properties that resolve null because the exact types/members
@@ -369,8 +369,8 @@ codebase: `AsShouldBeUsedOnlyForInterfaceAnalyzer` lacks this guard, so Moq1300
 `Arguments.Length == 0` before indexing (`MoqVerificationHelpers.cs:60-63`).
 Counterexample: `SemanticModelExtensions.cs:60` indexes
 `ArgumentList.Arguments[0]` unguarded and is crash-reachable through the Moq1100
-code fix on `mock.Setup().Callback(...)` — audit finding A-2 (High), tracked in the
-#1241-#1258 issue range.
+code fix on `mock.Setup().Callback(...)` — audit finding A-2 (High), tracked
+in the #1241-#1258 issue range.
 
 Checklist before you ship any analyzer/fixer change:
 

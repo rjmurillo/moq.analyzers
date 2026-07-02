@@ -50,7 +50,7 @@ Ranked weakest to strongest. Anything below level 1 is rejected outright.
 |---|---|---|
 | 0 | Test code that does not compile | **Immediate failure.** Analyzers only run on parsed valid C#; a CSxxxx error invalidates the scenario. Rule source: `.github/instructions/csharp.instructions.md` ("Only Valid C# Code in All Tests") |
 | 1 | Unmarked source through `AnalyzerVerifier` | A genuine **negative assertion** — the framework fails on ANY unexpected diagnostic |
-| 2 | `{|MoqXXXX:...|}` markup | Asserts diagnostic ID + exact span |
+| 2 | `{\|MoqXXXX:...\|}` markup | Asserts diagnostic ID + exact span |
 | 3 | `DiagnosticResult` with `.WithSpan().WithArguments()` + severity | Strongest form: ID + severity + absolute span + message arguments |
 | 4 | Level 2/3 fanned out across namespaces × Moq versions via `TestDataExtensions` | The project default for data-driven rows |
 
@@ -302,7 +302,7 @@ library (`Verify.Nupkg`, initialized in `ModuleInitializer.cs`).
 `ScrubNuspec()` strips volatile fields (version, commit) so snapshots are
 stable. Golden files live next to the test:
 
-```
+```text
 PackageTests.Baseline_main#manifest.verified.nuspec
 PackageTests.Baseline_main#contents.verified.txt
 PackageTests.Baseline_symbols#manifest.verified.nuspec

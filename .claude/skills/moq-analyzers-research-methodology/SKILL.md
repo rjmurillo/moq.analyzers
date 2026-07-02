@@ -319,8 +319,8 @@ Analyzers execute inside customers' compilers. There is no "try it in prod".
 - Moq1203 saga commits: `git log --format="%h %ad %s" --date=short 6ec810c c270302 894313b 0bef80b 5eec7e1 --no-walk`
 - Moq1302 fix + suite: `git log --format="%h %ad %s" --date=short 4b705e2 3399297 --no-walk`; root-cause text: `git log -1 4b705e2 --format=%B`
 - Perf-fix quantified claims: `git log -1 9febdda --format=%B | grep '53'` (the commit body reads "53 \`Lazy<T>\` fields" — a backtick sits between "53" and "Lazy", so don't grep for "53 Lazy"); `git log -1 3b5ac71 --format=%B`
-- PR #504 retirement rationale: https://github.com/rjmurillo/moq.analyzers/pull/504 (closing comments, 2025-06-18); branch: `git log origin/copilot/fix-496 --oneline -3`
-- Explainer/Epic issue states (may close/reopen): https://github.com/rjmurillo/moq.analyzers/issues?q=Explainer+in%3Atitle and issues #614–#617, #627
+- PR #504 retirement rationale: <https://github.com/rjmurillo/moq.analyzers/pull/504> (closing comments, 2025-06-18); branch: `git log origin/copilot/fix-496 --oneline -3`
+- Explainer/Epic issue states (may close/reopen): <https://github.com/rjmurillo/moq.analyzers/issues?q=Explainer+in%3Atitle> and issues #614–#617, #627
 - Open-issue states cited (#1243, #1250, #1261, #1264, #1265–#1269, #1270): check each on GitHub before relying on "open"
 - PerfDiff thresholds: `grep -rn "Threshold.Parse\|ThresholdValueNs" src/tools/PerfDiff/BDN/Regression/`
 - Perf baseline pin: `cat build/perf/baseline.json`

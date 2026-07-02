@@ -529,7 +529,7 @@ own issue and review, not a test edit in passing.
 ## Provenance and maintenance
 
 - Phantom symbols still phantom: rerun the Recipe 1 reflection probe against `~/.nuget/packages/moq/4.18.4/lib/net6.0/Moq.dll` — expect the arity-0 and arity-1 `Moq.Language.IReturns` names NOT FOUND, the arity-2 name and `Moq.GeneratedReturnsExtensions` exists. Delete the phantom discussion if #1243's fix removes/repurposes the properties: `grep -n "IReturns =>" src/Common/WellKnown/MoqKnownSymbols.cs`
-- Issue states (all open as of 2026-07-02): #1243, #1253, #1262, #1265–#1269, #1270 — check https://github.com/rjmurillo/moq.analyzers/issues/1243 etc.; rewrite worked examples in past tense as they close
+- Issue states (all open as of 2026-07-02): #1243, #1253, #1262, #1265–#1269, #1270 — check <https://github.com/rjmurillo/moq.analyzers/issues/1243> etc.; rewrite worked examples in past tense as they close
 - Void-Setup FN still live: rerun the Recipe 2 snippet — Moq1200 on `GetValue()` only; if `DoVoid()` starts reporting, #1270's pinned-FN rows have been superseded. Gate source: `grep -n "IsGenericMethod" src/Common/ISymbolExtensions.Moq.cs` (lines 42, 62 as of 2026-07-02)
 - Harness path unchanged: `ls .claude/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh`
 - Roslyn pin: `grep -n "Microsoft.CodeAnalysis.CSharp\"" Directory.Packages.props` (4.8 as of 2026-07-02); Recipe 5 probes must track it

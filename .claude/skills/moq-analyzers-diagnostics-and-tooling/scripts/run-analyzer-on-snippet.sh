@@ -48,7 +48,7 @@ if [[ ! -f "$SNIPPET" ]]; then
     echo "error: snippet file not found: $SNIPPET" >&2
     exit 1
 fi
-SNIPPET="$(cd "$(dirname "$SNIPPET")" && pwd)/$(basename "$SNIPPET")"
+SNIPPET="$(cd -- "$(dirname -- "$SNIPPET")" && pwd)/$(basename -- "$SNIPPET")"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"

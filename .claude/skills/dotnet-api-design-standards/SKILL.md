@@ -366,7 +366,8 @@ split the method along its comment boundaries).
 Run this list against any diff in `src/`. Each item is a real, previously-shipped (or
 audit-caught) defect class in this repo — none is theoretical.
 
-**Crash safety (priority 1)**
+### Crash safety (priority 1)
+
 - [ ] No unguarded cast (`(IArrayTypeSymbol)x`) — pattern-match instead (`is not ... return`).
 - [ ] No unguarded indexing (`Arguments[0]`) — check `Count` first.
 - [ ] No `!` on a value not proven non-null in the same method/contract.
@@ -374,25 +375,29 @@ audit-caught) defect class in this repo — none is theoretical.
 - [ ] Error types (`TypeKind.Error`) and mid-edit shapes handled by early return.
 - [ ] No catch blocks in analyzer/codefix/Common code; no throw reachable from analyzer callbacks.
 
-**API shape**
+### API shape
+
 - [ ] Failure-is-normal ops use Try-pattern with `[NotNullWhen(true)]`, no exceptions.
 - [ ] Enum parsing from strings checks `Enum.IsDefined` (netstandard2.0: `typeof`-overload).
 - [ ] Symbol identity via `SymbolEqualityComparer`/`IsInstanceOf`, never `==` or name strings (ADR-001).
 - [ ] New Moq symbols registered in `MoqKnownSymbols` + a resolves-non-null test (phantom-symbol trap).
 - [ ] Diagnostics created via `DiagnosticExtensions.CreateDiagnostic` (BannedSymbols enforces).
 
-**Hot path**
+### Hot path
+
 - [ ] `MoqKnownSymbols` created once per compilation start, never per operation (ADR-006).
 - [ ] Cheap rejection (syntax shape / name fast-path) before any `GetSymbolInfo`.
 - [ ] `context.CancellationToken` threaded into every bind.
 - [ ] No LINQ chains, closures, `ToArray()`, or `ToDisplayString()` before the report decision.
 
-**Concurrency**
+### Concurrency
+
 - [ ] `EnableConcurrentExecution` + `ConfigureGeneratedCodeAnalysis` in `Initialize`.
 - [ ] No mutable state reachable from callbacks; statics are `readonly` immutable.
 - [ ] `Lazy` uses `ExecutionAndPublication` and a non-throwing factory.
 
-**Documentation & size**
+### Documentation & size
+
 - [ ] XML docs on public members (CS1591) and on shared internal helpers, using `<see cref>`, `<see langword>`, `<paramref>`, `<c>`, `<exception>`.
 - [ ] Methods ≤ 60 lines, cyclomatic ≤ 10, or a justified suppression explaining why the budget doesn't apply.
 - [ ] File/type names follow §1; `docs/rules/README.md` updated for any rule change.
