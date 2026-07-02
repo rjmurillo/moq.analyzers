@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CodeFixes;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 
@@ -27,5 +29,13 @@ internal class Test<TAnalyzer, TCodeFixProvider> : CSharpCodeFixTest<TAnalyzer, 
 
         TestState.Sources.Add(globalUsings);
         FixedState.Sources.Add(globalUsings);
+
+        // Compile test snippets with the latest language version so C# 13 features (e.g. params
+        // collections) can be exercised. The analyzer itself still targets its minimum-supported Roslyn.
+        SolutionTransforms.Add((solution, projectId) =>
+        {
+            CSharpParseOptions parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
+            return solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion.Latest));
+        });
     }
 }

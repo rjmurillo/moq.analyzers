@@ -380,7 +380,14 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         SyntaxNodeAnalysisContext context)
     {
         IParameterSymbol paramsParameter = constructor.Parameters[^1];
-        ITypeSymbol paramsElementType = ((IArrayTypeSymbol)paramsParameter.Type).ElementType;
+        ITypeSymbol? paramsElementType = GetParamsElementType(paramsParameter.Type);
+
+        if (paramsElementType is null)
+        {
+            // The element type could not be determined for this params collection shape,
+            // so avoid reporting a false positive.
+            return true;
+        }
 
         for (int parameterIndex = fixedParametersCount; parameterIndex < arguments.Count; parameterIndex++)
         {
@@ -393,6 +400,26 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Gets the element type of a params parameter's type, whether it is a classic array
+    /// (<c>params T[]</c>) or a C# 13+ params collection (e.g. <c>params List&lt;T&gt;</c>,
+    /// <c>params ReadOnlySpan&lt;T&gt;</c>) which is not an <see cref="IArrayTypeSymbol"/>.
+    /// </summary>
+    private static ITypeSymbol? GetParamsElementType(ITypeSymbol paramsType)
+    {
+        if (paramsType is IArrayTypeSymbol arrayType)
+        {
+            return arrayType.ElementType;
+        }
+
+        if (paramsType is INamedTypeSymbol { IsGenericType: true } namedType && namedType.TypeArguments.Length == 1)
+        {
+            return namedType.TypeArguments[0];
+        }
+
+        return null;
     }
 
     private static (bool IsEmpty, Location Location) ConstructorIsEmpty(

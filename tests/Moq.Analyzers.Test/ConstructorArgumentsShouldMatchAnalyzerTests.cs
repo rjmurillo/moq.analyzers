@@ -85,6 +85,81 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "All test cases")]
+    public static IEnumerable<object[]> ParamsCollectionTestData()
+    {
+        return new object[][]
+        {
+            ["List<int>", """new Mock<ClassWithCollectionParams>(1, 2, 3);"""],
+            ["List<int>", """new Mock<ClassWithCollectionParams>{|Moq1002:("a", "b")|};"""],
+            ["List<int>", """new Mock<ClassWithCollectionParams>();"""],
+
+            ["IEnumerable<int>", """new Mock<ClassWithCollectionParams>(1, 2, 3);"""],
+            ["IEnumerable<int>", """new Mock<ClassWithCollectionParams>{|Moq1002:("a", "b")|};"""],
+
+            ["IReadOnlyList<int>", """new Mock<ClassWithCollectionParams>(1, 2, 3);"""],
+            ["IReadOnlyList<int>", """new Mock<ClassWithCollectionParams>{|Moq1002:("a", "b")|};"""],
+
+            ["Span<int>", """new Mock<ClassWithCollectionParams>(1, 2, 3);"""],
+            ["Span<int>", """new Mock<ClassWithCollectionParams>{|Moq1002:("a", "b")|};"""],
+        }.WithNamespaces();
+    }
+
+    // A constructor whose params parameter is a C# 13 params collection (e.g. `params ReadOnlySpan<T>`)
+    // must not crash the analyzer (AD0001/InvalidCastException) and must still correctly validate
+    // argument types against the collection's element type.
+    [Fact]
+    public async Task ShouldNotCrashOnParamsReadOnlySpanConstructor()
+    {
+        await Verifier.VerifyAnalyzerAsync(
+                """
+                using System;
+                using Moq;
+
+                internal class ClassWithReadOnlySpanParams
+                {
+                    public ClassWithReadOnlySpanParams(params ReadOnlySpan<string> values) { }
+                }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        var mockOk = new Mock<ClassWithReadOnlySpanParams>("a", "b");
+                        var mockBad = new Mock<ClassWithReadOnlySpanParams>{|Moq1002:(1, 2)|};
+                    }
+                }
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    // A constructor whose params parameter uses any of the C# 13 params collection types
+    // (List<T>, IEnumerable<T>, IReadOnlyList<T>, Span<T>) must be analyzed the same way as a
+    // `params T[]` constructor: matching argument types are accepted, mismatched ones raise Moq1002.
+    [Theory]
+    [MemberData(nameof(ParamsCollectionTestData))]
+    public async Task ShouldAnalyzeParamsCollectionConstructorArguments(string @namespace, string collectionType, string mock)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+                $$"""
+                {{@namespace}}
+
+                internal class ClassWithCollectionParams
+                {
+                    public ClassWithCollectionParams(params {{collectionType}} items) { }
+                }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        {{mock}}
+                    }
+                }
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeConstructorArguments(string referenceAssemblyGroup, string @namespace, string mock)

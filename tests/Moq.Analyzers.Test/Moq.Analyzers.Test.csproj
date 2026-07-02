@@ -19,8 +19,15 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <!-- Tests are compiled against a newer Roslyn than the analyzer's minimum-supported 4.8 so that
+         C# 13 params-collection syntax can be exercised. This does not change the analyzer's runtime
+         requirement; it only governs the compiler used to build test snippets. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="4.14.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" />
+    <!-- Required transitively by Roslyn 4.14; overrides the centrally pinned 8.0.0 for the test project only. -->
+    <PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.5" />
     <PackageReference Include="Verify.Nupkg" />
   </ItemGroup>
 
