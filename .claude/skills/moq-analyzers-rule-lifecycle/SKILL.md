@@ -224,13 +224,15 @@ Authoritative source: `CONTRIBUTING.md` "Release Process" (line 1007) — read i
 
 If any build fails with `MSB4018 ... GetBuildVersion task failed`: shallow clone; run `git fetch --unshallow`.
 
-### Release steps (major/minor; patch differs as noted)
+### Release steps
 
-1. **Branch**: `git checkout -b release/v{X}.{Y}.0 main` (patch releases branch from the PRIOR release branch and cherry-pick fixes from `main`, oldest first).
-2. **`version.json`**: set `"version": "{X}.{Y}.0"` (drop `-alpha`).
-3. **Promote release notes**: move every row from `src/Analyzers/AnalyzerReleases.Unshipped.md` into `src/Analyzers/AnalyzerReleases.Shipped.md` under a new `## Release {X}.{Y}.0` heading. This is the ONLY sanctioned edit to `Shipped.md`. `New Rules` rows stay `New Rules`; per copilot-instructions, this promotion step is where `Changed Rules`/`Removed Rules` sections get written into `Shipped.md` for shipped-rule modifications. (Precedent: `## Release 0.4.0` in `Shipped.md` has both `### New Rules` and `### Changed Rules`.)
+Throughout, `{X}.{Y}.{Z}` is the FULL target version: for a major/minor release `{Z}` is `0` (e.g. `0.5.0`); for a patch release `{Z}` is the patch number (e.g. `0.4.1`). Substitute the same `{X}.{Y}.{Z}` in the branch name, `version.json`, the `## Release` heading, and the commit message — never hard-code `.0` for a patch, or the `Shipped.md` section and tag will be mislabeled.
+
+1. **Branch**: major/minor branches from `main` — `git checkout -b release/v{X}.{Y}.{Z} main`. A patch branches from the PRIOR release branch (`release/v{X}.{Y}.{Z-1}`) and cherry-picks fixes from `main`, oldest first.
+2. **`version.json`**: set `"version": "{X}.{Y}.{Z}"` (drop `-alpha`).
+3. **Promote release notes**: move every row from `src/Analyzers/AnalyzerReleases.Unshipped.md` into `src/Analyzers/AnalyzerReleases.Shipped.md` under a new `## Release {X}.{Y}.{Z}` heading. This is the ONLY sanctioned edit to `Shipped.md`. `New Rules` rows stay `New Rules`; per copilot-instructions, this promotion step is where `Changed Rules`/`Removed Rules` sections get written into `Shipped.md` for shipped-rule modifications. (Precedent: `## Release 0.4.0` in `Shipped.md` has both `### New Rules` and `### Changed Rules`.)
 4. **Reset `Unshipped.md`** to the empty header (comment lines + `### New Rules` + table header only — exact text in `CONTRIBUTING.md:1071-1082`).
-5. Commit `chore(release): prepare v{X}.{Y}.0 release branch`, push the branch, wait for CI green.
+5. Commit `chore(release): prepare v{X}.{Y}.{Z} release branch`, push the branch, wait for CI green.
 6. **Bump `main`**: on `main`, set `version.json` to the next dev stem (e.g., `"0.6.0-alpha.{height}"`). Precedent commit: `bae5141` "chore(release): bump version to 0.5.0-alpha for next development cycle". Nothing automates this — a forgotten bump makes `main` produce prerelease versions of an already-shipped number.
 7. **Publish**: create a GitHub Release — Tag `v{X}.{Y}.{Z}`, Target `release/v{X}.{Y}.{Z}`, Title `v{X}.{Y}.{Z}`. Publishing the release fires `.github/workflows/release.yml`.
 

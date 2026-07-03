@@ -112,10 +112,12 @@ silently override the written rule — and do not restructure the file in an
 unrelated PR.
 
 At release time, on a `release/v{X}.{Y}.{Z}` branch: move the Unshipped rows
-into `AnalyzerReleases.Shipped.md` under a new `## Release {X}.{Y}.0` heading,
+into `AnalyzerReleases.Shipped.md` under a new `## Release {X}.{Y}.{Z}` heading,
 reset Unshipped to its empty header, and commit together with the
 `version.json` stable-version bump
-(`chore(release): prepare v{X}.{Y}.0 release branch`). That is the ONLY legal
+(`chore(release): prepare v{X}.{Y}.{Z} release branch`). Use the FULL target
+version — `{Z}` is `0` for a major/minor release but the patch number for a
+patch (e.g. `0.4.1`); never hard-code `.0`. That is the ONLY legal
 edit to Shipped. The verbatim CONTRIBUTING steps (§"Creating a Major or Minor
 Release" 3–4) and the full release runbook — patch-branch strategy,
 post-release `main` version-stem bump, what `release.yml` gates before
