@@ -177,7 +177,7 @@ reserved and unassigned** (comment in that file). `ConstructorArgumentsShouldMat
 emits two IDs, which is why classes (24) ≠ rules (25). ID ranges:
 1000–1099 Usage, 1100–1199 Correctness, 1200s Correctness, 1300s Usage,
 1400–1599 Best Practice, 1600+ Usage/protected (range table:
-`docs/rules/README.md:43`; per-rule docs: `docs/rules/Moq{Id}.md`, 26 files).
+`docs/rules/README.md:43`; per-rule docs: `docs/rules/Moq{Id}.md`, 25 files).
 
 | ID | Analyzer file (src/Analyzers/) | Checks |
 |---|---|---|

@@ -61,8 +61,13 @@ What it does (details in the script header):
    "snippet didn't compile".
 
 Environment knobs: `MOQ_ANALYZERS_CONFIG=release` (default `debug`),
-`SNIPPET_TFM=<tfm>` (default `net8.0`), `KEEP_HARNESS=1` (keep the temp project for
-inspection). Exit codes: 0 = ran; 1 = setup error; 2 = snippet has compile errors.
+`SNIPPET_TFM=<tfm>` (default `net8.0`), `SNIPPET_LANGVERSION=<ver>` (default `latest` — the
+host SDK's newest stable C#, so modern-host repros such as the C# 13 `params`-collection
+crash of #1241 actually parse; set `12` to mirror the pinned Roslyn 4.8 test compiler),
+`KEEP_HARNESS=1` (keep the temp project for inspection). Exit codes: 0 = ran; 1 = setup
+error; 2 = snippet has compile errors; **3 = an analyzer crashed (AD0001)** — the priority-1
+failure class this tool exists to catch, surfaced separately because Roslyn reports it as a
+warning that would otherwise exit the build 0 and read as a clean snippet.
 
 ### Worked example (observed output, 2026-07-02)
 
@@ -77,7 +82,7 @@ where `Foo` only has a `(string)` constructor. Running:
 produced (paths shortened; ~7 s wall clock including NuGet restore):
 
 ```text
---- Moq.Analyzers diagnostics (config=debug, Moq 4.18.4, net8.0) ---
+--- Moq.Analyzers diagnostics (config=debug, Moq 4.18.4, net8.0, C# latest) ---
 Snippet.cs(30,20): warning Moq1400: Explicitly choose a mocking behavior for SnippetSample.Foo instead of relying on the default (Loose) behavior (https://github.com/rjmurillo/moq.analyzers/blob/05135b2.../docs/rules/Moq1400.md)
 Snippet.cs(30,20): warning Moq1410: Explicitly set the Strict mocking behavior for 'SnippetSample.Foo' (https://github.com/rjmurillo/moq.analyzers/blob/05135b2.../docs/rules/Moq1410.md)
 Snippet.cs(30,33): warning Moq1002: Could not find a matching constructor for type 'SnippetSample.Foo' with arguments (1, true) (https://github.com/rjmurillo/moq.analyzers/blob/05135b2.../docs/rules/Moq1002.md)
@@ -89,7 +94,10 @@ tests in this project; the harness is the fastest way to see where a span actual
 lands before you write `{|Moq1002:...|}` markup.
 
 A clean snippet prints `(none)`. A snippet with syntax errors prints the CS errors
-first and exits 2 (observed for `new Mock<IFoo>(` with a missing paren).
+first and exits 2 (observed for `new Mock<IFoo>(` with a missing paren). A snippet that
+makes an analyzer throw prints an `ANALYZER CRASH (AD0001)` block and exits 3 — this is
+the highest-priority outcome (Roslyn disables the crashing analyzer for the session), and
+it is the case a naive grep for `MoqXXXX` would silently miss.
 
 ### Harness limitations (know these before trusting a result)
 
@@ -97,8 +105,8 @@ first and exits 2 (observed for `new Mock<IFoo>(` with a missing paren).
 |---|---|
 | Severities are forced to `warning` | Do not read severity off the output; check the descriptor or `docs/rules/MoqXXXX.md` for the shipped default |
 | Code fixes are not exercised | Fixer behavior/crashes need the code-fix test infra (see moq-analyzers-validation-and-qa) |
-| Compiles with the host SDK's current Roslyn (SDK 10.x) | Good for "modern host" behavior; the test suite pins Roslyn 4.8 (ADR-003), so parse-level differences (e.g. C# 13 params collections) can differ between harness and suite |
-| One file, `net8.0`, default LangVersion 12 | Multi-file/multi-TFM repros belong in the test suite |
+| Compiles with the host SDK's current Roslyn (SDK 10.x) | Good for "modern host" behavior; the test suite pins Roslyn 4.8 (ADR-003), so parse-level differences (e.g. C# 13 params collections) can differ between harness and suite. Set `SNIPPET_LANGVERSION=12` to approximate the pinned test compiler |
+| One file, `net8.0`, LangVersion `latest` by default | Multi-file/multi-TFM repros belong in the test suite; override the language version with `SNIPPET_LANGVERSION` |
 | A result here is evidence, not a regression test | Every FP/FN fix still ships with an issue-linked test (repo rule) |
 
 ---

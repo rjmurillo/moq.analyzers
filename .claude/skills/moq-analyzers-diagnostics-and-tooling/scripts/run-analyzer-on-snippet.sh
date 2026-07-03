@@ -11,6 +11,10 @@
 # Environment overrides:
 #   MOQ_ANALYZERS_CONFIG   debug (default) or release — which artifacts/bin/Moq.Analyzers/<config>/ to load.
 #   SNIPPET_TFM            Target framework of the harness project. Default: net8.0.
+#   SNIPPET_LANGVERSION    C# language version for the snippet. Default: latest (the host SDK's newest
+#                          stable C#, so modern-host repros such as C# 13 `params` collections parse).
+#                          Set to 12 to mirror the pinned Roslyn 4.8 test compiler; use preview for
+#                          preview-only syntax.
 #   KEEP_HARNESS=1         Keep the temp harness project directory and print its path (for debugging).
 #
 # What it does:
@@ -27,10 +31,13 @@
 #      `warning`, so Info/Suggestion-severity rules (e.g. Moq1400) show up in build output.
 #   5. Builds and prints every MoqXXXX diagnostic as: file(line,col): severity MoqID: message
 #      Compiler (CSxxxx) errors are printed too, so you can tell "no diagnostics" apart from
-#      "snippet did not compile".
+#      "snippet did not compile". Analyzer crashes (AD0001 — Roslyn's "analyzer threw an
+#      exception") are surfaced separately, because they exit the build 0 as a warning and
+#      would otherwise be reported as a clean snippet.
 #
 # Exit codes: 0 = harness ran (with or without Moq diagnostics); 1 = usage/setup error;
-#             2 = snippet failed to compile (CS errors printed).
+#             2 = snippet failed to compile (CS errors printed);
+#             3 = an analyzer crashed (AD0001) — the priority-1 failure class this tool exists to catch.
 
 set -euo pipefail
 
@@ -43,6 +50,7 @@ SNIPPET="$1"
 MOQ_VERSION="${2:-4.18.4}"
 CONFIG="${MOQ_ANALYZERS_CONFIG:-debug}"
 TFM="${SNIPPET_TFM:-net8.0}"
+LANGVERSION="${SNIPPET_LANGVERSION:-latest}"
 
 if [[ ! -f "$SNIPPET" ]]; then
     echo "error: snippet file not found: $SNIPPET" >&2
@@ -81,7 +89,7 @@ cat > "$WORK/Snippet.csproj" <<EOF
     <TargetFramework>$TFM</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <LangVersion>12</LangVersion>
+    <LangVersion>$LANGVERSION</LangVersion>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <EnableNETAnalyzers>false</EnableNETAnalyzers>
@@ -120,19 +128,33 @@ set -e
 # Print Moq diagnostics (deduplicated: MSBuild echoes each once per target invocation).
 MOQ_LINES="$(grep -E 'Moq[0-9]{4}' "$BUILD_LOG" | sed 's/ \[.*Snippet\.csproj\]$//' | sort -u || true)"
 CS_ERRORS="$(grep -E 'error CS[0-9]+' "$BUILD_LOG" | sed 's/ \[.*Snippet\.csproj\]$//' | sort -u || true)"
+# AD0001 = Roslyn's "analyzer threw an exception". It surfaces as a *warning*, so with
+# TreatWarningsAsErrors=false the build exits 0 and it is neither a MoqXXXX line nor a CS
+# error — the harness would otherwise report a crashing analyzer as a clean snippet.
+AD_CRASHES="$(grep -E 'AD0001' "$BUILD_LOG" | sed 's/ \[.*Snippet\.csproj\]$//' | sort -u || true)"
 
 if [[ -n "$CS_ERRORS" ]]; then
     echo "--- snippet failed to compile (fix these first; analyzers may be unreliable on broken code) ---"
     echo "$CS_ERRORS"
 fi
 
-echo "--- Moq.Analyzers diagnostics (config=$CONFIG, Moq $MOQ_VERSION, $TFM) ---"
+if [[ -n "$AD_CRASHES" ]]; then
+    echo "--- ANALYZER CRASH (AD0001) — priority-1 failure; an analyzer threw an exception ---"
+    echo "$AD_CRASHES"
+fi
+
+echo "--- Moq.Analyzers diagnostics (config=$CONFIG, Moq $MOQ_VERSION, $TFM, C# $LANGVERSION) ---"
 if [[ -n "$MOQ_LINES" ]]; then
     echo "$MOQ_LINES"
 else
     echo "(none)"
 fi
 
+# An analyzer crash outranks every other outcome: it is the failure class this tool exists to
+# catch, and Roslyn disables the crashing analyzer for the rest of the session.
+if [[ -n "$AD_CRASHES" ]]; then
+    exit 3
+fi
 if [[ -n "$CS_ERRORS" ]]; then
     exit 2
 fi
