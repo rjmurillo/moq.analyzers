@@ -58,8 +58,10 @@ Checklist — a PR that touches an analyzer or fixer must also touch:
 - [ ] `docs/rules/README.md` master table (new row: ID, category, title, link to
       the implementation file)
 - [ ] Root `README.md` rule table (same row, minus the implementation link)
-- [ ] `src/Analyzers/AnalyzerReleases.Unshipped.md` (see §5 — never touch
-      `Shipped.md` outside release promotion)
+- [ ] `src/Analyzers/AnalyzerReleases.Unshipped.md` — ONLY for a new rule or an
+      ID/category/severity **metadata** change; a pure logic/span/FP fix to a
+      shipped rule needs NO release row (see §5 and moq-analyzers-rule-lifecycle
+      Part 3; never touch `Shipped.md` outside release promotion)
 - [ ] Tests and PR evidence (owned by moq-analyzers-validation-and-qa)
 
 The analyzer's `helpLinkUri` must follow the repo pattern (all 24 analyzer classes

@@ -233,9 +233,13 @@ in order:
    `IsMockReferenced()` (`src/Common/WellKnown/MoqKnownSymbolExtensions.cs`)
    when the compilation doesn't reference Moq. In tests, the `Net80` reference
    group has no Moq — analyzers are silent by design there.
-2. **Which Moq version?** 4.8.2 lacks `SetupAdd`/`SetupRemove`, generic
-   `Protected().Setup` forms, and most `IThrows` overloads; an FN on 4.8.2 may
-   be "API doesn't exist there". Verify API ground truth with dotnet-inspect
+2. **Which Moq version?** 4.8.2 lacks `SetupAdd`/`SetupRemove` and most
+   `IThrows` overloads; an FN on 4.8.2 may be "API doesn't exist there". But do
+   NOT assume the string-based `Protected()` API is missing: `Protected().Setup`,
+   `Setup<TResult>(string, params object[])`, `Verify`, `SetupSet`/`VerifySet`
+   all exist in BOTH 4.8.2 and 4.18.4 (the Moq1600 suite exercises them across
+   both via `.WithMoqReferenceAssemblyGroups()`), so a protected-setup FN on
+   4.8.2 is a real bug, not a missing API. Verify API ground truth with dotnet-inspect
    (`dotnet tool install -g dotnet-inspect`, then
    `dotnet-inspect member "IReturns<TMock, TResult>" --package Moq --all`).
 3. **Known FN inventory** (2026-07-02): non-generic

@@ -81,6 +81,17 @@ for _xmlvar in TFM LANGVERSION MOQ_VERSION OUTPUTTYPE; do
     esac
 done
 
+# OUTPUTTYPE must be empty (SDK default = library) or a real MSBuild OutputType.
+# Fail fast on a typo like "Eex" here, instead of surfacing it as a confusing
+# downstream MSBuild error after the project is already generated.
+case "$OUTPUTTYPE" in
+    "" | Library | Exe | WinExe | Module) ;;
+    *)
+        echo "error: SNIPPET_OUTPUTTYPE must be one of Library, Exe, WinExe, Module (got: $OUTPUTTYPE)" >&2
+        exit 1
+        ;;
+esac
+
 if [[ ! -f "$SNIPPET" ]]; then
     echo "error: snippet file not found: $SNIPPET" >&2
     exit 1
