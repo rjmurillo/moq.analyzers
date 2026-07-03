@@ -15,6 +15,12 @@
 #                          stable C#, so modern-host repros such as C# 13 `params` collections parse).
 #                          Set to 12 to mirror the pinned Roslyn 4.8 test compiler; use preview for
 #                          preview-only syntax.
+#   SNIPPET_OUTPUTTYPE     MSBuild OutputType of the harness project. Default: unset (SDK default =
+#                          a class library), correct for the usual analyzer repro of type/member
+#                          declarations with no entry point. Set to Exe for a snippet written as
+#                          top-level statements, otherwise the SDK rejects it with CS8805 and the
+#                          harness exits 2 before the analyzers can be trusted. (Do not set Exe for a
+#                          declaration-only snippet: with no Main it fails CS5001.)
 #   KEEP_HARNESS=1         Keep the temp harness project directory and print its path (for debugging).
 #
 # What it does:
@@ -51,13 +57,19 @@ MOQ_VERSION="${2:-4.18.4}"
 CONFIG="${MOQ_ANALYZERS_CONFIG:-debug}"
 TFM="${SNIPPET_TFM:-net8.0}"
 LANGVERSION="${SNIPPET_LANGVERSION:-latest}"
+# Empty default = SDK default (a class library). A snippet that is only type/member
+# declarations (the usual analyzer repro) compiles fine as a library. A snippet using
+# top-level statements needs SNIPPET_OUTPUTTYPE=Exe, or the SDK rejects it with CS8805
+# ("Program using top-level statements must be an executable") and the harness exits 2
+# before the analyzers can be trusted. (Conversely, Exe with no entry point → CS5001.)
+OUTPUTTYPE="${SNIPPET_OUTPUTTYPE:-}"
 
-# These three values are interpolated verbatim into the generated Snippet.csproj XML.
+# These values are interpolated verbatim into the generated Snippet.csproj XML.
 # Reject XML-significant characters so a stray/hostile value cannot break the project
 # file or inject MSBuild elements (e.g. an <Exec> target that dotnet build would run).
 # Denylist rather than allowlist so legitimate NuGet version ranges (e.g. [4.8.2,4.9.0))
 # still pass.
-for _xmlvar in TFM LANGVERSION MOQ_VERSION; do
+for _xmlvar in TFM LANGVERSION MOQ_VERSION OUTPUTTYPE; do
     case "${!_xmlvar}" in
         *'<'* | *'>'* | *'&'* | *'"'* | *"'"*)
             echo "error: $_xmlvar contains XML-unsafe characters: ${!_xmlvar}" >&2
@@ -97,10 +109,17 @@ fi
 
 cp "$SNIPPET" "$WORK/Snippet.cs"
 
+# Only emit <OutputType> when the caller set one; otherwise inherit the SDK default (library).
+OUTPUTTYPE_ELEMENT=""
+if [[ -n "$OUTPUTTYPE" ]]; then
+    OUTPUTTYPE_ELEMENT="    <OutputType>$OUTPUTTYPE</OutputType>"
+fi
+
 cat > "$WORK/Snippet.csproj" <<EOF
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>$TFM</TargetFramework>
+$OUTPUTTYPE_ELEMENT
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <LangVersion>$LANGVERSION</LangVersion>

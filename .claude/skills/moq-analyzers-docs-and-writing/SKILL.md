@@ -236,11 +236,16 @@ KNOWN INCONSISTENCY (2026-07-02): `.github/copilot-instructions.md` states
 Unshipped "must only contain a `### New Rules` section", but the actual
 `AnalyzerReleases.Unshipped.md` on `main` contains both `### New Rules` (Moq1003,
 Moq1004, Moq1208, Moq1600) and a `### Changed Rules` section (the category
-realignment from PR #1087), and the build passes with it. Treat the file's current
-shape plus the official format doc it links
-(<https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md>)
-as authoritative; flag the stale instruction line in your PR rather than
-"correcting" the data file to match it.
+realignment from PR #1087), and the build passes with it. **Do not treat the live
+file's shape as authoritative and do not append to `### Changed Rules`.** The root
+`.github/copilot-instructions.md` (loaded via `AGENTS.md`) is a higher-priority
+policy than this skill, so when you record a rule change, add it as a `### New
+Rules` row per that policy. Leave the pre-existing `### Changed Rules` block in
+place (the upstream Roslyn format tolerates it, which is why the build passes) but
+never restructure it in an unrelated PR. Because the on-disk file and the written
+policy genuinely diverge, this is a STOP-and-flag: state it in your PR and let the
+maintainer reconcile the data file — never resolve it silently. The full runbook
+and rationale live in `moq-analyzers-rule-lifecycle` §Part 3; this note defers to it.
 
 Note: super-linter explicitly excludes `AnalyzerReleases.(Shipped|Unshipped).md`
 from markdown linting (`.github/workflows/linters.yml`, `FILTER_REGEX_EXCLUDE`) —

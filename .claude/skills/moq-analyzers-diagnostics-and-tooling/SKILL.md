@@ -64,6 +64,10 @@ Environment knobs: `MOQ_ANALYZERS_CONFIG=release` (default `debug`),
 `SNIPPET_TFM=<tfm>` (default `net8.0`), `SNIPPET_LANGVERSION=<ver>` (default `latest` — the
 host SDK's newest stable C#, so modern-host repros such as the C# 13 `params`-collection
 crash of #1241 actually parse; set `12` to mirror the pinned Roslyn 4.8 test compiler),
+`SNIPPET_OUTPUTTYPE=Exe` (default unset = class library, correct for declaration-only
+repros; set `Exe` when the snippet is top-level statements, else the SDK rejects it with
+CS8805 and the harness exits 2 before analyzers can be trusted — but do not set it for a
+declaration-only snippet, which would fail CS5001 for lack of a `Main`),
 `KEEP_HARNESS=1` (keep the temp project for inspection). Exit codes: 0 = ran; 1 = setup
 error; 2 = snippet has compile errors; **3 = an analyzer crashed (AD0001)** — the priority-1
 failure class this tool exists to catch, surfaced separately because Roslyn reports it as a
