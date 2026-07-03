@@ -38,12 +38,15 @@
 #   5. Builds and prints every MoqXXXX diagnostic as: file(line,col): severity MoqID: message
 #      Compiler (CSxxxx) errors are printed too, so you can tell "no diagnostics" apart from
 #      "snippet did not compile". Analyzer crashes (AD0001 — Roslyn's "analyzer threw an
-#      exception") are surfaced separately, because they exit the build 0 as a warning and
-#      would otherwise be reported as a clean snippet.
+#      exception") and analyzer LOAD failures (CS8032/CS8034 — a bundled analyzer or one of its
+#      dependencies could not be loaded) are surfaced separately, because they exit the build 0 as
+#      warnings and would otherwise be reported as a clean snippet.
 #
 # Exit codes: 0 = harness ran (with or without Moq diagnostics); 1 = usage/setup error;
 #             2 = snippet failed to compile (CS errors printed);
-#             3 = an analyzer crashed (AD0001) — the priority-1 failure class this tool exists to catch.
+#             3 = an analyzer crashed (AD0001) — a priority-1 failure class this tool exists to catch;
+#             4 = an analyzer (or a dependency) failed to LOAD (CS8032/CS8034) — the analyzers never
+#                 ran, so "(none)" would be a false clean result (the #850 CS8032 incident class).
 
 set -euo pipefail
 
@@ -165,10 +168,22 @@ CS_ERRORS="$(grep -E 'error CS[0-9]+' "$BUILD_LOG" | sed 's/ \[.*Snippet\.csproj
 # TreatWarningsAsErrors=false the build exits 0 and it is neither a MoqXXXX line nor a CS
 # error — the harness would otherwise report a crashing analyzer as a clean snippet.
 AD_CRASHES="$(grep -E 'AD0001' "$BUILD_LOG" | sed 's/ \[.*Snippet\.csproj\]$//' | sort -u || true)"
+# CS8032 ("instance of analyzer cannot be created" — usually a missing/incompatible dependency,
+# the #850 class) and CS8034 ("unable to load Analyzer assembly") both mean the analyzer never
+# ran at all. They surface as *warnings*, so like AD0001 the build exits 0 and the harness would
+# otherwise print "(none)" for a snippet whose analyzers were never loaded. CS8033 ("assembly
+# does not contain any analyzers") is deliberately EXCLUDED — it fires benignly for the bundled
+# code-fix-only / utility assemblies and is not a failure.
+AN_LOADFAIL="$(grep -E 'CS803[24]' "$BUILD_LOG" | sed 's/ \[.*Snippet\.csproj\]$//' | sort -u || true)"
 
 if [[ -n "$CS_ERRORS" ]]; then
     echo "--- snippet failed to compile (fix these first; analyzers may be unreliable on broken code) ---"
     echo "$CS_ERRORS"
+fi
+
+if [[ -n "$AN_LOADFAIL" ]]; then
+    echo "--- ANALYZER LOAD FAILURE (CS8032/CS8034) — the analyzers never loaded; any result below is meaningless ---"
+    echo "$AN_LOADFAIL"
 fi
 
 if [[ -n "$AD_CRASHES" ]]; then
@@ -183,8 +198,13 @@ else
     echo "(none)"
 fi
 
-# An analyzer crash outranks every other outcome: it is the failure class this tool exists to
-# catch, and Roslyn disables the crashing analyzer for the rest of the session.
+# A load failure is the most fundamental outcome: if the analyzers never loaded, no MoqXXXX line
+# and no AD0001 crash can appear, so "(none)" would be a lie. It outranks every other result.
+if [[ -n "$AN_LOADFAIL" ]]; then
+    exit 4
+fi
+# An analyzer crash outranks every other outcome below it: it is a failure class this tool exists
+# to catch, and Roslyn disables the crashing analyzer for the rest of the session.
 if [[ -n "$AD_CRASHES" ]]; then
     exit 3
 fi

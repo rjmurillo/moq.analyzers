@@ -69,9 +69,10 @@ repros; set `Exe` when the snippet is top-level statements, else the SDK rejects
 CS8805 and the harness exits 2 before analyzers can be trusted — but do not set it for a
 declaration-only snippet, which would fail CS5001 for lack of a `Main`),
 `KEEP_HARNESS=1` (keep the temp project for inspection). Exit codes: 0 = ran; 1 = setup
-error; 2 = snippet has compile errors; **3 = an analyzer crashed (AD0001)** — the priority-1
-failure class this tool exists to catch, surfaced separately because Roslyn reports it as a
-warning that would otherwise exit the build 0 and read as a clean snippet.
+error; 2 = snippet has compile errors; **3 = an analyzer crashed (AD0001)**;
+**4 = an analyzer or a dependency failed to LOAD (CS8032/CS8034)** — the #850 incident class,
+where the analyzers never ran at all. Codes 3 and 4 are surfaced separately because Roslyn
+reports both as warnings that would otherwise exit the build 0 and read as a clean snippet.
 
 ### Worked example (observed output, 2026-07-02)
 
