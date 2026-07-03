@@ -25,7 +25,7 @@ public class DefaultValueProviderPatternsAnalyzerTests
             ["""
             var repository = new MockRepository(MockBehavior.Strict) { DefaultValue = DefaultValue.Mock };
             """],
-        }.WithNamespaces().WithMoqReferenceAssemblyGroups().Where(x => x[0]?.ToString()?.Contains("NewMoq") == true);
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups().Where(x => x[0]?.ToString()?.Contains("NewMoq", StringComparison.Ordinal) == true);
     }
 
     [Theory]
