@@ -18,20 +18,20 @@
     "sequential-thinking": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking@2025.12.18"],
       "tools": ["*"]
     },
     "codacy": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@codacy/codacy-mcp"],
+      "args": ["-y", "@codacy/codacy-mcp@0.6.22"],
       "env": { "CODACY_ACCOUNT_TOKEN": "${CODACY_ACCOUNT_TOKEN}" },
       "tools": ["*"]
     },
     "mcp-supermemory-ai": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "supergateway", "--sse", "${SUPERMEMORY_URL}"],
+      "args": ["-y", "supergateway@3.4.3", "--sse", "${SUPERMEMORY_URL}"],
       "tools": ["*"]
     }
   }
