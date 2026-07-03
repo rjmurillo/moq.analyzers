@@ -512,6 +512,6 @@ Re-verify volatile claims with:
 - Coverage outputs: run the test command, then `ls artifacts/TestResults/coverage/`.
 - Compile-rule text: `sed -n 11,20p .github/instructions/csharp.instructions.md`.
 
-- Frontmatter stays parser-safe: `python3 -c "import yaml; print(len(yaml.safe_load(open('.claude/skills/moq-analyzers-validation-and-qa/SKILL.md').read().split('---')[1])['description']))"` — expect the full description length, not an error or a truncated count
+- Frontmatter must stay parser-safe (strict YAML: quote the description; no unquoted `#`); validate with any strict YAML parser before committing changes to this file.
 
 Last verified: 2026-07-02 against commit 05135b2.

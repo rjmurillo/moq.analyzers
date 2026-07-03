@@ -445,6 +445,6 @@ Re-verify volatile claims with these one-liners (repo root):
 - Naming rules source: `.github/copilot-instructions.md` ("AI Agent Coding Rules" #3); BCL mandate: same file, "Mission-Critical Quality Standard".
 - Cyclomatic ≤10 has no `.editorconfig` pin — if one appears (`grep -rn -i "cyclomatic" .editorconfig build/`), update §8.
 
-- Frontmatter stays parser-safe: `python3 -c "import yaml; print(len(yaml.safe_load(open('.claude/skills/dotnet-api-design-standards/SKILL.md').read().split('---')[1])['description']))"` — expect the full description length, not an error or a truncated count
+- Frontmatter must stay parser-safe (strict YAML: quote the description; no unquoted `#`); validate with any strict YAML parser before committing changes to this file.
 
 Last verified: 2026-07-02 against commit 05135b2.

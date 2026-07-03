@@ -147,8 +147,8 @@ artifacts — never commit them.
 
 ## Provenance and maintenance
 
-- Routing table targets the 17 sibling skills present in `.claude/skills/` —
-  re-verify the set: `ls .claude/skills/` (expect 18 dirs including this one).
+- Routing table targets the sibling skills listed in this router; keep the list
+  updated when skills are added or removed.
   Last verified: 2026-07-02 against commit 0f40a36.
 - Intent #2's issue range (#1241–#1264, #1270) is the 2026-07-02 correctness
   backlog — re-verify open states: `gh issue list -R rjmurillo/moq.analyzers --search "1241..1270"` or the GitHub UI.
