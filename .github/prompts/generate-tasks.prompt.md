@@ -70,7 +70,7 @@ Parent: #123
 
 ### Notes
 
-When editing files, follow the guidance at [instructions/README.md](../instructions/README.md) to determine appropriate instructions for specific files.
+When editing files, follow the guidance at [instructions/README.md](.github/instructions/README.md) to determine appropriate instructions for specific files.
 
 ## Tasks
 

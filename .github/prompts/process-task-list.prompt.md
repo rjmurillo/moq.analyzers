@@ -31,7 +31,7 @@ Guidelines for managing task lists in GitHub issue Markdown files to track progr
 
   3. Once all the subtasks are marked completed and changes have been committed, verify with the user the task is completed.
   4. Once the user has indicated the work is verified, push the branch and open a pull request.
-     - **Title**: Uses convention commit format
+     - **Title**: Uses Conventional Commits format
      - **Body**: Be descriptive
        - **Explain**: all changes made, why they were made, and all validation performed
        - **Reference the Task** Use language to indicate the issue is resolved at the end of the description (e.g., `Fixes #456`, `Closes #123`, `Resolves #789` etc. )
