@@ -52,6 +52,20 @@ CONFIG="${MOQ_ANALYZERS_CONFIG:-debug}"
 TFM="${SNIPPET_TFM:-net8.0}"
 LANGVERSION="${SNIPPET_LANGVERSION:-latest}"
 
+# These three values are interpolated verbatim into the generated Snippet.csproj XML.
+# Reject XML-significant characters so a stray/hostile value cannot break the project
+# file or inject MSBuild elements (e.g. an <Exec> target that dotnet build would run).
+# Denylist rather than allowlist so legitimate NuGet version ranges (e.g. [4.8.2,4.9.0))
+# still pass.
+for _xmlvar in TFM LANGVERSION MOQ_VERSION; do
+    case "${!_xmlvar}" in
+        *'<'* | *'>'* | *'&'* | *'"'* | *"'"*)
+            echo "error: $_xmlvar contains XML-unsafe characters: ${!_xmlvar}" >&2
+            exit 1
+            ;;
+    esac
+done
+
 if [[ ! -f "$SNIPPET" ]]; then
     echo "error: snippet file not found: $SNIPPET" >&2
     exit 1
