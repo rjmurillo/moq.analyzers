@@ -64,8 +64,13 @@ Version Compatibility"):
   lambda, e.g. `Setup(x => SomeClass.StaticField)`, DOES compile and IS a
   legal test row — Moq fails at runtime, which is exactly what Moq1200 tests.)
 - Never add tests using Moq APIs absent from the targeted Moq version
-  (`SetupAdd`/`SetupRemove`/`.Protected().Setup` do not exist in 4.8.2) —
-  they fail at compile time, not analyzer time.
+  (`SetupAdd`/`SetupRemove` are 4.18.4-only — absent in 4.8.2, per
+  `moq-api-reference`) — they fail at compile time, not analyzer time. Do NOT
+  put string-based `.Protected().Setup`/`Verify` in a 4.18.4-only group: those
+  overloads exist in BOTH 4.8.2 and 4.18.4 (the Moq1600 suite fans them across
+  both via `.WithMoqReferenceAssemblyGroups()`), so moving them to
+  `.WithNewMoqReferenceAssemblyGroups()` would silently drop old-Moq coverage.
+  A 4.18.4-only group is only for overloads genuinely added after 4.8.2.
 - The single sanctioned escape hatch for deliberately-broken code is
   `CompilerDiagnostics.None` (section 3.6) — used to prove mid-edit
   robustness, always with a comment naming the suppressed CS errors.

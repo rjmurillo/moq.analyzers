@@ -135,7 +135,7 @@ Checklist — paste console output (or screenshots/CI links) for each:
 - [ ] `dotnet build /p:PedanticMode=true` output — zero warnings
 - [ ] `dotnet test --settings ./build/targets/tests/test.runsettings` output — all pass
 - [ ] Code coverage summary (Cobertura output lands under `artifacts/TestResults/coverage/`); coverage validation is MANDATORY before completing any task; must not reduce critical-path coverage without justification
-- [ ] Codacy analysis output (if issues were found and fixed)
+- [ ] Codacy CLI analysis output on every changed file — REQUIRED for every PR, including a clean run (`.github/copilot-instructions.md` lists Codacy analysis output among the mandatory PR evidence and requires running it after every file edit; paste the output even when nothing was found)
 - [ ] **Moq version compatibility note** for any analyzer/test change: which Moq versions are targeted (test matrix runs 4.8.2 and 4.18.4) and how test data is grouped
 - [ ] Workflow changes only: `actionlint` output + `gh act -n` dry-run summary showing every job `Job succeeded`:
 
