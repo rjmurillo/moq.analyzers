@@ -11,7 +11,7 @@ public class InvocationExpressionSyntaxExtensionsTests
         SyntaxTree tree = CSharpSyntaxTree.ParseText(code, new CSharpParseOptions(kind: SourceCodeKind.Script));
         InvocationExpressionSyntax setupInvocation = tree.GetRoot()
             .DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .First(i => i.Expression.ToString().Contains("Setup"));
+            .First(i => i.Expression.ToString().Contains("Setup", StringComparison.Ordinal));
 
         InvocationExpressionSyntax? result = setupInvocation.FindMockedMethodInvocationFromSetupMethod();
 
