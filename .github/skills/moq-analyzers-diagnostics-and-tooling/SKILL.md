@@ -131,8 +131,9 @@ and exits non-zero on regression. Its exit code is a **required PR merge gate**
 # Expands to: PerfCore.ps1 -v diag -diff -ci  — requires pwsh (PowerShell 7).
 ./build/scripts/perf/CIPerf.sh -filter '*(FileCount: 1)'
 
-# Same thing via PowerShell directly, with all knobs:
-./build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter '*(FileCount: 1)'
+# Same thing via PowerShell directly, with all knobs (PerfCore.ps1 has no shebang and
+# is not executable, so invoke it through pwsh — the CIPerf.sh wrapper does the same):
+pwsh build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter '*(FileCount: 1)'
 ```
 
 - `-filter '*(FileCount: 1)'` is the **PR fast path** — only the 1-file variant of each

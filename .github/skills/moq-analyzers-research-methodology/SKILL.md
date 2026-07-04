@@ -187,8 +187,9 @@ operation count, zero behavior change ("only the lifetime ... changed") — was 
 against the run, not fitted to it.
 
 ```bash
-# Local perf comparison against the pinned baseline (PowerShell required):
-./build/scripts/perf/PerfCore.ps1 -projects \
+# Local perf comparison against the pinned baseline (invoke via pwsh — PerfCore.ps1
+# has no shebang and is not executable, so a bare ./ call fails on Linux/macOS):
+pwsh build/scripts/perf/PerfCore.ps1 -projects \
   "tests/Moq.Analyzers.Benchmarks/Moq.Analyzers.Benchmarks.csproj" -diff
 ```
 
