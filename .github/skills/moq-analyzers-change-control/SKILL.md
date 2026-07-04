@@ -318,7 +318,7 @@ Re-verify before trusting volatile facts (all verified 2026-07-02):
 - PR evidence list unchanged: CONTRIBUTING.md §"Strict Workflow Requirements" and §"Validation Evidence Requirements"
 - Semantic PR title gate: `cat .github/workflows/semantic-pr-check.yml`
 - ADR count/status: `ls docs/architecture/` (10 files, all "Accepted" as of 2026-07-02)
-- Incident commits still resolve: `git log --oneline -1 38943ac 3d4f7ff b1439ab 5172cf3 35d363d a974999 458ca5d 3399297 5eec7e1`
+- Incident commits still resolve: `git log --oneline -1 38943ac 3d4f7ff b1439ab 5172cf3 35d363d a974999 458ca5d 3399297 5eec7e1` (these span the full project history; in a shallow clone — CI checkouts and some fresh clones — old hashes report "not found" / "bad object", so run `git fetch --unshallow` first. Every hash is reachable in a full clone, verified 2026-07-04.)
 - Issue states (may have closed/moved): #850, #1081, #1010, #986, #914, audit-filing range #1241–#1278 — `gh issue view <n>`. (#1012 is deliberately absent: it is the unrelated enhancement the S1135-tripping `TODO(#1012)` comment linked to, not an incident tracker)
 - version.json stem (currently `0.5.0-alpha.{height}`): `cat version.json`
 - UNVERIFIED as written policy (verified only as consistent historical practice): non-negotiable 7's exact phrasing "every FP/FN fix ships an issue-linked regression test in the same PR" — no single CONTRIBUTING sentence states it; evidence is the commit trail cited in the table.
