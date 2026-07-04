@@ -141,8 +141,12 @@ adding a catch; fix the root cause and add a regression test.
 
 If a reported stack matches one of these, link the existing issue rather than
 filing a duplicate. Mid-edit (incomplete/unparseable) code is the most common
-trigger class overall — reproduce with `CompilerDiagnostics.None` style tests
-(see `CallbackSignatureShouldMatchMockedMethodAnalyzerTests` for the pattern).
+trigger class overall — reproduce with a `CompilerDiagnostics.None` test (the
+sanctioned exception to the valid-C#-only root rule
+(`.github/instructions/csharp.instructions.md`), justified here because the
+crash IS on incomplete/unparseable code; see
+`CallbackSignatureShouldMatchMockedMethodAnalyzerTests` for the pattern and
+`moq-analyzers-validation-and-qa` for the framing).
 
 ## 3. CS8032 — analyzer load failure in a consumer host
 

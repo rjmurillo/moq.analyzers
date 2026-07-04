@@ -110,7 +110,7 @@ expression analysis, write at least one breaking attempt per axis:
 | Syntactic wrapper | parenthesized expression, user extension method, fluent chain reordering, target-typed `new`, nested lambda |
 | Symbol resolution state | resolves to Moq symbol; resolves to NON-Moq symbol with a Moq-like name; overload-resolution failure (candidates only); no symbol at all (mid-edit code) |
 | Moq version | 4.8.2 AND 4.18.4 (`WithOld/New/BothMoqReferenceAssemblyGroups()` fan-out — many APIs differ between them) |
-| Malformed code | incomplete/uncompilable source (analyzer priority #1 is "never crash"; the audit found only 2 of 10 sampled test classes cover this) |
+| Malformed code | incomplete/uncompilable source, exercised ONLY through the `CompilerDiagnostics.None` exception to the valid-C#-only root rule (`.github/instructions/csharp.instructions.md`) — use it only for a genuine never-crash (priority #1) robustness row, annotate the suppressed CS errors, framing in `moq-analyzers-validation-and-qa`. The audit found only 2 of 10 sampled test classes cover this |
 | Look-alikes | user-defined `Mock<T>`/`MockBehavior` doppelgangers must NOT trigger (`DoppelgangerTestHelper`) |
 
 Test-authoring mechanics (markup syntax, fan-out helpers) are in
