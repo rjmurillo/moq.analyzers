@@ -330,12 +330,17 @@ across the **mandatory axes**:
 | Wrapper shapes | the four shapes from 3(b), for Class 1/2 fixes | Yes for those classes |
 | Negative rows | unmarked legal code = genuine "no diagnostic" assertion | Yes |
 | Doppelganger | user-defined `Mock<T>` look-alikes must NOT trigger (`DoppelgangerTestHelper`) | When detection logic changed |
-| Mid-edit | `CompilerDiagnostics.None` rows | Yes for Class 6 |
+| Mid-edit | `CompilerDiagnostics.None` rows (sole exception to valid-C#-only — see note) | Only for a genuine Class-6 mid-edit/error-type bug |
 
-Test code must be valid, compiling C# (except deliberate
-`CompilerDiagnostics.None` rows) — never write a setup for a static/const
-member that wouldn't compile; the verifier treats compile errors as test
-failures.
+Root policy (`.github/instructions/csharp.instructions.md`, "Only Valid C#
+Code") is absolute: test code must be valid, compiling C# with no
+CSxxxx-producing code — never write a setup for a static/const member that
+wouldn't compile; the verifier treats compile errors as test failures. The ONE
+established exception is a deliberate `CompilerDiagnostics.None` row, used ONLY
+when the bug itself is about mid-edit / incomplete code (Class 6); annotate the
+suppressed CS errors and see `moq-analyzers-validation-and-qa` for the framing.
+It is NOT a workaround for otherwise-invalid tests — if a Class-6 repro is not
+genuinely mid-edit code, keep it valid C# or STOP per the root rule.
 
 ### GATE 4 — the full proof
 
