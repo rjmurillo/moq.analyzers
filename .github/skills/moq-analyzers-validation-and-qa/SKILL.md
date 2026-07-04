@@ -71,9 +71,17 @@ Version Compatibility"):
   both via `.WithMoqReferenceAssemblyGroups()`), so moving them to
   `.WithNewMoqReferenceAssemblyGroups()` would silently drop old-Moq coverage.
   A 4.18.4-only group is only for overloads genuinely added after 4.8.2.
-- The single sanctioned escape hatch for deliberately-broken code is
-  `CompilerDiagnostics.None` (section 3.6) — used to prove mid-edit
-  robustness, always with a comment naming the suppressed CS errors.
+- Root policy is absolute: `.github/instructions/csharp.instructions.md`
+  ("Only Valid C# Code in All Tests") says test code MUST be valid, compilable
+  C# — never include CSxxxx-producing code — and lists no exception. The ONE
+  established deviation is `CompilerDiagnostics.None` (section 3.6), used ONLY
+  to prove analyzer robustness against deliberately mid-edit / incomplete code
+  (the real suite uses it in ~10 files, e.g.
+  `CallbackSignatureShouldMatchMockedMethodAnalyzerTests`), always with a comment
+  naming the suppressed CS errors. Treat it as a narrow, purpose-specific
+  exception, NOT a license for invalid tests generally: if a scenario is not a
+  deliberate robustness probe and will not compile, it is not a valid test —
+  STOP per the root rule rather than reaching for `CompilerDiagnostics.None`.
 
 Why so strict: the costliest historical failures were plausible-but-wrong
 AI-authored changes — code that looked correct, compiled, and shipped a false
@@ -267,13 +275,17 @@ prepend, the theory signature is
 `(string referenceAssemblyGroup, string @namespace, string mock)` — the
 LAST-applied combinator's value arrives FIRST.
 
-Version gating: rows using 4.18.4-only APIs (e.g. `Callback` on non-void
-setups via generic `ICallback<TMock, TResult>`, `Mock.Of<T>(predicate,
-MockBehavior)`) go in a separate member-data method using
-`.WithNewMoqReferenceAssemblyGroups()` (×2 total). Rows valid on both use
-`.WithMoqReferenceAssemblyGroups()`. See `CallbackOnlyNewMoqTestData()` in
-`MethodSetupShouldSpecifyReturnValueAnalyzerTests.cs` for the gating comment
-style — always explain WHY a row is version-gated.
+Version gating: rows using 4.18.4-only APIs go in a separate member-data
+method using `.WithNewMoqReferenceAssemblyGroups()`. The 4.18.4-only trigger is
+narrow — e.g. a **callback-only** non-void setup (`Setup(x => x.NonVoid()).Callback(...)`
+with NO `.Returns()`), which needs the generic `ICallback<TMock, TResult>`
+interface added after 4.8.2, or `Mock.Of<T>(predicate, MockBehavior)`. Do NOT
+over-gate: a non-void `Setup(...).Callback(...).Returns(...)` runs on BOTH
+versions — `TestData` in `MethodSetupShouldSpecifyReturnValueAnalyzerTests.cs`
+fans those through `.WithMoqReferenceAssemblyGroups()`, so only the
+callback-with-no-`Returns` form is new-Moq-only. Rows valid on both use
+`.WithMoqReferenceAssemblyGroups()`. See `CallbackOnlyNewMoqTestData()` there for
+the gating comment style — always explain WHY a row is version-gated.
 
 ## 6. Certified / golden inventory — suites with special semantics
 
