@@ -531,7 +531,7 @@ moq-analyzers-research-frontier, moq-analyzers-research-methodology.
 
 - Walkthrough file unchanged? `git log --oneline -1 -- src/Analyzers/SetupShouldBeUsedOnlyForOverridableMembersAnalyzer.cs` (line refs valid at 101 lines: `wc -l` it).
 - Roslyn pin still 4.8? `grep 'Microsoft.CodeAnalysis.CSharp"' Directory.Packages.props`
-- Meta-analyzer versions (5.3.0 / 4.14.0)? `grep -r PackageVersion build/targets/codeanalysis/Packages.props`
+- Meta-analyzer versions (5.6.0 / 5.6.0)? `grep -r PackageVersion build/targets/codeanalysis/Packages.props`
 - Banned APIs list? `cat src/BannedSymbols.txt`
 - Packaging path lines (csproj:43-45)? `grep -n 'analyzers/dotnet/cs' src/Analyzers/Moq.Analyzers.csproj`
 - Params-collection crash still unfixed at `ConstructorArgumentsShouldMatchAnalyzer.cs:383`? `grep -n 'IArrayTypeSymbol' src/Analyzers/ConstructorArgumentsShouldMatchAnalyzer.cs` and check issue #1241 state (`gh issue view 1241`).
