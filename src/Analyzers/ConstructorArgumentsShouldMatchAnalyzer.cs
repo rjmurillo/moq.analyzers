@@ -414,7 +414,30 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return arrayType.ElementType;
         }
 
-        if (paramsType is INamedTypeSymbol { IsGenericType: true } namedType && namedType.TypeArguments.Length == 1)
+        if (paramsType is not INamedTypeSymbol namedType)
+        {
+            return null;
+        }
+
+        // The element type of a non-span params collection is the T of the IEnumerable<T> it
+        // is or implements — not its own type argument, which a custom collection type
+        // (e.g. MyCollection<TTag> : IEnumerable<string>) may use for something unrelated.
+        if (namedType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+        {
+            return namedType.TypeArguments[0];
+        }
+
+        foreach (INamedTypeSymbol implementedInterface in namedType.AllInterfaces)
+        {
+            if (implementedInterface.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+            {
+                return implementedInterface.TypeArguments[0];
+            }
+        }
+
+        // Span<T> and ReadOnlySpan<T> are valid params collections but do not implement IEnumerable<T>.
+        if (namedType is { Name: "Span" or "ReadOnlySpan", TypeArguments.Length: 1 }
+            && namedType.ContainingNamespace is { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true })
         {
             return namedType.TypeArguments[0];
         }

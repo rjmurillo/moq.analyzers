@@ -160,6 +160,55 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
                 ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 
+    // A custom params collection type resolves its element type from the IEnumerable<T> it
+    // implements — including a non-generic collection (MyIntCollection : IEnumerable<int>) and a
+    // generic wrapper whose own type argument is unrelated to the element type
+    // (MyTaggedCollection<TTag> : IEnumerable<string>).
+    [Theory]
+    [InlineData("MyIntCollection", """new Mock<ClassWithCustomParams>(1, 2, 3);""")]
+    [InlineData("MyIntCollection", """new Mock<ClassWithCustomParams>{|Moq1002:("a", "b")|};""")]
+    [InlineData("MyTaggedCollection<int>", """new Mock<ClassWithCustomParams>("a", "b");""")]
+    [InlineData("MyTaggedCollection<int>", """new Mock<ClassWithCustomParams>{|Moq1002:(1, 2)|};""")]
+    public async Task ShouldAnalyzeCustomParamsCollectionConstructorArguments(string collectionType, string mock)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+                $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                using Moq;
+
+                internal class MyIntCollection : IEnumerable<int>
+                {
+                    private readonly List<int> _items = new();
+                    public void Add(int item) => _items.Add(item);
+                    public IEnumerator<int> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
+                }
+
+                internal class MyTaggedCollection<TTag> : IEnumerable<string>
+                {
+                    private readonly List<string> _items = new();
+                    public void Add(string item) => _items.Add(item);
+                    public IEnumerator<string> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
+                }
+
+                internal class ClassWithCustomParams
+                {
+                    public ClassWithCustomParams(params {{collectionType}} items) { }
+                }
+
+                internal class UnitTest
+                {
+                    private void Test()
+                    {
+                        {{mock}}
+                    }
+                }
+                """,
+                ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeConstructorArguments(string referenceAssemblyGroup, string @namespace, string mock)
