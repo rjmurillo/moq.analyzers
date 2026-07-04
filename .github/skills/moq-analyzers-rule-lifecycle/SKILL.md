@@ -11,7 +11,7 @@ Definitions used throughout:
 
 - **Roslyn analyzer**: a class that plugs into the C# compiler and reports **diagnostics** (warnings/errors like `Moq1600`) as code compiles.
 - **Diagnostic descriptor**: the static metadata object (`DiagnosticDescriptor`) declaring a rule's ID, title, message, category, and severity.
-- **Release tracking (RS2000 family)**: the `Microsoft.CodeAnalysis.Analyzers` package (pinned 5.3.0 in `build/targets/codeanalysis/Packages.props`, 2026-07-02) validates that every descriptor ID is declared in `AnalyzerReleases.Shipped.md` or `AnalyzerReleases.Unshipped.md`. A missing entry raises RS2000. Under the CI-parity build (`dotnet build /p:PedanticMode=true`, which sets `TreatWarningsAsErrors` — see `build/targets/codeanalysis/CodeAnalysis.targets:3-5`) any RS2xxx **fails the build**. A lenient local `dotnet build` may show it only as a warning — treat every RS2xxx as a build blocker.
+- **Release tracking (RS2000 family)**: the `Microsoft.CodeAnalysis.Analyzers` package (pinned 5.6.0 in `build/targets/codeanalysis/Packages.props`, 2026-07-04) validates that every descriptor ID is declared in `AnalyzerReleases.Shipped.md` or `AnalyzerReleases.Unshipped.md`. A missing entry raises RS2000. Under the CI-parity build (`dotnet build /p:PedanticMode=true`, which sets `TreatWarningsAsErrors` — see `build/targets/codeanalysis/CodeAnalysis.targets:3-5`) any RS2xxx **fails the build**. A lenient local `dotnet build` may show it only as a warning — treat every RS2xxx as a build blocker.
 - **NBGV**: Nerdbank.GitVersioning. Computes the package version from `version.json` + branch name + git height. No version numbers are hand-edited into csproj files.
 
 All commands are repo-root relative and assume `export PATH="$HOME/.dotnet:$PATH"`.
@@ -313,7 +313,7 @@ Total: 10 files, +713/−1. No code fix (doc says `CodeFix | False`), so no `src
 - helpLinkUri pattern still universal: `grep -c GitCommitId src/Analyzers/*.cs | grep -v ':0'` (25 uses, 2026-07-02).
 - Severity distribution: `grep -h 'DiagnosticSeverity\.' src/Analyzers/*.cs | grep -o 'DiagnosticSeverity\.[A-Za-z]*' | sort | uniq -c` (5 Error / 18 Warning / 2 Info descriptors, 2026-07-02; note one Error hit is an internal check in LinqToMocksExpressionShouldBeValidAnalyzer.cs:215, not a descriptor).
 - Unshipped/Shipped shape (and the Changed-Rules discrepancy vs copilot-instructions.md:553): `sed -n '1,30p' src/Analyzers/AnalyzerReleases.Unshipped.md`.
-- Release-tracking analyzer pin: `grep CodeAnalysis.Analyzers build/targets/codeanalysis/Packages.props` (5.3.0, 2026-07-02).
+- Release-tracking analyzer pin: `grep CodeAnalysis.Analyzers build/targets/codeanalysis/Packages.props` (5.6.0, 2026-07-04).
 - Version stem: `grep '"version"' version.json` (`0.5.0-alpha.{height}`, 2026-07-02); post-release bump precedent `git show bae5141 --stat`.
 - release.yml gates: `sed -n '1,80p' .github/workflows/release.yml` (verify step at `if: github.event_name == 'release'`; push uses `--skip-duplicate` with 3 retries).
 - Release process prose: `grep -n 'Release Process' CONTRIBUTING.md` (line 1007; checklist at 1158).

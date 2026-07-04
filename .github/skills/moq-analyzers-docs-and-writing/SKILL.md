@@ -303,7 +303,7 @@ evidence blocks (`.github/copilot-instructions.md` §Required Validation Evidenc
 | --- | --- | --- | --- |
 | `markdownlint-cli2` | Husky.NET pre-commit hook (`.husky/task-runner.json`), on staged `**/*.md` | `.markdownlint.json` | Disabled rules: MD013 (line length), MD024 (duplicate headings), MD033 (inline HTML), MD041 (first-line heading), MD060. Everything else is default-on |
 | `yamllint` | pre-commit, staged `**/*.yml`/`*.yaml` | `.yamllint.yml` | extends default; line length max 320; `document-start` disabled; truthy keys not checked |
-| super-linter v8.7.0 | CI `linters.yml` (`VALIDATE_MARKDOWN: true`, `VALIDATE_YAML: true`, ...) | same configs | `FILTER_REGEX_EXCLUDE` skips `*.verified.*` snapshots, `AnalyzerReleases.*.md`, `.cursor/`, `.github/chatmodes/`, `.windsurf/`, `.agents/` |
+| super-linter v8.7.0 | CI `linters.yml` (`VALIDATE_MARKDOWN: true`, `VALIDATE_YAML: true`, ...) | same configs | `FILTER_REGEX_EXCLUDE` skips `*.verified.*` snapshots, `AnalyzerReleases.*.md`, and `.agents/` (the `.cursor/`, `.github/chatmodes/`, `.windsurf/` excludes were dropped when #1215 removed those dirs, 2026-07-04) |
 | actionlint | pre-commit + CI | — | workflows only |
 
 Practical consequence: long lines in Markdown are fine (MD013 off), but heading

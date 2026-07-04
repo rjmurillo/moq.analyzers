@@ -94,7 +94,7 @@ rjmurillo/moq.analyzers. (Incident details verified 2026-07-02.)
 ## AnalyzerReleases: Unshipped → Shipped promotion (release time only)
 
 Background: Roslyn's release-tracking analyzer (from the
-Microsoft.CodeAnalysis.Analyzers package, pinned 5.3.0 in
+Microsoft.CodeAnalysis.Analyzers package, pinned 5.6.0 in
 `build/targets/codeanalysis/Packages.props`) requires
 `src/Analyzers/AnalyzerReleases.Unshipped.md` and
 `AnalyzerReleases.Shipped.md`. A new rule without an Unshipped row raises an

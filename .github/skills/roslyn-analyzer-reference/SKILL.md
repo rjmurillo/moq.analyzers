@@ -430,7 +430,7 @@ moved. Rules to generalize:
 
 This repo's build loads meta-analyzers over its own code
 (`build/targets/codeanalysis/CodeAnalysis.props`): `Microsoft.CodeAnalysis.Analyzers`
-5.3.0 and `Microsoft.CodeAnalysis.BannedApiAnalyzers` 4.14.0. Under
+5.6.0 and `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 (both bumped from 5.3.0/4.14.0 by the main-merge, 2026-07-04). Under
 `/p:PedanticMode=true` (CI parity) their warnings are errors. The ones you will hit:
 
 | Rule | What it demands | Repo mechanics |
