@@ -92,8 +92,12 @@ kind, validate against a real-world corpus as a release gate.
    Per corpus entry: `git clone --depth 1` at a pinned SHA, inject the local
    package, build, and collect Moq1xxx diagnostics machine-readably with
    `dotnet build /p:ErrorLog=<name>.sarif` (SARIF = the standard static-
-   analysis result format; the repo's own CI already uploads SARIF from
-   builds). Injection mechanism is an **open design point**: dropping a
+   analysis result format). NOTE — the repo's CI does NOT currently emit
+   build SARIF: `main.yml` has an upload step but nothing sets `/p:ErrorLog`,
+   so no SARIF files are produced (see `moq-analyzers-diagnostics-and-tooling`
+   §5, "an honest gap"). Wiring `ErrorLog` and collecting corpus SARIF is NEW
+   work for this harness, not existing infrastructure. Injection mechanism is
+   an **open design point**: dropping a
    `Directory.Build.props` + `nuget.config` at the clone root works only for
    repos that don't define their own; a
    `/p:CustomBeforeMicrosoftCommonTargets=<file>` import is more invasive

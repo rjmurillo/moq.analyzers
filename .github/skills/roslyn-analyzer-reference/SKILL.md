@@ -378,7 +378,7 @@ Checklist before you ship any analyzer/fixer change:
 - [ ] Every `ITypeSymbol` consumed for a *report* decision guarded against `TypeKind.Error` (and usually `TypeKind.TypeParameter`).
 - [ ] Null `Symbol` handled explicitly: bail (usual), or candidate fallback with a comment justifying safety.
 - [ ] No null-forgiving `!` on values Roslyn can legitimately return null for (repo-banned after hardening issues #997/#998/#1000/#1027).
-- [ ] A test row with deliberately incomplete code (see `CallbackSignatureShouldMatchMockedMethodAnalyzerTests`, which uses `CompilerDiagnostics.None` to allow non-compiling sources). Malformed-code rows are the weakest systematic test gap in this repo (audit Pass C) — add them.
+- [ ] For a genuine mid-edit / error-recovery scenario, a malformed-code test row via `CompilerDiagnostics.None` (see `CallbackSignatureShouldMatchMockedMethodAnalyzerTests`). This is the ONE narrow exception to the root rule that test code must be valid, compilable C# (`.github/instructions/csharp.instructions.md`, no CSxxxx code): use it ONLY when the bug is about incomplete/mid-edit code, annotate the suppressed CS errors, and STOP rather than suppress diagnostics on an otherwise-invalid test (framing in `moq-analyzers-validation-and-qa`). Malformed-code coverage is the weakest systematic test gap (audit Pass C), so add it where the analyzer must survive mid-edit input.
 
 ---
 
