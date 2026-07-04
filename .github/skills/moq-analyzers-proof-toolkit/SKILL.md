@@ -128,7 +128,7 @@ just read.
 
    ```bash
    dotnet build src/Analyzers/Moq.Analyzers.csproj   # only if you changed analyzer code
-   .claude/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh mysnippet.cs
+   .github/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh mysnippet.cs
    ```
 
 3. Compare observed diagnostics (ID + line + column) against your expectation. Only
@@ -531,7 +531,7 @@ own issue and review, not a test edit in passing.
 - Phantom symbols still phantom: rerun the Recipe 1 reflection probe against `~/.nuget/packages/moq/4.18.4/lib/net6.0/Moq.dll` — expect the arity-0 and arity-1 `Moq.Language.IReturns` names NOT FOUND, the arity-2 name and `Moq.GeneratedReturnsExtensions` exists. Delete the phantom discussion if #1243's fix removes/repurposes the properties: `grep -n "IReturns =>" src/Common/WellKnown/MoqKnownSymbols.cs`
 - Issue states (all open as of 2026-07-02): #1243, #1253, #1262, #1265–#1269, #1270 — check <https://github.com/rjmurillo/moq.analyzers/issues/1243> etc.; rewrite worked examples in past tense as they close
 - Void-Setup FN still live: rerun the Recipe 2 snippet — Moq1200 on `GetValue()` only; if `DoVoid()` starts reporting, #1270's pinned-FN rows have been superseded. Gate source: `grep -n "IsGenericMethod" src/Common/ISymbolExtensions.Moq.cs` (lines 42, 62 as of 2026-07-02)
-- Harness path unchanged: `ls .claude/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh`
+- Harness path unchanged: `ls .github/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh`
 - Roslyn pin: `grep -n "Microsoft.CodeAnalysis.CSharp\"" Directory.Packages.props` (4.8 as of 2026-07-02); Recipe 5 probes must track it
 - KnownSymbols test template: `ls tests/Moq.Analyzers.Test/Common/MoqKnownSymbolsTests.*.cs`
 - STOP protocol wording: `grep -n "even once" .github/copilot-instructions.md CONTRIBUTING.md`
@@ -540,7 +540,7 @@ own issue and review, not a test edit in passing.
 - PerfDiff thresholds: `grep -rn "Threshold.Parse" src/tools/PerfDiff/BDN/Regression/` (35%; 5%+0.5ms ×2; 250ms; 100ms as of 2026-07-02)
 - Test count: `dotnet test --settings ./build/targets/tests/test.runsettings` summary (3,357 + 4 as of 2026-07-02); PackageTests sandbox caveat holds only where the git remote is not a github.com URL
 - Moq overload counts (20 vs 19 Returns; the 4.18.4-only addition is `Returns(InvocationFunc)` — `Returns(Delegate)` exists in both): `dotnet-inspect member "IReturns<TMock, TResult>" --package Moq@4.18.4 --all` and `@4.8.2`
-- Frontmatter stays parser-safe: `python3 -c "import yaml; print(len(yaml.safe_load(open('.claude/skills/moq-analyzers-proof-toolkit/SKILL.md').read().split('---')[1])['description']))"` — expect the full description length, not an error or a truncated count
+- Frontmatter stays parser-safe: `python3 -c "import yaml; print(len(yaml.safe_load(open('.github/skills/moq-analyzers-proof-toolkit/SKILL.md').read().split('---')[1])['description']))"` — expect the full description length, not an error or a truncated count
 - Shipped DLL list (3 files): `grep -n "PackagePath=\"analyzers/dotnet/cs\"" src/Analyzers/Moq.Analyzers.csproj`
 
 Last verified: 2026-07-02 against commit 05135b2.

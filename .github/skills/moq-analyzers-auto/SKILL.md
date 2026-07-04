@@ -125,7 +125,7 @@ these are the five you will use in every session:
 dotnet build /p:PedanticMode=true                                     # CI-parity build (plain build hides warnings)
 dotnet test --settings ./build/targets/tests/test.runsettings          # full suite + coverage
 dotnet format --verify-no-changes                                      # format gate
-.claude/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh <file.cs> [4.8.2]   # "does this trigger MoqXXXX?"
+.github/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh <file.cs> [4.8.2]   # "does this trigger MoqXXXX?"
 git log --oneline -10 -- <path>                                        # has this file been fought over before?
 ```
 

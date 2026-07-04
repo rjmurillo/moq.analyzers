@@ -411,6 +411,6 @@ Re-verification one-liners for everything volatile in this skill:
 - dotnet-inspect version/flags: `dotnet-inspect --version` (syntax notes verified on 0.16.0)
 - Test package cache location: `ls /tmp/test-packages/moq/` after a test run (environment-specific; falls back to `dotnet nuget locals global-packages --list`)
 
-- Frontmatter stays parser-safe: `python3 -c "import yaml; print(len(yaml.safe_load(open('.claude/skills/moq-api-reference/SKILL.md').read().split('---')[1])['description']))"` — expect the full description length, not an error or a truncated count
+- Frontmatter stays parser-safe: `python3 -c "import yaml; print(len(yaml.safe_load(open('.github/skills/moq-api-reference/SKILL.md').read().split('---')[1])['description']))"` — expect the full description length, not an error or a truncated count
 
 Last verified: 2026-07-02 against commit 05135b2.
