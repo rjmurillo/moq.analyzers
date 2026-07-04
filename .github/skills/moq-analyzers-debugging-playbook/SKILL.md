@@ -395,8 +395,8 @@ only the triage decision: real regression vs. tool bug.
    genuinely differ → treat as a real regression; reproduce locally:
 
    ```bash
-   ./build/scripts/perf/CIPerf.sh -filter "'*(FileCount: 1)'"
-   # equivalent to: pwsh build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter "'*(FileCount: 1)'"
+   ./build/scripts/perf/CIPerf.sh -filter '*(FileCount: 1)'
+   # equivalent to: pwsh build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter '*(FileCount: 1)'
    ```
 
 5. If the job crashed with a stack trace rather than a verdict → likely #1269;

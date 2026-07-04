@@ -347,7 +347,7 @@ dotnet test --settings ./build/targets/tests/test.runsettings      # expect base
 .github/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh repro.cs 4.18.4
 .github/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh repro.cs 4.8.2
 # perf gate (ADR-008; required PR check). Local pre-flight:
-pwsh build/scripts/perf/PerfCore.ps1 -diff -ci -filter "'*(FileCount: 1)'"
+pwsh build/scripts/perf/PerfCore.ps1 -diff -ci -filter '*(FileCount: 1)'
 ```
 
 | Observed | Branch |
