@@ -45,10 +45,10 @@ jobs:
       # so the fallback 'true' is needed for non-PR events.
       code-changed: ${{ github.event_name != 'pull_request' || steps.filter.outputs.code }}
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Check for code changes
-        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
+        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
         id: filter
         if: github.event_name == 'pull_request'
         with:
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
 
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
@@ -189,7 +189,7 @@ jobs:
       IS_TARGET_MAIN: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
@@ -265,7 +265,7 @@ jobs:
           needs.check-paths.outputs.code-changed == 'true'
           && runner.os == 'Linux'
           && env.IS_QLTY_COVERAGE_ALLOWED == 'true'
-        uses: qltysh/qlty-action/coverage@a19242102d17e497f437d7466aa01b528537e899 # v2
+        uses: qltysh/qlty-action/coverage@fd52dc852530a708d68c3b7342f8d33d1df4cd55 # v2
         with:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
           files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
@@ -331,7 +331,7 @@ jobs:
     steps:
       - name: Setup .NET ${{ matrix.dotnet-version }}
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
@@ -463,7 +463,7 @@ jobs:
       FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }}
 
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
@@ -487,20 +487,20 @@ jobs:
       # The baseline SHA may require a different .NET SDK version
       - name: Checkout baseline
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ steps.get-baseline-sha.outputs.sha }}
           fetch-depth: 0
 
       - name: Setup .NET for performance baseline
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           global-json-file: ./global.json
 
       - name: Restore checkout
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
 

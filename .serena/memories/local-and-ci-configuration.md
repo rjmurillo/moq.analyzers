@@ -61,25 +61,29 @@ All tools are required. Missing tools fail the hook (no soft-skip).
 
 ## AI Editor Rules
 
-Located in `.cursor/rules/`, `.windsurf/rules/`, `.github/chatmodes/`.
+AI instructions and configuration are consolidated under `.github/`, the standard location for GitHub Copilot and Copilot CLI.
 
-### HARMFUL (removal tracked in #1084, #1085)
+Removed during consolidation:
 
-- `.cursor/rules/codacy.mdc`: Auto-applies fixes after every edit, caused ~110 file corruption
-- `src/tools/PerfDiff/.cursor/rules/codacy.mdc`: Same, with `alwaysApply: true` and empty globs
-- `.github/chatmodes/Beast Mode.chatmode.md`: Reckless autonomous behavior, contradicts project philosophy
-- `.cursor/rules/verify-information-rule.mdc`: Too vague, wastes context tokens
-- `.cursor/rules/conventional-commit-messages.mdc`: Duplicates CI enforcement, wastes ~700 tokens
+- Cursor rules directory
+- Windsurf rules directory
+- Beast Mode chat mode file under `.github/`
+- Nested PerfDiff Cursor rules directory
+- Root `.mcp.json`, replaced by `.github/mcp.json`
 
-### SAFE
+Migrated Cursor workflow docs now live as Copilot prompts:
 
-- `.cursor/rules/create-explainer.md`: PRD template, `alwaysApply: false`
-- `.cursor/rules/process-task-list.md`: Task management process doc
-- `.cursor/rules/csharp.mdc`: Redirect to copilot-instructions.md
-- `.windsurf/rules/csharp.md`: Same redirect for Windsurf
+- `.github/prompts/create-explainer.prompt.md`
+- `.github/prompts/generate-tasks.prompt.md`
+- `.github/prompts/process-task-list.prompt.md`
+
+MCP configuration:
+
+- Copilot CLI reads `.github/mcp.json`.
+- The VS Code editor reads `.vscode/mcp.json`.
 
 ## Known Broken Configurations
 
 - #1081: Pre-push hook parse error (fixed by Husky.NET migration and *.ps1 eol=lf in .gitattributes)
 - #1084: Codacy rule files cause cascading file corruption (remove both files)
-- #1085: Low-value AI editor rules and chatmodes to remove
+- #1085: Resolved by consolidating AI editor rules under `.github/` and removing low-value editor-specific rules
