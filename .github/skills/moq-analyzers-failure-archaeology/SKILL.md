@@ -440,6 +440,10 @@ Re-verify before trusting anything volatile in this file:
 
 - All cited commits exist with these subjects/dates:
   `for h in d25b4de 5172cf3 35d363d a974999 6ec810c c270302 894313b 0bef80b 5eec7e1 4b705e2 3399297 3d4f7ff b1439ab 38943ac 5f4914b ffed678 f9ec6ca c61a66a f0161a7 4052954 9febdda 3b5ac71 7595080 58924f7 2a7ee34 dac582f; do git show -s --format='%h %ad %s' --date=short $h; done`
+  (These span the full project history. In a shallow clone — CI checkouts and
+  some fresh clones — old hashes resolve as "not found" / "bad object"; run
+  `git fetch --unshallow` first. Every hash is reachable in a full clone,
+  verified 2026-07-04.)
 - ACTIVE entries still active (issue states): check #1082–#1085, #1243,
   #1241, #1265–#1269, and the range #1241–#1278 via
   `gh issue view <n> --repo rjmurillo/moq.analyzers --json state,title`
