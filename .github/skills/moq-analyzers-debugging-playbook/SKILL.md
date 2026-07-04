@@ -240,8 +240,10 @@ in order:
    all exist in BOTH 4.8.2 and 4.18.4 (the Moq1600 suite exercises them across
    both via `.WithMoqReferenceAssemblyGroups()`), so a protected-setup FN on
    4.8.2 is a real bug, not a missing API. Verify API ground truth with dotnet-inspect
-   (`dotnet tool install -g dotnet-inspect`, then
-   `dotnet-inspect member "IReturns<TMock, TResult>" --package Moq --all`).
+   (`dotnet tool install -g dotnet-inspect`, then run it per pinned version:
+   `dotnet-inspect member "IReturns<TMock,TResult>" --package Moq@4.8.2 --all`
+   and `... --package Moq@4.18.4 --all` — pin the `@version`, since an unpinned
+   `--package Moq` inspects only the latest nuget release, not the test matrix).
 3. **Known FN inventory** (2026-07-02): non-generic
    `Setup(Expression<Action<T>>)` (void members) is never analyzed because
    `IsMoqSetupMethod` requires `IsGenericMethod` — pinned as commented-out

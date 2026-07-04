@@ -260,7 +260,7 @@ pins that. So for every symbol you register, add BOTH:
 
 Verify the metadata name against BOTH Moq packages before registering
 (`dotnet tool install -g dotnet-inspect; dotnet-inspect member "<Type>"
---package Moq --all`, or decompile the packages the tests restore).
+--package Moq@4.18.4 --all` (pin `@version`; re-run `@4.8.2` — unpinned inspects only the latest release), or decompile the packages the tests restore).
 
 ### (b) Unwrap the syntactic wrapper — for Classes 1 and 2
 

@@ -235,8 +235,10 @@ hypothesis, UNVERIFIED — survey before claiming).
    setup methods to `src/Common/WellKnown/MoqKnownSymbols.cs`, each with a
    resolves-non-null test against both catalog Moq versions. First verify
    the exact API shape per version with the inspection tool the repo already
-   uses: `dotnet tool install -g dotnet-inspect`, then
-   `dotnet-inspect member "MockSequence" --package Moq --all`.
+   uses: `dotnet tool install -g dotnet-inspect`, then pin each version —
+   `dotnet-inspect member "MockSequence" --package Moq@4.8.2 --all` and
+   `... --package Moq@4.18.4 --all` (unpinned `--package Moq` inspects only the
+   latest release, not the supported matrix).
 3. **Ship Epic 3 first** (mixed Returns/Throws type validation, old #617):
    it is single-statement, reuses Moq1207's detection, and needs no
    cross-statement machinery — the lowest-risk proof that sequence semantics

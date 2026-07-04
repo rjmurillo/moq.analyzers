@@ -408,7 +408,7 @@ teaches the tool.
 - Coverage report types/paths: `grep -n "ReportTypes\|coverage" build/targets/tests/Tests.targets`
 - SARIF still unwired (delete §5 gap paragraph if this starts matching): `grep -rn "ErrorLog" --include="*.props" --include="*.targets" --include="*.csproj" .` (no hits as of 2026-07-02); SquiggleCop still unwired: `grep -rln -i squigglecop --exclude-dir=.git --exclude-dir=artifacts .` (only `.config/dotnet-tools.json`)
 - Tool pins: `cat .config/dotnet-tools.json` (snitch 2.0.0, squigglecop 1.0.26, reportgenerator 5.5.10 as of 2026-07-02); `dotnet-inspect --version` (0.16.0)
-- Latest Moq on nuget.org drifts: re-run `dotnet-inspect member "IReturns<TMock, TResult>" --package Moq --all` and update the "latest = 4.20.72" note
+- Latest Moq on nuget.org drifts: re-run `dotnet-inspect member "IReturns<TMock,TResult>" --package Moq --all` (intentionally UNPINNED here — this line tracks the newest release; pin `@4.8.2`/`@4.18.4` when verifying the supported test matrix) and update the "latest = 4.20.72" note
 - Benchmark file convention: `ls tests/Moq.Analyzers.Benchmarks/Moq1*Benchmarks.cs`
 
 - Frontmatter stays parser-safe: `python3 -c "import yaml; print(len(yaml.safe_load(open('.github/skills/moq-analyzers-diagnostics-and-tooling/SKILL.md').read().split('---')[1])['description']))"` — expect the full description length, not an error or a truncated count

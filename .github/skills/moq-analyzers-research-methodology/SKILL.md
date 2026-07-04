@@ -147,7 +147,7 @@ dotnet test --settings ./build/targets/tests/test.runsettings \
 # Check the actual Moq API surface before asserting an overload exists
 # (see moq-analyzers-proof-toolkit for the full recipe):
 dotnet tool install -g dotnet-inspect   # once
-dotnet-inspect member "IReturns<TMock, TResult>" --package Moq --all
+dotnet-inspect member "IReturns<TMock,TResult>" --package Moq@4.18.4 --all  # pin @version (re-run @4.8.2); unpinned = latest only
 ```
 
 A breaking case that survives becomes an issue-linked regression test row (repo rule:
