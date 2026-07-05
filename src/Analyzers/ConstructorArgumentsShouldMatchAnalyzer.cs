@@ -470,7 +470,8 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     {
         INamedTypeSymbol definition = namedType.OriginalDefinition;
 
-        if (definition.ContainingNamespace is not { Name: "System", ContainingNamespace.IsGlobalNamespace: true })
+        if (definition.ContainingType is not null
+            || definition.ContainingNamespace is not { Name: "System", ContainingNamespace.IsGlobalNamespace: true })
         {
             return false;
         }
