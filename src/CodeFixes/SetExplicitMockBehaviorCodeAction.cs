@@ -88,6 +88,23 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
         return editor.GetChangedDocument();
     }
 
+    private static bool ContainsMockBehaviorArgument(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> candidates, ISymbol mockBehaviorType)
+    {
+        foreach (ArgumentSyntax argument in candidates)
+        {
+            // Use the converted type, not the expression type, so an argument that binds to the
+            // MockBehavior parameter through an implicit conversion (for example the literal 0 or
+            // default) is still recognized as an explicit MockBehavior argument.
+            ITypeSymbol? argumentType = semanticModel.GetTypeInfo(argument.Expression).ConvertedType;
+            if (SymbolEqualityComparer.Default.Equals(argumentType, mockBehaviorType))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Validates that the edit recorded on the diagnostic can be applied safely to the current node.
     /// Guards against a stale lightbulb where the document changed after analysis: the node must still
@@ -100,14 +117,7 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
     /// <returns><see langword="true"/> when the edit can be applied safely; otherwise <see langword="false"/>.</returns>
     private bool CanApplyEdit(SemanticModel semanticModel, ISymbol mockBehaviorType)
     {
-        SeparatedSyntaxList<ArgumentSyntax>? maybeArguments = _nodeToFix switch
-        {
-            InvocationExpressionSyntax invocation => invocation.ArgumentList.Arguments,
-            BaseObjectCreationExpressionSyntax creation => creation.ArgumentList?.Arguments ?? default(SeparatedSyntaxList<ArgumentSyntax>),
-            _ => null,
-        };
-
-        if (maybeArguments is not SeparatedSyntaxList<ArgumentSyntax> arguments)
+        if (!TryGetArgumentList(out SeparatedSyntaxList<ArgumentSyntax> arguments))
         {
             return false;
         }
@@ -119,26 +129,25 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
             // would duplicate it.
             DiagnosticEditProperties.EditType.Insert =>
                 _position <= arguments.Count
-                && !ContainsMockBehaviorArgument(arguments),
+                && !ContainsMockBehaviorArgument(semanticModel, arguments, mockBehaviorType),
             DiagnosticEditProperties.EditType.Replace => _position < arguments.Count,
             _ => false,
         };
+    }
 
-        bool ContainsMockBehaviorArgument(SeparatedSyntaxList<ArgumentSyntax> candidates)
+    private bool TryGetArgumentList(out SeparatedSyntaxList<ArgumentSyntax> arguments)
+    {
+        switch (_nodeToFix)
         {
-            foreach (ArgumentSyntax argument in candidates)
-            {
-                // Use the converted type, not the expression type, so an argument that binds to the
-                // MockBehavior parameter through an implicit conversion (for example the literal 0 or
-                // default) is still recognized as an explicit MockBehavior argument.
-                ITypeSymbol? argumentType = semanticModel.GetTypeInfo(argument.Expression).ConvertedType;
-                if (SymbolEqualityComparer.Default.Equals(argumentType, mockBehaviorType))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            case InvocationExpressionSyntax invocation:
+                arguments = invocation.ArgumentList.Arguments;
+                return true;
+            case BaseObjectCreationExpressionSyntax creation:
+                arguments = creation.ArgumentList?.Arguments ?? default;
+                return true;
+            default:
+                arguments = default;
+                return false;
         }
     }
 }

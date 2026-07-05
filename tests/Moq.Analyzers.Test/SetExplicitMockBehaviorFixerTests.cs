@@ -178,7 +178,8 @@ public class SetExplicitMockBehaviorFixerTests
 
         // The fixer registers two actions (Loose and Strict). Applying either must not throw and
         // must leave the document unchanged, because the recorded edit shape does not match the node.
-        Assert.Equal(2, actions.Count);
+        const int expectedActionCount = 2;
+        Assert.Equal(expectedActionCount, actions.Count);
 
         string originalText = (await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
         foreach (CodeAction action in actions)
