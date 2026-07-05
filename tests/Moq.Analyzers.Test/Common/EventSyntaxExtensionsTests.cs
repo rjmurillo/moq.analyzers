@@ -152,40 +152,56 @@ public class EventSyntaxExtensionsTests
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
-    [Theory]
-    [InlineData("using System;\nclass C { event Action<double> MyEvent; }", "double")]
-    [InlineData("using System;\nclass C { event EventHandler<EventArgs> MyEvent; }", "System.EventArgs")]
-    public void GetEventParameterTypes_SingleTypeArgDelegate_ReturnsSingleType(
-        string code,
-        string expectedTypeName)
+    [Fact]
+    public void TryGetEventParameterTypes_ActionOfT_ReturnsSingleTypeWithoutOptionalSender()
     {
-        (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(code, "MyEvent");
+        (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(
+            "using System;\nclass C { event Action<double> MyEvent; }", "MyEvent");
 
-        ITypeSymbol[] result = EventSyntaxExtensions.GetEventParameterTypes(eventType, knownSymbols);
+        bool success = EventSyntaxExtensions.TryGetEventParameterTypes(eventType, knownSymbols, out ITypeSymbol[] result, out bool senderCanBeOmitted);
 
+        Assert.True(success);
         Assert.Single(result);
-        Assert.Equal(expectedTypeName, result[0].ToDisplayString());
+        Assert.Equal("double", result[0].ToDisplayString());
+        Assert.False(senderCanBeOmitted);
+    }
+
+    [Fact]
+    public void TryGetEventParameterTypes_GenericEventHandler_ReturnsInvokeParamsWithOptionalSender()
+    {
+        (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(
+            "using System;\nclass C { event EventHandler<EventArgs> MyEvent; }", "MyEvent");
+
+        bool success = EventSyntaxExtensions.TryGetEventParameterTypes(eventType, knownSymbols, out ITypeSymbol[] result, out bool senderCanBeOmitted);
+
+        Assert.True(success);
+        Assert.Equal(2, result.Length);
+        Assert.Contains("object", result[0].ToDisplayString(), StringComparison.Ordinal);
+        Assert.Equal("System.EventArgs", result[1].ToDisplayString());
+        Assert.True(senderCanBeOmitted);
     }
 
     [Theory]
     [InlineData("using System;\nclass C { event Action<int, string> MyEvent; }", "int", "string")]
     [InlineData("delegate void MyDelegate(int x, bool y);\nclass C { event MyDelegate MyEvent; }", "int", "bool")]
-    public void GetEventParameterTypes_MultiParamDelegate_ReturnsAllParameterTypes(
+    public void TryGetEventParameterTypes_MultiParamDelegate_ReturnsAllParameterTypes(
         string code,
         string expectedFirst,
         string expectedSecond)
     {
         (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(code, "MyEvent");
 
-        ITypeSymbol[] result = EventSyntaxExtensions.GetEventParameterTypes(eventType, knownSymbols);
+        bool success = EventSyntaxExtensions.TryGetEventParameterTypes(eventType, knownSymbols, out ITypeSymbol[] result, out bool senderCanBeOmitted);
 
+        Assert.True(success);
         Assert.Equal(2, result.Length);
         Assert.Equal(expectedFirst, result[0].ToDisplayString());
         Assert.Equal(expectedSecond, result[1].ToDisplayString());
+        Assert.False(senderCanBeOmitted);
     }
 
     [Fact]
-    public void GetEventParameterTypes_CustomDelegateNoParameters_ReturnsEmpty()
+    public void TryGetEventParameterTypes_CustomDelegateNoParameters_ReturnsEmpty()
     {
         const string code = @"
 delegate void MyDelegate();
@@ -195,13 +211,15 @@ class C
 }";
         (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(code, "MyEvent");
 
-        ITypeSymbol[] result = EventSyntaxExtensions.GetEventParameterTypes(eventType, knownSymbols);
+        bool success = EventSyntaxExtensions.TryGetEventParameterTypes(eventType, knownSymbols, out ITypeSymbol[] result, out bool senderCanBeOmitted);
 
+        Assert.True(success);
         Assert.Empty(result);
+        Assert.False(senderCanBeOmitted);
     }
 
     [Fact]
-    public void GetEventParameterTypes_NonNamedTypeSymbol_ReturnsEmpty()
+    public void TryGetEventParameterTypes_NonNamedTypeSymbol_ReturnsFalse()
     {
         const string code = @"
 class C
@@ -217,13 +235,39 @@ class C
 
         Assert.IsNotAssignableFrom<INamedTypeSymbol>(arrayType);
 
-        ITypeSymbol[] result = EventSyntaxExtensions.GetEventParameterTypes(arrayType, knownSymbols);
+        bool success = EventSyntaxExtensions.TryGetEventParameterTypes(arrayType, knownSymbols, out ITypeSymbol[] result, out bool senderCanBeOmitted);
 
+        Assert.False(success);
         Assert.Empty(result);
+        Assert.False(senderCanBeOmitted);
     }
 
     [Fact]
-    public void GetEventParameterTypes_PlainEventHandler_ReturnsFallbackInvokeParams()
+    public void TryGetEventParameterTypes_NonDelegateNamedType_ReturnsFalse()
+    {
+        const string code = @"
+class C
+{
+    string Field;
+}";
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(code);
+        KnownSymbols knownSymbols = new KnownSymbols(model.Compilation);
+        VariableDeclaratorSyntax fieldSyntax = tree.GetRoot()
+            .DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+        IFieldSymbol field = (IFieldSymbol)model.GetDeclaredSymbol(fieldSyntax)!;
+        ITypeSymbol stringType = field.Type;
+
+        Assert.IsAssignableFrom<INamedTypeSymbol>(stringType);
+
+        bool success = EventSyntaxExtensions.TryGetEventParameterTypes(stringType, knownSymbols, out ITypeSymbol[] result, out bool senderCanBeOmitted);
+
+        Assert.False(success);
+        Assert.Empty(result);
+        Assert.False(senderCanBeOmitted);
+    }
+
+    [Fact]
+    public void TryGetEventParameterTypes_PlainEventHandler_ReturnsInvokeParamsWithOptionalSender()
     {
         const string code = @"
 using System;
@@ -233,11 +277,28 @@ class C
 }";
         (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(code, "MyEvent");
 
-        ITypeSymbol[] result = EventSyntaxExtensions.GetEventParameterTypes(eventType, knownSymbols);
+        bool success = EventSyntaxExtensions.TryGetEventParameterTypes(eventType, knownSymbols, out ITypeSymbol[] result, out bool senderCanBeOmitted);
 
+        Assert.True(success);
         Assert.Equal(2, result.Length);
         Assert.Contains("object", result[0].ToDisplayString(), StringComparison.Ordinal);
         Assert.Contains("EventArgs", result[1].ToDisplayString(), StringComparison.Ordinal);
+        Assert.True(senderCanBeOmitted);
+    }
+
+    [Fact]
+    public void TryGetEventParameterTypes_ErrorType_ReturnsFalse()
+    {
+        (ITypeSymbol eventType, KnownSymbols knownSymbols) = GetEventFieldTypeWithKnownSymbols(
+            "class C { event UnresolvedDelegateType MyEvent; }", "MyEvent");
+
+        Assert.Equal(TypeKind.Error, eventType.TypeKind);
+
+        bool success = EventSyntaxExtensions.TryGetEventParameterTypes(eventType, knownSymbols, out ITypeSymbol[] result, out bool senderCanBeOmitted);
+
+        Assert.False(success);
+        Assert.Empty(result);
+        Assert.False(senderCanBeOmitted);
     }
 
     [Fact]
@@ -262,12 +323,14 @@ class C
             model,
             out ArgumentSyntax[] eventArguments,
             out ITypeSymbol[] expectedParameterTypes,
+            out bool senderCanBeOmitted,
             (_, _) => (true, null),
             knownSymbols);
 
         Assert.False(result);
         Assert.Empty(eventArguments);
         Assert.Empty(expectedParameterTypes);
+        Assert.False(senderCanBeOmitted);
     }
 
     [Fact]
@@ -292,12 +355,14 @@ class C
             model,
             out ArgumentSyntax[] eventArguments,
             out ITypeSymbol[] expectedParameterTypes,
+            out bool senderCanBeOmitted,
             (_, _) => (false, null),
             knownSymbols);
 
         Assert.False(result);
         Assert.Empty(eventArguments);
         Assert.Empty(expectedParameterTypes);
+        Assert.False(senderCanBeOmitted);
     }
 
     [Fact]
@@ -322,12 +387,14 @@ class C
             model,
             out ArgumentSyntax[] eventArguments,
             out ITypeSymbol[] expectedParameterTypes,
+            out bool senderCanBeOmitted,
             (_, _) => (true, null),
             knownSymbols);
 
         Assert.False(result);
         Assert.Empty(eventArguments);
         Assert.Empty(expectedParameterTypes);
+        Assert.False(senderCanBeOmitted);
     }
 
     [Fact]
@@ -360,6 +427,7 @@ class C { event MyDelegate MyEvent; }",
             model,
             out ArgumentSyntax[] eventArguments,
             out ITypeSymbol[] expectedParameterTypes,
+            out bool senderCanBeOmitted,
             (_, _) => (true, delegateType),
             knownSymbols);
 
@@ -367,6 +435,7 @@ class C { event MyDelegate MyEvent; }",
         Assert.Empty(eventArguments);
         Assert.Single(expectedParameterTypes);
         Assert.Equal("int", expectedParameterTypes[0].ToDisplayString());
+        Assert.False(senderCanBeOmitted);
     }
 
     [Fact]
@@ -397,12 +466,14 @@ class C { event MyDelegate MyEvent; }",
             model,
             out ArgumentSyntax[] eventArguments,
             out ITypeSymbol[] expectedParameterTypes,
+            out bool senderCanBeOmitted,
             (_, _) => (true, delegateType),
             knownSymbols);
 
         Assert.True(result);
         Assert.Equal(2, eventArguments.Length);
         Assert.Equal(2, expectedParameterTypes.Length);
+        Assert.False(senderCanBeOmitted);
     }
 
     [Fact]
