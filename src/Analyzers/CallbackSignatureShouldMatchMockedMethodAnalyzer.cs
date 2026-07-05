@@ -221,14 +221,14 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         ParameterSyntax lambdaParameter,
         CancellationToken cancellationToken)
     {
-        // Use semantic model to resolve the parameter type, handling both
+        // Use semantic model to resolve the parameter symbol, handling both
         // explicitly typed and implicitly typed lambda parameters.
         IParameterSymbol? parameterSymbol = semanticModel.GetDeclaredSymbol(lambdaParameter, cancellationToken);
         ITypeSymbol? lambdaParameterTypeSymbol = parameterSymbol?.Type;
 
-        if (lambdaParameterTypeSymbol is null || lambdaParameterTypeSymbol.TypeKind == TypeKind.Error)
+        if (parameterSymbol is null || lambdaParameterTypeSymbol is null || lambdaParameterTypeSymbol.TypeKind == TypeKind.Error)
         {
-            return false; // Type could not be resolved; treat as mismatch to avoid suppressing Moq1100
+            return false; // Symbol/type could not be resolved; treat as mismatch to avoid suppressing Moq1100
         }
 
         ITypeSymbol mockedParameterType = mockedParameter.Type;
@@ -238,23 +238,10 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
             return false;
         }
 
-        return mockedParameter.RefKind == GetRefKind(lambdaParameter);
-    }
-
-    private static RefKind GetRefKind(ParameterSyntax parameter)
-    {
-        if (parameter.Modifiers.Count == 0)
-        {
-            return RefKind.None;
-        }
-
-        return parameter.Modifiers[0].ValueText switch
-        {
-            "ref" => RefKind.Ref,
-            "out" => RefKind.Out,
-            "in" => RefKind.In,
-            _ => RefKind.None,
-        };
+        // Use the resolved symbol's RefKind, which is authoritative for every modifier
+        // combination and ordering (e.g. `scoped ref`, `ref readonly`). Re-deriving the
+        // ref kind from the first syntax token misreads multi-token modifier lists.
+        return mockedParameter.RefKind == parameterSymbol.RefKind;
     }
 
     private static string GetMethodName(InvocationExpressionSyntax mockedMethodInvocation)
