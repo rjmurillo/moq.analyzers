@@ -119,13 +119,18 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
     /// </summary>
     /// <param name="typeParameter">The open generic type parameter used as the <c>As&lt;T&gt;</c> argument.</param>
     /// <returns>
-    /// <see langword="false" /> when a value-type constraint (<c>struct</c>/<c>unmanaged</c>) or a
-    /// base-class constraint forbids an interface substitution; otherwise <see langword="true" />.
+    /// <see langword="false" /> when a value-type constraint (<c>struct</c>/<c>unmanaged</c>), a
+    /// constructor constraint (<c>new()</c>), or a base-class constraint forbids an interface
+    /// substitution; otherwise <see langword="true" />.
     /// </returns>
     private static bool CanBeSubstitutedWithInterface(ITypeParameterSymbol typeParameter)
     {
-        // A value type can never be an interface.
-        if (typeParameter.HasValueTypeConstraint || typeParameter.HasUnmanagedTypeConstraint)
+        // A value type can never be an interface. A `new()` constraint requires a public
+        // parameterless constructor, which no interface can satisfy, so it also rules out
+        // an interface substitution.
+        if (typeParameter.HasValueTypeConstraint
+            || typeParameter.HasUnmanagedTypeConstraint
+            || typeParameter.HasConstructorConstraint)
         {
             return false;
         }

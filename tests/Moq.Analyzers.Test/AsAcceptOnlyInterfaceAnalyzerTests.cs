@@ -1,5 +1,3 @@
-using Microsoft.CodeAnalysis.Testing;
-
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.AsShouldBeUsedOnlyForInterfaceAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -116,10 +114,10 @@ public class AsAcceptOnlyInterfaceAnalyzerTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task ShouldNotReportForUnresolvedType()
+    public async Task ShouldReportForConstructorConstrainedTypeParameter()
     {
-        // An unresolved type argument already produces a compiler error; piling Moq1300 on top
-        // is noise, so the analyzer must skip TypeKind.Error. See issue #1251.
+        // A new() constraint requires a parameterless constructor, which no interface can
+        // satisfy, so T can never be an interface and Moq1300 must still fire. See issue #1251.
         await Verifier.VerifyAnalyzerAsync(
             """
             public class SampleClass
@@ -129,13 +127,13 @@ public class AsAcceptOnlyInterfaceAnalyzerTests(ITestOutputHelper output)
 
             internal class UnitTest
             {
-                private void Test()
+                private void Test<T>()
+                    where T : class, new()
                 {
-                    _ = new Mock<SampleClass>().As<DoesNotExist>();
+                    _ = new Mock<SampleClass>().As<{|Moq1300:T|}>();
                 }
             }
             """,
-            ReferenceAssemblyCatalog.Net80WithNewMoq,
-            CompilerDiagnostics.None);
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
 }
