@@ -391,6 +391,17 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return true;
         }
 
+        // For non-array params collections, a single trailing argument may be the collection
+        // itself passed in normal form (for example `new List<int>()` for `params List<int>`)
+        // rather than an expanded element. Accept it when it converts to the params parameter
+        // type before validating expanded elements. Arrays keep the existing expanded-only path.
+        if (paramsParameter.Type is not IArrayTypeSymbol
+            && arguments.Count - fixedParametersCount == 1
+            && context.SemanticModel.ClassifyConversion(arguments[fixedParametersCount].Expression, paramsParameter.Type).Exists)
+        {
+            return true;
+        }
+
         for (int parameterIndex = fixedParametersCount; parameterIndex < arguments.Count; parameterIndex++)
         {
             Conversion conversionType = context.SemanticModel.ClassifyConversion(arguments[parameterIndex].Expression, paramsElementType);
@@ -440,14 +451,31 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        // ReadOnlySpan<T> and Span<T> are ref structs that do not implement IEnumerable<T>,
-        // so fall back to the single generic type argument.
-        if (namedType is { IsGenericType: true, TypeArguments.Length: 1 })
+        // ReadOnlySpan<T> and Span<T> are ref structs that do not implement IEnumerable<T>.
+        // Match them by symbol identity rather than a broad "single generic argument" heuristic,
+        // so unmodeled shapes fall through and are skipped rather than mis-validated.
+        if (IsSpanOrReadOnlySpan(namedType))
         {
             return namedType.TypeArguments[0];
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Determines whether a type is <see cref="System.Span{T}" /> or
+    /// <see cref="System.ReadOnlySpan{T}" /> by symbol identity.
+    /// </summary>
+    private static bool IsSpanOrReadOnlySpan(INamedTypeSymbol namedType)
+    {
+        INamedTypeSymbol definition = namedType.OriginalDefinition;
+
+        if (definition.ContainingNamespace is not { Name: "System", ContainingNamespace.IsGlobalNamespace: true })
+        {
+            return false;
+        }
+
+        return definition.MetadataName is "Span`1" or "ReadOnlySpan`1";
     }
 
     private static (bool IsEmpty, Location Location) ConstructorIsEmpty(
