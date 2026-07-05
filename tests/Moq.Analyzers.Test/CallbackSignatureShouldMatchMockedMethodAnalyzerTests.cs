@@ -49,6 +49,10 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
             // In parameter with correct signature
             ["""new Mock<IFoo>().Setup(m => m.DoIn(in It.Ref<DateTime>.IsAny)).Callback((in DateTime timestamp) => { });"""],
 
+            // scoped ref parameter with correct signature (issue #1262): `scoped` is the first
+            // modifier token, but the parameter's RefKind is still Ref, so this matches DoRef.
+            ["""new Mock<IFoo>().Setup(m => m.DoRef(ref It.Ref<string>.IsAny)).Callback((scoped ref string data) => { });"""],
+
             // Implicitly typed lambda with correct parameter type via generic Callback overload
             ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback<string>((x) => { });"""],
 
@@ -82,6 +86,11 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // In parameter mismatch (missing in modifier)
             ["""new Mock<IFoo>().Setup(m => m.DoIn(in It.Ref<DateTime>.IsAny)).Callback(({|Moq1100:DateTime timestamp|}) => { });"""],
+
+            // scoped ref lambda parameter against an `in` mocked parameter (issue #1262): the type
+            // matches but the RefKind differs (Ref vs In), so a diagnostic is still expected. This
+            // guards against the modifier-list read suppressing a genuine ref-kind mismatch.
+            ["""new Mock<IFoo>().Setup(m => m.DoIn(in It.Ref<DateTime>.IsAny)).Callback(({|Moq1100:scoped ref DateTime timestamp|}) => { });"""],
 
             // Parenthesized Setup with wrong callback type
             ["""(new Mock<IFoo>().Setup(x => x.DoWork("test"))).Callback(({|Moq1100:int wrongParam|}) => { });"""],
