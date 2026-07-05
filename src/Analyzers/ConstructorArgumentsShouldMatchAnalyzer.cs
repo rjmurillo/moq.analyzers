@@ -383,14 +383,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         // A `params` parameter is normally an array, but C# 13 allows params collections
         // (for example `params ReadOnlySpan<T>` or `params List<T>`) whose type is not an
-        // array. We cannot reliably classify element conversions for those shapes here, so
-        // skip params validation rather than crash on an invalid cast.
-        if (paramsParameter.Type is not IArrayTypeSymbol paramsArrayType)
+        // array. Derive the element type for the known collection shapes so trailing
+        // arguments are still validated; only skip when the shape is genuinely unmodelable.
+        ITypeSymbol? paramsElementType = GetParamsElementType(paramsParameter.Type);
+        if (paramsElementType is null)
         {
             return true;
         }
-
-        ITypeSymbol paramsElementType = paramsArrayType.ElementType;
 
         for (int parameterIndex = fixedParametersCount; parameterIndex < arguments.Count; parameterIndex++)
         {
@@ -403,6 +402,52 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Determines the element type for a <see langword="params" /> parameter.
+    /// </summary>
+    /// <param name="paramsType">The declared type of the <see langword="params" /> parameter.</param>
+    /// <returns>
+    /// The element type for arrays and known params-collection shapes (C# 13
+    /// <c>ReadOnlySpan&lt;T&gt;</c>, <c>Span&lt;T&gt;</c>, and any type implementing
+    /// <see cref="System.Collections.Generic.IEnumerable{T}" />); otherwise
+    /// <see langword="null" /> when the shape cannot be modeled.
+    /// </returns>
+    private static ITypeSymbol? GetParamsElementType(ITypeSymbol paramsType)
+    {
+        if (paramsType is IArrayTypeSymbol arrayType)
+        {
+            return arrayType.ElementType;
+        }
+
+        if (paramsType is not INamedTypeSymbol namedType)
+        {
+            return null;
+        }
+
+        // Types that are, or implement, IEnumerable<T> (for example List<T>).
+        if (namedType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+        {
+            return namedType.TypeArguments[0];
+        }
+
+        foreach (INamedTypeSymbol interfaceType in namedType.AllInterfaces)
+        {
+            if (interfaceType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+            {
+                return interfaceType.TypeArguments[0];
+            }
+        }
+
+        // ReadOnlySpan<T> and Span<T> are ref structs that do not implement IEnumerable<T>,
+        // so fall back to the single generic type argument.
+        if (namedType is { IsGenericType: true, TypeArguments.Length: 1 })
+        {
+            return namedType.TypeArguments[0];
+        }
+
+        return null;
     }
 
     private static (bool IsEmpty, Location Location) ConstructorIsEmpty(
