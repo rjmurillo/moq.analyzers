@@ -48,6 +48,16 @@ internal class KnownSymbols
     internal INamedTypeSymbol? EventHandler1 => TypeProvider.GetOrCreateTypeByMetadataName("System.EventHandler`1");
 
     /// <summary>
+    /// Gets the delegate <see cref="System.EventHandler"/> (the non-generic form).
+    /// </summary>
+    internal INamedTypeSymbol? EventHandler => TypeProvider.GetOrCreateTypeByMetadataName("System.EventHandler");
+
+    /// <summary>
+    /// Gets the class <see cref="System.EventArgs"/>.
+    /// </summary>
+    internal INamedTypeSymbol? EventArgs => TypeProvider.GetOrCreateTypeByMetadataName("System.EventArgs");
+
+    /// <summary>
     /// Gets the class <see cref="System.Threading.Tasks.ValueTask{T}"/>.
     /// </summary>
     internal INamedTypeSymbol? ValueTask1 => TypeProvider.GetOrCreateTypeByMetadataName("System.Threading.Tasks.ValueTask`1");

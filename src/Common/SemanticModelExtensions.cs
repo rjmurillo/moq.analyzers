@@ -103,6 +103,57 @@ internal static class SemanticModelExtensions
     }
 
     /// <summary>
+    /// Determines if an implicit or identity conversion exists between two types.
+    /// </summary>
+    /// <param name="semanticModel">The semantic model to use for classification.</param>
+    /// <param name="source">The source type symbol.</param>
+    /// <param name="destination">The destination type symbol.</param>
+    /// <returns><see langword="true"/> if an implicit or identity conversion exists; otherwise, <see langword="false"/>.</returns>
+    internal static bool HasImplicitConversion(this SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
+    {
+        Microsoft.CodeAnalysis.CSharp.Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
+        return conversion.Exists && (conversion.IsImplicit || conversion.IsIdentity);
+    }
+
+    /// <summary>
+    /// Determines if an identity or reference conversion exists between two types. Reference conversions
+    /// are the only conversions a runtime cast performs, so user-defined and boxing conversions are
+    /// excluded.
+    /// </summary>
+    /// <param name="semanticModel">The semantic model to use for classification.</param>
+    /// <param name="source">The source type symbol.</param>
+    /// <param name="destination">The destination type symbol.</param>
+    /// <returns><see langword="true"/> if an identity or reference conversion exists; otherwise, <see langword="false"/>.</returns>
+    internal static bool HasReferenceOrIdentityConversion(this SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination)
+    {
+        Microsoft.CodeAnalysis.CSharp.Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
+        return conversion.Exists && (conversion.IsIdentity || conversion.IsReference);
+    }
+
+    /// <summary>
+    /// Determines whether the conversion from <paramref name="source"/> to <paramref name="destination"/>
+    /// is user-defined and, if so, returns the conversion operator's return type. A user-defined conversion
+    /// runs its operator at the call site, producing a new instance of the operator's return type.
+    /// </summary>
+    /// <param name="semanticModel">The semantic model to use for classification.</param>
+    /// <param name="source">The source type symbol.</param>
+    /// <param name="destination">The destination type symbol.</param>
+    /// <param name="returnType">The conversion operator's return type, when the conversion is user-defined.</param>
+    /// <returns><see langword="true"/> when the conversion is user-defined; otherwise, <see langword="false"/>.</returns>
+    internal static bool TryGetUserDefinedConversionReturnType(this SemanticModel semanticModel, ITypeSymbol source, ITypeSymbol destination, out ITypeSymbol? returnType)
+    {
+        Microsoft.CodeAnalysis.CSharp.Conversion conversion = semanticModel.Compilation.ClassifyConversion(source, destination);
+        if (conversion.Exists && conversion.IsUserDefined && conversion.MethodSymbol is not null)
+        {
+            returnType = conversion.MethodSymbol.ReturnType;
+            return true;
+        }
+
+        returnType = null;
+        return false;
+    }
+
+    /// <summary>
     /// Extracts the event name from a lambda selector of the form: x => x.EventName += null.
     /// </summary>
     /// <param name="semanticModel">The semantic model.</param>

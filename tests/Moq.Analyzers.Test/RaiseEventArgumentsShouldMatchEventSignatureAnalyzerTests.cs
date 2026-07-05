@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.Testing;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.RaiseEventArgumentsShouldMatchEventSignatureAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -52,6 +53,140 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
 
             // Invalid: Wrong argument type
             ["""mock.Raise(n => n.CustomEvent += null, {|Moq1202:"wrong"|});"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> EventHandlerShapedTestData()
+    {
+        return new object[][]
+        {
+            // Canonical Moq pattern for non-generic EventHandler: Moq supplies the sender.
+            ["""mock.Raise(n => n.Closed += null, EventArgs.Empty);"""],
+
+            // A derived EventArgs is implicitly convertible to the base EventHandler parameter, so the
+            // statically-known exact runtime type upcasts cleanly.
+            ["""mock.Raise(n => n.Closed += null, new CustomEventArgs());"""],
+
+            // Two-argument form binds Raise(..., params object[]) and is also legal.
+            ["""mock.Raise(n => n.Closed += null, new object(), EventArgs.Empty);"""],
+
+            // Two-argument form with a null-typed sender argument is legal (null binds to any reference).
+            ["""mock.Raise(n => n.Closed += null, null, EventArgs.Empty);"""],
+
+            // EventHandler<CustomEventArgs>: args-only form (existing behavior).
+            ["""mock.Raise(n => n.CustomEvent += null, new CustomEventArgs());"""],
+
+            // EventHandler<CustomEventArgs>: two-argument form (previously a false positive).
+            ["""mock.Raise(n => n.CustomEvent += null, new object(), new CustomEventArgs());"""],
+
+            // Custom (object sender, TArgs e) delegate: both forms are legal.
+            ["""mock.Raise(n => n.ShapedEvent += null, new CustomEventArgs());"""],
+            ["""mock.Raise(n => n.ShapedEvent += null, new object(), new CustomEventArgs());"""],
+
+            // Invalid: payload not convertible to EventArgs.
+            ["""mock.Raise(n => n.Closed += null, {|Moq1202:42|});"""],
+
+            // Invalid: object payload is only EXPLICITLY convertible to EventArgs. Overload resolution
+            // binds the params-object array overload instead of the EventArgs overload, so Moq does not
+            // supply the sender and the one-argument form throws at runtime and must be flagged.
+            ["""mock.Raise(n => n.Closed += null, {|Moq1202:new object()|});"""],
+
+            // Invalid: an unrelated EventArgs subclass has no conversion to the CustomEventArgs delegate
+            // parameter, so Moq cannot bind it even though it selects the sender-supplying overload.
+            ["""mock.Raise(n => n.CustomEvent += null, {|Moq1202:new OtherEventArgs()|});"""],
+
+            // Invalid: EventArgs.Empty is a base EventArgs singleton. Moq selects the sender-supplying
+            // overload, then casts the payload to CustomEventArgs at runtime and throws because the exact
+            // runtime type is System.EventArgs. The exact type is statically known, so it is flagged.
+            ["""mock.Raise(n => n.CustomEvent += null, {|Moq1202:EventArgs.Empty|});"""],
+
+            // Invalid: a freshly constructed base EventArgs has a statically-known exact runtime type that
+            // cannot be cast to the derived CustomEventArgs delegate parameter.
+            ["""mock.Raise(n => n.CustomEvent += null, {|Moq1202:new EventArgs()|});"""],
+
+            // Invalid: a user-defined explicit conversion exists to CustomEventArgs, but Moq's reflection
+            // cast never invokes user-defined operators, so the freshly constructed SourceEventArgs throws.
+            ["""mock.Raise(n => n.CustomEvent += null, {|Moq1202:new SourceEventArgs()|});"""],
+
+            // Valid (tolerated): an EventArgs-typed local can hold a derived CustomEventArgs at runtime, so
+            // the downcast is statically indistinguishable from a valid one. Moq accepts it, so no flag.
+            ["""EventArgs downcastArgs = new CustomEventArgs(); mock.Raise(n => n.CustomEvent += null, downcastArgs);"""],
+
+            // Valid (tolerated): a field reference other than EventArgs.Empty has an unknown exact runtime
+            // type, so the downcast is tolerated exactly like the local-variable case above.
+            ["""mock.Raise(n => n.CustomEvent += null, SharedArgs);"""],
+
+            // Valid (tolerated): an explicit cast wraps an object-creation whose exact runtime type derives
+            // from the delegate parameter, so the cast is unwrapped and the payload accepted.
+            ["""mock.Raise(n => n.CustomEvent += null, (EventArgs)new CustomEventArgs());"""],
+
+            // Invalid: an explicit cast wraps an object-creation whose exact runtime type is an unrelated
+            // sibling. The cast is unwrapped and the payload flagged because it can never bind.
+            ["""mock.Raise(n => n.CustomEvent += null, {|Moq1202:(EventArgs)new OtherEventArgs()|});"""],
+
+            // Invalid: nested casts wrap a base EventArgs object-creation. All conversions are unwrapped to
+            // reveal the exact runtime type, which cannot be cast to the derived delegate parameter.
+            ["""mock.Raise(n => n.CustomEvent += null, {|Moq1202:(EventArgs)(object)new EventArgs()|});"""],
+
+            // Invalid: an EventArgs-typed local declared as a type with only a user-defined conversion to
+            // the delegate parameter. Moq's reflection cast never invokes user-defined operators, so it is
+            // flagged even though its runtime type is unknown to the analyzer.
+            ["""SourceEventArgs sourceArgs = new SourceEventArgs(); mock.Raise(n => n.CustomEvent += null, {|Moq1202:sourceArgs|});"""],
+
+            // Valid: an explicit user-defined conversion is applied at the call site, so the operator runs and
+            // constructs a genuine CustomEventArgs before Moq receives it. The conversion is not unwrapped
+            // because it does not preserve object identity.
+            ["""mock.Raise(n => n.CustomEvent += null, (CustomEventArgs)new SourceEventArgs());"""],
+
+            // Valid: an implicit user-defined conversion to the delegate argument type is applied at the call
+            // site. The operator runs and Moq receives a genuine CustomEventArgs, so no diagnostic is reported.
+            ["""mock.Raise(n => n.CustomEvent += null, new ConvertibleToCustom());"""],
+
+            // Invalid: an implicit user-defined conversion produces an unrelated sibling (OtherEventArgs). The
+            // operator runs and Moq receives an OtherEventArgs, which cannot be cast to CustomEventArgs.
+            ["""mock.Raise(n => n.CustomEvent += null, {|Moq1202:new ConvertibleToOther()|});"""],
+
+            // Valid: a conditional expression whose runtime type is not statically known. The value is a
+            // CustomEventArgs at runtime, so no diagnostic is reported (matches the unknown-runtime-type path).
+            ["""mock.Raise(n => n.CustomEvent += null, true ? new CustomEventArgs() : new CustomEventArgs());"""],
+
+            // Valid: a null-coalescing expression yields a CustomEventArgs. The runtime type is tolerated as a
+            // reference or identity conversion to the delegate argument type, so no diagnostic is reported.
+            ["""CustomEventArgs maybeArgs = new CustomEventArgs(); mock.Raise(n => n.CustomEvent += null, maybeArgs ?? new CustomEventArgs());"""],
+
+            // Invalid: three arguments for a two-parameter delegate.
+            ["""mock.Raise(n => n.Closed += null, new object(), EventArgs.Empty, {|Moq1202:"extra"|});"""],
+
+            // Invalid: no arguments at all.
+            ["""{|Moq1202:mock.Raise(n => n.Closed += null)|};"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> MultiParameterAndNestedGenericTestData()
+    {
+        return new object[][]
+        {
+            // Action<T1, T2> is resolved through the Invoke signature.
+            ["""mock.Raise(n => n.PairChanged += null, 1, "two");"""],
+            ["""mock.Raise(n => n.PairChanged += null, 1, {|Moq1202:2|});"""],
+
+            // Nested generic payload.
+            ["""mock.Raise(n => n.ItemsChanged += null, new List<Dictionary<string, int>>());"""],
+            ["""mock.Raise(n => n.ItemsChanged += null, {|Moq1202:new List<int>()|});"""],
+
+            // EventHandler<T> where T does not derive from EventArgs: full form required.
+            ["""mock.Raise(n => n.StringHandler += null, new object(), "payload");"""],
+            ["""{|Moq1202:mock.Raise(n => n.StringHandler += null, "payload")|};"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> UnresolvableDelegateTestData()
+    {
+        return new object[][]
+        {
+            // The delegate type does not resolve (mid-edit code): no Moq1202 must be reported.
+            ["""mock.Raise(n => n.Broken += null, 42);"""],
+            ["""mock.Raise(n => n.Broken += null, EventArgs.Empty, "extra");"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -147,5 +282,141 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
             }
             """,
             referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(EventHandlerShapedTestData))]
+    public async Task ShouldHandleEventHandlerShapedDelegates(string referenceAssemblyGroup, string @namespace, string raiseCall)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+              using System;
+
+              internal class CustomEventArgs : EventArgs { }
+
+              internal class OtherEventArgs : EventArgs { }
+
+              internal class SourceEventArgs : EventArgs
+              {
+                  public static explicit operator CustomEventArgs(SourceEventArgs value) => new CustomEventArgs();
+              }
+
+              internal class ConvertibleToCustom
+              {
+                  public static implicit operator CustomEventArgs(ConvertibleToCustom value) => new CustomEventArgs();
+              }
+
+              internal class ConvertibleToOther
+              {
+                  public static implicit operator OtherEventArgs(ConvertibleToOther value) => new OtherEventArgs();
+              }
+
+              internal delegate void ShapedEventHandler(object sender, CustomEventArgs e);
+
+              internal interface INotifier
+              {
+                  event EventHandler Closed;
+                  event EventHandler<CustomEventArgs> CustomEvent;
+                  event ShapedEventHandler ShapedEvent;
+              }
+
+              internal class UnitTest
+              {
+                  private static readonly EventArgs SharedArgs = new CustomEventArgs();
+
+                  private void Test()
+                  {
+                      var mock = new Mock<INotifier>();
+                      {{raiseCall}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MultiParameterAndNestedGenericTestData))]
+    public async Task ShouldHandleMultiParameterAndNestedGenericDelegates(string referenceAssemblyGroup, string @namespace, string raiseCall)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+              using System;
+              using System.Collections.Generic;
+
+              internal interface INotifier
+              {
+                  event Action<int, string> PairChanged;
+                  event Action<List<Dictionary<string, int>>> ItemsChanged;
+                  event EventHandler<string> StringHandler;
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      var mock = new Mock<INotifier>();
+                      {{raiseCall}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(UnresolvableDelegateTestData))]
+    public async Task ShouldNotReportWhenEventDelegateTypeDoesNotResolve(string referenceAssemblyGroup, string @namespace, string raiseCall)
+    {
+        // CompilerDiagnostics.None suppresses CS0246 for the intentionally-unresolved delegate type,
+        // mirroring the malformed-code pattern used in MockRepositoryVerifyAnalyzerTests.cs:327.
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+              using System;
+
+              internal interface IBrokenNotifier
+              {
+                  event UnresolvedDelegateType Broken;
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      var mock = new Mock<IBrokenNotifier>();
+                      {{raiseCall}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup,
+            CompilerDiagnostics.None);
+    }
+
+    [Theory]
+    [MemberData(nameof(UnresolvableDelegateTestData))]
+    public async Task ShouldNotReportWhenEventTypeIsNotDelegate(string referenceAssemblyGroup, string @namespace, string raiseCall)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+              using System;
+
+              internal interface IBrokenNotifier
+              {
+                  event string Broken;
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      var mock = new Mock<IBrokenNotifier>();
+                      {{raiseCall}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup,
+            CompilerDiagnostics.None);
     }
 }
