@@ -637,9 +637,14 @@ internal class MoqKnownSymbols : KnownSymbols
     /// <remarks>
     /// <see cref="LazyThreadSafetyMode.ExecutionAndPublication"/> ensures the value is computed once
     /// even when multiple analyzer threads access it concurrently.
+    /// Uses <c>FirstOrDefault</c> rather than <c>SingleOrDefault</c>: a type can expose more than one
+    /// field with the same name (for example a <c>new</c>-shadowed member inherited from a base type).
+    /// <c>SingleOrDefault</c> would throw, and because this <see cref="Lazy{T}"/> uses
+    /// <see cref="LazyThreadSafetyMode.ExecutionAndPublication"/> the exception would be cached and
+    /// rethrown on every later access, poisoning all analysis that touches the symbol.
     /// </remarks>
     private static Lazy<IFieldSymbol?> CreateLazySingleField(INamedTypeSymbol? type, string memberName) =>
         new Lazy<IFieldSymbol?>(
-            () => type?.GetMembers(memberName).OfType<IFieldSymbol>().SingleOrDefault(),
+            () => type?.GetMembers(memberName).OfType<IFieldSymbol>().FirstOrDefault(),
             LazyThreadSafetyMode.ExecutionAndPublication);
 }

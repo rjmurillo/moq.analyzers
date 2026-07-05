@@ -380,7 +380,17 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         SyntaxNodeAnalysisContext context)
     {
         IParameterSymbol paramsParameter = constructor.Parameters[^1];
-        ITypeSymbol paramsElementType = ((IArrayTypeSymbol)paramsParameter.Type).ElementType;
+
+        // A `params` parameter is normally an array, but C# 13 allows params collections
+        // (for example `params ReadOnlySpan<T>` or `params List<T>`) whose type is not an
+        // array. We cannot reliably classify element conversions for those shapes here, so
+        // skip params validation rather than crash on an invalid cast.
+        if (paramsParameter.Type is not IArrayTypeSymbol paramsArrayType)
+        {
+            return true;
+        }
+
+        ITypeSymbol paramsElementType = paramsArrayType.ElementType;
 
         for (int parameterIndex = fixedParametersCount; parameterIndex < arguments.Count; parameterIndex++)
         {
