@@ -118,6 +118,22 @@ public class DiagnosticEditPropertiesTests
     }
 
     [Fact]
+    public void TryGetFromImmutableDictionary_UndefinedNumericEditType_ReturnsFalse()
+    {
+        // Arrange: "99" parses to an EditType value that is not a defined member.
+        ImmutableDictionary<string, string?> dict = ImmutableDictionary<string, string?>.Empty
+            .Add(DiagnosticEditProperties.EditTypeKey, "99")
+            .Add(DiagnosticEditProperties.EditPositionKey, "0");
+
+        // Act
+        bool success = DiagnosticEditProperties.TryGetFromImmutableDictionary(dict, out DiagnosticEditProperties? result);
+
+        // Assert
+        Assert.False(success);
+        Assert.Null(result);
+    }
+
+    [Fact]
     public void TryGetFromImmutableDictionary_NonNumericEditPosition_ReturnsFalse()
     {
         // Arrange

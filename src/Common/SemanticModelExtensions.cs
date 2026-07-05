@@ -57,7 +57,14 @@ internal static class SemanticModelExtensions
 
     internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax? setupMethodInvocation)
     {
-        LambdaExpressionSyntax? setupLambdaArgument = setupMethodInvocation?.ArgumentList.Arguments[0].Expression as LambdaExpressionSyntax;
+        // Guard against incomplete or malformed setup invocations (for example a mid-edit
+        // `Setup()` with no arguments), where indexing the first argument would throw.
+        if (setupMethodInvocation?.ArgumentList is not { Arguments: { Count: > 0 } arguments })
+        {
+            return [];
+        }
+
+        LambdaExpressionSyntax? setupLambdaArgument = arguments[0].Expression as LambdaExpressionSyntax;
 
         return setupLambdaArgument?.Body is not InvocationExpressionSyntax mockedMethodInvocation
             ? []

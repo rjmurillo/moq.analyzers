@@ -380,7 +380,27 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         SyntaxNodeAnalysisContext context)
     {
         IParameterSymbol paramsParameter = constructor.Parameters[^1];
-        ITypeSymbol paramsElementType = ((IArrayTypeSymbol)paramsParameter.Type).ElementType;
+
+        // A `params` parameter is normally an array, but C# 13 allows params collections
+        // (for example `params ReadOnlySpan<T>` or `params List<T>`) whose type is not an
+        // array. Derive the element type for the known collection shapes so trailing
+        // arguments are still validated; only skip when the shape is genuinely unmodelable.
+        ITypeSymbol? paramsElementType = GetParamsElementType(paramsParameter.Type);
+        if (paramsElementType is null)
+        {
+            return true;
+        }
+
+        // For non-array params collections, a single trailing argument may be the collection
+        // itself passed in normal form (for example `new List<int>()` for `params List<int>`)
+        // rather than an expanded element. Accept it when it converts to the params parameter
+        // type before validating expanded elements. Arrays keep the existing expanded-only path.
+        if (paramsParameter.Type is not IArrayTypeSymbol
+            && arguments.Count - fixedParametersCount == 1
+            && context.SemanticModel.ClassifyConversion(arguments[fixedParametersCount].Expression, paramsParameter.Type).Exists)
+        {
+            return true;
+        }
 
         for (int parameterIndex = fixedParametersCount; parameterIndex < arguments.Count; parameterIndex++)
         {
@@ -393,6 +413,70 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Determines the element type for a <see langword="params" /> parameter.
+    /// </summary>
+    /// <param name="paramsType">The declared type of the <see langword="params" /> parameter.</param>
+    /// <returns>
+    /// The element type for arrays and known params-collection shapes (C# 13
+    /// <c>ReadOnlySpan&lt;T&gt;</c>, <c>Span&lt;T&gt;</c>, and any type implementing
+    /// <see cref="System.Collections.Generic.IEnumerable{T}" />); otherwise
+    /// <see langword="null" /> when the shape cannot be modeled.
+    /// </returns>
+    private static ITypeSymbol? GetParamsElementType(ITypeSymbol paramsType)
+    {
+        if (paramsType is IArrayTypeSymbol arrayType)
+        {
+            return arrayType.ElementType;
+        }
+
+        if (paramsType is not INamedTypeSymbol namedType)
+        {
+            return null;
+        }
+
+        // Types that are, or implement, IEnumerable<T> (for example List<T>).
+        if (namedType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+        {
+            return namedType.TypeArguments[0];
+        }
+
+        foreach (INamedTypeSymbol interfaceType in namedType.AllInterfaces)
+        {
+            if (interfaceType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+            {
+                return interfaceType.TypeArguments[0];
+            }
+        }
+
+        // ReadOnlySpan<T> and Span<T> are ref structs that do not implement IEnumerable<T>.
+        // Match them by symbol identity rather than a broad "single generic argument" heuristic,
+        // so unmodeled shapes fall through and are skipped rather than mis-validated.
+        if (IsSpanOrReadOnlySpan(namedType))
+        {
+            return namedType.TypeArguments[0];
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Determines whether a type is <see cref="System.Span{T}" /> or
+    /// <see cref="System.ReadOnlySpan{T}" /> by symbol identity.
+    /// </summary>
+    private static bool IsSpanOrReadOnlySpan(INamedTypeSymbol namedType)
+    {
+        INamedTypeSymbol definition = namedType.OriginalDefinition;
+
+        if (definition.ContainingType is not null
+            || definition.ContainingNamespace is not { Name: "System", ContainingNamespace.IsGlobalNamespace: true })
+        {
+            return false;
+        }
+
+        return definition.MetadataName is "Span`1" or "ReadOnlySpan`1";
     }
 
     private static (bool IsEmpty, Location Location) ConstructorIsEmpty(

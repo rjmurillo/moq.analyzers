@@ -65,7 +65,10 @@ internal record DiagnosticEditProperties
             return false;
         }
 
-        if (!Enum.TryParse(editTypeString, out EditType editType))
+        // Enum.TryParse succeeds for any numeric string, including values that are not
+        // defined members of EditType. An undefined value would later fall through the
+        // code-fix switch and throw, so reject anything that is not a defined member.
+        if (!Enum.TryParse(editTypeString, out EditType editType) || editType is not (EditType.Insert or EditType.Replace))
         {
             return false;
         }
