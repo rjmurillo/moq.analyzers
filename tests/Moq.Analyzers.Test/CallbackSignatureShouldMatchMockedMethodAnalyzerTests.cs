@@ -53,6 +53,11 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
             // modifier token, but the parameter's RefKind is still Ref, so this matches DoRef.
             ["""new Mock<IFoo>().Setup(m => m.DoRef(ref It.Ref<string>.IsAny)).Callback((scoped ref string data) => { });"""],
 
+            // scoped in parameter with correct signature (issue #1262): same bug class as scoped
+            // ref. `scoped` leads the modifier list, but the resolved RefKind is In, so this
+            // matches DoIn without a false positive.
+            ["""new Mock<IFoo>().Setup(m => m.DoIn(in It.Ref<DateTime>.IsAny)).Callback((scoped in DateTime timestamp) => { });"""],
+
             // ref readonly parameter with correct signature (issue #1262): the resolved RefKind is
             // RefReadOnlyParameter (a distinct enum value), so a ref readonly lambda matches the
             // ref readonly mocked method without a false positive.
