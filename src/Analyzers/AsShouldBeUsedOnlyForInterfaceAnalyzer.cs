@@ -83,17 +83,67 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (typeArguments[0] is ITypeSymbol { TypeKind: not TypeKind.Interface } typeSymbol)
-        {
-            // Find the first As<T> generic type argument and report the diagnostic on it
-            GenericNameSyntax? asGeneric = invocationOperation.Syntax
-                .DescendantNodes()
-                .OfType<GenericNameSyntax>()
-                .FirstOrDefault(x => string.Equals(x.Identifier.ValueText, "As", StringComparison.Ordinal));
+        ITypeSymbol typeSymbol = typeArguments[0];
 
-            TypeSyntax? typeArg = asGeneric?.TypeArgumentList.Arguments.FirstOrDefault();
-            Location location = typeArg?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
-            context.ReportDiagnostic(location.CreateDiagnostic(Rule, typeSymbol.ToDisplayString()));
+        // Interface: this is the valid, intended use of As<T>, so never report.
+        // Error: the type failed to bind, so the code already has a compiler error; adding
+        // Moq1300 on top is noise (issue #1251).
+        if (typeSymbol.TypeKind is TypeKind.Interface or TypeKind.Error)
+        {
+            return;
         }
+
+        // Open generic type parameter: at the call site T may be substituted with an interface,
+        // so reporting is a false positive (issue #1251) UNLESS its constraints make an interface
+        // substitution impossible (a value-type or base-class constraint). In that case As<T> can
+        // never bind to an interface, so the diagnostic is correct.
+        if (typeSymbol is ITypeParameterSymbol typeParameter && CanBeSubstitutedWithInterface(typeParameter))
+        {
+            return;
+        }
+
+        // Find the first As<T> generic type argument and report the diagnostic on it
+        GenericNameSyntax? asGeneric = invocationOperation.Syntax
+            .DescendantNodes()
+            .OfType<GenericNameSyntax>()
+            .FirstOrDefault(x => string.Equals(x.Identifier.ValueText, "As", StringComparison.Ordinal));
+
+        TypeSyntax? typeArg = asGeneric?.TypeArgumentList.Arguments.FirstOrDefault();
+        Location location = typeArg?.GetLocation() ?? invocationOperation.Syntax.GetLocation();
+        context.ReportDiagnostic(location.CreateDiagnostic(Rule, typeSymbol.ToDisplayString()));
+    }
+
+    /// <summary>
+    /// Determines whether an open generic type parameter could be substituted with an interface
+    /// at a call site, given its declared constraints.
+    /// </summary>
+    /// <param name="typeParameter">The open generic type parameter used as the <c>As&lt;T&gt;</c> argument.</param>
+    /// <returns>
+    /// <see langword="false" /> when a value-type constraint (<c>struct</c>/<c>unmanaged</c>), a
+    /// constructor constraint (<c>new()</c>), or a base-class constraint forbids an interface
+    /// substitution; otherwise <see langword="true" />.
+    /// </returns>
+    private static bool CanBeSubstitutedWithInterface(ITypeParameterSymbol typeParameter)
+    {
+        // A value type can never be an interface. A `new()` constraint requires a public
+        // parameterless constructor, which no interface can satisfy, so it also rules out
+        // an interface substitution.
+        if (typeParameter.HasValueTypeConstraint
+            || typeParameter.HasUnmanagedTypeConstraint
+            || typeParameter.HasConstructorConstraint)
+        {
+            return false;
+        }
+
+        // A base-class constraint forces T to derive from a class, so it cannot be an interface.
+        foreach (ITypeSymbol constraintType in typeParameter.ConstraintTypes)
+        {
+            if (constraintType.TypeKind == TypeKind.Class)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

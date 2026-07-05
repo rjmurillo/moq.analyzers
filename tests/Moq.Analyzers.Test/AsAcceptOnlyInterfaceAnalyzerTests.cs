@@ -64,4 +64,76 @@ public class AsAcceptOnlyInterfaceAnalyzerTests(ITestOutputHelper output)
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
+
+    [Fact]
+    public async Task ShouldNotReportForOpenTypeParameter()
+    {
+        // Moq1300 must not fire on an open type parameter: at the call site T may be
+        // constrained to (or substituted with) an interface. See issue #1251.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            public class SampleClass
+            {
+                public int Calculate() => 0;
+            }
+
+            internal class UnitTest
+            {
+                private void Test<T>()
+                    where T : class
+                {
+                    _ = new Mock<SampleClass>().As<T>();
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldReportForClassConstrainedTypeParameter()
+    {
+        // A base-class constraint means T can never be substituted with an interface, so
+        // As<T> can never bind to an interface and Moq1300 must still fire. See issue #1251.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            public abstract class BaseSampleClass
+            {
+                public int Calculate() => 0;
+            }
+
+            internal class UnitTest
+            {
+                private void Test<T>()
+                    where T : BaseSampleClass
+                {
+                    _ = new Mock<BaseSampleClass>().As<{|Moq1300:T|}>();
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldReportForConstructorConstrainedTypeParameter()
+    {
+        // A new() constraint requires a parameterless constructor, which no interface can
+        // satisfy, so T can never be an interface and Moq1300 must still fire. See issue #1251.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            public class SampleClass
+            {
+                public int Calculate() => 0;
+            }
+
+            internal class UnitTest
+            {
+                private void Test<T>()
+                    where T : class, new()
+                {
+                    _ = new Mock<SampleClass>().As<{|Moq1300:T|}>();
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
 }
