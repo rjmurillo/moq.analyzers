@@ -560,6 +560,36 @@ public class C
     }
 
     [Fact]
+    public async Task GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation_SetupWithoutArguments_ReturnsEmpty()
+    {
+        // The helper must not assume ArgumentList.Arguments[0] exists: a zero-argument
+        // invocation (which is what FindSetupMethodFromCallbackInvocation can return for
+        // mid-edit `Setup()` code via candidate symbols) must yield an empty result, not
+        // throw ArgumentOutOfRangeException. A valid zero-argument invocation (VerifyAll)
+        // exercises the same empty-argument-list guard using only compilable C#.
+        const string code = @"
+using Moq;
+public interface IFoo { int Bar(string s); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.VerifyAll();
+    }
+}";
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(code);
+        SyntaxNode root = await tree.GetRootAsync();
+        InvocationExpressionSyntax zeroArgInvocation = root
+            .DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(i => i.ArgumentList.Arguments.Count == 0);
+
+        IEnumerable<IMethodSymbol> symbols = model.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(zeroArgInvocation);
+
+        Assert.Empty(symbols);
+    }
+
+    [Fact]
     public async Task IsCallbackOrReturnInvocation_CallbackInvocation_ReturnsTrue()
     {
         const string code = @"
