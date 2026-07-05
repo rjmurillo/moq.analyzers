@@ -62,8 +62,8 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
         // Defense in depth: the edit properties attached to the diagnostic describe the argument-list
         // shape the analyzer saw at analysis time. If the document changed between analysis and fix
         // application (stale lightbulb), the resolved node may no longer match that shape. Return the
-        // original document instead of letting the argument rewriters throw.
-        if (!IsEditShapeValid())
+        // original document instead of applying a wrong edit or letting the argument rewriters throw.
+        if (!CanApplyEdit(editor.SemanticModel, knownSymbols.MockBehavior))
         {
             return _document;
         }
@@ -89,30 +89,53 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
     }
 
     /// <summary>
-    /// Validates that <see cref="_nodeToFix"/> is a node kind the argument rewriters understand
-    /// (invocation or object creation) and that <see cref="_position"/> is within range for the
-    /// requested edit against the node's current argument count.
+    /// Validates that the edit recorded on the diagnostic can be applied safely to the current node.
+    /// Guards against a stale lightbulb where the document changed after analysis: the node must still
+    /// be an invocation or object creation, <see cref="_position"/> must be in range for the requested
+    /// edit, and an <see cref="DiagnosticEditProperties.EditType.Insert"/> must not duplicate a
+    /// <c>MockBehavior</c> argument the user added after the diagnostic was produced.
     /// </summary>
+    /// <param name="semanticModel">The semantic model used to resolve argument types.</param>
+    /// <param name="mockBehaviorType">The <c>MockBehavior</c> type symbol.</param>
     /// <returns><see langword="true"/> when the edit can be applied safely; otherwise <see langword="false"/>.</returns>
-    private bool IsEditShapeValid()
+    private bool CanApplyEdit(SemanticModel semanticModel, ISymbol mockBehaviorType)
     {
-        int argumentCount = _nodeToFix switch
+        SeparatedSyntaxList<ArgumentSyntax>? maybeArguments = _nodeToFix switch
         {
-            InvocationExpressionSyntax invocation => invocation.ArgumentList.Arguments.Count,
-            BaseObjectCreationExpressionSyntax creation => creation.ArgumentList?.Arguments.Count ?? 0,
-            _ => -1,
+            InvocationExpressionSyntax invocation => invocation.ArgumentList.Arguments,
+            BaseObjectCreationExpressionSyntax creation => creation.ArgumentList?.Arguments ?? default(SeparatedSyntaxList<ArgumentSyntax>),
+            _ => null,
         };
 
-        if (argumentCount < 0)
+        if (maybeArguments is not SeparatedSyntaxList<ArgumentSyntax> arguments)
         {
             return false;
         }
 
         return _editType switch
         {
-            DiagnosticEditProperties.EditType.Insert => _position <= argumentCount,
-            DiagnosticEditProperties.EditType.Replace => _position < argumentCount,
+            // Insert is emitted only when the MockBehavior parameter is defaulted (no explicit argument).
+            // If an explicit MockBehavior argument now exists, the diagnostic is stale; inserting another
+            // would duplicate it.
+            DiagnosticEditProperties.EditType.Insert =>
+                _position <= arguments.Count
+                && !ContainsMockBehaviorArgument(arguments),
+            DiagnosticEditProperties.EditType.Replace => _position < arguments.Count,
             _ => false,
         };
+
+        bool ContainsMockBehaviorArgument(SeparatedSyntaxList<ArgumentSyntax> candidates)
+        {
+            foreach (ArgumentSyntax argument in candidates)
+            {
+                ITypeSymbol? argumentType = semanticModel.GetTypeInfo(argument.Expression).Type;
+                if (SymbolEqualityComparer.Default.Equals(argumentType, mockBehaviorType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

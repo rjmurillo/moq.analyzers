@@ -29,6 +29,23 @@ public class SetExplicitMockBehaviorFixerTests
         }
         """;
 
+    private static readonly string SourceWithExplicitBehavior = """
+        using Moq;
+
+        public interface ISample
+        {
+            void Method();
+        }
+
+        internal class UnitTest
+        {
+            private void Test()
+            {
+                var mock = new Mock<ISample>(MockBehavior.Strict);
+            }
+        }
+        """;
+
     public static IEnumerable<object[]> StaleEditShapeData()
     {
         // EditType / EditPosition pairs that do NOT match `new Mock<ISample>()` (zero arguments):
@@ -55,7 +72,7 @@ public class SetExplicitMockBehaviorFixerTests
             .OfType<ObjectCreationExpressionSyntax>()
             .Single();
 
-        await AssertFixerNoOpAsync(model, tree, creation.Span, editType, editPosition);
+        await AssertFixerNoOpAsync(model, tree, creation.Span, Source, editType, editPosition);
     }
 
     [Fact]
@@ -73,10 +90,28 @@ public class SetExplicitMockBehaviorFixerTests
             .OfType<LocalDeclarationStatementSyntax>()
             .Single();
 
-        await AssertFixerNoOpAsync(model, tree, statement.Span, "Insert", "0");
+        await AssertFixerNoOpAsync(model, tree, statement.Span, Source, "Insert", "0");
     }
 
-    private static async Task AssertFixerNoOpAsync(SemanticModel model, SyntaxTree tree, TextSpan span, string editType, string editPosition)
+    [Fact]
+    public async Task StaleInsert_WhenMockBehaviorAlreadyPresent_DoesNotDuplicate()
+    {
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(SourceWithExplicitBehavior);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        // Stale scenario where the diagnostic recorded Insert at position 0, but the user has since
+        // added an explicit MockBehavior argument. The node shape still admits an insert (position 0
+        // is in range), so only the semantic check can reject it; the fixer must no-op rather than
+        // insert a second MockBehavior argument.
+        ObjectCreationExpressionSyntax creation = root
+            .DescendantNodes()
+            .OfType<ObjectCreationExpressionSyntax>()
+            .Single();
+
+        await AssertFixerNoOpAsync(model, tree, creation.Span, SourceWithExplicitBehavior, "Insert", "0");
+    }
+
+    private static async Task AssertFixerNoOpAsync(SemanticModel model, SyntaxTree tree, TextSpan span, string sourceText, string editType, string editPosition)
     {
         DiagnosticDescriptor descriptor = new(
             DiagnosticIds.SetExplicitMockBehavior,
@@ -95,7 +130,7 @@ public class SetExplicitMockBehaviorFixerTests
         using AdhocWorkspace workspace = new();
         Project project = workspace.AddProject("TestProject", LanguageNames.CSharp)
             .AddMetadataReferences(model.Compilation.References);
-        Document document = project.AddDocument("Test.cs", SourceText.From(Source));
+        Document document = project.AddDocument("Test.cs", SourceText.From(sourceText));
 
         List<CodeAction> actions = [];
         CodeFixContext context = new(
