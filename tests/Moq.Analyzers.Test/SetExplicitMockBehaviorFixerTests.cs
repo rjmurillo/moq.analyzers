@@ -46,6 +46,23 @@ public class SetExplicitMockBehaviorFixerTests
         }
         """;
 
+    private static readonly string SourceWithImplicitBehavior = """
+        using Moq;
+
+        public interface ISample
+        {
+            void Method();
+        }
+
+        internal class UnitTest
+        {
+            private void Test()
+            {
+                var mock = new Mock<ISample>(0);
+            }
+        }
+        """;
+
     public static IEnumerable<object[]> StaleEditShapeData()
     {
         // EditType / EditPosition pairs that do NOT match `new Mock<ISample>()` (zero arguments):
@@ -109,6 +126,23 @@ public class SetExplicitMockBehaviorFixerTests
             .Single();
 
         await AssertFixerNoOpAsync(model, tree, creation.Span, SourceWithExplicitBehavior, "Insert", "0");
+    }
+
+    [Fact]
+    public async Task StaleInsert_WhenMockBehaviorSuppliedViaConversion_DoesNotDuplicate()
+    {
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(SourceWithImplicitBehavior);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        // The user supplied the behavior as the literal 0, which binds to the MockBehavior parameter
+        // through an implicit conversion. The argument's expression type is int, but its converted
+        // type is MockBehavior, so the semantic check must still recognize it and no-op.
+        ObjectCreationExpressionSyntax creation = root
+            .DescendantNodes()
+            .OfType<ObjectCreationExpressionSyntax>()
+            .Single();
+
+        await AssertFixerNoOpAsync(model, tree, creation.Span, SourceWithImplicitBehavior, "Insert", "0");
     }
 
     private static async Task AssertFixerNoOpAsync(SemanticModel model, SyntaxTree tree, TextSpan span, string sourceText, string editType, string editPosition)

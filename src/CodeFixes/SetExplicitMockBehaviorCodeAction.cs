@@ -128,7 +128,10 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
         {
             foreach (ArgumentSyntax argument in candidates)
             {
-                ITypeSymbol? argumentType = semanticModel.GetTypeInfo(argument.Expression).Type;
+                // Use the converted type, not the expression type, so an argument that binds to the
+                // MockBehavior parameter through an implicit conversion (for example the literal 0 or
+                // default) is still recognized as an explicit MockBehavior argument.
+                ITypeSymbol? argumentType = semanticModel.GetTypeInfo(argument.Expression).ConvertedType;
                 if (SymbolEqualityComparer.Default.Equals(argumentType, mockBehaviorType))
                 {
                     return true;
