@@ -14,6 +14,7 @@ public class SetExplicitMockBehaviorAnalyzerTests
             ["""{|Moq1400:new Mock<ISample>(MockBehavior.Default)|};"""],
             ["""new Mock<ISample>(MockBehavior.Loose);"""],
             ["""new Mock<ISample>(MockBehavior.Strict);"""],
+            ["""MockBehavior GetBehavior() => MockBehavior.Strict; MockBehavior behavior = GetBehavior(); new Mock<ISample>(behavior);"""],
 
             // MockRepository patterns (AnalyzeObjectCreation path)
             ["""{|Moq1400:new MockRepository(MockBehavior.Default)|};"""],
