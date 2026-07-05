@@ -83,7 +83,14 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (typeArguments[0] is ITypeSymbol { TypeKind: not TypeKind.Interface } typeSymbol)
+        // Exclude type kinds we cannot classify as "not an interface":
+        //   - TypeParameter: an open generic (for example As<T>() in a generic method) may be
+        //     constrained to, or substituted with, an interface at the call site. Reporting here
+        //     is a false positive (issue #1251).
+        //   - Error: the type failed to bind, so the code already has a compiler error; adding
+        //     Moq1300 on top is noise.
+        if (typeArguments[0] is ITypeSymbol { TypeKind: not TypeKind.Interface } typeSymbol
+            && typeSymbol.TypeKind is not (TypeKind.TypeParameter or TypeKind.Error))
         {
             // Find the first As<T> generic type argument and report the diagnostic on it
             GenericNameSyntax? asGeneric = invocationOperation.Syntax

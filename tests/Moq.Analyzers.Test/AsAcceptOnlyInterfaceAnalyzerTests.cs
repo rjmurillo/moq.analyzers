@@ -64,4 +64,28 @@ public class AsAcceptOnlyInterfaceAnalyzerTests(ITestOutputHelper output)
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
     }
+
+    [Fact]
+    public async Task ShouldNotReportForOpenTypeParameter()
+    {
+        // Moq1300 must not fire on an open type parameter: at the call site T may be
+        // constrained to (or substituted with) an interface. See issue #1251.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            public class SampleClass
+            {
+                public int Calculate() => 0;
+            }
+
+            internal class UnitTest
+            {
+                private void Test<T>()
+                    where T : class
+                {
+                    _ = new Mock<SampleClass>().As<T>();
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
 }
