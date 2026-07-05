@@ -53,6 +53,11 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
             // modifier token, but the parameter's RefKind is still Ref, so this matches DoRef.
             ["""new Mock<IFoo>().Setup(m => m.DoRef(ref It.Ref<string>.IsAny)).Callback((scoped ref string data) => { });"""],
 
+            // ref readonly parameter with correct signature (issue #1262): the resolved RefKind is
+            // RefReadOnlyParameter (a distinct enum value), so a ref readonly lambda matches the
+            // ref readonly mocked method without a false positive.
+            ["""new Mock<IFoo>().Setup(m => m.DoRefReadonly(ref It.Ref<DateTime>.IsAny)).Callback((ref readonly DateTime timestamp) => { });"""],
+
             // Implicitly typed lambda with correct parameter type via generic Callback overload
             ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback<string>((x) => { });"""],
 
@@ -91,6 +96,11 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
             // matches but the RefKind differs (Ref vs In), so a diagnostic is still expected. This
             // guards against the modifier-list read suppressing a genuine ref-kind mismatch.
             ["""new Mock<IFoo>().Setup(m => m.DoIn(in It.Ref<DateTime>.IsAny)).Callback(({|Moq1100:scoped ref DateTime timestamp|}) => { });"""],
+
+            // ref readonly lambda parameter against an `in` mocked parameter (issue #1262): the type
+            // matches but the RefKind differs (RefReadOnlyParameter vs In), so a diagnostic is still
+            // expected. Confirms the analyzer compares ref kinds exactly, not loosely.
+            ["""new Mock<IFoo>().Setup(m => m.DoIn(in It.Ref<DateTime>.IsAny)).Callback(({|Moq1100:ref readonly DateTime timestamp|}) => { });"""],
 
             // Parenthesized Setup with wrong callback type
             ["""(new Mock<IFoo>().Setup(x => x.DoWork("test"))).Callback(({|Moq1100:int wrongParam|}) => { });"""],
@@ -136,6 +146,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
                 int DoRef(ref string data);
                 bool DoOut(out int result);
                 string DoIn(in DateTime timestamp);
+                void DoRefReadonly(ref readonly DateTime timestamp);
                 T ProcessGeneric<T>(T input);
             }
 
