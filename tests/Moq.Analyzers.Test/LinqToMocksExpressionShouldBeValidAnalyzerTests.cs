@@ -1231,6 +1231,91 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
     }
 
     [Fact]
+    public async Task ShouldReportAtExactDepthCap()
+    {
+        // Exact-boundary case for https://github.com/rjmurillo/moq.analyzers/issues/1261.
+        // A left-associative `||` chain nests the leftmost clause deepest (one level per `||`);
+        // expression lambdas add a synthesized block+return wrapper, so the deepest member of an
+        // N-clause chain lands at depth N+2. With 62 clauses that is exactly MaxAnalysisDepth (64);
+        // the guard is `depth > cap`, so depth 64 is still analyzed and the non-virtual member MUST
+        // be flagged. Verified empirically: the deepest clause is the last one reported at N=62 and
+        // is suppressed at N=63. A `>=` regression would suppress N=62 and fail this test.
+        // Only the leftmost clause references a non-virtual member, so its diagnostic location is
+        // unambiguous (the analyzer resolves member locations by symbol and returns the first match).
+        string[] clauses = new string[62];
+        clauses[0] = "{|Moq1302:c.NonVirtualProperty|} == \"v0\"";
+        for (int i = 1; i < clauses.Length; i++)
+        {
+            clauses[i] = "c.VirtualProperty == \"v" + i + "\"";
+        }
+
+        string expression = string.Join(" || ", clauses);
+
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              using Moq;
+
+              public class ConcreteClass
+              {
+                  public virtual string VirtualProperty { get; set; }
+                  public string NonVirtualProperty { get; set; }
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      var mock = Mock.Of<ConcreteClass>(c => {{expression}});
+                  }
+              }
+              """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldSuppressJustBeyondDepthCapButStillReportShallowMembers()
+    {
+        // Just-over-boundary case for https://github.com/rjmurillo/moq.analyzers/issues/1261.
+        // With 63 clauses the leftmost (deepest) member sits one past the cap, so it is suppressed
+        // (no markup on `NonVirtualDeep`). The rightmost clause is shallow and its non-virtual member
+        // (`NonVirtualShallow`) MUST still be flagged. This proves the cap suppresses only deep
+        // members, not the whole expression, and would fail if the guard regressed to `>=`.
+        // The deep and shallow members use distinct names so their diagnostic locations do not
+        // collide (the analyzer resolves member locations by symbol and returns the first match).
+        string[] clauses = new string[63];
+        clauses[0] = "c.NonVirtualDeep == \"v0\"";
+        for (int i = 1; i < clauses.Length - 1; i++)
+        {
+            clauses[i] = "c.VirtualProperty == \"v" + i + "\"";
+        }
+
+        clauses[clauses.Length - 1] = "{|Moq1302:c.NonVirtualShallow|} == \"v62\"";
+
+        string expression = string.Join(" || ", clauses);
+
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              using Moq;
+
+              public class ConcreteClass
+              {
+                  public virtual string VirtualProperty { get; set; }
+                  public string NonVirtualDeep { get; set; }
+                  public string NonVirtualShallow { get; set; }
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      var mock = Mock.Of<ConcreteClass>(c => {{expression}});
+                  }
+              }
+              """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
     public async Task ShouldBailSilentlyBeyondDepthCapWithoutCrashing()
     {
         // Regression for the stack-overflow crash in https://github.com/rjmurillo/moq.analyzers/issues/1261.
