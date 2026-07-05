@@ -61,7 +61,6 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : Diagno
 
         ISymbol? mockedMemberSymbol = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
         if (mockedMemberSymbol is null
-            || mockedMemberSymbol.ContainingType?.TypeKind == TypeKind.Interface
             || mockedMemberSymbol.IsOverridableOrAllowedMockMember(knownSymbols))
         {
             return;

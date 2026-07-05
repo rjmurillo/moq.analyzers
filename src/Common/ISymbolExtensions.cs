@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -110,12 +111,18 @@ internal static partial class ISymbolExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsOverridable(this ISymbol symbol)
     {
-        return symbol switch
+        if (symbol.IsStatic)
         {
-            IMethodSymbol { IsStatic: true } or IPropertySymbol { IsStatic: true } => false,
-            _ when symbol.ContainingType?.TypeKind == TypeKind.Interface => true,
-            _ => !symbol.IsSealed &&
-                  (symbol.IsVirtual || symbol.IsAbstract || symbol is { IsOverride: true, IsSealed: false }),
-        };
+            return false;
+        }
+
+        if (symbol.ContainingType?.TypeKind == TypeKind.Interface)
+        {
+            Debug.Assert(!symbol.IsStatic, "Static interface members are not interceptable by Moq.");
+            return symbol.IsAbstract || symbol.IsVirtual;
+        }
+
+        return !symbol.IsSealed &&
+              (symbol.IsVirtual || symbol.IsAbstract || symbol is { IsOverride: true, IsSealed: false });
     }
 }

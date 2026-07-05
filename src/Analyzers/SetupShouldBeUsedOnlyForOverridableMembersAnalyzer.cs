@@ -89,7 +89,6 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnal
         // Attempt to locate the member reference from the Setup expression argument.
         ISymbol? candidate = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
         if (candidate is null
-            || candidate.ContainingType?.TypeKind == TypeKind.Interface
             || candidate.IsOverridableOrAllowedMockMember(knownSymbols))
         {
             return false;

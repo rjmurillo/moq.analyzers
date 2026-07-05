@@ -373,13 +373,43 @@ public class C
     }
 
     [Fact]
-    public void IsOverridable_InterfaceMember_ReturnsTrue()
+    public void IsOverridable_AbstractInterfaceMember_ReturnsTrue()
     {
         (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
             "public interface I { void M(); }");
         IMethodSymbol method = GetMethodSymbols(model, tree)
             .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
         Assert.True(((ISymbol)method).IsOverridable());
+    }
+
+    [Fact]
+    public void IsOverridable_DefaultInterfaceMember_ReturnsTrue()
+    {
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
+            "public interface I { void M() { } }");
+        IMethodSymbol method = GetMethodSymbols(model, tree)
+            .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
+        Assert.True(((ISymbol)method).IsOverridable());
+    }
+
+    [Fact]
+    public void IsOverridable_SealedDefaultInterfaceMember_ReturnsFalse()
+    {
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
+            "public interface I { sealed void M() { } }");
+        IMethodSymbol method = GetMethodSymbols(model, tree)
+            .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
+        Assert.False(((ISymbol)method).IsOverridable());
+    }
+
+    [Fact]
+    public void IsOverridable_StaticInterfaceMember_ReturnsFalse()
+    {
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
+            "public interface I { static void M() { } }");
+        IMethodSymbol method = GetMethodSymbols(model, tree)
+            .First(m => string.Equals(m.Name, "M", StringComparison.Ordinal));
+        Assert.False(((ISymbol)method).IsOverridable());
     }
 
     [Fact]
@@ -447,6 +477,30 @@ public class Derived : Base { public sealed override void M() {} }";
             .OfType<IPropertySymbol>()
             .First();
         Assert.True(((ISymbol)prop).IsOverridable());
+    }
+
+    [Fact]
+    public void IsOverridableOrAllowedMockMember_VirtualEvent_ReturnsTrue()
+    {
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
+            "public delegate void D(); public class C { public virtual event D E { add { } remove { } } }");
+        IEventSymbol eventSymbol = GetEventSymbols(model, tree)
+            .First(e => string.Equals(e.Name, "E", StringComparison.Ordinal));
+        MoqKnownSymbols knownSymbols = new(model.Compilation);
+
+        Assert.True(((ISymbol)eventSymbol).IsOverridableOrAllowedMockMember(knownSymbols));
+    }
+
+    [Fact]
+    public void IsOverridableOrAllowedMockMember_NonVirtualEvent_ReturnsFalse()
+    {
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(
+            "public delegate void D(); public class C { public event D E { add { } remove { } } }");
+        IEventSymbol eventSymbol = GetEventSymbols(model, tree)
+            .First(e => string.Equals(e.Name, "E", StringComparison.Ordinal));
+        MoqKnownSymbols knownSymbols = new(model.Compilation);
+
+        Assert.False(((ISymbol)eventSymbol).IsOverridableOrAllowedMockMember(knownSymbols));
     }
 
     [Fact]
@@ -586,6 +640,24 @@ public class C
     }
 
     [Fact]
+    public async Task IsMoqSetupMethod_VoidSetupCall_ReturnsTrue()
+    {
+        string code = @"
+using Moq;
+public interface IService { void DoWork(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IService>();
+        mock.Setup(x => x.DoWork());
+    }
+}";
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "Setup");
+        Assert.True(symbol.IsMoqSetupMethod(knownSymbols));
+    }
+
+    [Fact]
     public async Task IsMoqSetupMethod_NonSetupCall_ReturnsFalse()
     {
         string code = @"
@@ -633,6 +705,24 @@ public class C
     {
         var mock = new Mock<IService>();
         mock.SetupSequence(x => x.GetValue());
+    }
+}";
+        (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "SetupSequence");
+        Assert.True(symbol.IsMoqSetupSequenceMethod(knownSymbols));
+    }
+
+    [Fact]
+    public async Task IsMoqSetupSequenceMethod_VoidSetupSequenceCall_ReturnsTrue()
+    {
+        string code = @"
+using Moq;
+public interface IService { void DoWork(); }
+public class C
+{
+    public void M()
+    {
+        var mock = new Mock<IService>();
+        mock.SetupSequence(x => x.DoWork());
     }
 }";
         (ISymbol symbol, MoqKnownSymbols knownSymbols) = await GetMoqInvocationSymbol(code, "SetupSequence");
@@ -935,6 +1025,16 @@ public class C
             .Select(t => model.GetDeclaredSymbol(t))
             .OfType<INamedTypeSymbol>()
             .SelectMany(t => t.GetMembers().OfType<IMethodSymbol>());
+    }
+
+    private static IEnumerable<IEventSymbol> GetEventSymbols(SemanticModel model, SyntaxTree tree)
+    {
+        return tree.GetRoot()
+            .DescendantNodes()
+            .OfType<BaseTypeDeclarationSyntax>()
+            .Select(t => model.GetDeclaredSymbol(t))
+            .OfType<INamedTypeSymbol>()
+            .SelectMany(t => t.GetMembers().OfType<IEventSymbol>());
     }
 
     private static (IPropertySymbol Property, MoqKnownSymbols KnownSymbols) GetPropertyFromMemberAccess(

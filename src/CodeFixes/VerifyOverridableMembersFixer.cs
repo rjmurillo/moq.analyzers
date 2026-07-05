@@ -1,4 +1,5 @@
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
@@ -61,7 +62,7 @@ public sealed class VerifyOverridableMembersFixer : CodeFixProvider
         }
 
         // Check if we should offer a fix.
-        if (!(mockedMemberSymbol is IPropertySymbol or IMethodSymbol) || mockedMemberSymbol.IsOverridable() || mockedMemberSymbol.IsSealed)
+        if (!CanMakeMemberVirtual(mockedMemberSymbol))
         {
             return;
         }
@@ -72,6 +73,24 @@ public sealed class VerifyOverridableMembersFixer : CodeFixProvider
                 cancellationToken => MakeMemberVirtualAsync(context.Document, mockedMemberSymbol, cancellationToken),
                 nameof(VerifyOverridableMembersFixer)),
             diagnostic);
+    }
+
+    private static bool CanMakeMemberVirtual(ISymbol memberSymbol)
+    {
+        if (memberSymbol is not (IPropertySymbol or IMethodSymbol))
+        {
+            return false;
+        }
+
+        if (memberSymbol.IsStatic || memberSymbol.IsOverridable() || memberSymbol.IsSealed)
+        {
+            return false;
+        }
+
+        INamedTypeSymbol? containingType = memberSymbol.ContainingType;
+        Debug.Assert(containingType is not null, "Source member symbols should have a containing type.");
+
+        return containingType is { TypeKind: TypeKind.Class, IsSealed: false };
     }
 
     private static async Task<Solution> MakeMemberVirtualAsync(

@@ -39,7 +39,7 @@ internal static partial class ISymbolExtensions
 
     internal static bool IsMoqSetupMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        return symbol.IsInstanceOf(knownSymbols.Mock1Setup) && symbol is IMethodSymbol { IsGenericMethod: true };
+        return symbol.IsInstanceOf(knownSymbols.Mock1Setup);
     }
 
     internal static bool IsMoqSetupAddMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
@@ -59,7 +59,7 @@ internal static partial class ISymbolExtensions
 
     internal static bool IsMoqSetupSequenceMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        return symbol.IsInstanceOf(knownSymbols.Mock1SetupSequence) && symbol is IMethodSymbol { IsGenericMethod: true };
+        return symbol.IsInstanceOf(knownSymbols.Mock1SetupSequence);
     }
 
     internal static bool IsMoqVerificationMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
@@ -163,6 +163,8 @@ internal static partial class ISymbolExtensions
                 propertySymbol.IsOverridable() || propertySymbol.IsTaskOrValueResultProperty(knownSymbols),
             IMethodSymbol methodSymbol =>
                 methodSymbol.IsOverridable(),
+            IEventSymbol eventSymbol =>
+                eventSymbol.IsOverridable(),
             _ => false,
         };
     }

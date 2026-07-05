@@ -52,6 +52,12 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
             // Explicit interface implementation (should NOT be flagged in new)
             ["""new Mock<IExplicitInterface>().Setup(x => ((IExplicitInterface)x).ExplicitMethod());"""],
 
+            // Default interface members follow Moq 4.18.4 runtime behavior.
+            ["""new Mock<IDefaultInterfaceMembers>().Setup(x => x.AbstractMethod());"""],
+            ["""new Mock<IDefaultInterfaceMembers>().Setup(x => x.DefaultMethod());"""],
+            ["""{|Moq1200:new Mock<IDefaultInterfaceMembers>().Setup(x => x.SealedDefaultMethod())|};"""],
+            ["""{|Moq1200:new Mock<IStaticInterfaceMembers>().Setup(x => IStaticInterfaceMembers.StaticMethod())|};"""],
+
             // It.Ref<T>.IsAny for ref parameters (requires Moq 4.8+, should work in newer versions)
             ["""new Mock<ISampleInterface>().Setup(x => x.ProcessRef(ref It.Ref<int>.IsAny)).Returns(true);"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
@@ -90,6 +96,13 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
                                 public class SampleClassWithVirtualIndexer { public virtual int this[int i] { get => 0; set { } } }
                                 public class SampleClassWithNonVirtualIndexer { public int this[int i] { get => 0; set { } } }
                                 public interface IExplicitInterface { void ExplicitMethod(); }
+                                public interface IDefaultInterfaceMembers
+                                {
+                                    void AbstractMethod();
+                                    void DefaultMethod() { }
+                                    sealed void SealedDefaultMethod() { }
+                                }
+                                public interface IStaticInterfaceMembers { static void StaticMethod() { } }
                                 public class SampleClassWithStaticMembers { public static int StaticField; public const int ConstField = 42; public static readonly int ReadonlyField = 42; public static void StaticMethod() { } }
 
                                 public abstract class BaseSampleClass
