@@ -14,6 +14,13 @@ public class SetStrictMockBehaviorAnalyzerTests
             ["""{|Moq1410:new Mock<ISample>(MockBehavior.Default)|};"""],
             ["""{|Moq1410:new Mock<ISample>(MockBehavior.Loose)|};"""],
             ["""new Mock<ISample>(MockBehavior.Strict);"""],
+            ["""const MockBehavior behavior = MockBehavior.Strict; new Mock<ISample>(behavior);"""],
+            ["""MockBehavior GetBehavior() => MockBehavior.Strict; MockBehavior behavior = GetBehavior(); {|Moq1410:new Mock<ISample>(behavior)|};"""],
+
+            // Numeric cast boundary: (MockBehavior)0 is Strict (underlying value 0), so no diagnostic is
+            // reported. (MockBehavior)2 is not a defined behavior and is not Strict, so it is reported.
+            ["""new Mock<ISample>((MockBehavior)0);"""],
+            ["""{|Moq1410:new Mock<ISample>((MockBehavior)2)|};"""],
 
             // MockRepository patterns (AnalyzeObjectCreation path)
             ["""{|Moq1410:new MockRepository(MockBehavior.Default)|};"""],
