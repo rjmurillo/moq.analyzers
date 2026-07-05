@@ -145,6 +145,11 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        DispatchLambdaBodyOperation(context, lambdaOperation, body, knownSymbols, depth);
+    }
+
+    private static void DispatchLambdaBodyOperation(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation body, MoqKnownSymbols knownSymbols, int depth)
+    {
         switch (body)
         {
             case IBlockOperation blockOp when blockOp.Operations.Length == 1:
