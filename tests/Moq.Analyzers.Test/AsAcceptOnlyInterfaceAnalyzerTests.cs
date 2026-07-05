@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis.Testing;
+
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.AsShouldBeUsedOnlyForInterfaceAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -87,5 +89,53 @@ public class AsAcceptOnlyInterfaceAnalyzerTests(ITestOutputHelper output)
             }
             """,
             ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldReportForClassConstrainedTypeParameter()
+    {
+        // A base-class constraint means T can never be substituted with an interface, so
+        // As<T> can never bind to an interface and Moq1300 must still fire. See issue #1251.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            public abstract class BaseSampleClass
+            {
+                public int Calculate() => 0;
+            }
+
+            internal class UnitTest
+            {
+                private void Test<T>()
+                    where T : BaseSampleClass
+                {
+                    _ = new Mock<BaseSampleClass>().As<{|Moq1300:T|}>();
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldNotReportForUnresolvedType()
+    {
+        // An unresolved type argument already produces a compiler error; piling Moq1300 on top
+        // is noise, so the analyzer must skip TypeKind.Error. See issue #1251.
+        await Verifier.VerifyAnalyzerAsync(
+            """
+            public class SampleClass
+            {
+                public int Calculate() => 0;
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    _ = new Mock<SampleClass>().As<DoesNotExist>();
+                }
+            }
+            """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq,
+            CompilerDiagnostics.None);
     }
 }
