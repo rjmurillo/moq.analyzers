@@ -59,13 +59,12 @@ internal static class SemanticModelExtensions
     {
         // Guard against incomplete or malformed setup invocations (for example a mid-edit
         // `Setup()` with no arguments), where indexing the first argument would throw.
-        SeparatedSyntaxList<ArgumentSyntax>? arguments = setupMethodInvocation?.ArgumentList.Arguments;
-        if (arguments is not { Count: > 0 })
+        if (setupMethodInvocation?.ArgumentList is not { Arguments: { Count: > 0 } arguments })
         {
             return [];
         }
 
-        LambdaExpressionSyntax? setupLambdaArgument = arguments.Value[0].Expression as LambdaExpressionSyntax;
+        LambdaExpressionSyntax? setupLambdaArgument = arguments[0].Expression as LambdaExpressionSyntax;
 
         return setupLambdaArgument?.Body is not InvocationExpressionSyntax mockedMethodInvocation
             ? []
