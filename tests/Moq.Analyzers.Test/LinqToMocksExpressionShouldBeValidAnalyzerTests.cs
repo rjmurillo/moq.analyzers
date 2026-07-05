@@ -1191,4 +1191,81 @@ public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper o
             """,
             referenceAssemblyGroup);
     }
+
+    [Fact]
+    public async Task ShouldAnalyzeDeepButUnderCapExpression()
+    {
+        // Boundary case for https://github.com/rjmurillo/moq.analyzers/issues/1261.
+        // A left-associative `||` chain nests the leftmost clause deepest in the operation tree
+        // (one level per `||`). With 39 clauses the deepest clause sits well under
+        // MaxAnalysisDepth (64), so its non-virtual member must still be flagged. All shallower
+        // clauses reference a virtual member and must NOT be flagged.
+        string[] clauses = new string[39];
+        clauses[0] = "{|Moq1302:c.NonVirtualProperty|} == \"v0\"";
+        for (int i = 1; i < clauses.Length; i++)
+        {
+            clauses[i] = "c.VirtualProperty == \"v" + i + "\"";
+        }
+
+        string expression = string.Join(" || ", clauses);
+
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              using Moq;
+
+              public class ConcreteClass
+              {
+                  public virtual string VirtualProperty { get; set; }
+                  public string NonVirtualProperty { get; set; }
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      var mock = Mock.Of<ConcreteClass>(c => {{expression}});
+                  }
+              }
+              """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldBailSilentlyBeyondDepthCapWithoutCrashing()
+    {
+        // Regression for the stack-overflow crash in https://github.com/rjmurillo/moq.analyzers/issues/1261.
+        // A 499-clause `||` chain nests the leftmost clause ~499 levels deep, far beyond
+        // MaxAnalysisDepth (64). The depth guard stops the walk before reaching that clause, so the
+        // non-virtual member there produces NO diagnostic (accepted false negative) and, critically,
+        // the analyzer does not overflow the stack. Every clause the walk DOES reach is virtual, so
+        // the expected diagnostic count is zero.
+        string[] clauses = new string[499];
+        clauses[0] = "c.NonVirtualProperty == \"v0\"";
+        for (int i = 1; i < clauses.Length; i++)
+        {
+            clauses[i] = "c.VirtualProperty == \"v" + i + "\"";
+        }
+
+        string expression = string.Join(" || ", clauses);
+
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              using Moq;
+
+              public class ConcreteClass
+              {
+                  public virtual string VirtualProperty { get; set; }
+                  public string NonVirtualProperty { get; set; }
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      var mock = Mock.Of<ConcreteClass>(c => {{expression}});
+                  }
+              }
+              """,
+            ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
 }

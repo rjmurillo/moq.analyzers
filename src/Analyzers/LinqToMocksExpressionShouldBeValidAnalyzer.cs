@@ -8,6 +8,18 @@ namespace Moq.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>
+    /// Maximum recursion depth for lambda body analysis. Hand-written LINQ-to-Mocks predicates
+    /// nest well under 10 levels; 64 comfortably covers generated-but-plausible expressions while
+    /// bounding the walk to a trivial number of stack frames (two frames per level via the
+    /// AnalyzeLambdaBody/AnalyzeMemberOperations mutual recursion, so at most ~128 frames).
+    /// Mirrors the pathological-tree guard in InvocationExpressionSyntaxExtensions.FindSetupInvocation
+    /// (src/Common/InvocationExpressionSyntaxExtensions.cs, cap of 10), sized larger because
+    /// operation trees for boolean predicates legitimately nest deeper than fluent chains.
+    /// Operations beyond the cap are skipped: no crash, no diagnostic (accepted false negative).
+    /// </summary>
+    private static readonly int MaxAnalysisDepth = 64;
+
     private static readonly LocalizableString Title = "Moq: Invalid LINQ to Mocks expression";
     private static readonly LocalizableString Message = "Invalid member '{0}' in LINQ to Mocks expression";
     private static readonly LocalizableString Description = "LINQ to Mocks expression contains non-virtual member that cannot be mocked.";
@@ -90,14 +102,45 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeLambdaExpression(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, MoqKnownSymbols knownSymbols)
     {
+        // Only report diagnostics if the lambda is semantically valid. Binding failures inside
+        // the lambda materialize as IInvalidOperation nodes; scanning the already-built operation
+        // tree replaces the previous SemanticModel.GetDiagnostics(span) call, which forced a full
+        // re-bind of the span for every member-reference candidate.
+        if (ContainsInvalidOperation(lambdaOperation))
+        {
+            return;
+        }
+
         // For LINQ to Mocks, we need to handle more complex expressions like: x => x.Property == "value"
         // The lambda body is often a binary expression where the left operand is the member we want to check
-        AnalyzeLambdaBody(context, lambdaOperation, lambdaOperation.Body, knownSymbols);
+        AnalyzeLambdaBody(context, lambdaOperation, lambdaOperation.Body, knownSymbols, depth: 0);
     }
 
-    private static void AnalyzeLambdaBody(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation? body, MoqKnownSymbols knownSymbols)
+    private static bool ContainsInvalidOperation(IOperation root)
+    {
+        foreach (IOperation descendant in root.DescendantsAndSelf())
+        {
+            if (descendant.Kind == OperationKind.Invalid)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void AnalyzeLambdaBody(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation? body, MoqKnownSymbols knownSymbols, int depth)
     {
         if (body == null)
+        {
+            return;
+        }
+
+        // Bound the AnalyzeLambdaBody <-> AnalyzeMemberOperations mutual recursion so
+        // machine-generated expressions with thousands of clauses cannot overflow the stack.
+        // A StackOverflowException here is uncatchable and would kill the host compiler/IDE
+        // process, so operations beyond the cap are skipped: no crash, no diagnostic.
+        if (depth > MaxAnalysisDepth)
         {
             return;
         }
@@ -106,20 +149,20 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
         {
             case IBlockOperation blockOp when blockOp.Operations.Length == 1:
                 // Handle block lambdas with return statements
-                AnalyzeLambdaBody(context, lambdaOperation, blockOp.Operations[0], knownSymbols);
+                AnalyzeLambdaBody(context, lambdaOperation, blockOp.Operations[0], knownSymbols, depth + 1);
                 break;
 
             case IReturnOperation returnOp:
                 // Handle return statements
-                AnalyzeLambdaBody(context, lambdaOperation, returnOp.ReturnedValue, knownSymbols);
+                AnalyzeLambdaBody(context, lambdaOperation, returnOp.ReturnedValue, knownSymbols, depth + 1);
                 break;
 
             case IBinaryOperation binaryOp:
                 // Analyze each operand independently. The IsRootedInLambdaParameter guard
                 // in AnalyzeMemberOperations filters out operands not rooted in the lambda
                 // parameter (e.g., static constants, enum values).
-                AnalyzeMemberOperations(context, lambdaOperation, binaryOp.LeftOperand, knownSymbols);
-                AnalyzeMemberOperations(context, lambdaOperation, binaryOp.RightOperand, knownSymbols);
+                AnalyzeMemberOperations(context, lambdaOperation, binaryOp.LeftOperand, knownSymbols, depth + 1);
+                AnalyzeMemberOperations(context, lambdaOperation, binaryOp.RightOperand, knownSymbols, depth + 1);
                 break;
 
             case IPropertyReferenceOperation propertyRef:
@@ -142,12 +185,16 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
                 // IsRootedInLambdaParameter guard. Calling AnalyzeLambdaBody directly would
                 // bypass the guard for operation kinds not enumerated above (e.g.,
                 // IConditionalOperation, ICoalesceOperation).
-                foreach (IOperation childOperation in body.ChildOperations)
-                {
-                    AnalyzeMemberOperations(context, lambdaOperation, childOperation, knownSymbols);
-                }
-
+                AnalyzeChildOperations(context, lambdaOperation, body, knownSymbols, depth + 1);
                 break;
+        }
+    }
+
+    private static void AnalyzeChildOperations(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation body, MoqKnownSymbols knownSymbols, int depth)
+    {
+        foreach (IOperation childOperation in body.ChildOperations)
+        {
+            AnalyzeMemberOperations(context, lambdaOperation, childOperation, knownSymbols, depth);
         }
     }
 
@@ -171,7 +218,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     /// expressions that have their own lambda parameters.
     /// </para>
     /// </remarks>
-    private static void AnalyzeMemberOperations(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation operation, MoqKnownSymbols knownSymbols)
+    private static void AnalyzeMemberOperations(OperationAnalysisContext context, IAnonymousFunctionOperation lambdaOperation, IOperation operation, MoqKnownSymbols knownSymbols, int depth)
     {
         // Don't recursively analyze nested Mock.Of calls to avoid false positives
         if (operation is IInvocationOperation invocation && IsValidMockOfInvocation(invocation, knownSymbols))
@@ -190,8 +237,9 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Recursively analyze the operation to find member references
-        AnalyzeLambdaBody(context, lambdaOperation, operation, knownSymbols);
+        // Recursively analyze the operation to find member references. The caller already
+        // incremented depth; AnalyzeLambdaBody is the single choke point that enforces the cap.
+        AnalyzeLambdaBody(context, lambdaOperation, operation, knownSymbols, depth);
     }
 
     private static void AnalyzeMemberSymbol(OperationAnalysisContext context, ISymbol memberSymbol, IAnonymousFunctionOperation lambdaOperation)
@@ -202,20 +250,19 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Only report diagnostics if the lambda is semantically valid (no compiler errors in the member access span)
-        Location? memberLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol, context.Operation.SemanticModel);
-        if (memberLocation == null)
+        // Don't flag members whose containing type failed to resolve (mid-edit code).
+        // Binding failures inside the lambda are already handled once, up front, by the
+        // ContainsInvalidOperation scan in AnalyzeLambdaExpression; this guard covers the
+        // narrower case of an unresolved containing type on the member symbol itself.
+        if (memberSymbol.ContainingType?.TypeKind == TypeKind.Error)
         {
             return;
         }
 
-        if (context.Operation.SemanticModel is not null)
+        Location? memberLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol, context.Operation.SemanticModel);
+        if (memberLocation == null)
         {
-            ImmutableArray<Diagnostic> diagnostics = context.Operation.SemanticModel.GetDiagnostics(memberLocation.SourceSpan, context.CancellationToken);
-            if (diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
-            {
-                return;
-            }
+            return;
         }
 
         // Only report diagnostics for non-virtual, non-abstract, non-override members
