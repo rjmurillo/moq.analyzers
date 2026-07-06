@@ -99,10 +99,11 @@ internal static partial class ISymbolExtensions
     /// </summary>
     /// <param name="symbol">The symbol to check.</param>
     /// <param name="knownSymbols">The known symbols for type checking.</param>
-    /// <returns>True if the symbol is a ReturnsAsync method from Moq.ReturnsExtensions; otherwise false.</returns>
+    /// <returns>True if the symbol is a ReturnsAsync method from a known Moq extension class; otherwise false.</returns>
     internal static bool IsMoqReturnsAsyncMethod(this ISymbol symbol, MoqKnownSymbols knownSymbols)
     {
-        return symbol.IsInstanceOf(knownSymbols.ReturnsExtensionsReturnsAsync);
+        return symbol.IsInstanceOf(knownSymbols.ReturnsExtensionsReturnsAsync) ||
+               symbol.IsInstanceOf(knownSymbols.GeneratedReturnsExtensionsReturnsAsync);
     }
 
     /// <summary>

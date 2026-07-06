@@ -55,6 +55,13 @@ public partial class MoqKnownSymbolsTests
     }
 
     [Fact]
+    public void GeneratedReturnsExtensions_WithoutMoqReference_ReturnsNull()
+    {
+        MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
+        Assert.Null(symbols.GeneratedReturnsExtensions);
+    }
+
+    [Fact]
     public void IReturnsReturns_WithoutMoqReference_ReturnsEmpty()
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
@@ -87,6 +94,13 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
         Assert.True(symbols.ReturnsExtensionsReturnsAsync.IsEmpty);
+    }
+
+    [Fact]
+    public void GeneratedReturnsExtensionsReturnsAsync_WithoutMoqReference_ReturnsEmpty()
+    {
+        MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
+        Assert.True(symbols.GeneratedReturnsExtensionsReturnsAsync.IsEmpty);
     }
 
     [Fact]
@@ -153,10 +167,25 @@ public partial class MoqKnownSymbolsTests
     }
 
     [Fact]
+    public async Task GeneratedReturnsExtensions_WithMoqReference_ReturnsNamedTypeSymbol()
+    {
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
+        Assert.NotNull(symbols.GeneratedReturnsExtensions);
+        Assert.Equal("GeneratedReturnsExtensions", symbols.GeneratedReturnsExtensions!.Name);
+    }
+
+    [Fact]
     public async Task ReturnsExtensionsReturnsAsync_WithMoqReference_ReturnsNonEmpty()
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.ReturnsExtensionsReturnsAsync.IsEmpty);
+    }
+
+    [Fact]
+    public async Task GeneratedReturnsExtensionsReturnsAsync_WithMoqReference_ReturnsExpectedDelegateOverloads()
+    {
+        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
+        Assert.Equal(30, symbols.GeneratedReturnsExtensionsReturnsAsync.Length);
     }
 
     [Fact]
