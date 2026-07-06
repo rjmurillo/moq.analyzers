@@ -249,6 +249,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <param name="constructors">The constructors.</param>
     /// <param name="arguments">The arguments.</param>
     /// <param name="context">The context.</param>
+    /// <param name="knownSymbols">The known Moq and BCL symbols for the current compilation.</param>
     /// <returns>
     /// <see langword="true" /> if a suitable constructor was found; otherwise <see langword="false" />.
     /// If the construction method is a parenthesized lambda expression, <see langword="null" /> is returned.
@@ -257,11 +258,12 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     private static bool? AnyConstructorsFound(
         IMethodSymbol[] constructors,
         FilteredArgumentList arguments,
-        SyntaxNodeAnalysisContext context)
+        SyntaxNodeAnalysisContext context,
+        MoqKnownSymbols knownSymbols)
     {
         for (int constructorIndex = 0; constructorIndex < constructors.Length; constructorIndex++)
         {
-            if (IsConstructorMatch(constructors[constructorIndex], arguments, context))
+            if (IsConstructorMatch(constructors[constructorIndex], arguments, context, knownSymbols))
             {
                 return true;
             }
@@ -284,12 +286,14 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <param name="constructor">The constructor to check.</param>
     /// <param name="arguments">The filtered arguments provided at the call site.</param>
     /// <param name="context">The syntax node analysis context.</param>
+    /// <param name="knownSymbols">The known Moq and BCL symbols for the current compilation.</param>
     /// <returns><see langword="true"/> if the constructor matches the arguments; otherwise, <see langword="false"/>.</returns>
     /// <remarks>Handles <see langword="params"/> and optional parameters.</remarks>
     private static bool IsConstructorMatch(
         IMethodSymbol constructor,
         FilteredArgumentList arguments,
-        SyntaxNodeAnalysisContext context)
+        SyntaxNodeAnalysisContext context,
+        MoqKnownSymbols knownSymbols)
     {
         bool hasParams = constructor.Parameters.Length > 0 && constructor.Parameters[^1].IsParams;
         int fixedParametersCount = hasParams ? constructor.Parameters.Length - 1 : constructor.Parameters.Length;
@@ -313,7 +317,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        if (hasParams && !AllParamsArgumentsMatch(constructor, arguments, fixedParametersCount, context))
+        if (hasParams && !AllParamsArgumentsMatch(constructor, arguments, fixedParametersCount, context, knownSymbols))
         {
             return false;
         }
@@ -377,10 +381,11 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         IMethodSymbol constructor,
         FilteredArgumentList arguments,
         int fixedParametersCount,
-        SyntaxNodeAnalysisContext context)
+        SyntaxNodeAnalysisContext context,
+        MoqKnownSymbols knownSymbols)
     {
         IParameterSymbol paramsParameter = constructor.Parameters[^1];
-        ITypeSymbol? paramsElementType = GetParamsElementType(paramsParameter.Type);
+        ITypeSymbol? paramsElementType = GetParamsElementType(paramsParameter.Type, knownSymbols);
 
         if (paramsElementType is null)
         {
@@ -407,7 +412,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// (<c>params T[]</c>) or a C# 13+ params collection (e.g. <c>params List&lt;T&gt;</c>,
     /// <c>params ReadOnlySpan&lt;T&gt;</c>) which is not an <see cref="IArrayTypeSymbol"/>.
     /// </summary>
-    private static ITypeSymbol? GetParamsElementType(ITypeSymbol paramsType)
+    private static ITypeSymbol? GetParamsElementType(ITypeSymbol paramsType, MoqKnownSymbols knownSymbols)
     {
         if (paramsType is IArrayTypeSymbol arrayType)
         {
@@ -436,8 +441,9 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         // Span<T> and ReadOnlySpan<T> are valid params collections but do not implement IEnumerable<T>.
-        if (namedType is { Name: "Span" or "ReadOnlySpan", TypeArguments.Length: 1 }
-            && namedType.ContainingNamespace is { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true })
+        if (namedType.TypeArguments.Length == 1
+            && (SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition, knownSymbols.Span1)
+                || SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition, knownSymbols.ReadOnlySpan1)))
         {
             return namedType.TypeArguments[0];
         }
@@ -498,7 +504,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
             case TypeKind.Class:
                 // Now we're interested in the ctors for the mocked class
-                VerifyClassMockAttempt(context, mockedClass, argumentList, arguments);
+                VerifyClassMockAttempt(context, knownSymbols, mockedClass, argumentList, arguments);
 
                 break;
         }
@@ -506,6 +512,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
     private static void VerifyClassMockAttempt(
         SyntaxNodeAnalysisContext context,
+        MoqKnownSymbols knownSymbols,
         ITypeSymbol mockedClass,
         ArgumentListSyntax? argumentList,
         FilteredArgumentList arguments)
@@ -529,7 +536,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
         // We have constructors, now we need to check if the arguments match any of them
         // If the value is null it means we want to ignore and not create a diagnostic
-        bool? matchingCtorFound = AnyConstructorsFound(constructors, arguments, context);
+        bool? matchingCtorFound = AnyConstructorsFound(constructors, arguments, context, knownSymbols);
         if (matchingCtorFound.HasValue && !matchingCtorFound.Value)
         {
             Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedClass.ToDisplayString(), argumentsString);

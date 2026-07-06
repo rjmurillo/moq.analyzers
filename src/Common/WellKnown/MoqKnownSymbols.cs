@@ -605,6 +605,16 @@ internal class MoqKnownSymbols : KnownSymbols
     internal INamedTypeSymbol? ILogger1 => TypeProvider.GetOrCreateTypeByMetadataName("Microsoft.Extensions.Logging.ILogger`1");
 
     /// <summary>
+    /// Gets the struct <c>System.Span{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? Span1 => TypeProvider.GetOrCreateTypeByMetadataName("System.Span`1");
+
+    /// <summary>
+    /// Gets the struct <c>System.ReadOnlySpan{T}</c>.
+    /// </summary>
+    internal INamedTypeSymbol? ReadOnlySpan1 => TypeProvider.GetOrCreateTypeByMetadataName("System.ReadOnlySpan`1");
+
+    /// <summary>
     /// Creates a <see cref="Lazy{T}"/> that resolves all methods with <paramref name="memberName"/> declared directly on <paramref name="type"/>.
     /// </summary>
     /// <remarks>
