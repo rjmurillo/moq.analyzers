@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Diagnostics.Symbols;
 using Microsoft.Diagnostics.Tracing.Etlx;
 using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
@@ -10,6 +12,7 @@ namespace PerfDiff.ETL;
 
 internal static class EtlDiffer
 {
+    [ExcludeFromCodeCoverage(Justification = "TraceEvent requires real ETL files; pure regression verdict logic is covered separately.")]
     public static bool TryCompareETL(string sourceEtlPath, string baselineEtlPath, out bool regression)
     {
         regression = false;
@@ -26,6 +29,7 @@ internal static class EtlDiffer
             ImmutableArray<OverWeightResult> report = GenerateOverweightReport(sourceCallTree, baselineCallTree);
 
             Console.WriteLine(string.Join(Environment.NewLine, report.Take(10)));
+            regression = HasRegression(report);
             return true;
         }
         catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException)
@@ -33,6 +37,25 @@ internal static class EtlDiffer
             Console.Error.WriteLine($"ETL comparison failed: {ex.Message}");
             return false;
         }
+    }
+
+    internal static bool HasRegression(ImmutableArray<OverWeightResult> report)
+    {
+        if (report.IsDefaultOrEmpty)
+        {
+            return false;
+        }
+
+        foreach (OverWeightResult result in report)
+        {
+            Debug.Assert(result.Interest >= 0, "Interest is built from non-negative threshold hits.");
+            if (result.Delta > 0 && result.Interest > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static CallTree GetCallTree(TraceLog traceLog, string eltPath)
@@ -119,70 +142,51 @@ internal static class EtlDiffer
 
             return total;
         }
+    }
 
-        static ImmutableArray<OverWeightResult> ComputeOverweights(float sourceTotal, Dictionary<string, float> sourceData, float baselineTotal, Dictionary<string, float> baselineData)
+    internal static ImmutableArray<OverWeightResult> ComputeOverweights(float sourceTotal, Dictionary<string, float> sourceData, float baselineTotal, Dictionary<string, float> baselineData)
+    {
+        float totalDelta = sourceTotal - baselineTotal;
+        float growth = sourceTotal / baselineTotal;
+        ImmutableArray<OverWeightResult>.Builder results = ImmutableArray.CreateBuilder<OverWeightResult>();
+        foreach (string key in baselineData.Keys)
         {
-            float totalDelta = sourceTotal - baselineTotal;
-            float growth = sourceTotal / baselineTotal;
-            ImmutableArray<OverWeightResult>.Builder results = ImmutableArray.CreateBuilder<OverWeightResult>();
-            foreach (string key in baselineData.Keys)
+            // skip symbols that are not in both traces
+            if (!sourceData.ContainsKey(key))
             {
-                // skip symbols that are not in both traces
-                if (!sourceData.ContainsKey(key))
-                {
-                    continue;
-                }
-
-                float baselineValue = baselineData[key];
-                float sourceValue = sourceData[key];
-                float expectedDelta = baselineValue * (growth - 1);
-                float delta = sourceValue - baselineValue;
-                float overweight = delta / expectedDelta * 100;
-                float percent = delta / totalDelta;
-                // Calculate interest level
-                int interest = Math.Abs(overweight) > 110 ? 1 : 0;
-                interest += Math.Abs(percent) > 5 ? 1 : 0;
-                interest += Math.Abs(percent) > 20 ? 1 : 0;
-                interest += Math.Abs(percent) > 100 ? 1 : 0;
-                interest += sourceValue / sourceTotal < 0.95 ? 1 : 0;  // Ignore top of the stack frames
-                interest += sourceValue / sourceTotal < 0.75 ? 1 : 0;  // Bonus point for being further down the stack.
-
-                results.Add(new OverWeightResult
-                (
-                    Name: key,
-                    Before: baselineValue,
-                    After: sourceValue,
-                    Delta: delta,
-                    Overweight: overweight,
-                    Percent: percent,
-                    Interest: interest
-                ));
+                continue;
             }
 
-            results.Sort(static (left, right) =>
-            {
-                if (left.Interest < right.Interest)
-                    return 1;
+            float baselineValue = baselineData[key];
+            float sourceValue = sourceData[key];
+            float expectedDelta = baselineValue * (growth - 1);
+            float delta = sourceValue - baselineValue;
+            float overweight = delta / expectedDelta * 100;
+            float percent = delta / totalDelta;
+            // Calculate interest level
+            int interest = Math.Abs(overweight) > 110 ? 1 : 0;
+            interest += Math.Abs(percent) > 5 ? 1 : 0;
+            interest += Math.Abs(percent) > 20 ? 1 : 0;
+            interest += Math.Abs(percent) > 100 ? 1 : 0;
+            interest += sourceValue / sourceTotal < 0.95 ? 1 : 0;  // Ignore top of the stack frames
+            interest += sourceValue / sourceTotal < 0.75 ? 1 : 0;  // Bonus point for being further down the stack.
 
-                if (left.Interest > right.Interest)
-                    return -1;
-
-                if (left.Overweight < right.Overweight)
-                    return 1;
-
-                if (left.Overweight > right.Overweight)
-                    return -1;
-
-                if (left.Delta < right.Delta)
-                    return -1;
-
-                if (left.Delta > right.Delta)
-                    return 1;
-
-                return 0;
-            });
-
-            return results.ToImmutable();
+            results.Add(new OverWeightResult
+            (
+                Name: key,
+                Before: baselineValue,
+                After: sourceValue,
+                Delta: delta,
+                Overweight: overweight,
+                Percent: percent,
+                Interest: interest
+            ));
         }
+
+        return results
+            .OrderByDescending(static result => result.Interest)
+            .ThenByDescending(static result => result.Overweight)
+            .ThenBy(static result => result.Delta)
+            .ToImmutableArray();
     }
 }

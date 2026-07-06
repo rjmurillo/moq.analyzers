@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+
 namespace PerfDiff.BDN.DataContracts;
 
 /// <summary>
@@ -60,8 +63,36 @@ public class Benchmark
     /// </summary>
     /// <returns>An array of measured values for the benchmark workload.</returns>
     internal double[] GetOriginalValues()
-        => (Measurements ?? [])
-            .Where(measurement => string.Equals(measurement.IterationStage, "Result", StringComparison.Ordinal))
-            .Select(measurement => measurement.Nanoseconds / measurement.Operations)
-            .ToArray();
+    {
+        List<double> values = [];
+
+        foreach (Measurement measurement in Measurements ?? [])
+        {
+            if (!string.Equals(measurement.IterationStage, "Result", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (!HasPositiveOperations(measurement))
+            {
+                continue;
+            }
+
+            values.Add(measurement.Nanoseconds / measurement.Operations);
+        }
+
+        return values.ToArray();
+    }
+
+    [ExcludeFromCodeCoverage(Justification = "Input validation rejects non-positive operations before metrics are computed.")]
+    private static bool HasPositiveOperations(Measurement measurement)
+    {
+        if (measurement.Operations > 0)
+        {
+            return true;
+        }
+
+        Debug.Assert(measurement.Operations > 0, "Benchmark input validation rejects non-positive operations.");
+        return false;
+    }
 }

@@ -27,7 +27,15 @@ internal static class BenchmarkFileReader
     {
         try
         {
-            return JsonConvert.DeserializeObject<BdnResult>(await File.ReadAllTextAsync(resultFilePath, cancellationToken).ConfigureAwait(false));
+            BdnResult? result = JsonConvert.DeserializeObject<BdnResult>(await File.ReadAllTextAsync(resultFilePath, cancellationToken).ConfigureAwait(false));
+            if (result is null)
+            {
+#pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
+                logger.LogError("Benchmark file {ResultFilePath} deserialized to null.", resultFilePath);
+#pragma warning restore CA1848 // For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
+            }
+
+            return result;
         }
         catch (Exception ex) when (ex is JsonReaderException or JsonSerializationException or IOException or UnauthorizedAccessException or SecurityException)
         {

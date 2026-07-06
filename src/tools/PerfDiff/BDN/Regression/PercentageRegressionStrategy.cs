@@ -21,10 +21,6 @@ public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
         List<RegressionResult> better = notSame.Where(result => result.Conclusion == ComparisonResult.Greater).ToList();
         List<RegressionResult> worse = notSame.Where(result => result.Conclusion == ComparisonResult.Lesser).ToList();
 
-        // Exclude Infinity ratios
-        better = better.Where(x => !double.IsPositiveInfinity(BenchmarkDotNetDiffer.GetMedianRatio(x))).ToList();
-        worse = worse.Where(x => !double.IsPositiveInfinity(BenchmarkDotNetDiffer.GetMedianRatio(x))).ToList();
-
         int betterCount = better.Count;
         int worseCount = worse.Count;
 
@@ -36,8 +32,10 @@ public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
                 logger.LogInformation("test: '{BetterId}' took '{Median:F3}' times less", betterResult.Id, medianRatio);
             }
 
-            double betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(better[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / betterCount);
-            logger.LogInformation("========== {MetricName}: {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", metricName, betterCount, betterGeoMean);
+            if (RegressionStrategyHelper.TryGetGeometricMean(better, BenchmarkDotNetDiffer.GetMedianRatio, out double betterGeoMean))
+            {
+                logger.LogInformation("========== {MetricName}: {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", metricName, betterCount, betterGeoMean);
+            }
         }
 
         if (worseCount > 0)
@@ -48,8 +46,10 @@ public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
                 logger.LogInformation("test: '{WorseId}' took '{Median:F3}' times longer", worseResult.Id, medianRatio);
             }
 
-            double worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(worse[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / worseCount);
-            logger.LogInformation("========== {MetricName}: {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", metricName, worseCount, worseGeoMean);
+            if (RegressionStrategyHelper.TryGetGeometricMean(worse, BenchmarkDotNetDiffer.GetMedianRatio, out double worseGeoMean))
+            {
+                logger.LogInformation("========== {MetricName}: {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", metricName, worseCount, worseGeoMean);
+            }
         }
 
         details = new RegressionDetectionResult(metricName, testThreshold);

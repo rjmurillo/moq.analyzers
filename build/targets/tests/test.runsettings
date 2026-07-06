@@ -25,6 +25,7 @@
                 -->
                 <ModulePath>.*Moq\.Analyzers\.dll$</ModulePath>
                 <ModulePath>.*Moq\.CodeFixes\.dll$</ModulePath>
+                <ModulePath>.*PerfDiff\.dll$</ModulePath>
               </Include>
               <Exclude>
                 <ModulePath>.*\.TestAdapter\.dll$</ModulePath> <!-- Excludes test adapters -->
