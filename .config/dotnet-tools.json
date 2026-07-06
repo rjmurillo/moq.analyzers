@@ -43,6 +43,13 @@
         "husky"
       ],
       "rollForward": false
+    },
+    "dotnet-stryker": {
+      "version": "4.16.0",
+      "commands": [
+        "dotnet-stryker"
+      ],
+      "rollForward": false
     }
   }
 }

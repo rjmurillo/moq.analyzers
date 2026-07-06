@@ -321,6 +321,16 @@ ci(workflow): add performance testing to nightly builds
   Code coverage is generated automatically if you use the `test.runsettings` from above, which produces Cobertura format. If you wish to have a different format, you can specify on the command line. Example:
   `dotnet test --collect:"XPlat Code Coverage" --settings ./build/targets/tests/test.runsettings`  
   PRs must not reduce coverage for critical paths without justification.
+- **Mutation Testing:**
+  Stryker.NET is available as an optional local tool and as a manual or scheduled workflow. It is not a required PR gate because mutation testing is slow. To run it locally:
+
+  ```bash
+  dotnet tool restore
+  cd build/stryker
+  dotnet stryker
+  ```
+
+  The default config mutates `NoMockOfLoggerAnalyzer.cs` only. Open `artifacts/stryker/**/reports/mutation-report.html` after the run. Killed mutants show tests caught semantic changes. Survived mutants show behavior gaps to review.
 - **Codacy Analysis:**
   Run Codacy CLI analysis on all changed files. Fix all reported issues before submitting the PR.
 - **Evidence Required:**
