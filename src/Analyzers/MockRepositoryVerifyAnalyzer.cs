@@ -74,16 +74,19 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Get the containing method or property
-        IOperation? containingMember = GetContainingMember(declarator);
-        if (containingMember is null)
+        // Get the containing member body root.
+        IOperation containingMember = GetContainingMemberRoot(declarator);
+
+        // Locals declared inside a lambda or local function within a field or property initializer
+        // root at a (Field/Property)InitializerOperation, not a member body. Those initializer scopes
+        // are not analyzed for Create/Verify pairing, so bail rather than raise a false positive.
+        if (containingMember.Kind is not (OperationKind.MethodBody or OperationKind.ConstructorBody))
         {
             return;
         }
 
         // Check if there are Create() calls and Verify() calls for this repository in the same scope
-        bool hasCreateCalls = HasCreateCallsForRepository(declarator.Symbol, containingMember, knownSymbols);
-        bool hasVerifyCalls = HasVerifyCallsForRepository(declarator.Symbol, containingMember, knownSymbols);
+        (bool hasCreateCalls, bool hasVerifyCalls) = GetCreateAndVerifyCallsForRepository(declarator.Symbol, containingMember, knownSymbols);
 
         // Report diagnostic if Create() calls exist but no Verify() calls
         if (hasCreateCalls && !hasVerifyCalls)
@@ -95,58 +98,71 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Gets the containing method or property for an operation.
+    /// Gets the containing member body root for an operation.
     /// </summary>
-    private static IOperation? GetContainingMember(IOperation operation)
+    private static IOperation GetContainingMemberRoot(IOperation operation)
     {
-        IOperation? current = operation;
-        while (current != null)
+        IOperation current = operation;
+        while (current.Parent is not null)
         {
-            if (current.Kind == OperationKind.MethodBody || current.Kind == OperationKind.PropertyReference)
-            {
-                return current;
-            }
-
             current = current.Parent;
         }
 
-        return null;
+        return current;
     }
 
     /// <summary>
-    /// Checks if there are Create() calls for the specified repository in the given member.
+    /// Gets whether the specified repository has Create() and Verify() calls in the given member.
     /// </summary>
-    private static bool HasCreateCallsForRepository(ILocalSymbol repositorySymbol, IOperation memberOperation, MoqKnownSymbols knownSymbols)
+    private static (bool HasCreateCalls, bool HasVerifyCalls) GetCreateAndVerifyCallsForRepository(
+        ILocalSymbol repositorySymbol,
+        IOperation memberOperation,
+        MoqKnownSymbols knownSymbols)
     {
+        bool hasCreateCalls = false;
+        bool hasVerifyCalls = false;
+
         foreach (IOperation operation in memberOperation.Descendants())
         {
-            if (operation is IInvocationOperation invocation &&
-                IsValidMockRepositoryCreateCall(invocation, knownSymbols) &&
-                GetRepositorySymbolFromCreateCall(invocation)?.Equals(repositorySymbol, SymbolEqualityComparer.Default) == true)
+            if (operation is not IInvocationOperation invocation)
             {
-                return true;
+                continue;
+            }
+
+            hasCreateCalls = hasCreateCalls || IsCreateCallForRepository(invocation, repositorySymbol, knownSymbols);
+            hasVerifyCalls = hasVerifyCalls || IsVerifyCallForRepository(invocation, repositorySymbol, knownSymbols);
+
+            if (hasCreateCalls && hasVerifyCalls)
+            {
+                break;
             }
         }
 
-        return false;
+        return (hasCreateCalls, hasVerifyCalls);
     }
 
     /// <summary>
-    /// Checks if there are Verify() calls for the specified repository in the given member.
+    /// Determines if the invocation is a MockRepository.Create() call for the specified repository.
     /// </summary>
-    private static bool HasVerifyCallsForRepository(ILocalSymbol repositorySymbol, IOperation memberOperation, MoqKnownSymbols knownSymbols)
+    private static bool IsCreateCallForRepository(
+        IInvocationOperation invocation,
+        ILocalSymbol repositorySymbol,
+        MoqKnownSymbols knownSymbols)
     {
-        foreach (IOperation operation in memberOperation.Descendants())
-        {
-            if (operation is IInvocationOperation invocation &&
-                IsValidMockRepositoryVerifyCall(invocation, knownSymbols) &&
-                GetRepositorySymbolFromVerifyCall(invocation)?.Equals(repositorySymbol, SymbolEqualityComparer.Default) == true)
-            {
-                return true;
-            }
-        }
+        return IsValidMockRepositoryCreateCall(invocation, knownSymbols) &&
+               GetRepositorySymbolFromCreateCall(invocation)?.Equals(repositorySymbol, SymbolEqualityComparer.Default) == true;
+    }
 
-        return false;
+    /// <summary>
+    /// Determines if the invocation is a MockRepository.Verify() call for the specified repository.
+    /// </summary>
+    private static bool IsVerifyCallForRepository(
+        IInvocationOperation invocation,
+        ILocalSymbol repositorySymbol,
+        MoqKnownSymbols knownSymbols)
+    {
+        return IsValidMockRepositoryVerifyCall(invocation, knownSymbols) &&
+               GetRepositorySymbolFromVerifyCall(invocation)?.Equals(repositorySymbol, SymbolEqualityComparer.Default) == true;
     }
 
     /// <summary>
