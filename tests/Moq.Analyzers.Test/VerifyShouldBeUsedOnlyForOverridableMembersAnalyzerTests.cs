@@ -13,15 +13,27 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
             ["""{|Moq1210:new Mock<BaseSampleClass>().Verify(x => x.Calculate())|};"""],
             ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Property)|};"""],
             ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))|};"""],
+            ["""{|Moq1210:new Mock<SampleClass>().Verify(times: Times.Once(), expression: x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))|};"""],
+            ["""{|Moq1210:new Mock<SampleClass>().Verify(failMessage: "Expected call", times: Times.Once(), expression: x => x.Calculate(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))|};"""],
             ["""new Mock<BaseSampleClass>().Verify(x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
+            ["""new Mock<BaseSampleClass>().Verify(times: Times.Once(), expression: x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
+            ["""new Mock<BaseSampleClass>().Verify(failMessage: "Expected call", times: Times.Once(), expression: x => x.Calculate(It.IsAny<int>(), It.IsAny<int>()));"""],
 
             // VerifyGet tests
             ["""{|Moq1210:new Mock<SampleClass>().VerifyGet(x => x.Property)|};"""],
+            ["""{|Moq1210:new Mock<SampleClass>().VerifyGet(times: Times.Once(), expression: x => x.Property)|};"""],
+            ["""{|Moq1210:new Mock<SampleClass>().VerifyGet(failMessage: "Expected get", times: Times.Once(), expression: x => x.Property)|};"""],
             ["""new Mock<ISampleInterface>().VerifyGet(x => x.TestProperty);"""],
+            ["""new Mock<ISampleInterface>().VerifyGet(times: Times.Once(), expression: x => x.TestProperty);"""],
 
             // VerifyNoOtherCalls should not trigger any diagnostics
             ["""new Mock<SampleClass>().VerifyNoOtherCalls();"""],
             ["""new Mock<ISampleInterface>().VerifyNoOtherCalls();"""],
+
+            // Parameterless Verify() has no expression argument (ordinal 0 is unbound); the analyzer
+            // must return without a diagnostic and without dereferencing a missing argument.
+            ["""new Mock<SampleClass>().Verify();"""],
+            ["""new Mock<ISampleInterface>().Verify();"""],
 
             // Valid verifications should not trigger diagnostics
             ["""new Mock<SampleClass>().Verify(x => x.DoSth());"""],
@@ -36,7 +48,10 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
             // VerifySet tests - only available in new Moq versions
             // VerifySet uses Action<T> syntax, not Expression<Func<T, ...>>
             ["""{|Moq1210:new Mock<SampleClass>().VerifySet(x => { x.Property = It.IsAny<int>(); })|};"""],
+            ["""{|Moq1210:new Mock<SampleClass>().VerifySet(times: Times.Once(), setterExpression: x => { x.Property = It.IsAny<int>(); })|};"""],
+            ["""{|Moq1210:new Mock<SampleClass>().VerifySet(failMessage: "Expected set", times: Times.Once(), setterExpression: x => { x.Property = It.IsAny<int>(); })|};"""],
             ["""new Mock<ISampleInterface>().VerifySet(x => { x.TestProperty = It.IsAny<string>(); });"""],
+            ["""new Mock<ISampleInterface>().VerifySet(times: Times.Once(), setterExpression: x => { x.TestProperty = It.IsAny<string>(); });"""],
 
             // Default interface members follow Moq 4.18.4 runtime behavior.
             ["""new Mock<IDefaultInterfaceMembers>().Verify(x => x.AbstractMethod());"""],

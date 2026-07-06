@@ -248,6 +248,89 @@ public class Test
     }
 
     [Fact]
+    public async Task TryGetMockedMemberSymbol_NamedArgumentReordering_ReturnsMethodSymbol()
+    {
+        const string code = @"
+using Moq;
+
+public interface IFoo
+{
+    int DoSomething();
+}
+
+public class Test
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Verify(times: Times.Once(), expression: x => x.DoSomething());
+    }
+}";
+        IInvocationOperation invocation = await GetMoqInvocationAsync(code, "Verify");
+
+        ISymbol? result = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocation);
+
+        Assert.NotNull(result);
+        Assert.IsAssignableFrom<IMethodSymbol>(result);
+        Assert.Equal("DoSomething", result!.Name);
+    }
+
+    [Fact]
+    public async Task GetArgumentForParameterOrdinal_NamedArgumentReordering_ReturnsExpressionArgument()
+    {
+        const string code = @"
+using Moq;
+
+public interface IFoo
+{
+    int DoSomething();
+}
+
+public class Test
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Verify(times: Times.Once(), expression: x => x.DoSomething());
+    }
+}";
+        IInvocationOperation invocation = await GetMoqInvocationAsync(code, "Verify");
+
+        IArgumentOperation? result = MoqVerificationHelpers.GetArgumentForParameterOrdinal(invocation, 0);
+
+        Assert.NotNull(result);
+        Assert.Equal(0, result!.Parameter?.Ordinal);
+        Assert.Equal("expression", result.Parameter?.Name);
+        Assert.Contains("DoSomething", result.Value.Syntax.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetArgumentForParameterOrdinal_MissingOrdinal_ReturnsNull()
+    {
+        const string code = @"
+using Moq;
+
+public interface IFoo
+{
+    int DoSomething();
+}
+
+public class Test
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Verify(expression: x => x.DoSomething());
+    }
+}";
+        IInvocationOperation invocation = await GetMoqInvocationAsync(code, "Verify");
+
+        IArgumentOperation? result = MoqVerificationHelpers.GetArgumentForParameterOrdinal(invocation, 99);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task TryGetMockedMemberSyntax_ZeroArguments_ReturnsNull()
     {
         const string code = @"
@@ -293,6 +376,33 @@ public class Test
     }
 }";
         IInvocationOperation invocation = await GetMoqInvocationAsync(code, "Setup");
+
+        SyntaxNode? result = MoqVerificationHelpers.TryGetMockedMemberSyntax(invocation);
+
+        Assert.NotNull(result);
+        Assert.Contains("DoSomething", result!.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TryGetMockedMemberSyntax_NamedArgumentReordering_ReturnsSyntaxNode()
+    {
+        const string code = @"
+using Moq;
+
+public interface IFoo
+{
+    int DoSomething();
+}
+
+public class Test
+{
+    public void M()
+    {
+        var mock = new Mock<IFoo>();
+        mock.Verify(times: Times.Once(), expression: x => x.DoSomething());
+    }
+}";
+        IInvocationOperation invocation = await GetMoqInvocationAsync(code, "Verify");
 
         SyntaxNode? result = MoqVerificationHelpers.TryGetMockedMemberSyntax(invocation);
 
