@@ -20,16 +20,12 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
 
         List<RegressionResult> better = notSame.Where(result => result.Conclusion == ComparisonResult.Greater).ToList();
         List<RegressionResult> worse = notSame.Where(result => result.Conclusion == ComparisonResult.Lesser).ToList();
-        int betterCount = better.Count;
         int betterCountExceedingThreshold = 0;
-        int worseCount = worse.Count;
         int worseCountExceedingThreshold = 0;
+        List<RegressionResult> betterExceedingThreshold = [];
+        List<RegressionResult> worseExceedingThreshold = [];
 
-        // Exclude Infinity ratios
-        better = better.Where(x => !double.IsPositiveInfinity(BenchmarkDotNetDiffer.GetMedianRatio(x))).ToList();
-        worse = worse.Where(x => !double.IsPositiveInfinity(BenchmarkDotNetDiffer.GetMedianRatio(x))).ToList();
-
-        if (betterCount > 0)
+        if (better.Count > 0)
         {
             foreach (RegressionResult betterResult in better)
             {
@@ -42,6 +38,7 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
                 }
 
                 betterCountExceedingThreshold++;
+                betterExceedingThreshold.Add(betterResult);
                 double deltaMs = p95Delta / TimeUnitConstants.NanoSecondsToMilliseconds;
 
                 logger.LogInformation(
@@ -51,14 +48,14 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
                     deltaMs);
             }
 
-            if (betterCountExceedingThreshold > 0)
+            if (betterCountExceedingThreshold > 0
+                && RegressionStrategyHelper.TryGetGeometricMean(betterExceedingThreshold, BenchmarkDotNetDiffer.GetMedianRatio, out double betterGeoMean))
             {
-                double betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(better[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / betterCount);
                 logger.LogInformation("========== {MetricName}: {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", metricName, betterCountExceedingThreshold, betterGeoMean);
             }
         }
 
-        if (worseCount > 0)
+        if (worse.Count > 0)
         {
             foreach (RegressionResult worseResult in worse)
             {
@@ -71,6 +68,7 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
                 }
 
                 worseCountExceedingThreshold++;
+                worseExceedingThreshold.Add(worseResult);
                 double deltaMs = p95Delta / TimeUnitConstants.NanoSecondsToMilliseconds;
 
                 logger.LogInformation(
@@ -80,9 +78,9 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
                     deltaMs);
             }
 
-            if (worseCountExceedingThreshold > 0)
+            if (worseCountExceedingThreshold > 0
+                && RegressionStrategyHelper.TryGetGeometricMean(worseExceedingThreshold, BenchmarkDotNetDiffer.GetMedianRatio, out double worseGeoMean))
             {
-                double worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(worse[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / worseCount);
                 logger.LogInformation("========== {MetricName}: {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", metricName, worseCountExceedingThreshold, worseGeoMean);
             }
         }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
 using Perfolizer.Mathematics.Common;
@@ -30,8 +31,10 @@ public static class RegressionStrategyHelper
                 logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; better than the threshold {Threshold}", betterResult.Id, config.MetricName, value, config.DisplayThreshold);
             }
 
-            double betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(better[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / betterCount);
-            logger.LogInformation("========== {MetricName} {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", config.MetricName, betterCount, betterGeoMean);
+            if (TryGetGeometricMean(better, BenchmarkDotNetDiffer.GetMedianRatio, out double betterGeoMean))
+            {
+                logger.LogInformation("========== {MetricName} {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", config.MetricName, betterCount, betterGeoMean);
+            }
         }
 
         if (worseCount > 0)
@@ -42,8 +45,10 @@ public static class RegressionStrategyHelper
                 logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; worse than the threshold {Threshold}", worseResult.Id, config.MetricName, value, config.DisplayThreshold);
             }
 
-            double worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(worse[0])), (x, y) => x + Math.Log10(BenchmarkDotNetDiffer.GetMedianRatio(y))) / worseCount);
-            logger.LogInformation("========== {MetricName} {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", config.MetricName, worseCount, worseGeoMean);
+            if (TryGetGeometricMean(worse, BenchmarkDotNetDiffer.GetMedianRatio, out double worseGeoMean))
+            {
+                logger.LogInformation("========== {MetricName} {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", config.MetricName, worseCount, worseGeoMean);
+            }
         }
 
         details = new RegressionDetectionResult(config.MetricName, config.DisplayThreshold);
@@ -59,29 +64,59 @@ public static class RegressionStrategyHelper
         foreach (BdnComparisonResult result in comparison
             .Where(result => metricSelector(result.BaseResult) != null && metricSelector(result.DiffResult) != null))
         {
+            double baselineMetric = metricSelector(result.BaseResult)!.Value;
             double metric = metricSelector(result.DiffResult)!.Value;
 
             ComparisonResult conclusion;
-            if (metric > thresholdValueNs)
+            if (metric > thresholdValueNs && baselineMetric <= thresholdValueNs)
             {
                 conclusion = ComparisonResult.Lesser;
             }
-            else if (metric < thresholdValueNs)
+            else if (metric <= thresholdValueNs && baselineMetric > thresholdValueNs)
             {
                 conclusion = ComparisonResult.Greater;
             }
-            else if (Math.Abs(metric - thresholdValueNs) < 0.1D)
+            else
             {
                 conclusion = ComparisonResult.Indistinguishable;
             }
-            else
-            {
-                conclusion = ComparisonResult.Unknown;
-            }
 
-            results.Add(new RegressionResult(result.Id, result.BaseResult, result.DiffResult, conclusion));
+            if (conclusion != ComparisonResult.Indistinguishable)
+            {
+                results.Add(new RegressionResult(result.Id, result.BaseResult, result.DiffResult, conclusion));
+            }
         }
 
         return results.ToArray();
+    }
+
+    internal static bool TryGetGeometricMean(IEnumerable<RegressionResult> results, Func<RegressionResult, double> ratioSelector, out double geometricMean)
+    {
+        int count = 0;
+        double logSum = 0;
+
+        foreach (RegressionResult result in results)
+        {
+            double ratio = ratioSelector(result);
+            Debug.Assert(ratio >= 0 || double.IsNaN(ratio), "Benchmark ratios are non-negative unless undefined.");
+            if (double.IsNaN(ratio))
+            {
+                // 0 ns baseline and 0 ns diff produces 0/0. It has no ratio to aggregate.
+                continue;
+            }
+
+            logSum += Math.Log10(ratio);
+            count++;
+        }
+
+        if (count == 0)
+        {
+            geometricMean = double.NaN;
+            return false;
+        }
+
+        Debug.Assert(count > 0, "At least one numeric ratio is required before dividing.");
+        geometricMean = Math.Pow(10, logSum / count);
+        return true;
     }
 }

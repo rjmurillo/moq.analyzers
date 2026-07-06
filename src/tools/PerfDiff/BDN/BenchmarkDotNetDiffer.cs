@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN.DataContracts;
@@ -42,21 +43,8 @@ public static class BenchmarkDotNetDiffer
     /// <returns>An array of <see cref="BdnComparisonResult"/> if successful; otherwise, <see langword="null"/>.</returns>
     internal static async Task<BdnComparisonResult[]?> TryGetBdnResultsAsync(string baselineFolder, string resultsFolder, ILogger logger, CancellationToken cancellationToken)
     {
-        if (!TryGetFilesToParse(baselineFolder, out string[]? baseFiles))
+        if (!TryGetResultFiles(baselineFolder, resultsFolder, logger, out string[]? baseFiles, out string[]? resultsFiles))
         {
-            logger.LogError("Provided path does NOT exist or does not contain perf results '{BaselineFolder}'", baselineFolder);
-            return null;
-        }
-
-        if (!TryGetFilesToParse(resultsFolder, out string[]? resultsFiles))
-        {
-            logger.LogError("Provided path does NOT exist or does not contain perf results '{ResultsFolder}'", resultsFolder);
-            return null;
-        }
-
-        if (baseFiles.Length == 0 || resultsFiles.Length == 0)
-        {
-            logger.LogError("Provided paths contained no '{FileExtension}' files.", FullBdnJsonFileExtension);
             return null;
         }
 
@@ -72,24 +60,155 @@ public static class BenchmarkDotNetDiffer
             return null;
         }
 
-        Dictionary<string, Benchmark> benchmarkIdToDiffResults = diffResults
-            .SelectMany(result => result?.Benchmarks ?? Enumerable.Empty<Benchmark>())
-            .ToDictionary(benchmarkResult => benchmarkResult.FullName ?? $"Unknown-{Guid.NewGuid():N}", benchmarkResult => benchmarkResult);
+        if (!TryBuildBenchmarkMap(baseResults, "baseline", logger, out Dictionary<string, Benchmark>? benchmarkIdToBaseResults)
+            || !TryBuildBenchmarkMap(diffResults, "results", logger, out Dictionary<string, Benchmark>? benchmarkIdToDiffResults))
+        {
+            return null;
+        }
 
-        Dictionary<string, Benchmark> benchmarkIdToBaseResults = baseResults
-            .SelectMany(result => result?.Benchmarks ?? Enumerable.Empty<Benchmark>())
-            .ToDictionary(benchmarkResult => benchmarkResult.FullName ?? $"Unknown-{Guid.NewGuid():N}", benchmarkResult => benchmarkResult);
+        if (!HaveMatchingBenchmarkNames(benchmarkIdToBaseResults, benchmarkIdToDiffResults, logger))
+        {
+            return null;
+        }
 
-        List<BdnComparisonResult> matched = [];
+        return CreateComparisonResults(benchmarkIdToBaseResults, benchmarkIdToDiffResults);
+    }
+
+    private static bool TryGetResultFiles(
+        string baselineFolder,
+        string resultsFolder,
+        ILogger logger,
+        [NotNullWhen(true)] out string[]? baseFiles,
+        [NotNullWhen(true)] out string[]? resultsFiles)
+    {
+        if (!TryGetFilesToParse(baselineFolder, out baseFiles))
+        {
+            logger.LogError("Provided path does NOT exist or does not contain perf results '{BaselineFolder}'", baselineFolder);
+            resultsFiles = null;
+            return false;
+        }
+
+        if (!TryGetFilesToParse(resultsFolder, out resultsFiles))
+        {
+            logger.LogError("Provided path does NOT exist or does not contain perf results '{ResultsFolder}'", resultsFolder);
+            return false;
+        }
+
+        if (baseFiles.Length > 0 && resultsFiles.Length > 0)
+        {
+            return true;
+        }
+
+        logger.LogError("Provided paths contained no '{FileExtension}' files.", FullBdnJsonFileExtension);
+        return false;
+    }
+
+    private static bool HaveMatchingBenchmarkNames(
+        Dictionary<string, Benchmark> benchmarkIdToBaseResults,
+        Dictionary<string, Benchmark> benchmarkIdToDiffResults,
+        ILogger logger)
+    {
+        string[] missingFromResults = benchmarkIdToBaseResults.Keys.Except(benchmarkIdToDiffResults.Keys, StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        string[] missingFromBaseline = benchmarkIdToDiffResults.Keys.Except(benchmarkIdToBaseResults.Keys, StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        if (missingFromResults.Length == 0 && missingFromBaseline.Length == 0)
+        {
+            return true;
+        }
+
+        logger.LogError(
+            "Benchmark result sets do not match. Missing from results: {MissingFromResults}. Missing from baseline: {MissingFromBaseline}.",
+            string.Join(", ", missingFromResults),
+            string.Join(", ", missingFromBaseline));
+        return false;
+    }
+
+    private static BdnComparisonResult[] CreateComparisonResults(Dictionary<string, Benchmark> benchmarkIdToBaseResults, Dictionary<string, Benchmark> benchmarkIdToDiffResults)
+    {
+        BdnComparisonResult[] matched = new BdnComparisonResult[benchmarkIdToBaseResults.Count];
+        int index = 0;
         foreach (KeyValuePair<string, Benchmark> baseResult in benchmarkIdToBaseResults)
         {
-            if (benchmarkIdToDiffResults.TryGetValue(baseResult.Key, out Benchmark? diffBenchmark))
+            bool found = benchmarkIdToDiffResults.TryGetValue(baseResult.Key, out Benchmark? diffBenchmark);
+            Debug.Assert(found, "Benchmark names are validated before comparison results are created.");
+            matched[index] = new BdnComparisonResult(baseResult.Key, baseResult.Value, diffBenchmark!);
+            index++;
+        }
+
+        Debug.Assert(index == matched.Length, "Every baseline benchmark has a matching result benchmark.");
+        return matched;
+    }
+
+    internal static bool TryBuildBenchmarkMap(BdnResult?[] results, string resultSetName, ILogger logger, [NotNullWhen(true)] out Dictionary<string, Benchmark>? benchmarks)
+    {
+        List<Benchmark> allBenchmarks = results
+            .SelectMany(result => result?.Benchmarks ?? Enumerable.Empty<Benchmark>())
+            .ToList();
+
+        if (allBenchmarks.Count == 0)
+        {
+            logger.LogError("The {ResultSetName} result set contained no benchmarks.", resultSetName);
+            benchmarks = null;
+            return false;
+        }
+
+        foreach (Benchmark benchmark in allBenchmarks)
+        {
+            if (!IsValidBenchmark(benchmark, resultSetName, logger))
             {
-                matched.Add(new BdnComparisonResult(baseResult.Key, baseResult.Value, diffBenchmark));
+                benchmarks = null;
+                return false;
             }
         }
 
-        return matched.ToArray();
+        string[] duplicateNames = allBenchmarks
+            .GroupBy(static benchmark => benchmark.FullName, StringComparer.Ordinal)
+            .Where(static group => group.Count() > 1)
+            .Select(static group => group.Key!)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        if (duplicateNames.Length > 0)
+        {
+            logger.LogError("The {ResultSetName} result set contains duplicate benchmarks: {DuplicateBenchmarks}.", resultSetName, string.Join(", ", duplicateNames));
+            benchmarks = null;
+            return false;
+        }
+
+        benchmarks = allBenchmarks.ToDictionary(static benchmark => benchmark.FullName!, static benchmark => benchmark, StringComparer.Ordinal);
+        return true;
+    }
+
+    private static bool IsValidBenchmark(Benchmark benchmark, string resultSetName, ILogger logger)
+    {
+        if (string.IsNullOrWhiteSpace(benchmark.FullName))
+        {
+            logger.LogError("The {ResultSetName} result set contains a benchmark without a FullName.", resultSetName);
+            return false;
+        }
+
+        Measurement[] measurements = (benchmark.Measurements ?? [])
+            .Where(static measurement => string.Equals(measurement.IterationStage, "Result", StringComparison.Ordinal))
+            .ToArray();
+
+        if (measurements.Length == 0)
+        {
+            logger.LogError("Benchmark '{BenchmarkName}' in the {ResultSetName} result set contains no result measurements.", benchmark.FullName, resultSetName);
+            return false;
+        }
+
+        if (measurements.Length == 1)
+        {
+            logger.LogError("Benchmark '{BenchmarkName}' in the {ResultSetName} result set contains only one result measurement.", benchmark.FullName, resultSetName);
+            return false;
+        }
+
+        if (measurements.Any(static measurement => measurement.Operations <= 0))
+        {
+            logger.LogError("Benchmark '{BenchmarkName}' in the {ResultSetName} result set contains a result measurement with non-positive operations.", benchmark.FullName, resultSetName);
+            return false;
+        }
+
+        return true;
     }
 
     private static bool TryGetFilesToParse(string path, [NotNullWhen(true)] out string[]? files)
@@ -126,6 +245,10 @@ public static class BenchmarkDotNetDiffer
         {
             double[] baseValues = result.BaseResult.GetOriginalValues();
             double[] diffValues = result.DiffResult.GetOriginalValues();
+            if (baseValues.Length < 2 || diffValues.Length < 2)
+            {
+                continue;
+            }
 
             ComparisonResult conclusion = equivalenceTest.Perform(
                 new Sample(baseValues),
