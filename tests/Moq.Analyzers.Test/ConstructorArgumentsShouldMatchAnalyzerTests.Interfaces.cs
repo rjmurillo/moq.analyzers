@@ -18,6 +18,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<IFoo>();"""],
             ["""new Mock<IFoo>{|Moq1001:(MockBehavior.Default, 42)|};"""],
             ["""new Mock<IFoo>{|Moq1001:(42)|};"""],
+            ["""Mock<IFoo> mock = new{|Moq1001:(42)|};"""],
 
             // LINQ
             ["""Mock.Of<IFoo>();"""],
