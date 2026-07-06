@@ -6,7 +6,7 @@ namespace Moq.Analyzers;
 /// Mock.Get() should not take literals.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class MockGetShouldNotTakeLiteralsAnalyzer : DiagnosticAnalyzer
+public class MockGetShouldNotTakeLiteralsAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Mock.Get() should not take literals";
     private static readonly LocalizableString Message = "Mock.Get() should not take literal '{0}'";
@@ -25,25 +25,8 @@ public class MockGetShouldNotTakeLiteralsAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        // Ensure Moq is referenced in the compilation
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         // Look for the Mock.Get() method
         ImmutableArray<IMethodSymbol> getMethods = knownSymbols.MockGet;
         if (getMethods.IsEmpty)

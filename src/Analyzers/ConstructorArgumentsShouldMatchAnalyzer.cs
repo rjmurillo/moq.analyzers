@@ -8,7 +8,7 @@ namespace Moq.Analyzers;
 /// This analyzer helps catch runtime failures related to constructor mismatches in Moq-based unit tests.
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
+public class ConstructorArgumentsShouldMatchAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly DiagnosticDescriptor ClassMustHaveMatchingConstructor = new(
         DiagnosticIds.NoMatchingConstructorRuleId,
@@ -33,13 +33,11 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ClassMustHaveMatchingConstructor, InterfaceMustNotHaveConstructorParameters);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-
-        context.RegisterCompilationStartAction(AnalyzeCompilation);
+        // These are for classes
+        context.RegisterSyntaxNodeAction(context => AnalyzeNewObject(context, knownSymbols), SyntaxKind.ObjectCreationExpression, SyntaxKind.ImplicitObjectCreationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeInstanceCall(context, knownSymbols), SyntaxKind.InvocationExpression);
     }
 
     /// <summary>
@@ -142,28 +140,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         {
             context.ReportDiagnostic(diagnostic);
         }
-    }
-
-    private static void AnalyzeCompilation(CompilationStartAnalysisContext context)
-    {
-        context.CancellationToken.ThrowIfCancellationRequested();
-
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        // We're interested in the few ways to create mocks:
-        //  - new Mock<T>()
-        //  - Mock.Of<T>()
-        //  - MockRepository.Create<T>()
-        //
-        // Ensure Moq is referenced in the compilation
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
-        // These are for classes
-        context.RegisterSyntaxNodeAction(context => AnalyzeNewObject(context, knownSymbols), SyntaxKind.ObjectCreationExpression, SyntaxKind.ImplicitObjectCreationExpression);
-        context.RegisterSyntaxNodeAction(context => AnalyzeInstanceCall(context, knownSymbols), SyntaxKind.InvocationExpression);
     }
 
     private static void AnalyzeInstanceCall(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)

@@ -7,7 +7,7 @@ namespace Moq.Analyzers;
 /// Sealed classes cannot be mocked.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
+public class NoSealedClassMocksAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Sealed class mocked";
     private static readonly LocalizableString Message = "Sealed class '{0}' cannot be mocked";
@@ -26,28 +26,8 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    /// <summary>
-    /// Registers the operation action for object creation and invocation if Moq is referenced and Mock{T} is available.
-    /// </summary>
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        // Ensure Moq is referenced in the compilation
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         // Check that Mock{T} type is available
         if (knownSymbols.Mock1 is null)
         {
@@ -59,6 +39,10 @@ public class NoSealedClassMocksAnalyzer : DiagnosticAnalyzer
             OperationKind.ObjectCreation,
             OperationKind.Invocation);
     }
+
+    /// <summary>
+    /// Registers the operation action for object creation and invocation if Moq is referenced and Mock{T} is available.
+    /// </summary>
 
     /// <summary>
     /// Analyzes object creation and invocation operations to report diagnostics for sealed class mocks.

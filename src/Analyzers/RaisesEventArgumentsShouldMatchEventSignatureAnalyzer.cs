@@ -14,6 +14,7 @@ namespace Moq.Analyzers;
 /// 1. This analyzes Raises() method calls that are chained after Setup() calls
 /// 2. Uses symbol-based detection via SemanticModel.IsRaisesInvocation for robust identification
 /// 3. Implements setup-based event triggering validation (not immediate)
+/// The shared argument-validation tail lives in EventSyntaxExtensions.AnalyzeEventArgumentsAgainstEventSignature.
 ///
 ///
 /// Both this analyzer and RaiseEventArgumentsShouldMatchEventSignatureAnalyzer are essential
@@ -21,7 +22,7 @@ namespace Moq.Analyzers;
 /// subtle runtime failures by catching type mismatches at compile time.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAnalyzer
+public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Raises event arguments should match event signature";
     private static readonly LocalizableString Message = "Raises event arguments should match the '{0}' event delegate signature";
@@ -40,23 +41,8 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterSyntaxNodeAction(
             syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
             SyntaxKind.InvocationExpression);
@@ -71,13 +57,6 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
             return;
         }
 
-        if (!EventSyntaxExtensions.TryGetEventMethodArgumentsFromLambdaSelector(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes, out bool senderCanBeOmitted, context.CancellationToken))
-        {
-            return;
-        }
-
-        string eventName = EventSyntaxExtensions.GetEventNameFromSelector(invocation, context.SemanticModel, context.CancellationToken);
-
-        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, senderCanBeOmitted, knownSymbols.EventArgs, invocation, Rule, eventName);
+        context.AnalyzeEventArgumentsAgainstEventSignature(invocation, knownSymbols, Rule);
     }
 }

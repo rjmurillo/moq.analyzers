@@ -7,7 +7,7 @@ namespace Moq.Analyzers;
 /// Analyzer to detect redundant Times specifications in Moq verification calls.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RedundantTimesSpecificationAnalyzer : DiagnosticAnalyzer
+public class RedundantTimesSpecificationAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Redundant Times specification";
     private static readonly LocalizableString Message = "Redundant {0} specification can be removed as it is the default for Verify calls";
@@ -26,23 +26,8 @@ public class RedundantTimesSpecificationAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterOperationAction(
             operationContext => AnalyzeInvocation(operationContext, knownSymbols),
             OperationKind.Invocation);

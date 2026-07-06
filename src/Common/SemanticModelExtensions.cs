@@ -103,6 +103,40 @@ internal static class SemanticModelExtensions
     }
 
     /// <summary>
+    /// Determines whether an invocation resolves to <c>Mock&lt;T&gt;.Raise</c>.
+    /// </summary>
+    /// <remarks>
+    /// This intentionally accepts only a fully resolved symbol after the ADR-001 name
+    /// pre-filter. Do not replace this with <see cref="IsMoqFluentInvocation"/>, which
+    /// accepts overload-resolution candidates.
+    /// </remarks>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="raiseInvocation">The invocation to inspect.</param>
+    /// <param name="knownSymbols">The known Moq symbols for this compilation.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns><see langword="true"/> when the invocation is <c>Mock&lt;T&gt;.Raise</c>; otherwise, <see langword="false"/>.</returns>
+    internal static bool IsRaiseInvocation(
+        this SemanticModel semanticModel,
+        InvocationExpressionSyntax raiseInvocation,
+        MoqKnownSymbols knownSymbols,
+        CancellationToken cancellationToken = default)
+    {
+        // ADR-001 permits this name check only as a pre-filter; the symbol check below is authoritative.
+        if (!raiseInvocation.CouldBeInvocationWithMethodName("Raise"))
+        {
+            return false;
+        }
+
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(raiseInvocation, cancellationToken);
+        if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
+        {
+            return false;
+        }
+
+        return methodSymbol.IsInstanceOf(knownSymbols.Mock1Raise);
+    }
+
+    /// <summary>
     /// Determines whether an invocation can match a method name before semantic binding.
     /// </summary>
     /// <remarks>

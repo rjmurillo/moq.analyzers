@@ -8,7 +8,7 @@ namespace Moq.Analyzers;
 /// ILogger should not be mocked. Use NullLogger or FakeLogger instead.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
+public class NoMockOfLoggerAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: ILogger mocked";
     private static readonly LocalizableString Message = "ILogger should not be mocked; use {0} or FakeLogger from Microsoft.Extensions.Diagnostics.Testing instead";
@@ -27,28 +27,8 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    /// <summary>
-    /// Registers the operation action for object creation and invocation if Moq is referenced,
-    /// <c>Mock{T}</c> is available, and at least one <c>ILogger</c> type is resolvable.
-    /// </summary>
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        // Ensure Moq is referenced in the compilation
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         // Check that Mock{T} type is available
         if (knownSymbols.Mock1 is null)
         {
@@ -66,6 +46,11 @@ public class NoMockOfLoggerAnalyzer : DiagnosticAnalyzer
             OperationKind.ObjectCreation,
             OperationKind.Invocation);
     }
+
+    /// <summary>
+    /// Registers the operation action for object creation and invocation if Moq is referenced,
+    /// <c>Mock{T}</c> is available, and at least one <c>ILogger</c> type is resolvable.
+    /// </summary>
 
     /// <summary>
     /// Analyzes object creation and invocation operations to report diagnostics for <c>ILogger</c> mocks.

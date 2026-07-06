@@ -4,7 +4,7 @@ namespace Moq.Analyzers;
 /// Event setup handler type should match the event delegate type.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
+public class EventSetupHandlerShouldMatchEventTypeAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Event setup handler type should match event delegate type";
     private static readonly LocalizableString Message = "Event setup handler type should match the event delegate type for '{0}'";
@@ -23,23 +23,8 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterSyntaxNodeAction(
             syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
             SyntaxKind.InvocationExpression);

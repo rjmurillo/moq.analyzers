@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers.Common;
@@ -64,6 +65,36 @@ internal static class MoqVerificationHelpers
             : null;
 
         return lambdaOperation?.Body.GetReferencedMemberSymbolFromLambda();
+    }
+
+    /// <summary>
+    /// Extracts the mocked member from a Moq Setup/SetupSequence/Verify invocation and
+    /// determines whether it is a member that Moq cannot mock.
+    /// </summary>
+    /// <param name="moqInvocation">The Setup/SetupSequence/Verify invocation operation.</param>
+    /// <param name="knownSymbols">The known Moq symbols for this compilation.</param>
+    /// <param name="mockedMemberSymbol">
+    /// When this method returns <see langword="true"/>, the non-overridable mocked member.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> when the invocation lambda references a member that is not
+    /// overridable/allowed for mocking; otherwise <see langword="false"/>.
+    /// </returns>
+    public static bool TryGetNonOverridableMockedMember(
+        IInvocationOperation moqInvocation,
+        MoqKnownSymbols knownSymbols,
+        [NotNullWhen(true)] out ISymbol? mockedMemberSymbol)
+    {
+        mockedMemberSymbol = null;
+
+        ISymbol? candidate = TryGetMockedMemberSymbol(moqInvocation);
+        if (candidate is null || candidate.IsOverridableOrAllowedMockMember(knownSymbols))
+        {
+            return false;
+        }
+
+        mockedMemberSymbol = candidate;
+        return true;
     }
 
     /// <summary>

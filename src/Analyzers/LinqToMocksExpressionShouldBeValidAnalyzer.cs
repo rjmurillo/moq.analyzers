@@ -6,7 +6,7 @@ namespace Moq.Analyzers;
 /// LINQ to Mocks expressions should be valid and supported.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
+public class LinqToMocksExpressionShouldBeValidAnalyzer : MoqDiagnosticAnalyzerBase
 {
     /// <summary>
     /// Maximum recursion depth for lambda body analysis. Hand-written LINQ-to-Mocks predicates
@@ -37,23 +37,8 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterOperationAction(
             operationContext => AnalyzeInvocation(operationContext, knownSymbols),
             OperationKind.Invocation);

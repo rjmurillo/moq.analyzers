@@ -6,7 +6,7 @@ namespace Moq.Analyzers;
 /// Verify should be used only for overridable members.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnalyzer
+public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Invalid verify parameter";
     private static readonly LocalizableString Message = "Verify should be used only for overridable members, but '{0}' is not overridable";
@@ -25,23 +25,8 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterOperationAction(
             operationContext => AnalyzeInvocation(operationContext, knownSymbols),
             OperationKind.Invocation);
@@ -61,28 +46,26 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
             return;
         }
 
-        ISymbol? mockedMemberSymbol;
         if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
         {
             IArgumentOperation? setterArgument = MoqVerificationHelpers.GetArgumentForParameterOrdinal(invocationOperation, 0);
             IAnonymousFunctionOperation? lambda = setterArgument is not null
                 ? MoqVerificationHelpers.ExtractLambdaFromArgument(setterArgument.Value)
                 : null;
-            mockedMemberSymbol = lambda is not null
+            ISymbol? verifySetMemberSymbol = lambda is not null
                 ? MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambda)
                 : null;
-        }
-        else
-        {
-            mockedMemberSymbol = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
-        }
 
-        if (mockedMemberSymbol == null)
-        {
+            if (verifySetMemberSymbol == null || IsVerifySetMemberAllowed(verifySetMemberSymbol))
+            {
+                return;
+            }
+
+            ReportDiagnostic(context, invocationOperation, verifySetMemberSymbol);
             return;
         }
 
-        if (IsMemberAllowedForVerification(mockedMemberSymbol, targetMethod, knownSymbols))
+        if (!MoqVerificationHelpers.TryGetNonOverridableMockedMember(invocationOperation, knownSymbols, out ISymbol? mockedMemberSymbol))
         {
             return;
         }
@@ -102,15 +85,9 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         return !targetMethod.IsInstanceOf(knownSymbols.Mock1VerifyNoOtherCalls);
     }
 
-    private static bool IsMemberAllowedForVerification(ISymbol mockedMemberSymbol, IMethodSymbol targetMethod, MoqKnownSymbols knownSymbols)
+    private static bool IsVerifySetMemberAllowed(ISymbol mockedMemberSymbol)
     {
-        // Special handling for VerifySet: must check property overridability for set accessor
-        if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
-        {
-            return mockedMemberSymbol is IPropertySymbol propertySymbol && propertySymbol.IsOverridable();
-        }
-
-        return mockedMemberSymbol.IsOverridableOrAllowedMockMember(knownSymbols);
+        return mockedMemberSymbol is IPropertySymbol propertySymbol && propertySymbol.IsOverridable();
     }
 
     private static void ReportDiagnostic(OperationAnalysisContext context, IInvocationOperation invocationOperation, ISymbol mockedMemberSymbol)
