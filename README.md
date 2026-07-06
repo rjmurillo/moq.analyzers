@@ -42,6 +42,7 @@ something is wrong with your Moq configuration.
 | [Moq1600](docs/rules/Moq1600.md) | Usage         | Protected setup should use `ItExpr` matchers                                            |
 
 See [docs/rules/README.md](docs/rules/README.md) for full documentation.
+Rules Moq1200, Moq1207, and Moq1210 treat sealed default interface members as non-overridable because Moq cannot intercept them.
 
 ## Getting started
 

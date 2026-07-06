@@ -28,6 +28,7 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
             ["""new Mock<ISampleInterface>().Verify(x => x.TestProperty);"""],
             ["""{|Moq1210:new Mock<SampleClass>().Verify(x => x.Field)|};"""],
             ["""{|Moq1210:new Mock<SampleClassWithNonVirtualIndexer>().Verify(x => x[0])|};"""],
+            ["""{|Moq1210:new Mock<SampleClassWithStaticMembers>().Verify(x => SampleClassWithStaticMembers.StaticMethod())|};"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         IEnumerable<object[]> newMoqOnly = new object[][]
@@ -36,6 +37,12 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
             // VerifySet uses Action<T> syntax, not Expression<Func<T, ...>>
             ["""{|Moq1210:new Mock<SampleClass>().VerifySet(x => { x.Property = It.IsAny<int>(); })|};"""],
             ["""new Mock<ISampleInterface>().VerifySet(x => { x.TestProperty = It.IsAny<string>(); });"""],
+
+            // Default interface members follow Moq 4.18.4 runtime behavior.
+            ["""new Mock<IDefaultInterfaceMembers>().Verify(x => x.AbstractMethod());"""],
+            ["""new Mock<IDefaultInterfaceMembers>().Verify(x => x.DefaultMethod());"""],
+            ["""{|Moq1210:new Mock<IDefaultInterfaceMembers>().Verify(x => x.SealedDefaultMethod())|};"""],
+            ["""{|Moq1210:new Mock<IStaticInterfaceMembers>().Verify(x => IStaticInterfaceMembers.StaticMethod())|};"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
         return both.Concat(newMoqOnly);
@@ -112,6 +119,104 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
+    public static IEnumerable<object[]> NoFixForIllegalVirtualMembersData()
+    {
+        return new object[][]
+        {
+            [
+                """
+                public class MyClass
+                {
+                    public static void MyMethod() { }
+                }
+                """,
+                """
+                var mock = new Mock<MyClass>();
+                {|Moq1210:mock.Verify(x => MyClass.MyMethod())|};
+                """,
+            ],
+            [
+                """
+                public sealed class MyClass
+                {
+                    public void MyMethod() { }
+                }
+                """,
+                """
+                var mock = new Mock<MyClass>();
+                {|Moq1210:mock.Verify(x => x.MyMethod())|};
+                """,
+            ],
+            [
+                """
+                public interface IMyInterface
+                {
+                    sealed void MyMethod() { }
+                }
+                """,
+                """
+                var mock = new Mock<IMyInterface>();
+                {|Moq1210:mock.Verify(x => x.MyMethod())|};
+                """,
+            ],
+            [
+                """
+                public interface IMyInterface
+                {
+                    static void MyMethod() { }
+                }
+                """,
+                """
+                var mock = new Mock<IMyInterface>();
+                {|Moq1210:mock.Verify(x => IMyInterface.MyMethod())|};
+                """,
+            ],
+        }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> CanMakeMemberVirtualData()
+    {
+        return new object[][]
+        {
+            [
+                "public class MyClass { public void MyMethod() { } }",
+                "MyClass",
+                "MyMethod",
+                "True",
+            ],
+            [
+                "public class MyClass { public int MyField; }",
+                "MyClass",
+                "MyField",
+                "False",
+            ],
+            [
+                "public class MyClass { public static void MyMethod() { } }",
+                "MyClass",
+                "MyMethod",
+                "False",
+            ],
+            [
+                "public sealed class MyClass { public void MyMethod() { } }",
+                "MyClass",
+                "MyMethod",
+                "False",
+            ],
+            [
+                "public struct MyStruct { public void MyMethod() { } }",
+                "MyStruct",
+                "MyMethod",
+                "False",
+            ],
+            [
+                "public interface IMyInterface { sealed void MyMethod() { } }",
+                "IMyInterface",
+                "MyMethod",
+                "False",
+            ],
+        };
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeVerifyForOverridableMembers(string referenceAssemblyGroup, string @namespace, string mock)
@@ -128,6 +233,13 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
                                 public class SampleClassWithVirtualIndexer { public virtual int this[int i] { get => 0; set { } } }
                                 public class SampleClassWithNonVirtualIndexer { public int this[int i] { get => 0; set { } } }
                                 public interface IExplicitInterface { void ExplicitMethod(); }
+                                public interface IDefaultInterfaceMembers
+                                {
+                                    void AbstractMethod();
+                                    void DefaultMethod() { }
+                                    sealed void SealedDefaultMethod() { }
+                                }
+                                public interface IStaticInterfaceMembers { static void StaticMethod() { } }
                                 public class SampleClassWithStaticMembers { public static int StaticField; public const int ConstField = 42; public static readonly int ReadonlyField = 42; public static void StaticMethod() { } }
 
                                 public abstract class BaseSampleClass
@@ -318,6 +430,43 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
     }
 
     [Theory]
+    [MemberData(nameof(NoFixForIllegalVirtualMembersData))]
+    public async Task NoFixForIllegalVirtualMembers(string referenceAssemblyGroup, string @namespace, string declaration, string verify)
+    {
+        string test = $$"""
+            {{@namespace}}
+
+            {{declaration}}
+
+            public class MyTest
+            {
+                public void Test()
+                {
+                    {{verify}}
+                }
+            }
+            """;
+
+        await Verify.VerifyCodeFixAsync(test, test, referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(CanMakeMemberVirtualData))]
+    public void CanMakeMemberVirtual_RequiresInstanceMemberInNonSealedClass(string source, string typeName, string memberName, string expected)
+    {
+        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation(source);
+        INamedTypeSymbol typeSymbol = tree.GetRoot()
+            .DescendantNodes()
+            .OfType<BaseTypeDeclarationSyntax>()
+            .Select(t => model.GetDeclaredSymbol(t))
+            .OfType<INamedTypeSymbol>()
+            .First(t => string.Equals(t.Name, typeName, StringComparison.Ordinal));
+        ISymbol memberSymbol = typeSymbol.GetMembers(memberName).Single();
+
+        Assert.Equal(expected, InvokeCanMakeMemberVirtual(memberSymbol));
+    }
+
+    [Theory]
     [MemberData(nameof(MoqReferenceAssemblyGroups))]
     public async Task NoFixForInterfaceMembers(string referenceAssemblyGroup)
     {
@@ -448,5 +597,13 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
             """;
 
         await Verifier.VerifyAnalyzerAsync(test, ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    private static string InvokeCanMakeMemberVirtual(ISymbol memberSymbol)
+    {
+        System.Reflection.MethodInfo method = typeof(Moq.CodeFixes.VerifyOverridableMembersFixer)
+            .GetMethod("CanMakeMemberVirtual", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+        object? result = method.Invoke(null, new object?[] { memberSymbol });
+        return result?.ToString() ?? string.Empty;
     }
 }

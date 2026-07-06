@@ -44,6 +44,12 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzerTests
         {
             // SetupSequence with virtual indexer (should NOT be flagged) - Moq 4.18.4+ only
             ["""new Mock<SampleClassWithVirtualIndexer>().SetupSequence(x => x[0]);"""],
+
+            // Default interface members follow Moq 4.18.4 runtime behavior.
+            ["""new Mock<IDefaultInterfaceMembers>().SetupSequence(x => x.AbstractMethod());"""],
+            ["""new Mock<IDefaultInterfaceMembers>().SetupSequence(x => x.DefaultMethod());"""],
+            ["""new Mock<IDefaultInterfaceMembers>().SetupSequence(x => {|Moq1207:x.SealedDefaultMethod()|});"""],
+            ["""new Mock<IStaticInterfaceMembers>().SetupSequence(x => {|Moq1207:IStaticInterfaceMembers.StaticMethod()|});"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
         return both.Concat(@new);
@@ -98,6 +104,18 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzerTests
             public class SampleClassWithVirtualIndexer
             {
                 public virtual int this[int index] => index; // Virtual indexer
+            }
+
+            public interface IDefaultInterfaceMembers
+            {
+                void AbstractMethod();
+                void DefaultMethod() { }
+                sealed void SealedDefaultMethod() { }
+            }
+
+            public interface IStaticInterfaceMembers
+            {
+                static void StaticMethod() { }
             }
 
             public class TestClass

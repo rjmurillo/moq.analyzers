@@ -74,7 +74,7 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
             mockedMemberSymbol = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
         }
 
-        if (mockedMemberSymbol == null || IsInterfaceMember(mockedMemberSymbol))
+        if (mockedMemberSymbol == null)
         {
             return;
         }
@@ -97,11 +97,6 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
 
         // VerifyNoOtherCalls doesn't take a lambda argument, so skip it
         return !targetMethod.IsInstanceOf(knownSymbols.Mock1VerifyNoOtherCalls);
-    }
-
-    private static bool IsInterfaceMember(ISymbol mockedMemberSymbol)
-    {
-        return mockedMemberSymbol.ContainingType?.TypeKind == TypeKind.Interface;
     }
 
     private static bool IsMemberAllowedForVerification(ISymbol mockedMemberSymbol, IMethodSymbol targetMethod, MoqKnownSymbols knownSymbols)
