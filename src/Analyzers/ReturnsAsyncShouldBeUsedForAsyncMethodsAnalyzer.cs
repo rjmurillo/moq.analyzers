@@ -50,21 +50,21 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         // Check if this is a Returns method call with async lambda
-        if (!IsReturnsMethodCallWithAsyncLambda(invocation, context.SemanticModel, knownSymbols))
+        if (!IsReturnsMethodCallWithAsyncLambda(invocation, context.SemanticModel, knownSymbols, context.CancellationToken))
         {
             return;
         }
 
         // Find the Setup call that this Returns is chained from
         MemberAccessExpressionSyntax memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
-        InvocationExpressionSyntax? setupInvocation = memberAccess.Expression.FindSetupInvocation(context.SemanticModel, knownSymbols);
+        InvocationExpressionSyntax? setupInvocation = memberAccess.Expression.FindSetupInvocation(context.SemanticModel, knownSymbols, context.CancellationToken);
         if (setupInvocation == null)
         {
             return;
         }
 
         // Check if the Setup is for an async method and get the method name
-        string? methodName = GetAsyncMethodName(setupInvocation, context.SemanticModel, knownSymbols);
+        string? methodName = GetAsyncMethodName(setupInvocation, context.SemanticModel, knownSymbols, context.CancellationToken);
         if (methodName == null)
         {
             return;
@@ -81,16 +81,21 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static bool IsReturnsMethodCallWithAsyncLambda(InvocationExpressionSyntax invocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
+    private static bool IsReturnsMethodCallWithAsyncLambda(
+        InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
+        MoqKnownSymbols knownSymbols,
+        CancellationToken cancellationToken)
     {
-        if (invocation.Expression is not MemberAccessExpressionSyntax)
+        // ADR-001 permits this name check only as a pre-filter; the symbol check below is authoritative.
+        if (invocation.Expression is not MemberAccessExpressionSyntax { Name.Identifier.ValueText: "Returns" })
         {
             return false;
         }
 
         // Query the invocation (not the MemberAccessExpressionSyntax) so Roslyn has argument context
         // for overload resolution. Fall back to CandidateSymbols for delegate overloads.
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation);
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation, cancellationToken);
         bool isReturnsMethod = symbolInfo.Symbol is IMethodSymbol method
             ? method.IsMoqReturnsMethod(knownSymbols)
             : symbolInfo.CandidateSymbols
@@ -120,7 +125,11 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
                lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
     }
 
-    private static string? GetAsyncMethodName(InvocationExpressionSyntax setupInvocation, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
+    private static string? GetAsyncMethodName(
+        InvocationExpressionSyntax setupInvocation,
+        SemanticModel semanticModel,
+        MoqKnownSymbols knownSymbols,
+        CancellationToken cancellationToken)
     {
         // Check if this is a Setup method call
         if (setupInvocation.Expression is not MemberAccessExpressionSyntax setupMemberAccess)
@@ -128,7 +137,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
             return null;
         }
 
-        SymbolInfo setupSymbolInfo = semanticModel.GetSymbolInfo(setupMemberAccess);
+        SymbolInfo setupSymbolInfo = semanticModel.GetSymbolInfo(setupMemberAccess, cancellationToken);
         if (setupSymbolInfo.Symbol is null || !setupSymbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
         {
             return null;
@@ -141,7 +150,7 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
             return null;
         }
 
-        SymbolInfo mockedSymbolInfo = semanticModel.GetSymbolInfo(mockedMemberExpression);
+        SymbolInfo mockedSymbolInfo = semanticModel.GetSymbolInfo(mockedMemberExpression, cancellationToken);
         if (mockedSymbolInfo.Symbol is not IMethodSymbol mockedMethod)
         {
             return null;

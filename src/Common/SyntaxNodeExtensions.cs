@@ -11,15 +11,20 @@ internal static class SyntaxNodeExtensions
     /// <param name="syntax">The root <see cref="SyntaxNode"/> to search from.</param>
     /// <param name="memberSymbol">The <see cref="ISymbol"/> to match.</param>
     /// <param name="semanticModel">The <see cref="SemanticModel"/> for symbol resolution.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The location of the matching node, or <see langword="null"/> if not found.</returns>
-    internal static Location? FindLocation<TSyntax>(this SyntaxNode syntax, ISymbol memberSymbol, SemanticModel? semanticModel)
+    internal static Location? FindLocation<TSyntax>(
+        this SyntaxNode syntax,
+        ISymbol memberSymbol,
+        SemanticModel? semanticModel,
+        CancellationToken cancellationToken = default)
         where TSyntax : SyntaxNode
     {
         TSyntax? node = syntax.DescendantNodes()
             .OfType<TSyntax>()
             .FirstOrDefault(n =>
             {
-                ISymbol? symbol = semanticModel?.GetSymbolInfo(n).Symbol;
+                ISymbol? symbol = semanticModel?.GetSymbolInfo(n, cancellationToken).Symbol;
                 return SymbolEqualityComparer.Default.Equals(symbol, memberSymbol);
             });
 

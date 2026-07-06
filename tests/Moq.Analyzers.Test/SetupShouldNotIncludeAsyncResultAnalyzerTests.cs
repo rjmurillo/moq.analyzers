@@ -19,6 +19,9 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
             ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericTaskAsync().Result|});"""],
 
             ["""new Mock<AsyncClient>().Setup(c => {|Moq1201:c.GenericValueTaskAsync().Result|});"""],
+
+            // Same method name on a non-Moq type must still be rejected by the symbol check
+            ["""new CustomSetup().Setup(c => c.GenericTaskAsync().Result);"""],
         }.WithNamespaces().WithOldMoqReferenceAssemblyGroups();
 
         // New Moq specific: Task<T>.Result should NOT produce diagnostic
@@ -47,6 +50,13 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
                   public virtual ValueTask ValueTaskAsync() => ValueTask.CompletedTask;
 
                   public virtual ValueTask<string> GenericValueTaskAsync() => ValueTask.FromResult(string.Empty);
+              }
+
+              internal class CustomSetup
+              {
+                  public void Setup(System.Linq.Expressions.Expression<Func<AsyncClient, string>> expression)
+                  {
+                  }
               }
 
               internal class UnitTest

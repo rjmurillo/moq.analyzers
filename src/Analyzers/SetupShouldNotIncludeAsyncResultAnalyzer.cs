@@ -58,7 +58,8 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
     {
         InvocationExpressionSyntax setupInvocation = (InvocationExpressionSyntax)context.Node;
 
-        if (setupInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
+        // ADR-001 permits this name check only as a pre-filter; the symbol check below is authoritative.
+        if (setupInvocation.Expression is not MemberAccessExpressionSyntax { Name.Identifier.ValueText: "Setup" } memberAccessExpression)
         {
             return;
         }

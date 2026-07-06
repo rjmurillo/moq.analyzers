@@ -33,6 +33,15 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
             // Valid: null literal for a reference-type parameter. The cast is required:
             // a bare 'null' is ambiguous between Raise(..., EventArgs) and Raise(..., params object[]) (CS0121).
             ["""mockProvider.Raise(p => p.StringOptionsChanged += null, (string)null);"""],
+
+            // Same method name on a non-Moq type must still be rejected by the symbol check
+            ["""new CustomRaiser().Raise(p => p.StringOptionsChanged += null, 42);"""],
+
+            // Direct generic invocation covers the shape-tolerant pre-filter's GenericNameSyntax path
+            ["""Raise<int>();"""],
+
+            // Delegate-array invocation has an unknown shape and must fall through to the symbol check
+            ["""Action[] actions = new Action[] { () => { } }; actions[0]();"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -119,6 +128,9 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
 
             // Invalid: payload not convertible to EventArgs.
             ["""mock.Raise(n => n.Closed += null, {|Moq1202:42|});"""],
+
+            // Conditional access uses MemberBindingExpressionSyntax and must not be pre-filtered out.
+            ["""mock?.Raise(n => n.Closed += null, {|Moq1202:42|});"""],
 
             // Invalid: object payload is only EXPLICITLY convertible to EventArgs. Overload resolution
             // binds the params-object array overload instead of the EventArgs overload, so Moq does not
@@ -246,8 +258,19 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
                   event Action<List<string>> ListChanged;
               }
 
+              internal class CustomRaiser
+              {
+                  public void Raise(Action<IOptionsProvider> selector, object value)
+                  {
+                  }
+              }
+
               internal class UnitTest
               {
+                  private static void Raise<T>()
+                  {
+                  }
+
                   private void Test()
                   {
                       var mockProvider = new Mock<IOptionsProvider>();

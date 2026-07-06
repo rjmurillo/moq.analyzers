@@ -87,6 +87,9 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
 
             // Generic Returns<T> with async lambda is Moq1206's domain, not ours
             ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).Returns<string>(async s => await Task.FromResult(s.Length));"""],
+
+            // Same method name on a non-Moq type must still be rejected by the symbol check
+            ["""new CustomReturns().Returns(() => 42);"""],
         };
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
@@ -236,6 +239,13 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
                   public virtual Task<int> ProcessAsync(string input) => Task.FromResult(input.Length);
                   public virtual IList<int> GetItems() => new List<int>();
                   public virtual Task<int> Value { get; set; } = Task.FromResult(0);
+              }
+
+              public class CustomReturns
+              {
+                  public void Returns(Func<int> value)
+                  {
+                  }
               }
 
               internal class UnitTest

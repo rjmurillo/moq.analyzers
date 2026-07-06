@@ -64,24 +64,34 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         // Check if this is a Raise method call on a Mock<T>
-        if (!IsRaiseMethodCall(context.SemanticModel, invocation, knownSymbols))
+        if (!IsRaiseMethodCall(context.SemanticModel, invocation, knownSymbols, context.CancellationToken))
         {
             return;
         }
 
-        if (!EventSyntaxExtensions.TryGetEventMethodArgumentsFromLambdaSelector(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes, out bool senderCanBeOmitted))
+        if (!EventSyntaxExtensions.TryGetEventMethodArgumentsFromLambdaSelector(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes, out bool senderCanBeOmitted, context.CancellationToken))
         {
             return;
         }
 
-        string eventName = EventSyntaxExtensions.GetEventNameFromSelector(invocation, context.SemanticModel);
+        string eventName = EventSyntaxExtensions.GetEventNameFromSelector(invocation, context.SemanticModel, context.CancellationToken);
 
         context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, senderCanBeOmitted, knownSymbols.EventArgs, invocation, Rule, eventName);
     }
 
-    private static bool IsRaiseMethodCall(SemanticModel semanticModel, InvocationExpressionSyntax invocation, MoqKnownSymbols knownSymbols)
+    private static bool IsRaiseMethodCall(
+        SemanticModel semanticModel,
+        InvocationExpressionSyntax invocation,
+        MoqKnownSymbols knownSymbols,
+        CancellationToken cancellationToken)
     {
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation);
+        // ADR-001 permits this name check only as a pre-filter; the symbol check below is authoritative.
+        if (!invocation.CouldBeInvocationWithMethodName("Raise"))
+        {
+            return false;
+        }
+
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation, cancellationToken);
         if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
         {
             return false;

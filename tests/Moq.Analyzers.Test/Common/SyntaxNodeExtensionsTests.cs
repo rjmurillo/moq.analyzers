@@ -63,7 +63,7 @@ class C
     public void FindLocation_NullSemanticModel_ReturnsNull()
     {
         // Arrange
-        const string code = "class C { void M() { } }";
+        const string code = "class C { void M() { N(); } void N() { } }";
         SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
         SyntaxNode root = tree.GetRoot();
         (SemanticModel model, _) = CompilationHelper.CreateCompilation(code);

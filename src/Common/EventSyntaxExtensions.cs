@@ -225,6 +225,7 @@ internal static class EventSyntaxExtensions
     /// <param name="eventArguments">The extracted event arguments.</param>
     /// <param name="expectedParameterTypes">The expected parameter types.</param>
     /// <param name="senderCanBeOmitted">Whether the sender argument may be omitted (EventHandler-shaped delegates).</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns><see langword="true" /> if arguments were successfully extracted; otherwise, <see langword="false" />.</returns>
     internal static bool TryGetEventMethodArgumentsFromLambdaSelector(
         InvocationExpressionSyntax invocation,
@@ -232,7 +233,8 @@ internal static class EventSyntaxExtensions
         KnownSymbols knownSymbols,
         out ArgumentSyntax[] eventArguments,
         out ITypeSymbol[] expectedParameterTypes,
-        out bool senderCanBeOmitted)
+        out bool senderCanBeOmitted,
+        CancellationToken cancellationToken = default)
     {
         return TryGetEventMethodArguments(
             invocation,
@@ -240,9 +242,9 @@ internal static class EventSyntaxExtensions
             out eventArguments,
             out expectedParameterTypes,
             out senderCanBeOmitted,
-            static (sm, selector) =>
+            (sm, selector) =>
             {
-                bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType);
+                bool success = sm.TryGetEventTypeFromLambdaSelector(selector, out ITypeSymbol? eventType, cancellationToken);
                 return (success, eventType);
             },
             knownSymbols);
@@ -253,8 +255,12 @@ internal static class EventSyntaxExtensions
     /// </summary>
     /// <param name="invocation">The method invocation containing the lambda selector.</param>
     /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The event name if found; otherwise "event" as a fallback.</returns>
-    internal static string GetEventNameFromSelector(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
+    internal static string GetEventNameFromSelector(
+        InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken = default)
     {
         SeparatedSyntaxList<ArgumentSyntax> arguments = invocation.ArgumentList.Arguments;
         if (arguments.Count < 1)
@@ -264,7 +270,7 @@ internal static class EventSyntaxExtensions
 
         ExpressionSyntax eventSelector = arguments[0].Expression;
 
-        return semanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out string? eventName)
+        return semanticModel.TryGetEventNameFromLambdaSelector(eventSelector, out string? eventName, cancellationToken)
             ? eventName!
             : "event";
     }

@@ -23,8 +23,13 @@ internal static class InvocationExpressionSyntaxExtensions
     /// <param name="receiver">The receiver expression to start walking from (typically the expression before the Returns call).</param>
     /// <param name="semanticModel">The semantic model for symbol resolution.</param>
     /// <param name="knownSymbols">The known Moq symbols for type checking.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The Setup invocation if found; otherwise, <see langword="null"/>.</returns>
-    internal static InvocationExpressionSyntax? FindSetupInvocation(this ExpressionSyntax receiver, SemanticModel semanticModel, MoqKnownSymbols knownSymbols)
+    internal static InvocationExpressionSyntax? FindSetupInvocation(
+        this ExpressionSyntax receiver,
+        SemanticModel semanticModel,
+        MoqKnownSymbols knownSymbols,
+        CancellationToken cancellationToken = default)
     {
         ExpressionSyntax current = receiver;
 
@@ -39,7 +44,7 @@ internal static class InvocationExpressionSyntaxExtensions
                 return null;
             }
 
-            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(candidateInvocation);
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(candidateInvocation, cancellationToken);
             if (symbolInfo.Symbol != null && symbolInfo.Symbol.IsMoqSetupMethod(knownSymbols))
             {
                 return candidateInvocation;

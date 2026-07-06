@@ -264,7 +264,7 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        Location? memberLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol, context.Operation.SemanticModel);
+        Location? memberLocation = GetMemberReferenceLocation(lambdaOperation, memberSymbol, context.Operation.SemanticModel, context.CancellationToken);
         if (memberLocation == null)
         {
             return;
@@ -316,19 +316,23 @@ public class LinqToMocksExpressionShouldBeValidAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Attempts to find the specific syntax location of the member reference within the lambda using symbol-based matching.
     /// </summary>
-    private static Location? GetMemberReferenceLocation(IAnonymousFunctionOperation lambdaOperation, ISymbol memberSymbol, SemanticModel? semanticModel)
+    private static Location? GetMemberReferenceLocation(
+        IAnonymousFunctionOperation lambdaOperation,
+        ISymbol memberSymbol,
+        SemanticModel? semanticModel,
+        CancellationToken cancellationToken)
     {
         SyntaxNode syntax = lambdaOperation.Syntax;
 
         // 1. Try InvocationExpressionSyntax (for method calls)
-        Location? location = syntax.FindLocation<InvocationExpressionSyntax>(memberSymbol, semanticModel);
+        Location? location = syntax.FindLocation<InvocationExpressionSyntax>(memberSymbol, semanticModel, cancellationToken);
         if (location != null)
         {
             return location;
         }
 
         // 2. Try MemberAccessExpressionSyntax (for property/field access)
-        location = syntax.FindLocation<MemberAccessExpressionSyntax>(memberSymbol, semanticModel);
+        location = syntax.FindLocation<MemberAccessExpressionSyntax>(memberSymbol, semanticModel, cancellationToken);
         if (location != null)
         {
             return location;

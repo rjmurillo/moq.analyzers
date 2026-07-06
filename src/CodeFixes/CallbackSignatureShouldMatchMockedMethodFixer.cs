@@ -162,7 +162,7 @@ public class CallbackSignatureShouldMatchMockedMethodFixer : CodeFixProvider
         }
 
         // Short-circuit: we only need to know if there is exactly one match.
-        IMethodSymbol[] matchingMockedMethods = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupMethodInvocation).Take(2).ToArray();
+        IMethodSymbol[] matchingMockedMethods = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupMethodInvocation, cancellationToken).Take(2).ToArray();
 
         if (matchingMockedMethods.Length != 1)
         {

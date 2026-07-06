@@ -31,6 +31,9 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzerTests(ITestOutputHel
 
             // Double-parenthesized Setup with ReturnsAsync (valid)
             ["""((new Mock<AsyncClient>().Setup(c => c.GetAsync()))).ReturnsAsync("value");"""],
+
+            // Same method name on a non-Moq type must still be rejected by the symbol check
+            ["""new CustomReturns().Returns(async () => "value");"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         // Invalid patterns that SHOULD trigger the analyzer
@@ -89,6 +92,13 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzerTests(ITestOutputHel
                   public virtual ValueTask DoValueTaskAsync() => ValueTask.CompletedTask;
                   public virtual ValueTask<string> GetValueTaskAsync() => ValueTask.FromResult(string.Empty);
                   public virtual string GetSync() => string.Empty;
+              }
+
+              public class CustomReturns
+              {
+                  public void Returns(Func<Task<string>> value)
+                  {
+                  }
               }
 
               internal class UnitTest
