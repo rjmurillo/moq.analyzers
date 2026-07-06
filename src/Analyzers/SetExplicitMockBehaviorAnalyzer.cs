@@ -32,9 +32,9 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
     private protected override void AnalyzeMockBehaviorArgument(
         OperationAnalysisContext context,
         IMethodSymbol target,
+        IParameterSymbol mockParameter,
         IArgumentOperation? mockArgument,
-        MoqKnownSymbols knownSymbols,
-        string mockedTypeName)
+        MoqKnownSymbols knownSymbols)
     {
         System.Diagnostics.Debug.Assert(knownSymbols.MockBehavior is not null, "Base registration requires the MockBehavior symbol.");
 
@@ -42,16 +42,18 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
         if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue
             && MockBehaviorConstantValues.ConstantValueEquals(mockArgument.Value.WalkDownConversion().ConstantValue, knownSymbols.MockBehaviorDefault))
         {
-            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Insert, mockedTypeName);
+            TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Insert, target);
+            return;
         }
 
         // NOTE: This logic can't handle indirection (e.g. var x = MockBehavior.Default; new Mock(x);). We can't use the constant value either,
         // as Loose and Default share the same enum value: `1`. Being more accurate I believe requires data flow analysis.
         //
         // The operation specifies a MockBehavior; is it MockBehavior.Default?
-        if (mockArgument?.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorDefault)) == true)
+        if (mockArgument is not null
+            && ContainsFieldReference(mockArgument, knownSymbols.MockBehaviorDefault))
         {
-            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Replace, mockedTypeName);
+            TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Replace, target);
         }
     }
 }

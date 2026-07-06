@@ -56,16 +56,16 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
     private protected override void AnalyzeMockBehaviorArgument(
         OperationAnalysisContext context,
         IMethodSymbol target,
+        IParameterSymbol mockParameter,
         IArgumentOperation? mockArgument,
-        MoqKnownSymbols knownSymbols,
-        string mockedTypeName)
+        MoqKnownSymbols knownSymbols)
     {
         System.Diagnostics.Debug.Assert(knownSymbols.MockBehavior is not null, "Base registration requires the MockBehavior symbol.");
 
         // Is the behavior set via a default value?
         if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue
             && MockBehaviorConstantValues.ConstantValueEquals(mockArgument.Value.WalkDownConversion().ConstantValue, knownSymbols.MockBehaviorDefault)
-            && TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Insert, mockedTypeName))
+            && TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Insert, target))
         {
             return;
         }
@@ -73,10 +73,11 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
         // NOTE: This logic can't handle indirection (e.g. var x = MockBehavior.Default; new Mock(x);)
         //
         // The operation specifies a MockBehavior; is it MockBehavior.Strict?
-        if (!MockBehaviorConstantValues.ConstantValueEquals(mockArgument?.Value.WalkDownConversion().ConstantValue ?? default, knownSymbols.MockBehaviorStrict)
-            && mockArgument?.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorStrict)) != true)
+        if (mockArgument is null
+            || (!MockBehaviorConstantValues.ConstantValueEquals(mockArgument.Value.WalkDownConversion().ConstantValue, knownSymbols.MockBehaviorStrict)
+                && !ContainsFieldReference(mockArgument, knownSymbols.MockBehaviorStrict)))
         {
-            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Replace, mockedTypeName);
+            TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Replace, target);
         }
     }
 }

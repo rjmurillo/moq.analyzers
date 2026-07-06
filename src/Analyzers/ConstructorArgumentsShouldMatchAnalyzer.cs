@@ -227,22 +227,34 @@ public class ConstructorArgumentsShouldMatchAnalyzer : MoqDiagnosticAnalyzerBase
     /// <summary>
     /// Checks if the provided arguments match any of the constructors of the mocked class.
     /// </summary>
-    /// <param name="constructors">The constructors.</param>
+    /// <param name="mockedClass">The mocked class.</param>
     /// <param name="arguments">The arguments.</param>
     /// <param name="context">The context.</param>
+    /// <param name="anyConstructorsFound">
+    /// <see langword="true" /> when at least one constructor was found; otherwise <see langword="false" />.
+    /// </param>
     /// <returns>
     /// <see langword="true" /> if a suitable constructor was found; otherwise <see langword="false" />.
     /// If the construction method is a parenthesized lambda expression, <see langword="null" /> is returned.
     /// </returns>
     /// <remarks>Handles <see langword="params" /> and optional parameters.</remarks>
     private static bool? AnyConstructorsFound(
-        IMethodSymbol[] constructors,
+        ITypeSymbol mockedClass,
         FilteredArgumentList arguments,
-        SyntaxNodeAnalysisContext context)
+        SyntaxNodeAnalysisContext context,
+        out bool anyConstructorsFound)
     {
-        for (int constructorIndex = 0; constructorIndex < constructors.Length; constructorIndex++)
+        anyConstructorsFound = false;
+
+        foreach (ISymbol member in mockedClass.GetMembers(WellKnownMemberNames.InstanceConstructorName))
         {
-            if (IsConstructorMatch(constructors[constructorIndex], arguments, context))
+            if (member is not IMethodSymbol constructor || !constructor.IsConstructor())
+            {
+                continue;
+            }
+
+            anyConstructorsFound = true;
+            if (IsConstructorMatch(constructor, arguments, context))
             {
                 return true;
             }
@@ -460,15 +472,6 @@ public class ConstructorArgumentsShouldMatchAnalyzer : MoqDiagnosticAnalyzerBase
         return definition.MetadataName is "Span`1" or "ReadOnlySpan`1";
     }
 
-    private static (bool IsEmpty, Location Location) ConstructorIsEmpty(
-        IMethodSymbol[] constructors,
-        ArgumentListSyntax? argumentList,
-        SyntaxNodeAnalysisContext context)
-    {
-        Location location = argumentList?.GetLocation() ?? context.Node.GetLocation();
-        return (constructors.Length == 0, location);
-    }
-
     private static void VerifyMockAttempt(
                     SyntaxNodeAnalysisContext context,
                     MoqKnownSymbols knownSymbols,
@@ -525,29 +528,13 @@ public class ConstructorArgumentsShouldMatchAnalyzer : MoqDiagnosticAnalyzerBase
         ArgumentListSyntax? argumentList,
         FilteredArgumentList arguments)
     {
-        IMethodSymbol[] constructors = mockedClass
-            .GetMembers(WellKnownMemberNames.InstanceConstructorName)
-            .OfType<IMethodSymbol>()
-            .Where(methodSymbol => methodSymbol.IsConstructor())
-            .ToArray();
-
-        string argumentsString = arguments.FormatArguments();
-
-        // Bail out early if there are no arguments on constructors or no constructors at all
-        (bool IsEmpty, Location Location) constructorIsEmpty = ConstructorIsEmpty(constructors, argumentList, context);
-        if (constructorIsEmpty.IsEmpty)
-        {
-            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedClass.ToDisplayString(), argumentsString);
-            context.ReportDiagnostic(diagnostic);
-            return;
-        }
-
         // We have constructors, now we need to check if the arguments match any of them
         // If the value is null it means we want to ignore and not create a diagnostic
-        bool? matchingCtorFound = AnyConstructorsFound(constructors, arguments, context);
-        if (matchingCtorFound.HasValue && !matchingCtorFound.Value)
+        bool? matchingCtorFound = AnyConstructorsFound(mockedClass, arguments, context, out bool anyConstructorsFound);
+        if (!anyConstructorsFound || (matchingCtorFound.HasValue && !matchingCtorFound.Value))
         {
-            Diagnostic diagnostic = constructorIsEmpty.Location.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedClass.ToDisplayString(), argumentsString);
+            Location location = argumentList?.GetLocation() ?? context.Node.GetLocation();
+            Diagnostic diagnostic = location.CreateDiagnostic(ClassMustHaveMatchingConstructor, mockedClass.ToDisplayString(), arguments.FormatArguments());
             context.ReportDiagnostic(diagnostic);
         }
     }

@@ -14,6 +14,7 @@ public class SetStrictMockBehaviorAnalyzerTests
             ["""{|Moq1410:new Mock<ISample>(MockBehavior.Default)|};"""],
             ["""{|Moq1410:new Mock<ISample>(MockBehavior.Loose)|};"""],
             ["""new Mock<ISample>(MockBehavior.Strict);"""],
+            ["""new Mock<ISample>(MockBehavior.Strict | MockBehavior.Loose);"""],
             ["""const MockBehavior behavior = MockBehavior.Strict; new Mock<ISample>(behavior);"""],
             ["""MockBehavior GetBehavior() => MockBehavior.Strict; MockBehavior behavior = GetBehavior(); {|Moq1410:new Mock<ISample>(behavior)|};"""],
 
@@ -72,5 +73,41 @@ public class SetStrictMockBehaviorAnalyzerTests
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldReportWhenConstructorUsesDefaultMockBehaviorParameter()
+    {
+        const string source = """
+            namespace Moq
+            {
+                public enum MockBehavior
+                {
+                    Strict = 0,
+                    Loose = 1,
+                    Default = 1,
+                }
+
+                public class Mock<T>
+                {
+                    public Mock(MockBehavior behavior = MockBehavior.Default) { }
+                }
+            }
+
+            public interface ISample
+            {
+                void Method();
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    {|Moq1410:new Moq.Mock<ISample>()|};
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80);
     }
 }
