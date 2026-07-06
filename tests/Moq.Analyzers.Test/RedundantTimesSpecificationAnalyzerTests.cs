@@ -49,6 +49,19 @@ public class RedundantTimesSpecificationAnalyzerTests(ITestOutputHelper output)
             // Should detect redundant Times with message argument
             ["new Mock<ISampleInterface>().Verify(x => x.TestMethod(), {|Moq1420:Times.AtLeastOnce()|}, \"should be called at least once\");"],
             ["new Mock<ISampleInterface>().VerifyGet(x => x.TestProperty, {|Moq1420:Times.AtLeastOnce()|}, \"should be called at least once\");"],
+
+            // Should NOT flag the Func<Times> method-group form today: those overloads take
+            // Func<Times>, not Times, so the analyzer's Times-parameter check never matches.
+            // Both Moq 4.8.2 and 4.18.4 expose Verify/VerifyGet(..., Func<Times>) overloads.
+            // This is a known false negative; these rows pin the current behavior.
+            ["new Mock<ISampleInterface>().Verify(x => x.TestMethod(), Times.AtLeastOnce);"],
+            ["new Mock<ISampleInterface>().VerifyGet(x => x.TestProperty, Times.AtLeastOnce);"],
+
+            // Should NOT detect Times stored in a local variable (argument is not an invocation)
+            ["var times = Times.AtLeastOnce(); new Mock<ISampleInterface>().Verify(x => x.TestMethod(), times);"],
+
+            // Should NOT flag Verify with only a failure message (no Times parameter at all)
+            ["new Mock<ISampleInterface>().Verify(x => x.TestMethod(), \"custom failure message\");"],
         ];
 
         IEnumerable<object[]> newMoqOnly =
@@ -122,6 +135,32 @@ namespace Test
     public class NotMoqImpl : INotMoq
     {
         public void Verify() { }
+    }
+}
+""";
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    [Fact]
+    public async Task ShouldDetectRedundantTimesWithUsingStatic()
+    {
+        const string source = """
+using static Moq.Times;
+
+namespace Test
+{
+    public interface ISampleInterface
+    {
+        void TestMethod();
+    }
+
+    public class TestClass
+    {
+        public void TestMethod()
+        {
+            new Mock<ISampleInterface>().Verify(x => x.TestMethod(), {|Moq1420:AtLeastOnce()|});
+        }
     }
 }
 """;

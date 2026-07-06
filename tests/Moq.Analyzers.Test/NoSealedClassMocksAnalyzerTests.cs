@@ -168,7 +168,7 @@ public partial class NoSealedClassMocksAnalyzerTests
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ShoulAnalyzeSealedClassMocks(string referenceAssemblyGroup, string @namespace, string mock)
+    public async Task ShouldAnalyzeSealedClassMocks(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await Verifier.VerifyAnalyzerAsync(
                 $$"""
