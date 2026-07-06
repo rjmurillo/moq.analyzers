@@ -2,12 +2,16 @@ name: Release publish
 
 on:
   workflow_dispatch: # Allow running the workflow manually from the GitHub UI
+    inputs:
+      expected-version:
+        description: 'Package version to publish, without leading v (e.g. 0.4.2); must match the built .nupkg version'
+        required: true
+        type: string
   release:
     types:
       - published # Run the workflow when a new GitHub release is published
 
 permissions:
-  security-events: write  # required for CodeQL
   packages: read
   contents: read
   actions: read
@@ -27,10 +31,9 @@ jobs:
           path: packages
           name: packages
       - name: Verify package version matches release tag
-        if: github.event_name == 'release'
         shell: pwsh
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ github.event_name == 'release' && github.ref_name || inputs.expected-version }}
         run: |
           $tag = $env:RELEASE_TAG -replace '^v', ''
           $packages = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike '*.symbols.*' })

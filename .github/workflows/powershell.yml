@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Run PSScriptAnalyzer
-        uses: microsoft/psscriptanalyzer-action@7a0da25f33985767f15f93140306528900744195
+        uses: microsoft/psscriptanalyzer-action@7a0da25f33985767f15f93140306528900744195 # main, post-v1.1 (PR #9; no tagged release contains this commit)
         with:
           # Check https://github.com/microsoft/action-psscriptanalyzer for more info about the options.
           # The below set up runs PSScriptAnalyzer to your entire repository and runs some basic security rules.
