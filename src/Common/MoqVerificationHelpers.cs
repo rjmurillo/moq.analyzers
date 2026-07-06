@@ -57,14 +57,11 @@ internal static class MoqVerificationHelpers
     /// <returns>The mocked member symbol if found, otherwise null.</returns>
     public static ISymbol? TryGetMockedMemberSymbol(IInvocationOperation moqInvocation)
     {
-        if (moqInvocation.Arguments.Length == 0)
-        {
-            return null;
-        }
+        IArgumentOperation? expressionArgument = GetArgumentForParameterOrdinal(moqInvocation, 0);
 
-        // For code fix, we only need to handle the simple case (first argument)
-        // since the analyzer already validates the more complex scenarios
-        IAnonymousFunctionOperation? lambdaOperation = ExtractLambdaFromArgument(moqInvocation.Arguments[0].Value);
+        IAnonymousFunctionOperation? lambdaOperation = expressionArgument is not null
+            ? ExtractLambdaFromArgument(expressionArgument.Value)
+            : null;
 
         return lambdaOperation?.Body.GetReferencedMemberSymbolFromLambda();
     }
@@ -76,15 +73,35 @@ internal static class MoqVerificationHelpers
     /// <returns>The mocked member syntax node if found, otherwise null.</returns>
     public static SyntaxNode? TryGetMockedMemberSyntax(IInvocationOperation moqInvocation)
     {
-        if (moqInvocation.Arguments.Length == 0)
-        {
-            return null;
-        }
+        IArgumentOperation? expressionArgument = GetArgumentForParameterOrdinal(moqInvocation, 0);
 
-        // For code fix, we only need to handle the simple case (first argument)
-        // since the analyzer already validates the more complex scenarios
-        IAnonymousFunctionOperation? lambdaOperation = ExtractLambdaFromArgument(moqInvocation.Arguments[0].Value);
+        IAnonymousFunctionOperation? lambdaOperation = expressionArgument is not null
+            ? ExtractLambdaFromArgument(expressionArgument.Value)
+            : null;
 
         return lambdaOperation?.Body.GetReferencedMemberSyntaxFromLambda();
+    }
+
+    /// <summary>
+    /// Gets the argument bound to the parameter at the given ordinal, regardless of source order.
+    /// </summary>
+    /// <param name="moqInvocation">The invocation operation.</param>
+    /// <param name="ordinal">The zero-based parameter ordinal.</param>
+    /// <returns>The matching argument, or null if none is bound to that ordinal.</returns>
+    public static IArgumentOperation? GetArgumentForParameterOrdinal(IInvocationOperation moqInvocation, int ordinal)
+    {
+        System.Diagnostics.Debug.Assert(ordinal >= 0, "Parameter ordinal must be non-negative.");
+
+        IArgumentOperation? match = null;
+        foreach (IArgumentOperation argument in moqInvocation.Arguments)
+        {
+            if (argument.Parameter?.Ordinal == ordinal)
+            {
+                match = argument;
+                break;
+            }
+        }
+
+        return match;
     }
 }

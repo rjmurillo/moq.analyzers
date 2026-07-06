@@ -64,7 +64,10 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAna
         ISymbol? mockedMemberSymbol;
         if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
         {
-            IAnonymousFunctionOperation? lambda = MoqVerificationHelpers.ExtractLambdaFromArgument(invocationOperation.Arguments[0].Value);
+            IArgumentOperation? setterArgument = MoqVerificationHelpers.GetArgumentForParameterOrdinal(invocationOperation, 0);
+            IAnonymousFunctionOperation? lambda = setterArgument is not null
+                ? MoqVerificationHelpers.ExtractLambdaFromArgument(setterArgument.Value)
+                : null;
             mockedMemberSymbol = lambda is not null
                 ? MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambda)
                 : null;
