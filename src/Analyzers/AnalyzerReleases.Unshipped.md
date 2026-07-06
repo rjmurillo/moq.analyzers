@@ -9,7 +9,7 @@ Moq1003 | Usage | Warning | InternalTypeMustHaveInternalsVisibleToAnalyzer
 Moq1004 | Usage | Warning | NoMockOfLoggerAnalyzer
 Moq1200 | Correctness | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer now reports sealed default interface members
 Moq1207 | Correctness | Error | SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer now reports sealed default interface members
-Moq1208 | Correctness | Warning | ReturnsDelegateShouldReturnTaskAnalyzer
+Moq1208 | Correctness | Warning | ReturnsDelegateShouldReturnTaskAnalyzer detects explicit Returns<T> delegate mismatches and fixes with inferred ReturnsAsync
 Moq1210 | Correctness | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer now reports sealed default interface members and only offers Make member virtual when legal
 Moq1600 | Usage | Warning | ProtectedSetupShouldUseItExprAnalyzer
 

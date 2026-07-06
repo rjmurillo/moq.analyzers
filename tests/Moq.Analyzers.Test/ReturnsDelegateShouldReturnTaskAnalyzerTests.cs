@@ -81,6 +81,12 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
                 new Mock<AsyncService>().Setup(expr).Returns(() => Task.FromResult(42));
                 """,
             ],
+
+            // Generic Returns<T> with lambda body returning Task<int> (correct)
+            ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).Returns<string>(s => Task.FromResult(s.Length));"""],
+
+            // Generic Returns<T> with async lambda is Moq1206's domain, not ours
+            ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).Returns<string>(async s => await Task.FromResult(s.Length));"""],
         };
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
@@ -138,6 +144,18 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
 
             // Method group returning string on Task<string> method
             ["""new Mock<AsyncService>().Setup(c => c.GetNameAsync()).{|Moq1208:Returns(GetString)|};"""],
+
+            // Generic Returns<T> with implicit lambda returning wrong type on Task<int> method
+            ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).{|Moq1208:Returns<string>(s => s.Length)|};"""],
+
+            // Generic Returns<T> with block-bodied lambda returning wrong type on Task<int> method
+            ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).{|Moq1208:Returns<string>(s => { return s.Length; })|};"""],
+
+            // Generic Returns<T> with explicitly typed lambda returning wrong type on Task<int> method
+            ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).{|Moq1208:Returns<string>((string s) => s.Length)|};"""],
+
+            // Generic Returns<T> with anonymous method returning wrong type on Task<int> method
+            ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).{|Moq1208:Returns<string>(delegate (string s) { return s.Length; })|};"""],
         };
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
@@ -160,12 +178,6 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
 
             // Invocation as value, not delegate: GetInt() is a call, not a method group (GH PR #942 review thread)
             ["""new Mock<AsyncService>().Setup(c => c.GetValueAsync()).Returns(GetInt());"""],
-
-            // Generic Returns<T> with sync lambda: target-type inference masks the mismatch (analyzer gap, see PR #1089)
-            ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).Returns<string>(s => s.Length);"""],
-
-            // Generic Returns<T> with async lambda (no mismatch)
-            ["""new Mock<AsyncService>().Setup(c => c.ProcessAsync(It.IsAny<string>())).Returns<string>(async s => s.Length);"""],
         };
 
         return data.WithNamespaces().WithMoqReferenceAssemblyGroups();

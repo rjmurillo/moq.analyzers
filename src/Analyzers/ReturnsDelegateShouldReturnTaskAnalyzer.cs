@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Moq.Analyzers;
@@ -223,6 +224,15 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
 
         ExpressionSyntax firstArgument = returnsInvocation.ArgumentList.Arguments[0].Expression;
 
+        // For anonymous functions with explicit Returns<T1..TN> type arguments, prefer body
+        // analysis. Roslyn target-types the function against the selected delegate and can
+        // report Task<int> even when the body returns int.
+        if (HasExplicitReturnsTypeArguments(returnsInvocation)
+            && firstArgument is AnonymousFunctionExpressionSyntax anonymousFunction)
+        {
+            return GetReturnTypeFromAnonymousFunction(anonymousFunction, semanticModel);
+        }
+
         // For anonymous methods, prefer body analysis. Roslyn may infer the return type
         // from the target delegate type (e.g., Task<int>) for parameterless anonymous methods,
         // masking the actual body return type (e.g., int).
@@ -249,6 +259,40 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
         }
 
         return null;
+    }
+
+    private static bool HasExplicitReturnsTypeArguments(InvocationExpressionSyntax returnsInvocation)
+    {
+        return returnsInvocation.Expression is MemberAccessExpressionSyntax
+        {
+            Name: GenericNameSyntax,
+        };
+    }
+
+    private static ITypeSymbol? GetReturnTypeFromAnonymousFunction(
+        AnonymousFunctionExpressionSyntax anonymousFunction,
+        SemanticModel semanticModel)
+    {
+        Debug.Assert(!anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword), "Async lambdas are handled by Moq1206.");
+
+        if (anonymousFunction is AnonymousMethodExpressionSyntax { Body: BlockSyntax anonymousMethodBlock })
+        {
+            return GetReturnTypeFromBlock(anonymousMethodBlock, semanticModel);
+        }
+
+        // AnonymousMethodExpressionSyntax (handled above) and LambdaExpressionSyntax are the
+        // only two AnonymousFunctionExpressionSyntax subtypes, so what remains is a lambda.
+        Debug.Assert(anonymousFunction is LambdaExpressionSyntax, "Only anonymous methods and lambdas derive from AnonymousFunctionExpressionSyntax.");
+        LambdaExpressionSyntax lambda = (LambdaExpressionSyntax)anonymousFunction;
+
+        if (lambda.Block is BlockSyntax lambdaBlock)
+        {
+            return GetReturnTypeFromBlock(lambdaBlock, semanticModel);
+        }
+
+        // A lambda without a block body always has an expression body.
+        Debug.Assert(lambda.ExpressionBody is not null, "A block-less lambda has an expression body.");
+        return semanticModel.GetTypeInfo(lambda.ExpressionBody!).Type;
     }
 
     private static ITypeSymbol? GetReturnTypeFromBlock(BlockSyntax block, SemanticModel semanticModel)

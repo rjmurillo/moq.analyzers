@@ -1,4 +1,5 @@
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
@@ -47,6 +48,11 @@ public sealed class ReturnsDelegateShouldReturnTaskFixer : CodeFixProvider
             return;
         }
 
+        if (memberAccess.Name is GenericNameSyntax && !TypeInferenceCanBindDroppedTypeArguments(memberAccess))
+        {
+            return;
+        }
+
         context.RegisterCodeFix(
             CodeAction.Create(
                 title: Title,
@@ -55,27 +61,48 @@ public sealed class ReturnsDelegateShouldReturnTaskFixer : CodeFixProvider
             diagnostic);
     }
 
+    private static bool TypeInferenceCanBindDroppedTypeArguments(MemberAccessExpressionSyntax memberAccess)
+    {
+        Debug.Assert(memberAccess.Name is GenericNameSyntax, "Only explicit Returns<T> calls need this guard.");
+
+        // The analyzer only flags a Returns call that is the target of an invocation with at
+        // least one delegate argument, so both facts are invariants at this point.
+        Debug.Assert(memberAccess.Parent is InvocationExpressionSyntax, "A flagged Returns member access is always invoked.");
+        InvocationExpressionSyntax returnsInvocation = (InvocationExpressionSyntax)memberAccess.Parent!;
+
+        Debug.Assert(returnsInvocation.ArgumentList.Arguments.Count > 0, "A flagged Returns call always has a delegate argument.");
+
+        ExpressionSyntax firstArgument = returnsInvocation.ArgumentList.Arguments[0].Expression;
+        return firstArgument switch
+        {
+            ParenthesizedLambdaExpressionSyntax lambda when lambda.ParameterList.Parameters.Count > 0 => AllParametersHaveExplicitTypes(lambda.ParameterList.Parameters),
+            AnonymousMethodExpressionSyntax { ParameterList: { } parameterList } when parameterList.Parameters.Count > 0 => AllParametersHaveExplicitTypes(parameterList.Parameters),
+            _ => false,
+        };
+    }
+
+    private static bool AllParametersHaveExplicitTypes(SeparatedSyntaxList<ParameterSyntax> parameters)
+    {
+        Debug.Assert(parameters.Count > 0, "Only delegates with parameters can infer dropped Returns<T> type arguments.");
+
+        for (int i = 0; i < parameters.Count; i++)
+        {
+            if (parameters[i].Type == null)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private static Task<Document> ReplaceReturnsWithReturnsAsync(
         Document document,
         SyntaxNode root,
         MemberAccessExpressionSyntax memberAccess)
     {
         SimpleNameSyntax oldName = memberAccess.Name;
-        SimpleNameSyntax newName;
-
-        // Moq's IReturns<TMock, TResult> interface defines method-level generic overloads
-        // like Returns<T1>(Func<T1, TResult>). When a user writes .Returns<string>(s => 42),
-        // the syntax is GenericNameSyntax. Preserve type arguments to maintain developer intent.
-        if (oldName is GenericNameSyntax genericName)
-        {
-            newName = SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier("ReturnsAsync"),
-                genericName.TypeArgumentList);
-        }
-        else
-        {
-            newName = SyntaxFactory.IdentifierName("ReturnsAsync");
-        }
+        SimpleNameSyntax newName = SyntaxFactory.IdentifierName("ReturnsAsync");
 
         newName = newName
             .WithLeadingTrivia(oldName.GetLeadingTrivia())
