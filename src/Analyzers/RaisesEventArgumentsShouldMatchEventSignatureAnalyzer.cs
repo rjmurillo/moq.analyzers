@@ -66,17 +66,17 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticA
     {
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
-        if (!context.SemanticModel.IsRaisesInvocation(invocation, knownSymbols))
+        if (!context.SemanticModel.IsRaisesInvocation(invocation, knownSymbols, context.CancellationToken))
         {
             return;
         }
 
-        if (!EventSyntaxExtensions.TryGetEventMethodArgumentsFromLambdaSelector(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes, out bool senderCanBeOmitted))
+        if (!EventSyntaxExtensions.TryGetEventMethodArgumentsFromLambdaSelector(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes, out bool senderCanBeOmitted, context.CancellationToken))
         {
             return;
         }
 
-        string eventName = EventSyntaxExtensions.GetEventNameFromSelector(invocation, context.SemanticModel);
+        string eventName = EventSyntaxExtensions.GetEventNameFromSelector(invocation, context.SemanticModel, context.CancellationToken);
 
         context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, senderCanBeOmitted, knownSymbols.EventArgs, invocation, Rule, eventName);
     }

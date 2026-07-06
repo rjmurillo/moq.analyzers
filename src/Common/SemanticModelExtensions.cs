@@ -55,7 +55,10 @@ internal static class SemanticModelExtensions
         }
     }
 
-    internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax? setupMethodInvocation)
+    internal static IEnumerable<IMethodSymbol> GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(
+        this SemanticModel semanticModel,
+        InvocationExpressionSyntax? setupMethodInvocation,
+        CancellationToken cancellationToken = default)
     {
         // Guard against incomplete or malformed setup invocations (for example a mid-edit
         // `Setup()` with no arguments), where indexing the first argument would throw.
@@ -68,25 +71,77 @@ internal static class SemanticModelExtensions
 
         return setupLambdaArgument?.Body is not InvocationExpressionSyntax mockedMethodInvocation
             ? []
-            : semanticModel.GetAllMatchingSymbols<IMethodSymbol>(mockedMethodInvocation);
+            : semanticModel.GetAllMatchingSymbols<IMethodSymbol>(mockedMethodInvocation, cancellationToken);
     }
 
-    internal static bool IsCallbackOrReturnInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax callbackOrReturnsInvocation, MoqKnownSymbols knownSymbols)
+    internal static bool IsCallbackOrReturnInvocation(
+        this SemanticModel semanticModel,
+        InvocationExpressionSyntax callbackOrReturnsInvocation,
+        MoqKnownSymbols knownSymbols,
+        CancellationToken cancellationToken = default)
     {
         return semanticModel.IsMoqFluentInvocation(
             callbackOrReturnsInvocation,
             CallbackOrReturnNames,
             knownSymbols,
-            static (symbol, ks) => IsCallbackOrReturnSymbol(symbol, ks));
+            static (symbol, ks) => IsCallbackOrReturnSymbol(symbol, ks),
+            cancellationToken);
     }
 
-    internal static bool IsRaisesInvocation(this SemanticModel semanticModel, InvocationExpressionSyntax raisesInvocation, MoqKnownSymbols knownSymbols)
+    internal static bool IsRaisesInvocation(
+        this SemanticModel semanticModel,
+        InvocationExpressionSyntax raisesInvocation,
+        MoqKnownSymbols knownSymbols,
+        CancellationToken cancellationToken = default)
     {
         return semanticModel.IsMoqFluentInvocation(
             raisesInvocation,
             RaisesNames,
             knownSymbols,
-            static (symbol, ks) => symbol.IsMoqRaisesMethod(ks));
+            static (symbol, ks) => symbol.IsMoqRaisesMethod(ks),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Determines whether an invocation can match a method name before semantic binding.
+    /// </summary>
+    /// <remarks>
+    /// ADR-001 permits this string check only as a pre-filter. Unknown invocation shapes
+    /// return <see langword="true"/> so the later symbol check remains authoritative.
+    /// </remarks>
+    /// <param name="invocation">The invocation to inspect.</param>
+    /// <param name="methodName">The method name that may match.</param>
+    /// <returns><see langword="false"/> only when the syntax method name is known and cannot match.</returns>
+    internal static bool CouldBeInvocationWithMethodName(this InvocationExpressionSyntax invocation, string methodName)
+    {
+        Debug.Assert(!string.IsNullOrEmpty(methodName), "A pre-filter name must be non-empty.");
+
+        return !TryGetInvocationMethodName(invocation, out string? invocationMethodName)
+            || string.Equals(invocationMethodName, methodName, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether an invocation can match either method name before semantic binding.
+    /// </summary>
+    /// <remarks>
+    /// ADR-001 permits this string check only as a pre-filter. Unknown invocation shapes
+    /// return <see langword="true"/> so the later symbol check remains authoritative.
+    /// </remarks>
+    /// <param name="invocation">The invocation to inspect.</param>
+    /// <param name="firstMethodName">The first method name that may match.</param>
+    /// <param name="secondMethodName">The second method name that may match.</param>
+    /// <returns><see langword="false"/> only when the syntax method name is known and cannot match.</returns>
+    internal static bool CouldBeInvocationWithAnyMethodName(
+        this InvocationExpressionSyntax invocation,
+        string firstMethodName,
+        string secondMethodName)
+    {
+        Debug.Assert(!string.IsNullOrEmpty(firstMethodName), "A pre-filter name must be non-empty.");
+        Debug.Assert(!string.IsNullOrEmpty(secondMethodName), "A pre-filter name must be non-empty.");
+
+        return !TryGetInvocationMethodName(invocation, out string? invocationMethodName)
+            || string.Equals(invocationMethodName, firstMethodName, StringComparison.Ordinal)
+            || string.Equals(invocationMethodName, secondMethodName, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -159,13 +214,20 @@ internal static class SemanticModelExtensions
     /// <param name="semanticModel">The semantic model.</param>
     /// <param name="eventSelector">The lambda event selector expression.</param>
     /// <param name="eventName">The extracted event name, if found.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns><see langword="true" /> if the event name was found; otherwise, <see langword="false" />.</returns>
     internal static bool TryGetEventNameFromLambdaSelector(
         this SemanticModel semanticModel,
         ExpressionSyntax eventSelector,
-        out string? eventName)
+        out string? eventName,
+        CancellationToken cancellationToken = default)
     {
-        return TryGetEventPropertyFromLambdaSelector(semanticModel, eventSelector, static eventSymbol => eventSymbol.ToDisplayString(), out eventName);
+        return TryGetEventPropertyFromLambdaSelector(
+            semanticModel,
+            eventSelector,
+            static eventSymbol => eventSymbol.ToDisplayString(),
+            out eventName,
+            cancellationToken);
     }
 
     /// <summary>
@@ -174,13 +236,20 @@ internal static class SemanticModelExtensions
     /// <param name="semanticModel">The semantic model.</param>
     /// <param name="eventSelector">The lambda event selector expression.</param>
     /// <param name="eventType">The extracted event type, if found.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns><see langword="true" /> if the event type was found; otherwise, <see langword="false" />.</returns>
     internal static bool TryGetEventTypeFromLambdaSelector(
         this SemanticModel semanticModel,
         ExpressionSyntax eventSelector,
-        out ITypeSymbol? eventType)
+        out ITypeSymbol? eventType,
+        CancellationToken cancellationToken = default)
     {
-        return TryGetEventPropertyFromLambdaSelector(semanticModel, eventSelector, static eventSymbol => eventSymbol.Type, out eventType);
+        return TryGetEventPropertyFromLambdaSelector(
+            semanticModel,
+            eventSelector,
+            static eventSymbol => eventSymbol.Type,
+            out eventType,
+            cancellationToken);
     }
 
     /// <summary>
@@ -191,16 +260,18 @@ internal static class SemanticModelExtensions
     /// <param name="eventSelector">The lambda event selector expression.</param>
     /// <param name="propertySelector">A function to extract the desired property from the event symbol.</param>
     /// <param name="result">The extracted property, if found.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns><see langword="true" /> if the property was extracted; otherwise, <see langword="false" />.</returns>
     private static bool TryGetEventPropertyFromLambdaSelector<T>(
         SemanticModel semanticModel,
         ExpressionSyntax eventSelector,
         Func<IEventSymbol, T> propertySelector,
-        out T? result)
+        out T? result,
+        CancellationToken cancellationToken)
     {
         result = default;
 
-        if (TryGetEventSymbolFromLambdaSelector(semanticModel, eventSelector, out IEventSymbol? eventSymbol) &&
+        if (TryGetEventSymbolFromLambdaSelector(semanticModel, eventSelector, out IEventSymbol? eventSymbol, cancellationToken) &&
             eventSymbol != null)
         {
             result = propertySelector(eventSymbol);
@@ -210,12 +281,12 @@ internal static class SemanticModelExtensions
         return false;
     }
 
-    private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression)
+    private static List<T> GetAllMatchingSymbols<T>(this SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         where T : class
     {
         List<T> matchingSymbols = new();
 
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression);
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
         switch (symbolInfo)
         {
             case { CandidateReason: CandidateReason.None, Symbol: T }:
@@ -256,11 +327,13 @@ internal static class SemanticModelExtensions
     /// <param name="semanticModel">The semantic model.</param>
     /// <param name="eventSelector">The lambda event selector expression.</param>
     /// <param name="eventSymbol">The extracted event symbol, if found.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns><see langword="true" /> if the event symbol was found; otherwise, <see langword="false" />.</returns>
     private static bool TryGetEventSymbolFromLambdaSelector(
         SemanticModel semanticModel,
         ExpressionSyntax eventSelector,
-        out IEventSymbol? eventSymbol)
+        out IEventSymbol? eventSymbol,
+        CancellationToken cancellationToken)
     {
         eventSymbol = null;
 
@@ -284,7 +357,7 @@ internal static class SemanticModelExtensions
         }
 
         // Get the symbol for the event
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
         if (symbolInfo.Symbol is not IEventSymbol symbol)
         {
             return false;
@@ -308,14 +381,18 @@ internal static class SemanticModelExtensions
     /// <param name="fastPathNames">Method names for early rejection before the expensive GetSymbolInfo call.</param>
     /// <param name="knownSymbols">Known symbols passed through to the predicate to avoid closure allocations.</param>
     /// <param name="symbolPredicate">Predicate that validates the resolved symbol against known symbols.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns><see langword="true"/> if the invocation matches; otherwise, <see langword="false"/>.</returns>
     private static bool IsMoqFluentInvocation(
         this SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
         string[] fastPathNames,
         MoqKnownSymbols knownSymbols,
-        Func<ISymbol, MoqKnownSymbols, bool> symbolPredicate)
+        Func<ISymbol, MoqKnownSymbols, bool> symbolPredicate,
+        CancellationToken cancellationToken = default)
     {
+        Debug.Assert(fastPathNames.Length > 0, "At least one pre-filter name is required.");
+
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
         {
             return false;
@@ -338,7 +415,7 @@ internal static class SemanticModelExtensions
             return false;
         }
 
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
         return symbolInfo.CandidateReason switch
         {
             CandidateReason.OverloadResolutionFailure => symbolInfo.CandidateSymbols.Any(s => symbolPredicate(s, knownSymbols)),
@@ -355,5 +432,27 @@ internal static class SemanticModelExtensions
         }
 
         return symbol.IsMoqCallbackMethod(knownSymbols) || symbol.IsMoqReturnsMethod(knownSymbols);
+    }
+
+    private static bool TryGetInvocationMethodName(InvocationExpressionSyntax invocation, out string? methodName)
+    {
+        switch (invocation.Expression)
+        {
+            case MemberAccessExpressionSyntax memberAccess:
+                methodName = memberAccess.Name.Identifier.ValueText;
+                return true;
+            case MemberBindingExpressionSyntax memberBinding:
+                methodName = memberBinding.Name.Identifier.ValueText;
+                return true;
+            case IdentifierNameSyntax identifier:
+                methodName = identifier.Identifier.ValueText;
+                return true;
+            case GenericNameSyntax genericName:
+                methodName = genericName.Identifier.ValueText;
+                return true;
+            default:
+                methodName = null;
+                return false;
+        }
     }
 }

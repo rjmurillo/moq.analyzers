@@ -50,12 +50,12 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         // Check if this is a SetupAdd or SetupRemove method call on a Mock<T>
-        if (!IsEventSetupMethodCall(context.SemanticModel, invocation, knownSymbols))
+        if (!IsEventSetupMethodCall(context.SemanticModel, invocation, knownSymbols, context.CancellationToken))
         {
             return;
         }
 
-        if (!TryGetEventSetupArguments(invocation, context.SemanticModel, out ExpressionSyntax? handlerExpression, out ITypeSymbol? expectedEventType, out string? eventName))
+        if (!TryGetEventSetupArguments(invocation, context.SemanticModel, out ExpressionSyntax? handlerExpression, out ITypeSymbol? expectedEventType, out string? eventName, context.CancellationToken))
         {
             return;
         }
@@ -63,9 +63,19 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         ValidateHandlerType(context, knownSymbols, handlerExpression!, expectedEventType!, eventName!);
     }
 
-    private static bool IsEventSetupMethodCall(SemanticModel semanticModel, InvocationExpressionSyntax invocation, MoqKnownSymbols knownSymbols)
+    private static bool IsEventSetupMethodCall(
+        SemanticModel semanticModel,
+        InvocationExpressionSyntax invocation,
+        MoqKnownSymbols knownSymbols,
+        CancellationToken cancellationToken)
     {
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation);
+        // ADR-001 permits this name check only as a pre-filter; the symbol check below is authoritative.
+        if (!invocation.CouldBeInvocationWithAnyMethodName("SetupAdd", "SetupRemove"))
+        {
+            return false;
+        }
+
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation, cancellationToken);
         if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
         {
             return false;
@@ -74,7 +84,13 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         return methodSymbol.IsMoqEventSetupMethod(knownSymbols);
     }
 
-    private static bool TryGetEventSetupArguments(InvocationExpressionSyntax invocation, SemanticModel semanticModel, out ExpressionSyntax? handlerExpression, out ITypeSymbol? expectedEventType, out string? eventName)
+    private static bool TryGetEventSetupArguments(
+        InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
+        out ExpressionSyntax? handlerExpression,
+        out ITypeSymbol? expectedEventType,
+        out string? eventName,
+        CancellationToken cancellationToken)
     {
         handlerExpression = null;
         expectedEventType = null;
@@ -91,7 +107,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
 
         // First argument should be a lambda that sets up the event handler
         ExpressionSyntax setupExpression = arguments[0].Expression;
-        if (!TryGetEventAndHandlerFromSetup(semanticModel, setupExpression, out ITypeSymbol? eventType, out ExpressionSyntax? handler, out string? name))
+        if (!TryGetEventAndHandlerFromSetup(semanticModel, setupExpression, out ITypeSymbol? eventType, out ExpressionSyntax? handler, out string? name, cancellationToken))
         {
             return false;
         }
@@ -102,7 +118,13 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         return true;
     }
 
-    private static bool TryGetEventAndHandlerFromSetup(SemanticModel semanticModel, ExpressionSyntax setupExpression, out ITypeSymbol? eventType, out ExpressionSyntax? handlerExpression, out string? eventName)
+    private static bool TryGetEventAndHandlerFromSetup(
+        SemanticModel semanticModel,
+        ExpressionSyntax setupExpression,
+        out ITypeSymbol? eventType,
+        out ExpressionSyntax? handlerExpression,
+        out string? eventName,
+        CancellationToken cancellationToken)
     {
         eventType = null;
         handlerExpression = null;
@@ -128,7 +150,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
         if (symbolInfo.Symbol is not IEventSymbol eventSymbol)
         {
             return false;
@@ -143,7 +165,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
     private static void ValidateHandlerType(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols, ExpressionSyntax handlerExpression, ITypeSymbol expectedEventType, string eventName)
     {
         // Get the handler type from the expression
-        if (!TryGetHandlerTypeFromExpression(context.SemanticModel, knownSymbols, handlerExpression, out ITypeSymbol? handlerType))
+        if (!TryGetHandlerTypeFromExpression(context.SemanticModel, knownSymbols, handlerExpression, out ITypeSymbol? handlerType, context.CancellationToken))
         {
             return;
         }
@@ -161,7 +183,12 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static bool TryGetHandlerTypeFromExpression(SemanticModel semanticModel, MoqKnownSymbols knownSymbols, ExpressionSyntax handlerExpression, out ITypeSymbol? handlerType)
+    private static bool TryGetHandlerTypeFromExpression(
+        SemanticModel semanticModel,
+        MoqKnownSymbols knownSymbols,
+        ExpressionSyntax handlerExpression,
+        out ITypeSymbol? handlerType,
+        CancellationToken cancellationToken)
     {
         handlerType = null;
 
@@ -172,7 +199,7 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
             genericName.TypeArgumentList.Arguments.Count == 1)
         {
             // Use semantic model to check if this is actually It.IsAny
-            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol &&
                 methodSymbol.IsInstanceOf(knownSymbols.ItIsAny))
             {
@@ -181,14 +208,14 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzer : DiagnosticAnalyzer
                 // path also cause compiler errors before the analyzer runs. The analyzer is designed to
                 // catch subtle Moq-specific type compatibility issues that pass C# compiler validation
                 // but are semantically incorrect for event handler assignment.
-                TypeInfo typeInfo = semanticModel.GetTypeInfo(genericName.TypeArgumentList.Arguments[0]);
+                TypeInfo typeInfo = semanticModel.GetTypeInfo(genericName.TypeArgumentList.Arguments[0], cancellationToken);
                 handlerType = typeInfo.Type;
                 return handlerType != null;
             }
         }
 
         // For other expressions, get the type directly
-        TypeInfo expressionTypeInfo = semanticModel.GetTypeInfo(handlerExpression);
+        TypeInfo expressionTypeInfo = semanticModel.GetTypeInfo(handlerExpression, cancellationToken);
         handlerType = expressionTypeInfo.ConvertedType;
         return handlerType != null;
     }

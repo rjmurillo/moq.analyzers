@@ -32,6 +32,8 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzerTests
             ["""mockProvider.SetupAdd(x => x.SimpleEvent += It.IsAny<Action>());"""],
             ["""mockProvider.SetupRemove(x => x.StringEvent -= It.IsAny<Action<string>>());"""],
             ["""mockProvider.SetupAdd(x => x.CustomDelegate += It.IsAny<MyDelegate>());"""],
+            ["""mockProvider?.SetupRemove(x => x.StringEvent -= It.IsAny<Action<string>>());"""],
+            ["""new CustomEventSetup().SetupAdd(x => x.StringEvent += It.IsAny<Action<string>>());"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
     }
 
@@ -56,6 +58,13 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzerTests
                 event EventHandler<CustomArgs> CustomEvent;
                 event Action SimpleEvent;
                 event MyDelegate CustomDelegate;
+            }
+
+            internal class CustomEventSetup
+            {
+                public void SetupAdd(Action<ITestInterface> setup)
+                {
+                }
             }
 
             internal class UnitTest
@@ -91,6 +100,13 @@ public class EventSetupHandlerShouldMatchEventTypeAnalyzerTests
                 event EventHandler<CustomArgs> CustomEvent;
                 event Action SimpleEvent;
                 event MyDelegate CustomDelegate;
+            }
+
+            internal class CustomEventSetup
+            {
+                public void SetupAdd(Action<ITestInterface> setup)
+                {
+                }
             }
 
             internal class UnitTest

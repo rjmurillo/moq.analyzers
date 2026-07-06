@@ -75,7 +75,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
             return;
         }
 
-        if (!semanticModel.IsCallbackOrReturnInvocation(callbackOrReturnsInvocation, knownSymbols))
+        if (!semanticModel.IsCallbackOrReturnInvocation(callbackOrReturnsInvocation, knownSymbols, context.CancellationToken))
         {
             return;
         }
@@ -163,7 +163,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
         }
         else
         {
-            IEnumerable<IMethodSymbol> mockedMethodSymbols = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupInvocation);
+            IEnumerable<IMethodSymbol> mockedMethodSymbols = semanticModel.GetAllMatchingMockedMethodSymbolsFromSetupMethodInvocation(setupInvocation, context.CancellationToken);
             ValidateParameters(context, semanticModel, mockedMethodSymbols, lambdaParameters, methodName);
         }
     }
