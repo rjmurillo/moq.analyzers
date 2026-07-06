@@ -63,6 +63,57 @@ public class SetExplicitMockBehaviorFixerTests
         }
         """;
 
+    private static readonly string SourceWithLooseBehavior = """
+        using Moq;
+
+        public interface ISample
+        {
+            void Method();
+        }
+
+        internal class UnitTest
+        {
+            private void Test()
+            {
+                var mock = new Mock<ISample>(MockBehavior.Loose);
+            }
+        }
+        """;
+
+    private static readonly string SourceWithDefaultBehavior = """
+        using Moq;
+
+        public interface ISample
+        {
+            void Method();
+        }
+
+        internal class UnitTest
+        {
+            private void Test()
+            {
+                var mock = new Mock<ISample>(MockBehavior.Default);
+            }
+        }
+        """;
+
+    private static readonly string SourceWithCompoundDefaultBehavior = """
+        using Moq;
+
+        public interface ISample
+        {
+            void Method();
+        }
+
+        internal class UnitTest
+        {
+            private void Test()
+            {
+                var mock = new Mock<ISample>(MockBehavior.Default | MockBehavior.Loose);
+            }
+        }
+        """;
+
     public static IEnumerable<object[]> StaleEditShapeData()
     {
         // EditType / EditPosition pairs that do NOT match `new Mock<ISample>()` (zero arguments):
@@ -73,6 +124,30 @@ public class SetExplicitMockBehaviorFixerTests
             ["Replace", "0"],
             ["Replace", "5"],
             ["Insert", "5"],
+        ];
+    }
+
+    public static IEnumerable<object[]> StaleReplaceNoOpData()
+    {
+        return
+        [
+            [SourceWithExplicitBehavior],
+            [SourceWithLooseBehavior],
+        ];
+    }
+
+    public static IEnumerable<object[]> StaleReplaceApplyData()
+    {
+        return
+        [
+            [
+                SourceWithDefaultBehavior,
+                SourceWithDefaultBehavior.Replace("MockBehavior.Default", "MockBehavior.Loose", StringComparison.Ordinal),
+            ],
+            [
+                SourceWithCompoundDefaultBehavior,
+                SourceWithCompoundDefaultBehavior.Replace("MockBehavior.Default | MockBehavior.Loose", "MockBehavior.Loose", StringComparison.Ordinal),
+            ],
         ];
     }
 
@@ -145,7 +220,91 @@ public class SetExplicitMockBehaviorFixerTests
         await AssertFixerNoOpAsync(model, tree, creation.Span, SourceWithImplicitBehavior, "Insert", "0");
     }
 
+    [Theory]
+    [MemberData(nameof(StaleReplaceNoOpData))]
+    public async Task StaleReplace_WhenUserChangedDefaultToExplicitBehavior_DoesNotOverwrite(string source)
+    {
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(source);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        // Stale scenario where the analyzer recorded Replace for MockBehavior.Default at position 0,
+        // but the user changed the same argument to an explicit behavior before applying the code fix.
+        // The fixer must preserve the user's current value instead of replacing it.
+        ObjectCreationExpressionSyntax creation = root
+            .DescendantNodes()
+            .OfType<ObjectCreationExpressionSyntax>()
+            .Single();
+
+        await AssertFixerNoOpAsync(model, tree, creation.Span, source, "Replace", "0");
+    }
+
+    [Theory]
+    [MemberData(nameof(StaleReplaceApplyData))]
+    public async Task StaleReplace_WhenArgumentStillContainsDefault_AppliesEdit(string source, string expected)
+    {
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(source);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        // Replace remains valid when the current argument still contains MockBehavior.Default,
+        // including compound expressions where Default is not the top-level operation.
+        ObjectCreationExpressionSyntax creation = root
+            .DescendantNodes()
+            .OfType<ObjectCreationExpressionSyntax>()
+            .Single();
+
+        await AssertFirstFixAsync(model, tree, creation.Span, source, expected, "Replace", "0");
+    }
+
     private static async Task AssertFixerNoOpAsync(SemanticModel model, SyntaxTree tree, TextSpan span, string sourceText, string editType, string editPosition)
+    {
+        await AssertFixerAsync(
+            model,
+            tree,
+            span,
+            sourceText,
+            editType,
+            editPosition,
+            async (document, actions) =>
+            {
+                string originalText = (await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+                foreach (CodeAction action in actions)
+                {
+                    ImmutableArray<CodeActionOperation> operations = await action.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
+                    ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
+                    Document changedDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
+                    string changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+                    Assert.Equal(originalText, changedText);
+                }
+            }).ConfigureAwait(false);
+    }
+
+    private static async Task AssertFirstFixAsync(SemanticModel model, SyntaxTree tree, TextSpan span, string sourceText, string expectedText, string editType, string editPosition)
+    {
+        await AssertFixerAsync(
+            model,
+            tree,
+            span,
+            sourceText,
+            editType,
+            editPosition,
+            async (document, actions) =>
+            {
+                ImmutableArray<CodeActionOperation> operations = await actions[0].GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
+                ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
+                Document changedDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
+                string changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+                Assert.Equal(expectedText, changedText);
+            }).ConfigureAwait(false);
+    }
+
+    private static async Task AssertFixerAsync(
+        SemanticModel model,
+        SyntaxTree tree,
+        TextSpan span,
+        string sourceText,
+        string editType,
+        string editPosition,
+        Func<Document, IReadOnlyList<CodeAction>, Task> assertAsync)
     {
         DiagnosticDescriptor descriptor = new(
             DiagnosticIds.SetExplicitMockBehavior,
@@ -176,19 +335,10 @@ public class SetExplicitMockBehaviorFixerTests
         Moq.CodeFixes.SetExplicitMockBehaviorFixer fixer = new();
         await fixer.RegisterCodeFixesAsync(context).ConfigureAwait(false);
 
-        // The fixer registers two actions (Loose and Strict). Applying either must not throw and
-        // must leave the document unchanged, because the recorded edit shape does not match the node.
+        // The fixer registers two actions (Loose and Strict). Applying either must not throw.
         const int expectedActionCount = 2;
         Assert.Equal(expectedActionCount, actions.Count);
 
-        string originalText = (await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
-        foreach (CodeAction action in actions)
-        {
-            ImmutableArray<CodeActionOperation> operations = await action.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
-            ApplyChangesOperation applyChanges = Assert.Single(operations.OfType<ApplyChangesOperation>());
-            Document changedDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
-            string changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
-            Assert.Equal(originalText, changedText);
-        }
+        await assertAsync(document, actions).ConfigureAwait(false);
     }
 }

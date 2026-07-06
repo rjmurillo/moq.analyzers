@@ -32,6 +32,6 @@ public class SetStrictMockBehaviorFixer : CodeFixProvider
             return;
         }
 
-        context.RegisterCodeFix(new SetExplicitMockBehaviorCodeAction("Set MockBehavior (Strict)", context.Document, nodeToFix, BehaviorType.Strict, editProperties.TypeOfEdit, editProperties.EditPosition), context.Diagnostics);
+        context.RegisterCodeFix(new SetExplicitMockBehaviorCodeAction("Set MockBehavior (Strict)", context.Document, nodeToFix, BehaviorType.Strict, editProperties.TypeOfEdit, editProperties.EditPosition, replaceRequiresDefaultReference: false), context.Diagnostics);
     }
 }
