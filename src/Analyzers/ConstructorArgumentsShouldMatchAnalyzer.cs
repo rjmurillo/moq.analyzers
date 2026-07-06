@@ -162,7 +162,7 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
         }
 
         // These are for classes
-        context.RegisterSyntaxNodeAction(context => AnalyzeNewObject(context, knownSymbols), SyntaxKind.ObjectCreationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeNewObject(context, knownSymbols), SyntaxKind.ObjectCreationExpression, SyntaxKind.ImplicitObjectCreationExpression);
         context.RegisterSyntaxNodeAction(context => AnalyzeInstanceCall(context, knownSymbols), SyntaxKind.InvocationExpression);
     }
 
@@ -209,38 +209,43 @@ public class ConstructorArgumentsShouldMatchAnalyzer : DiagnosticAnalyzer
 
     /// <summary>
     /// Analyzes when a Mock`1 object is created to verify the provided constructor arguments
-    /// match an existing constructor of the mocked class.
+    /// match an existing constructor of the mocked class. Handles both explicit
+    /// (<c>new Mock&lt;T&gt;(...)</c>) and target-typed (<c>Mock&lt;T&gt; mock = new(...)</c>) creation.
     /// </summary>
     /// <param name="context">The context.</param>
     /// <param name="knownSymbols">The <see cref="MoqKnownSymbols"/> used to lookup symbols against Moq types.</param>
     private static void AnalyzeNewObject(SyntaxNodeAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        ObjectCreationExpressionSyntax newExpression = (ObjectCreationExpressionSyntax)context.Node;
+        BaseObjectCreationExpressionSyntax newExpression = (BaseObjectCreationExpressionSyntax)context.Node;
 
-        GenericNameSyntax? genericNameSyntax = GetGenericNameSyntax(newExpression.Type);
-        if (genericNameSyntax == null)
+        if (newExpression is ObjectCreationExpressionSyntax { Type: var typeSyntax }
+            && GetGenericNameSyntax(typeSyntax) is null)
         {
             return;
         }
 
         SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(newExpression, context.CancellationToken);
 
-        if (!symbolInfo
-            .Symbol?
-            .IsInstanceOf(knownSymbols.Mock1?.Constructors ?? ImmutableArray<IMethodSymbol>.Empty)
-            ?? false)
+        if (symbolInfo.Symbol is not IMethodSymbol constructor
+            || !constructor.IsInstanceOf(knownSymbols.Mock1?.Constructors ?? ImmutableArray<IMethodSymbol>.Empty))
         {
             return;
         }
 
-        if (symbolInfo.Symbol?.ContainingType is not INamedTypeSymbol { IsGenericType: true } typeSymbol)
-        {
-            return;
-        }
+        AnalyzeMockObjectCreation(context, knownSymbols, constructor.ContainingType, newExpression.ArgumentList);
+    }
 
-        ITypeSymbol mockedClass = typeSymbol.TypeArguments[0];
+    private static void AnalyzeMockObjectCreation(
+        SyntaxNodeAnalysisContext context,
+        MoqKnownSymbols knownSymbols,
+        INamedTypeSymbol containingType,
+        ArgumentListSyntax? argumentList)
+    {
+        System.Diagnostics.Debug.Assert(containingType.IsGenericType, "Mock<T> constructor should belong to a generic type.");
 
-        VerifyMockAttempt(context, knownSymbols, mockedClass, newExpression.ArgumentList, true);
+        ITypeSymbol mockedClass = containingType.TypeArguments[0];
+
+        VerifyMockAttempt(context, knownSymbols, mockedClass, argumentList, true);
     }
 
     /// <summary>
