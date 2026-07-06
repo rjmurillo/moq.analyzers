@@ -58,6 +58,7 @@ internal static class EtlDiffer
         return false;
     }
 
+    [ExcludeFromCodeCoverage(Justification = "Requires a real ETL trace file; only reached through the excluded TryCompareETL I/O path.")]
     private static CallTree GetCallTree(TraceLog traceLog, string eltPath)
     {
         TraceProcess traceProcess = GetTraceProcessFromTraceLog(traceLog, eltPath);
@@ -65,6 +66,7 @@ internal static class EtlDiffer
         return CreateCallTreeFromStackSource(stackSource);
     }
 
+    [ExcludeFromCodeCoverage(Justification = "Requires a real ETL trace file; only reached through the excluded TryCompareETL I/O path.")]
     private static TraceProcess GetTraceProcessFromTraceLog(TraceLog traceLog, string eltPath)
     {
         TraceProcess? process = traceLog.Processes
@@ -80,6 +82,7 @@ internal static class EtlDiffer
         return process;
     }
 
+    [ExcludeFromCodeCoverage(Justification = "Requires a real ETL trace and a live symbol server; only reached through the excluded TryCompareETL I/O path.")]
     private static StackSource CreateStackSourceFromTraceProcess(TraceProcess process)
     {
         // Defensive null guard: EventsInProcess was checked during process selection in
@@ -103,6 +106,7 @@ internal static class EtlDiffer
         return new TraceEventStackSource(events);
     }
 
+    [ExcludeFromCodeCoverage(Justification = "Requires a real ETL trace; only reached through the excluded TryCompareETL I/O path.")]
     private static CallTree CreateCallTreeFromStackSource(StackSource stackSource)
     {
         CallTree calltree = new CallTree(ScalingPolicyKind.ScaleToData);
@@ -110,6 +114,7 @@ internal static class EtlDiffer
         return calltree;
     }
 
+    [ExcludeFromCodeCoverage(Justification = "Consumes CallTree instances built from real ETL traces; only reached through the excluded TryCompareETL I/O path. Overweight math is covered via ComputeOverweights tests.")]
     private static ImmutableArray<OverWeightResult> GenerateOverweightReport(CallTree source, CallTree baseline)
     {
         float sourceTotal = LoadTrace(source, out Dictionary<string, float> sourceData);
