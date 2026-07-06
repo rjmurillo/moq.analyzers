@@ -251,6 +251,43 @@ internal static class EventSyntaxExtensions
     }
 
     /// <summary>
+    /// Runs the shared Raise/Raises event argument validation tail.
+    /// </summary>
+    /// <param name="context">The syntax node analysis context.</param>
+    /// <param name="invocation">The Raise or Raises invocation.</param>
+    /// <param name="knownSymbols">The known Moq symbols for this compilation.</param>
+    /// <param name="rule">The diagnostic rule to report.</param>
+    internal static void AnalyzeEventArgumentsAgainstEventSignature(
+        this SyntaxNodeAnalysisContext context,
+        InvocationExpressionSyntax invocation,
+        MoqKnownSymbols knownSymbols,
+        DiagnosticDescriptor rule)
+    {
+        if (!TryGetEventMethodArgumentsFromLambdaSelector(
+            invocation,
+            context.SemanticModel,
+            knownSymbols,
+            out ArgumentSyntax[] eventArguments,
+            out ITypeSymbol[] expectedParameterTypes,
+            out bool senderCanBeOmitted,
+            context.CancellationToken))
+        {
+            return;
+        }
+
+        string eventName = GetEventNameFromSelector(invocation, context.SemanticModel, context.CancellationToken);
+
+        context.ValidateEventArgumentTypes(
+            eventArguments,
+            expectedParameterTypes,
+            senderCanBeOmitted,
+            knownSymbols.EventArgs,
+            invocation,
+            rule,
+            eventName);
+    }
+
+    /// <summary>
     /// Extracts the event name from the first argument (event selector lambda) of an invocation.
     /// </summary>
     /// <param name="invocation">The method invocation containing the lambda selector.</param>

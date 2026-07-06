@@ -12,6 +12,7 @@ namespace Moq.Analyzers;
 /// 1. This analyzes direct Mock.Raise() calls on the mock object
 /// 2. Uses proper symbol analysis via MoqKnownSymbols.Mock1Raise for robust detection
 /// 3. Implements immediate event triggering validation (not setup-based)
+/// The shared argument-validation tail lives in EventSyntaxExtensions.AnalyzeEventArgumentsAgainstEventSignature.
 ///
 /// Both analyzers serve critical roles in preventing runtime exceptions by validating
 /// event argument types at compile time, but they target different Moq usage patterns.
@@ -48,39 +49,11 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : MoqDiagnosti
         InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)context.Node;
 
         // Check if this is a Raise method call on a Mock<T>
-        if (!IsRaiseMethodCall(context.SemanticModel, invocation, knownSymbols, context.CancellationToken))
+        if (!context.SemanticModel.IsRaiseInvocation(invocation, knownSymbols, context.CancellationToken))
         {
             return;
         }
 
-        if (!EventSyntaxExtensions.TryGetEventMethodArgumentsFromLambdaSelector(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes, out bool senderCanBeOmitted, context.CancellationToken))
-        {
-            return;
-        }
-
-        string eventName = EventSyntaxExtensions.GetEventNameFromSelector(invocation, context.SemanticModel, context.CancellationToken);
-
-        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, senderCanBeOmitted, knownSymbols.EventArgs, invocation, Rule, eventName);
-    }
-
-    private static bool IsRaiseMethodCall(
-        SemanticModel semanticModel,
-        InvocationExpressionSyntax invocation,
-        MoqKnownSymbols knownSymbols,
-        CancellationToken cancellationToken)
-    {
-        // ADR-001 permits this name check only as a pre-filter; the symbol check below is authoritative.
-        if (!invocation.CouldBeInvocationWithMethodName("Raise"))
-        {
-            return false;
-        }
-
-        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation, cancellationToken);
-        if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
-        {
-            return false;
-        }
-
-        return methodSymbol.IsInstanceOf(knownSymbols.Mock1Raise);
+        context.AnalyzeEventArgumentsAgainstEventSignature(invocation, knownSymbols, Rule);
     }
 }

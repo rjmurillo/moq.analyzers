@@ -14,6 +14,7 @@ namespace Moq.Analyzers;
 /// 1. This analyzes Raises() method calls that are chained after Setup() calls
 /// 2. Uses symbol-based detection via SemanticModel.IsRaisesInvocation for robust identification
 /// 3. Implements setup-based event triggering validation (not immediate)
+/// The shared argument-validation tail lives in EventSyntaxExtensions.AnalyzeEventArgumentsAgainstEventSignature.
 ///
 ///
 /// Both this analyzer and RaiseEventArgumentsShouldMatchEventSignatureAnalyzer are essential
@@ -56,13 +57,6 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzer : MoqDiagnost
             return;
         }
 
-        if (!EventSyntaxExtensions.TryGetEventMethodArgumentsFromLambdaSelector(invocation, context.SemanticModel, knownSymbols, out ArgumentSyntax[] eventArguments, out ITypeSymbol[] expectedParameterTypes, out bool senderCanBeOmitted, context.CancellationToken))
-        {
-            return;
-        }
-
-        string eventName = EventSyntaxExtensions.GetEventNameFromSelector(invocation, context.SemanticModel, context.CancellationToken);
-
-        context.ValidateEventArgumentTypes(eventArguments, expectedParameterTypes, senderCanBeOmitted, knownSymbols.EventArgs, invocation, Rule, eventName);
+        context.AnalyzeEventArgumentsAgainstEventSignature(invocation, knownSymbols, Rule);
     }
 }
