@@ -27,7 +27,6 @@ on:
     - cron: '0 3 * * *' # Nightly run for performance validation
 
 permissions:
-  security-events: write  # required for CodeQL
   packages: read
   contents: read
   actions: read

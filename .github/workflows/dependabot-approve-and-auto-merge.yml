@@ -1,7 +1,16 @@
 name: Auto-Approve and Auto-Merge Bot PRs
+# SECURITY: This workflow uses pull_request_target, so it runs in the BASE repo
+# context with access to secrets even for fork PRs. Invariants (do not break):
+#   1. NEVER check out or execute PR-head code (no actions/checkout of
+#      github.event.pull_request.head.*, no building/running PR content).
+#   2. NEVER interpolate untrusted PR fields (title, body, branch name) directly
+#      into run: blocks - pass them through env: instead.
+# See: https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
+
+permissions: {}
 
 jobs:
   dependabot:
