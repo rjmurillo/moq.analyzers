@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Moq.CodeFixes;
@@ -11,8 +12,16 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
     private readonly BehaviorType _behaviorType;
     private readonly DiagnosticEditProperties.EditType _editType;
     private readonly int _position;
+    private readonly bool _replaceRequiresDefaultReference;
 
-    public SetExplicitMockBehaviorCodeAction(string title, Document document, SyntaxNode nodeToFix, BehaviorType behaviorType, DiagnosticEditProperties.EditType editType, int position)
+    public SetExplicitMockBehaviorCodeAction(
+        string title,
+        Document document,
+        SyntaxNode nodeToFix,
+        BehaviorType behaviorType,
+        DiagnosticEditProperties.EditType editType,
+        int position,
+        bool replaceRequiresDefaultReference)
     {
         if (title is null)
         {
@@ -40,6 +49,7 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
         _behaviorType = behaviorType;
         _editType = editType;
         _position = position;
+        _replaceRequiresDefaultReference = replaceRequiresDefaultReference;
     }
 
     public override string Title { get; }
@@ -63,7 +73,7 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
         // shape the analyzer saw at analysis time. If the document changed between analysis and fix
         // application (stale lightbulb), the resolved node may no longer match that shape. Return the
         // original document instead of applying a wrong edit or letting the argument rewriters throw.
-        if (!CanApplyEdit(editor.SemanticModel, knownSymbols.MockBehavior))
+        if (!CanApplyEdit(editor.SemanticModel, knownSymbols.MockBehavior, knownSymbols.MockBehaviorDefault))
         {
             return _document;
         }
@@ -105,17 +115,28 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
         return false;
     }
 
+    private static bool ContainsMockBehaviorDefaultReference(SemanticModel semanticModel, ArgumentSyntax argument, IFieldSymbol mockBehaviorDefault)
+    {
+        IOperation? operation = semanticModel.GetOperation(argument.Expression);
+        System.Diagnostics.Debug.Assert(operation is not null, "A valid argument expression should produce an operation.");
+
+        return operation!.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(field => field.Member.IsInstanceOf(mockBehaviorDefault));
+    }
+
     /// <summary>
     /// Validates that the edit recorded on the diagnostic can be applied safely to the current node.
     /// Guards against a stale lightbulb where the document changed after analysis: the node must still
     /// be an invocation or object creation, <see cref="_position"/> must be in range for the requested
-    /// edit, and an <see cref="DiagnosticEditProperties.EditType.Insert"/> must not duplicate a
-    /// <c>MockBehavior</c> argument the user added after the diagnostic was produced.
+    /// edit, an <see cref="DiagnosticEditProperties.EditType.Insert"/> must not duplicate a
+    /// <c>MockBehavior</c> argument the user added after the diagnostic was produced, and an explicit
+    /// behavior fix <see cref="DiagnosticEditProperties.EditType.Replace"/> must still point at an
+    /// argument containing <c>MockBehavior.Default</c>.
     /// </summary>
     /// <param name="semanticModel">The semantic model used to resolve argument types.</param>
     /// <param name="mockBehaviorType">The <c>MockBehavior</c> type symbol.</param>
+    /// <param name="mockBehaviorDefault">The <c>MockBehavior.Default</c> field symbol.</param>
     /// <returns><see langword="true"/> when the edit can be applied safely; otherwise <see langword="false"/>.</returns>
-    private bool CanApplyEdit(SemanticModel semanticModel, ISymbol mockBehaviorType)
+    private bool CanApplyEdit(SemanticModel semanticModel, ISymbol mockBehaviorType, IFieldSymbol mockBehaviorDefault)
     {
         if (!TryGetArgumentList(out SeparatedSyntaxList<ArgumentSyntax> arguments))
         {
@@ -130,7 +151,10 @@ internal sealed class SetExplicitMockBehaviorCodeAction : CodeAction
             DiagnosticEditProperties.EditType.Insert =>
                 _position <= arguments.Count
                 && !ContainsMockBehaviorArgument(semanticModel, arguments, mockBehaviorType),
-            DiagnosticEditProperties.EditType.Replace => _position < arguments.Count,
+            DiagnosticEditProperties.EditType.Replace =>
+                _position < arguments.Count
+                && (!_replaceRequiresDefaultReference
+                    || ContainsMockBehaviorDefaultReference(semanticModel, arguments[_position], mockBehaviorDefault)),
             _ => false,
         };
     }
