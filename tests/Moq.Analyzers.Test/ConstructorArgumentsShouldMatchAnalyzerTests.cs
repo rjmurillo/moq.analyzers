@@ -19,6 +19,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
 
             ["""new Mock<Foo>(false, 0);"""],
             ["""new Mock<Foo>(MockBehavior.Default, true, 1);"""],
+            ["""Mock<Foo> targetTypedMock = new(false, 0);"""],
 
             ["""new Mock<Foo>(MockBehavior.Default, new List<string>());"""],
             ["""new Mock<Foo>(new List<string>());"""],
@@ -27,6 +28,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<Foo>{|Moq1002:(1, true)|};"""],
             ["""new Mock<Foo>{|Moq1002:(MockBehavior.Default, 2, true)|};"""],
             ["""new Mock<Foo>{|Moq1002:("1", 3)|};"""],
+            ["""Mock<Foo> targetTypedMock = new{|Moq1002:("1")|};"""],
             ["""new Mock<Foo>{|Moq1002:(MockBehavior.Default, "2", 6)|};"""],
             ["""new Mock<Foo>{|Moq1002:(new int[] { 1, 2, 3 })|};"""],
             ["""new Mock<Foo>{|Moq1002:(MockBehavior.Default, 4, true)|};"""],

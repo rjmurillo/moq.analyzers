@@ -24,7 +24,6 @@ internal static class EventSyntaxExtensions
     /// </param>
     /// <param name="invocation">The invocation expression for error reporting.</param>
     /// <param name="rule">The diagnostic rule to report.</param>
-    /// <param name="eventName">The event name to include in diagnostic messages.</param>
     internal static void ValidateEventArgumentTypes(
         this SyntaxNodeAnalysisContext context,
         ArgumentSyntax[] eventArguments,
@@ -32,18 +31,13 @@ internal static class EventSyntaxExtensions
         bool senderCanBeOmitted,
         INamedTypeSymbol? eventArgsType,
         InvocationExpressionSyntax invocation,
-        DiagnosticDescriptor rule,
-        string? eventName = null)
+        DiagnosticDescriptor rule)
     {
+        string? eventName = null;
         int offset = 0;
 
-        // The sender may only be omitted when the EventArgs symbol is available to model Moq's
-        // sender-supplying overload. That symbol is a precondition of EventHandler-shaped detection,
-        // so this guard also keeps the offset == 1 path from dereferencing a null EventArgs type.
         if (senderCanBeOmitted && eventArgsType != null && eventArguments.Length == expectedParameterTypes.Length - 1)
         {
-            // Moq's Raise/Raises(..., EventArgs) overloads supply the mock object as the sender for
-            // EventHandler-shaped delegates. Validate the arguments against the post-sender parameters.
             System.Diagnostics.Debug.Assert(expectedParameterTypes.Length > 0, "EventHandler-shaped delegates have a sender parameter.");
             offset = 1;
         }
@@ -53,7 +47,7 @@ internal static class EventSyntaxExtensions
                 ? invocation.GetLocation()
                 : eventArguments[expectedParameterTypes.Length].GetLocation();
 
-            context.ReportDiagnostic(CreateEventDiagnostic(location, rule, eventName));
+            context.ReportDiagnostic(CreateEventDiagnostic(location, rule, GetEventNameForDiagnostic(invocation, context.SemanticModel, context.CancellationToken, ref eventName)));
             return;
         }
 
@@ -65,8 +59,6 @@ internal static class EventSyntaxExtensions
             bool hasConversion;
             if (argumentType == null)
             {
-                // A null-typed argument (e.g. a bare null literal) is treated as convertible to any
-                // reference parameter, matching the prior behavior.
                 hasConversion = true;
             }
             else if (offset == 1)
@@ -87,7 +79,7 @@ internal static class EventSyntaxExtensions
 
             if (!hasConversion)
             {
-                context.ReportDiagnostic(CreateEventDiagnostic(eventArguments[i].GetLocation(), rule, eventName));
+                context.ReportDiagnostic(CreateEventDiagnostic(eventArguments[i].GetLocation(), rule, GetEventNameForDiagnostic(invocation, context.SemanticModel, context.CancellationToken, ref eventName)));
             }
         }
     }
@@ -275,16 +267,13 @@ internal static class EventSyntaxExtensions
             return;
         }
 
-        string eventName = GetEventNameFromSelector(invocation, context.SemanticModel, context.CancellationToken);
-
         context.ValidateEventArgumentTypes(
             eventArguments,
             expectedParameterTypes,
             senderCanBeOmitted,
             knownSymbols.EventArgs,
             invocation,
-            rule,
-            eventName);
+            rule);
     }
 
     /// <summary>
@@ -326,6 +315,16 @@ internal static class EventSyntaxExtensions
         return eventName != null
             ? location.CreateDiagnostic(rule, eventName)
             : location.CreateDiagnostic(rule);
+    }
+
+    private static string? GetEventNameForDiagnostic(
+        InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        ref string? eventName)
+    {
+        eventName ??= GetEventNameFromSelector(invocation, semanticModel, cancellationToken);
+        return eventName;
     }
 
     /// <summary>
