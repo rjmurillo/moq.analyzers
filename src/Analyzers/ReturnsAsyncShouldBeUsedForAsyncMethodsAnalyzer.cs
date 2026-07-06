@@ -4,7 +4,7 @@ namespace Moq.Analyzers;
 /// Async method setups should use ReturnsAsync instead of Returns with async lambda.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyzer
+public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Invalid Returns usage with async method";
     private static readonly LocalizableString Message = "Async method '{0}' setups should use ReturnsAsync instead of Returns with async lambda";
@@ -23,23 +23,8 @@ public class ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer : DiagnosticAnalyze
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterSyntaxNodeAction(
             syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
             SyntaxKind.InvocationExpression);

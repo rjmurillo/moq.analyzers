@@ -9,17 +9,8 @@ namespace Moq.Analyzers;
 /// This abstract class provides common functionality for analyzing Moq's MockBehavior, such as registering
 /// compilation start actions and defining the core analysis logic to be implemented by derived classes.
 /// </remarks>
-public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
+public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzerBase
 {
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
-    {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
     /// <summary>
     /// Extracts the mocked type name from the operation for use in diagnostic messages.
     /// </summary>
@@ -110,16 +101,8 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : DiagnosticAnalyzer
 
     private protected abstract void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols);
 
-    private void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        // Ensure Moq is referenced in the compilation
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         // Look for the MockBehavior type and provide it to Analyze to avoid looking it up multiple times.
         if (knownSymbols.MockBehavior is null)
         {

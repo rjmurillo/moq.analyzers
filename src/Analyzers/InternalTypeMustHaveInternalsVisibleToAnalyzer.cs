@@ -9,7 +9,7 @@ namespace Moq.Analyzers;
 /// <c>[InternalsVisibleTo("DynamicProxyGenAssembly2")]</c>.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
+public class InternalTypeMustHaveInternalsVisibleToAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly string DynamicProxyAssemblyName = "DynamicProxyGenAssembly2";
 
@@ -30,24 +30,8 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         if (knownSymbols.Mock1 is null)
         {
             return;

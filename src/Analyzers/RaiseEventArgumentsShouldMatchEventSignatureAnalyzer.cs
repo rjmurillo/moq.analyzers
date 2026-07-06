@@ -17,7 +17,7 @@ namespace Moq.Analyzers;
 /// event argument types at compile time, but they target different Moq usage patterns.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAnalyzer
+public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Raise event arguments should match event signature";
     private static readonly LocalizableString Message = "Raise event arguments should match the '{0}' event delegate signature";
@@ -36,24 +36,8 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzer : DiagnosticAn
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterSyntaxNodeAction(
             syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
             SyntaxKind.InvocationExpression);

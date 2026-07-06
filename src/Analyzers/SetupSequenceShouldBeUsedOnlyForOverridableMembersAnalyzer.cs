@@ -6,7 +6,7 @@ namespace Moq.Analyzers;
 /// SetupSequence should be used only for overridable members.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : DiagnosticAnalyzer
+public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Invalid SetupSequence parameter";
     private static readonly LocalizableString Message = "SetupSequence should be used only for overridable members, but '{0}' is not overridable";
@@ -25,23 +25,8 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : Diagno
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterOperationAction(
             operationContext => AnalyzeInvocation(operationContext, knownSymbols),
             OperationKind.Invocation);

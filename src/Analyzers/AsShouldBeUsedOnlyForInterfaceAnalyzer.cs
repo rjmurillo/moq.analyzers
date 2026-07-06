@@ -7,7 +7,7 @@ namespace Moq.Analyzers;
 /// Mock.As() should take interfaces only.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
+public class AsShouldBeUsedOnlyForInterfaceAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Invalid As type parameter";
     private static readonly LocalizableString Message = "Mock.As() should take interfaces only, but '{0}' is not an interface";
@@ -26,25 +26,8 @@ public class AsShouldBeUsedOnlyForInterfaceAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        // Only analyze if Moq is referenced - if we're analyzing Moq usage patterns, Moq should be available
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         // Look for the Mock.As() method and provide it to Analyze to avoid looking it up multiple times.
         ImmutableArray<IMethodSymbol> asMethods = ImmutableArray.CreateRange([
             ..knownSymbols.MockAs,

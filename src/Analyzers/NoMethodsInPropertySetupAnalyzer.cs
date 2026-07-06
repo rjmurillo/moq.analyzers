@@ -7,7 +7,7 @@ namespace Moq.Analyzers;
 /// SetupGet/SetupSet/SetupProperty should be used for properties, not for methods.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
+public class NoMethodsInPropertySetupAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Property setup used for a method";
     private static readonly LocalizableString Message = "SetupGet/SetupSet/SetupProperty should be used for properties, not for methods like '{0}'";
@@ -26,24 +26,8 @@ public class NoMethodsInPropertySetupAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         ImmutableArray<IMethodSymbol> propertySetupMethods = ImmutableArray.CreateRange([
             ..knownSymbols.Mock1SetupGet,
             ..knownSymbols.Mock1SetupSet,

@@ -7,7 +7,7 @@ namespace Moq.Analyzers;
 /// Callback signature must match the signature of the mocked method.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyzer
+public class CallbackSignatureShouldMatchMockedMethodAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Bad callback parameters";
     private static readonly LocalizableString Message = "Callback signature for '{0}' must match the signature of the mocked method";
@@ -26,24 +26,8 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : DiagnosticAnalyz
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterOperationAction(
             operationAnalysisContext => Analyze(operationAnalysisContext, knownSymbols),
             OperationKind.Invocation);

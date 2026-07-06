@@ -4,7 +4,7 @@
 /// Setup of async method should use ReturnsAsync instead of .Result.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
+public class SetupShouldNotIncludeAsyncResultAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Invalid setup parameter";
     private static readonly LocalizableString Message = "Setup of async method '{0}' should use ReturnsAsync instead of .Result";
@@ -23,23 +23,8 @@ public class SetupShouldNotIncludeAsyncResultAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         // Check Moq version once per compilation, skip for 4.16.0 or later
         AssemblyIdentity? moqAssembly = context.Compilation.ReferencedAssemblyNames
             .FirstOrDefault(a => a.Name.Equals("Moq", StringComparison.OrdinalIgnoreCase));

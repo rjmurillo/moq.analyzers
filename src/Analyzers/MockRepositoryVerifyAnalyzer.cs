@@ -6,7 +6,7 @@ namespace Moq.Analyzers;
 /// MockRepository instances should have Verify() called on them to verify all created mocks.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
+public class MockRepositoryVerifyAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: MockRepository.Verify() should be called";
     private static readonly LocalizableString Message = "MockRepository '{0}' should have Verify() called";
@@ -25,28 +25,8 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    /// <summary>
-    /// Registers the operation action for MockRepository analysis if Moq is referenced.
-    /// </summary>
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        // Ensure Moq is referenced in the compilation
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         // Check that MockRepository type is available
         if (knownSymbols.MockRepository is null)
         {
@@ -57,6 +37,10 @@ public class MockRepositoryVerifyAnalyzer : DiagnosticAnalyzer
             operationContext => AnalyzeVariableDeclaration(operationContext, knownSymbols),
             OperationKind.VariableDeclarator);
     }
+
+    /// <summary>
+    /// Registers the operation action for MockRepository analysis if Moq is referenced.
+    /// </summary>
 
     /// <summary>
     /// Analyzes a variable declaration to find MockRepository instances that may need verification.

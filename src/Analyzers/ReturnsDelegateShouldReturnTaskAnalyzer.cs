@@ -7,7 +7,7 @@ namespace Moq.Analyzers;
 /// Returns() delegate on async method setup should return Task/ValueTask to match the mocked method's return type.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
+public class ReturnsDelegateShouldReturnTaskAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Returns() delegate type mismatch on async method";
     private static readonly LocalizableString Message = "Returns() delegate for async method '{0}' should return '{2}', not '{1}'. Use ReturnsAsync() or wrap with Task.FromResult().";
@@ -26,23 +26,8 @@ public class ReturnsDelegateShouldReturnTaskAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterSyntaxNodeAction(
             syntaxNodeContext => Analyze(syntaxNodeContext, knownSymbols),
             SyntaxKind.InvocationExpression);

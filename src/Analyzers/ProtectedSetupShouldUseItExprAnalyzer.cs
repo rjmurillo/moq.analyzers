@@ -7,7 +7,7 @@ namespace Moq.Analyzers;
 /// Protected member setups using string-based overloads must use ItExpr matchers, not It matchers.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
+public class ProtectedSetupShouldUseItExprAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Moq: Protected setup should use ItExpr";
     private static readonly LocalizableString Message = "Protected member setup uses 'It.{0}' which is not compatible with string-based overloads; use an ItExpr matcher instead";
@@ -26,24 +26,8 @@ public class ProtectedSetupShouldUseItExprAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         // Require IProtectedMock<T> and It types to be resolvable
         if (knownSymbols.IProtectedMock1 is null || knownSymbols.It is null)
         {

@@ -8,7 +8,7 @@ namespace Moq.Analyzers;
 /// Returns(), ReturnsAsync(), Throws(), or ThrowsAsync().
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
+public class MethodSetupShouldSpecifyReturnValueAnalyzer : MoqDiagnosticAnalyzerBase
 {
     private static readonly LocalizableString Title = "Method setup should specify a return value";
     private static readonly LocalizableString Message = "Method setup for '{0}' should specify a return value";
@@ -27,24 +27,8 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-    /// <inheritdoc />
-    public override void Initialize(AnalysisContext context)
+    private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
-        context.RegisterCompilationStartAction(RegisterCompilationStartAction);
-    }
-
-    private static void RegisterCompilationStartAction(CompilationStartAnalysisContext context)
-    {
-        MoqKnownSymbols knownSymbols = new(context.Compilation);
-
-        if (!knownSymbols.IsMockReferenced())
-        {
-            return;
-        }
-
         context.RegisterOperationAction(
             operationAnalysisContext => AnalyzeInvocation(operationAnalysisContext, knownSymbols),
             OperationKind.Invocation);
