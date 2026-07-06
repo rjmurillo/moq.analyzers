@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.Testing;
 using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.SetupShouldBeUsedOnlyForOverridableMembersAnalyzer>;
 
 namespace Moq.Analyzers.Test;
@@ -60,6 +61,23 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
 
             // It.Ref<T>.IsAny for ref parameters (requires Moq 4.8+, should work in newer versions)
             ["""new Mock<ISampleInterface>().Setup(x => x.ProcessRef(ref It.Ref<int>.IsAny)).Returns(true);"""],
+
+            // Static members referenced from a Setup lambda are not overridable and are flagged.
+            // These bind the generic Setup<TResult>(Expression<Func<T, TResult>>) overload.
+            ["""{|Moq1200:new Mock<SampleClassWithStaticMembers>().Setup(x => SampleClassWithStaticMembers.StaticField)|};"""],
+            ["""{|Moq1200:new Mock<SampleClassWithStaticMembers>().Setup(x => SampleClassWithStaticMembers.ConstField)|};"""],
+            ["""{|Moq1200:new Mock<SampleClassWithStaticMembers>().Setup(x => SampleClassWithStaticMembers.ReadonlyField)|};"""],
+            ["""{|Moq1200:new Mock<SampleClassWithStaticMembers>().Setup(x => SampleClassWithStaticMembers.StaticProperty)|};"""],
+            ["""{|Moq1200:new Mock<SampleClassWithStaticMembers>().Setup(x => SampleClassWithStaticMembers.GetStaticValue())|};"""],
+
+            // Static void methods are also flagged as non-overridable.
+            ["""{|Moq1200:new Mock<SampleClassWithStaticMembers>().Setup(x => SampleClassWithStaticMembers.StaticMethod())|};"""],
+
+            // Extension methods cannot be overridden and are flagged.
+            ["""{|Moq1200:new Mock<ISampleInterface>().Setup(x => x.CalculateTwice())|};"""],
+
+            // Nested-generic mocked type with an overridable interface member - not flagged.
+            ["""new Mock<IGenericInterface<IGenericInterface<int>>>().Setup(x => x.GetValue());"""],
         }.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
 
         return both.Concat(@new);
@@ -93,6 +111,8 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
                                 }
 
                                 public interface IIndexerInterface { int this[int i] { get; set; } }
+                                public interface IGenericInterface<T> { T GetValue(); }
+                                public static class SampleExtensions { public static int CalculateTwice(this ISampleInterface s) => s.Calculate(1, 2) * 2; }
                                 public class SampleClassWithVirtualIndexer { public virtual int this[int i] { get => 0; set { } } }
                                 public class SampleClassWithNonVirtualIndexer { public int this[int i] { get => 0; set { } } }
                                 public interface IExplicitInterface { void ExplicitMethod(); }
@@ -103,7 +123,7 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
                                     sealed void SealedDefaultMethod() { }
                                 }
                                 public interface IStaticInterfaceMembers { static void StaticMethod() { } }
-                                public class SampleClassWithStaticMembers { public static int StaticField; public const int ConstField = 42; public static readonly int ReadonlyField = 42; public static void StaticMethod() { } }
+                                public class SampleClassWithStaticMembers { public static int StaticField; public const int ConstField = 42; public static readonly int ReadonlyField = 42; public static void StaticMethod() { } public static int StaticProperty { get; set; } public static int GetStaticValue() => 0; }
 
                                 public abstract class BaseSampleClass
                                 {
@@ -150,5 +170,35 @@ public partial class SetupShouldBeUsedOnlyForOverridableMembersAnalyzerTests(ITe
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
             ReferenceAssemblyCatalog.Net80WithNewMoq);
+    }
+
+    /// <summary>
+    /// An incomplete Setup lambda (mid-edit code) must not crash the analyzer and
+    /// produces no diagnostic (current behavior).
+    /// </summary>
+    /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
+    /// <returns>A task representing the asynchronous unit test.</returns>
+    [Theory]
+    [InlineData("Net80WithOldMoq")]
+    [InlineData("Net80WithNewMoq")]
+    public async Task ShouldNotReportOnIncompleteSetupLambda(string referenceAssemblyGroup)
+    {
+        const string source = """
+            public interface ISampleInterface
+            {
+                int Calculate(int a, int b);
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    new Mock<ISampleInterface>().Setup(x => x.
+                }
+            }
+            """;
+
+        // CompilerDiagnostics.None suppresses CS1001/CS1026/CS1002 from the incomplete lambda.
+        await Verifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup, CompilerDiagnostics.None);
     }
 }

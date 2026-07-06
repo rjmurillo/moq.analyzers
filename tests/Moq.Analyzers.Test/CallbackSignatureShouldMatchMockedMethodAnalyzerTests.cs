@@ -80,6 +80,30 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Parenthesized lambda in delegate constructor with correct type (issue #1012)
             ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(new Action<string>((string x) => { }));"""],
+
+            // Callbacks chained on setups of *void* methods with matching signatures.
+            ["""new Mock<IFoo>().Setup(m => m.ProcessData(ref It.Ref<string>.IsAny)).Callback((ref string data) => { });"""],
+            ["""new Mock<IFoo>().Setup(m => m.ProcessMixed(It.IsAny<int>(), ref It.Ref<string>.IsAny, out It.Ref<bool>.IsAny)).Callback((int id, ref string data, out bool success) => { success = true; });"""],
+            ["""new Mock<IFoo>().Setup(m => m.ProcessReadOnly(in It.Ref<DateTime>.IsAny)).Callback((in DateTime timestamp) => { });"""],
+
+            // TryProcess returns bool, so its setup binds the generic overload and IS analyzed;
+            // a correct out-parameter callback is not flagged.
+            ["""new Mock<IFoo>().Setup(m => m.TryProcess(out It.Ref<int>.IsAny)).Callback((out int result) => { result = 42; });"""],
+
+            // Generic mocked method instantiation with a matching callback
+            ["""new Mock<IFoo>().Setup(x => x.ProcessGeneric<int>(It.IsAny<int>())).Callback((int input) => { });"""],
+
+            // Method-group callbacks are not analyzed today (only lambdas and delegate-creation
+            // expressions are inspected). The second row's parameter type (int) mismatches
+            // DoWork(string) and is still not flagged - known false negative; pins current behavior.
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(HandleString);"""],
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback<int>(HandleInt);"""],
+
+            // Custom delegate with a matching signature
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(new CustomStringAction(x => { }));"""],
+
+            // Async lambda with zero parameters (zero-parameter callbacks are a valid Moq pattern)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(async () => await Task.Delay(1));"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         // Invalid patterns that SHOULD trigger the analyzer
@@ -127,6 +151,21 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
 
             // Parenthesized lambda in delegate constructor with wrong argument count (issue #1012)
             ["""new Mock<IFoo>().Setup(x => x.ProcessMultiple(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Callback(new Action<int>({|Moq1100:(int x)|} => { }));"""],
+
+            // Void setups are analyzed today; mismatching ref/out/in modifiers are flagged.
+            ["""new Mock<IFoo>().Setup(m => m.ProcessData(ref It.Ref<string>.IsAny)).Callback(({|Moq1100:string data|}) => { });"""],
+            ["""new Mock<IFoo>().Setup(m => m.ProcessMixed(It.IsAny<int>(), ref It.Ref<string>.IsAny, out It.Ref<bool>.IsAny)).Callback(({|Moq1100:int id|}, string data, bool success) => { });"""],
+            ["""new Mock<IFoo>().Setup(m => m.ProcessReadOnly(in It.Ref<DateTime>.IsAny)).Callback(({|Moq1100:DateTime timestamp|}) => { });"""],
+
+            // Out-parameter mismatch on a bool-returning method (missing 'out')
+            ["""new Mock<IFoo>().Setup(m => m.TryProcess(out It.Ref<int>.IsAny)).Callback(({|Moq1100:int result|}) => { });"""],
+
+            // Generic mocked method instantiated as int; callback declares string
+            ["""new Mock<IFoo>().Setup(x => x.ProcessGeneric<int>(It.IsAny<int>())).Callback(({|Moq1100:string input|}) => { });"""],
+
+            // Custom delegate with a mismatching parameter type (simple and parenthesized lambdas)
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(new CustomIntAction({|Moq1100:x|} => { }));"""],
+            ["""new Mock<IFoo>().Setup(x => x.DoWork("test")).Callback(new CustomIntAction(({|Moq1100:int x|}) => { }));"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
         return validPatterns.Concat(invalidPatterns);
@@ -155,8 +194,14 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
                 T ProcessGeneric<T>(T input);
             }
 
+            public delegate void CustomStringAction(string input);
+            public delegate void CustomIntAction(int input);
+
             public class TestClass
             {
+                private static void HandleString(string input) { }
+                private static void HandleInt(int input) { }
+
                 public void TestMethod()
                 {
                     {{code}}

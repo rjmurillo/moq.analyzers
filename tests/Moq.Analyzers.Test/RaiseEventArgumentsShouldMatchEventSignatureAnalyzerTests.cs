@@ -23,6 +23,16 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
 
             // Valid: Implicit conversion from int to double
             ["""mockProvider.Raise(p => p.DoubleChanged += null, 42);"""],
+
+            // Valid: Action<string, int> event with matching arguments
+            ["""mockProvider.Raise(p => p.PairChanged += null, "key", 42);"""],
+
+            // Valid: nested generic payload Action<List<string>>
+            ["""mockProvider.Raise(p => p.ListChanged += null, new List<string>());"""],
+
+            // Valid: null literal for a reference-type parameter. The cast is required:
+            // a bare 'null' is ambiguous between Raise(..., EventArgs) and Raise(..., params object[]) (CS0121).
+            ["""mockProvider.Raise(p => p.StringOptionsChanged += null, (string)null);"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -41,6 +51,30 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
 
             // Invalid: Too few arguments (wrap the entire invocation)
             ["""{|Moq1202:mockProvider.Raise(p => p.StringOptionsChanged += null)|};"""],
+
+            // Invalid: wrong second argument for Action<string, int> (wrap only the problematic argument)
+            ["""mockProvider.Raise(p => p.PairChanged += null, "key", {|Moq1202:"wrong"|});"""],
+
+            // Invalid: too few arguments for Action<string, int> (wrap the entire invocation)
+            ["""{|Moq1202:mockProvider.Raise(p => p.PairChanged += null, "key")|};"""],
+
+            // Invalid: wrong generic payload - List<int> supplied to Action<List<string>>
+            ["""mockProvider.Raise(p => p.ListChanged += null, {|Moq1202:new List<int>()|});"""],
+        }.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
+    public static IEnumerable<object[]> MockAccessPatternTestData()
+    {
+        return new object[][]
+        {
+            // Valid: Raise on a mock exposed as a property
+            ["""wrapper.ProviderMock.Raise(p => p.StringOptionsChanged += null, "ok");"""],
+
+            // Invalid: Raise on a mock exposed as a property
+            ["""wrapper.ProviderMock.Raise(p => p.StringOptionsChanged += null, {|Moq1202:42|});"""],
+
+            // Invalid: Raise on a mock returned from a method call
+            ["""wrapper.GetMock().Raise(p => p.StringOptionsChanged += null, {|Moq1202:42|});"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -208,6 +242,8 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
                   event Action<MyOptions> OptionsChanged;
                   event Action SimpleEvent;
                   event Action<double> DoubleChanged;
+                  event Action<string, int> PairChanged;
+                  event Action<List<string>> ListChanged;
               }
 
               internal class UnitTest
@@ -238,6 +274,8 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
                   event Action<string> StringOptionsChanged;
                   event Action<MyOptions> OptionsChanged;
                   event Action SimpleEvent;
+                  event Action<string, int> PairChanged;
+                  event Action<List<string>> ListChanged;
               }
 
               internal class UnitTest
@@ -245,6 +283,38 @@ public class RaiseEventArgumentsShouldMatchEventSignatureAnalyzerTests
                   private void Test()
                   {
                       var mockProvider = new Mock<IOptionsProvider>();
+                      {{raiseCall}}
+                  }
+              }
+              """,
+            referenceAssemblyGroup);
+    }
+
+    [Theory]
+    [MemberData(nameof(MockAccessPatternTestData))]
+    public async Task ShouldAnalyzeRaiseOnMemberAndMethodChainMockAccess(string referenceAssemblyGroup, string @namespace, string raiseCall)
+    {
+        await Verifier.VerifyAnalyzerAsync(
+            $$"""
+              {{@namespace}}
+
+              internal interface IOptionsProvider
+              {
+                  event Action<string> StringOptionsChanged;
+              }
+
+              internal class Wrapper
+              {
+                  public Mock<IOptionsProvider> ProviderMock { get; } = new Mock<IOptionsProvider>();
+
+                  public Mock<IOptionsProvider> GetMock() => ProviderMock;
+              }
+
+              internal class UnitTest
+              {
+                  private void Test()
+                  {
+                      var wrapper = new Wrapper();
                       {{raiseCall}}
                   }
               }
