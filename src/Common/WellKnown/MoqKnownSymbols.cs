@@ -31,6 +31,7 @@ internal class MoqKnownSymbols : KnownSymbols
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iThrowsThrows;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _returnsExtensionsReturnsAsync;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _returnsExtensionsThrowsAsync;
+    private readonly Lazy<ImmutableArray<IMethodSymbol>> _generatedReturnsExtensionsReturnsAsync;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iCallbackCallback;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iCallback1Callback;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iCallback2Callback;
@@ -111,6 +112,7 @@ internal class MoqKnownSymbols : KnownSymbols
         _iThrowsThrows = CreateLazyMethods(IThrows, "Throws");
         _returnsExtensionsReturnsAsync = CreateLazyMethods(ReturnsExtensions, "ReturnsAsync");
         _returnsExtensionsThrowsAsync = CreateLazyMethods(ReturnsExtensions, "ThrowsAsync");
+        _generatedReturnsExtensionsReturnsAsync = CreateLazyMethods(GeneratedReturnsExtensions, "ReturnsAsync");
         _iCallbackCallback = CreateLazyMethods(ICallback, "Callback");
         _iCallback1Callback = CreateLazyMethods(ICallback1, "Callback");
         _iCallback2Callback = CreateLazyMethods(ICallback2, "Callback");
@@ -348,6 +350,11 @@ internal class MoqKnownSymbols : KnownSymbols
     internal INamedTypeSymbol? ReturnsExtensions => TypeProvider.GetOrCreateTypeByMetadataName("Moq.ReturnsExtensions");
 
     /// <summary>
+    /// Gets the class <c>Moq.GeneratedReturnsExtensions</c>.
+    /// </summary>
+    internal INamedTypeSymbol? GeneratedReturnsExtensions => TypeProvider.GetOrCreateTypeByMetadataName("Moq.GeneratedReturnsExtensions");
+
+    /// <summary>
     /// Gets the methods for <c>Moq.ReturnsExtensions.ReturnsAsync</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> ReturnsExtensionsReturnsAsync => _returnsExtensionsReturnsAsync.Value;
@@ -356,6 +363,11 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.ReturnsExtensions.ThrowsAsync</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> ReturnsExtensionsThrowsAsync => _returnsExtensionsThrowsAsync.Value;
+
+    /// <summary>
+    /// Gets the methods for <c>Moq.GeneratedReturnsExtensions.ReturnsAsync</c>.
+    /// </summary>
+    internal ImmutableArray<IMethodSymbol> GeneratedReturnsExtensionsReturnsAsync => _generatedReturnsExtensionsReturnsAsync.Value;
 
     /// <summary>
     /// Gets the methods for <c>Moq.Language.ICallback.Callback</c>.

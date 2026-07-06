@@ -513,6 +513,41 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
         return data.WithNamespaces().WithNewMoqReferenceAssemblyGroups();
     }
 
+    // Regression test data for https://github.com/rjmurillo/moq.analyzers/issues/1243.
+    // User-defined methods named like Moq return-value methods must not suppress Moq1203.
+    public static IEnumerable<object[]> Issue1243_UserNamedReturnValueMethodsTestData()
+    {
+        IEnumerable<object[]> data =
+        [
+
+            // User extension named Returns resolves successfully to a non-Moq method.
+            ["""
+            var moq = new Mock<IFoo>();
+            {|Moq1203:moq.Setup(x => x.GetValue())|}.Returns();
+            """],
+
+            // User extension named Throws resolves successfully to a non-Moq method.
+            ["""
+            var moq = new Mock<IFoo>();
+            {|Moq1203:moq.Setup(x => x.GetValue())|}.Throws();
+            """],
+
+            // User extension named ReturnsAsync resolves successfully to a non-Moq method.
+            ["""
+            var moq = new Mock<IFoo>();
+            {|Moq1203:moq.Setup(x => x.BarAsync())|}.ReturnsAsync();
+            """],
+
+            // User extension named ThrowsAsync resolves successfully to a non-Moq method.
+            ["""
+            var moq = new Mock<IFoo>();
+            {|Moq1203:moq.Setup(x => x.BarAsync())|}.ThrowsAsync();
+            """],
+        ];
+
+        return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
+    }
+
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ShouldAnalyzeMethodSetupReturnValue(string referenceAssemblyGroup, string @namespace, string mock)
@@ -609,6 +644,13 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
     [Theory]
     [MemberData(nameof(Issue1067_NonFluentExtensionTestData))]
     public async Task ShouldFlagSetupWithNonFluentExtensionMethod(string referenceAssemblyGroup, string @namespace, string mock)
+    {
+        await VerifyWrappedSetupMockAsync(referenceAssemblyGroup, @namespace, mock);
+    }
+
+    [Theory]
+    [MemberData(nameof(Issue1243_UserNamedReturnValueMethodsTestData))]
+    public async Task ShouldFlagSetupWithUserMethodsNamedLikeMoqReturnValueMethods(string referenceAssemblyGroup, string @namespace, string mock)
     {
         await VerifyWrappedSetupMockAsync(referenceAssemblyGroup, @namespace, mock);
     }
@@ -731,6 +773,30 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzerTests(ITestOutputHelper 
                     where TMock : class
                 {
                     return Task.CompletedTask;
+                }
+
+                public static string Returns<TMock, TResult>(this ISetup<TMock, TResult> setup)
+                    where TMock : class
+                {
+                    return "not a Moq Returns call";
+                }
+
+                public static string Throws<TMock, TResult>(this ISetup<TMock, TResult> setup)
+                    where TMock : class
+                {
+                    return "not a Moq Throws call";
+                }
+
+                public static string ReturnsAsync<TMock, TResult>(this ISetup<TMock, Task<TResult>> setup)
+                    where TMock : class
+                {
+                    return "not a Moq ReturnsAsync call";
+                }
+
+                public static string ThrowsAsync<TMock, TResult>(this ISetup<TMock, Task<TResult>> setup)
+                    where TMock : class
+                {
+                    return "not a Moq ThrowsAsync call";
                 }
 
                 public static IReturns<TMock, Task<int>> ReturnsOneAsyncViaReturnsAsync<TMock>(this IReturns<TMock, Task<int>> mock)

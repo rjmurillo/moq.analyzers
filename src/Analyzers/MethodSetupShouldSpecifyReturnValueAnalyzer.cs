@@ -176,14 +176,15 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
                 ? semanticModel.GetSymbolInfo(invocation, cancellationToken)
                 : semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
 
-            // First try semantic symbol matching (exact). Then fall back to method
-            // name matching when Roslyn resolves a symbol that IsInstanceOf cannot
-            // match (e.g., delegate-based overloads with constructed generic types).
-            // The name-based fallback is safe because this walk only visits methods
-            // chained from a verified Setup() call, and we verify the named method
-            // exists in the Moq compilation.
-            if (HasReturnValueSymbol(symbolInfo, knownSymbols)
-                || IsKnownReturnValueMethodName(memberAccess.Name.Identifier.ValueText, knownSymbols))
+            if (HasReturnValueSymbol(symbolInfo, knownSymbols))
+            {
+                return true;
+            }
+
+            // Use the name fallback only for genuinely unresolved code. A concrete
+            // non-Moq bind must never be treated as a Moq return-value specification.
+            if (ShouldUseReturnValueMethodNameFallback(symbolInfo)
+                && IsKnownReturnValueMethodName(memberAccess.Name.Identifier.ValueText, knownSymbols))
             {
                 return true;
             }
@@ -205,8 +206,8 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
 
     /// <summary>
     /// Checks whether a method name corresponds to a known Moq return value specification
-    /// method that exists in the compilation. Used as a last-resort fallback when Roslyn
-    /// cannot resolve symbols at all (e.g., delegate-based overloads with failed type inference).
+    /// method that exists in the compilation. Used as a last-resort fallback only when
+    /// Roslyn produced no resolved symbol and no candidates.
     /// </summary>
     private static bool IsKnownReturnValueMethodName(string methodName, MoqKnownSymbols knownSymbols)
     {
@@ -215,11 +216,27 @@ public class MethodSetupShouldSpecifyReturnValueAnalyzer : DiagnosticAnalyzer
             "Returns" => !knownSymbols.IReturnsReturns.IsEmpty
                          || !knownSymbols.IReturns1Returns.IsEmpty
                          || !knownSymbols.IReturns2Returns.IsEmpty,
-            "ReturnsAsync" => !knownSymbols.ReturnsExtensionsReturnsAsync.IsEmpty,
+            "ReturnsAsync" => !knownSymbols.ReturnsExtensionsReturnsAsync.IsEmpty
+                              || !knownSymbols.GeneratedReturnsExtensionsReturnsAsync.IsEmpty,
             "Throws" => !knownSymbols.IThrowsThrows.IsEmpty,
             "ThrowsAsync" => !knownSymbols.ReturnsExtensionsThrowsAsync.IsEmpty,
             _ => false,
         };
+    }
+
+    /// <summary>
+    /// Determines whether name fallback is safe for unresolved code.
+    /// </summary>
+    private static bool ShouldUseReturnValueMethodNameFallback(SymbolInfo symbolInfo)
+    {
+        if (symbolInfo.Symbol != null || !symbolInfo.CandidateSymbols.IsEmpty)
+        {
+            return false;
+        }
+
+        Debug.Assert(symbolInfo.Symbol is null, "Name fallback requires no resolved symbol.");
+        Debug.Assert(symbolInfo.CandidateSymbols.IsEmpty, "Name fallback requires no candidate symbols.");
+        return true;
     }
 
     /// <summary>
