@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Operations;
+﻿using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
 
@@ -27,6 +26,9 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
+    private protected override DiagnosticDescriptor DiagnosticRule => Rule;
+
+    /// <inheritdoc />
     /// <remarks>
     /// The original strict analyzer resolved the mocked type name from <paramref name="target"/>'s
     /// type arguments (not the invocation's) and fell back to "Unknown" instead of "T".
@@ -51,25 +53,14 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
     }
 
     /// <inheritdoc />
-    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
-    private protected override void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols)
+    private protected override void AnalyzeMockBehaviorArgument(
+        OperationAnalysisContext context,
+        IMethodSymbol target,
+        IArgumentOperation? mockArgument,
+        MoqKnownSymbols knownSymbols,
+        string mockedTypeName)
     {
         System.Diagnostics.Debug.Assert(knownSymbols.MockBehavior is not null, "Base registration requires the MockBehavior symbol.");
-
-        // Extract the mocked type name for the diagnostic message
-        string mockedTypeName = GetMockedTypeName(context.Operation, target);
-
-        // Check if the target method has a parameter of type MockBehavior
-        IParameterSymbol? mockParameter = target.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
-
-        // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
-        if (TryHandleMissingMockBehaviorParameter(context, mockParameter, target, knownSymbols, Rule, mockedTypeName))
-        {
-            // Using a method that doesn't accept a MockBehavior parameter, however there's an overload that does
-            return;
-        }
-
-        IArgumentOperation? mockArgument = arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
 
         // Is the behavior set via a default value?
         if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue

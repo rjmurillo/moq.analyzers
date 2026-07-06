@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Operations;
+﻿using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
 
@@ -27,30 +26,23 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     /// <inheritdoc />
-    [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Should be fixed. Ignoring for now to avoid additional churn as part of larger refactor.")]
-    private protected override void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols)
+    private protected override DiagnosticDescriptor DiagnosticRule => Rule;
+
+    /// <inheritdoc />
+    private protected override void AnalyzeMockBehaviorArgument(
+        OperationAnalysisContext context,
+        IMethodSymbol target,
+        IArgumentOperation? mockArgument,
+        MoqKnownSymbols knownSymbols,
+        string mockedTypeName)
     {
         System.Diagnostics.Debug.Assert(knownSymbols.MockBehavior is not null, "Base registration requires the MockBehavior symbol.");
-
-        // Extract the type name for the diagnostic message
-        string typeName = GetMockedTypeName(context.Operation, target);
-
-        // Check if the target method has a parameter of type MockBehavior
-        IParameterSymbol? mockParameter = target.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
-
-        // If the target method doesn't have a MockBehavior parameter, check if there's an overload that does
-        if (TryHandleMissingMockBehaviorParameter(context, mockParameter, target, knownSymbols, Rule, typeName))
-        {
-            return;
-        }
-
-        IArgumentOperation? mockArgument = arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
 
         // Is the behavior set via a default value?
         if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue
             && MockBehaviorConstantValues.ConstantValueEquals(mockArgument.Value.WalkDownConversion().ConstantValue, knownSymbols.MockBehaviorDefault))
         {
-            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Insert, typeName);
+            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Insert, mockedTypeName);
         }
 
         // NOTE: This logic can't handle indirection (e.g. var x = MockBehavior.Default; new Mock(x);). We can't use the constant value either,
@@ -59,7 +51,7 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
         // The operation specifies a MockBehavior; is it MockBehavior.Default?
         if (mockArgument?.DescendantsAndSelf().OfType<IFieldReferenceOperation>().Any(argument => argument.Member.IsInstanceOf(knownSymbols.MockBehaviorDefault)) == true)
         {
-            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Replace, typeName);
+            TryReportMockBehaviorDiagnostic(context, target, knownSymbols, Rule, DiagnosticEditProperties.EditType.Replace, mockedTypeName);
         }
     }
 }

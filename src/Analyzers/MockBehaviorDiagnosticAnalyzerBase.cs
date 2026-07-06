@@ -11,6 +11,8 @@ namespace Moq.Analyzers;
 /// </remarks>
 public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzerBase
 {
+    private protected abstract DiagnosticDescriptor DiagnosticRule { get; }
+
     /// <summary>
     /// Extracts the mocked type name from the operation for use in diagnostic messages.
     /// </summary>
@@ -99,7 +101,12 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
             && TryReportMockBehaviorDiagnostic(context, methodMatch, knownSymbols, rule, DiagnosticEditProperties.EditType.Insert, mockedTypeName);
     }
 
-    private protected abstract void AnalyzeCore(OperationAnalysisContext context, IMethodSymbol target, ImmutableArray<IArgumentOperation> arguments, MoqKnownSymbols knownSymbols);
+    private protected abstract void AnalyzeMockBehaviorArgument(
+        OperationAnalysisContext context,
+        IMethodSymbol target,
+        IArgumentOperation? mockArgument,
+        MoqKnownSymbols knownSymbols,
+        string mockedTypeName);
 
     private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
@@ -148,5 +155,25 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
         }
 
         AnalyzeCore(context, match, invocation.Arguments, knownSymbols);
+    }
+
+    private void AnalyzeCore(
+        OperationAnalysisContext context,
+        IMethodSymbol target,
+        ImmutableArray<IArgumentOperation> arguments,
+        MoqKnownSymbols knownSymbols)
+    {
+        string mockedTypeName = GetMockedTypeName(context.Operation, target);
+
+        IParameterSymbol? mockParameter = target.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
+
+        if (TryHandleMissingMockBehaviorParameter(context, mockParameter, target, knownSymbols, DiagnosticRule, mockedTypeName))
+        {
+            return;
+        }
+
+        IArgumentOperation? mockArgument = arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
+
+        AnalyzeMockBehaviorArgument(context, target, mockArgument, knownSymbols, mockedTypeName);
     }
 }
