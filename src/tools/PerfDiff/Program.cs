@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.CommandLine;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,6 +38,15 @@ internal sealed class Program
         string? verbosity,
         bool failOnRegression,
         CancellationToken cancellationToken)
+        => await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken, PerfDiff.CompareAsync).ConfigureAwait(false);
+
+    internal static async Task<int> RunAsync(
+        string baseline,
+        string results,
+        string? verbosity,
+        bool failOnRegression,
+        CancellationToken cancellationToken,
+        Func<string, string, bool, ILogger, CancellationToken, Task<int>> compareAsync)
     {
         // Setup logging.
         LogLevel logLevel = DiffCommand.GetLogLevel(verbosity);
@@ -48,7 +58,7 @@ internal sealed class Program
 
             try
             {
-                return await PerfDiff.CompareAsync(baseline, results, failOnRegression, logger, cancellationToken).ConfigureAwait(false);
+                return await compareAsync(baseline, results, failOnRegression, logger, cancellationToken).ConfigureAwait(false);
             }
             catch (FileNotFoundException fex)
             {
@@ -70,6 +80,7 @@ internal sealed class Program
             await serviceProvider.DisposeAsync().ConfigureAwait(false);
         }
 
+        [ExcludeFromCodeCoverage(Justification = "Microsoft.Extensions.Logging builder emits compiler branches that are not part of PerfDiff behavior.")]
         static ServiceProvider SetupLogging(LogLevel minimalLogLevel, LogLevel minimalErrorLevel)
         {
             ServiceCollection serviceCollection = new ServiceCollection();

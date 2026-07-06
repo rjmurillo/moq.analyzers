@@ -3,6 +3,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN;
+using PerfDiff.BDN.DataContracts;
 using PerfDiff.ETL;
 
 namespace PerfDiff;
@@ -13,10 +14,31 @@ internal static class PerfDiff
 #pragma warning disable CA2254 // The logging message template should not vary between calls
     internal static async Task<int> CompareAsync(
         string baselineFolder, string resultsFolder, bool failOnRegression, ILogger logger, CancellationToken token)
+        => await CompareAsync(
+            baselineFolder,
+            resultsFolder,
+            failOnRegression,
+            logger,
+            token,
+            BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync,
+            static (resultsEtlPath, baselineEtlPath) =>
+            {
+                bool succeeded = EtlDiffer.TryCompareETL(resultsEtlPath, baselineEtlPath, out bool regressionDetected);
+                return (succeeded, regressionDetected);
+            }).ConfigureAwait(false);
+
+    internal static async Task<int> CompareAsync(
+        string baselineFolder,
+        string resultsFolder,
+        bool failOnRegression,
+        ILogger logger,
+        CancellationToken token,
+        Func<string, string, ILogger, CancellationToken, Task<BenchmarkComparisonResult>> compareBenchmarksAsync,
+        Func<string, string, (bool CompareSucceeded, bool RegressionDetected)> compareEtl)
     {
         token.ThrowIfCancellationRequested();
 
-        (bool compareSucceeded, bool regressionDetected) = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger, token).ConfigureAwait(false);
+        (bool compareSucceeded, bool regressionDetected) = await compareBenchmarksAsync(baselineFolder, resultsFolder, logger, token).ConfigureAwait(false);
 
         if (!compareSucceeded)
         {
@@ -30,7 +52,7 @@ internal static class PerfDiff
             return 0;
         }
 
-        (bool etlCompareSucceeded, bool etlRegressionDetected) = CheckEltTraces(baselineFolder, resultsFolder, logger);
+        (bool etlCompareSucceeded, bool etlRegressionDetected) = CheckEltTraces(baselineFolder, resultsFolder, logger, compareEtl);
         if (!etlCompareSucceeded)
         {
             logger.LogWarning("We detected a regression in BenchmarkDotNet and there is no ETL info.");
@@ -49,7 +71,11 @@ internal static class PerfDiff
 #pragma warning restore CA2254
 #pragma warning restore CA1848
 
-    private static (bool compareSucceeded, bool regressionDetected) CheckEltTraces(string baselineFolder, string resultsFolder, ILogger logger)
+    private static (bool compareSucceeded, bool regressionDetected) CheckEltTraces(
+        string baselineFolder,
+        string resultsFolder,
+        ILogger logger,
+        Func<string, string, (bool CompareSucceeded, bool RegressionDetected)> compareEtl)
     {
         // try look for ETL traces
         if (!TryGetETLPaths(baselineFolder, logger, out string? baselineEtlPath))
@@ -63,12 +89,7 @@ internal static class PerfDiff
         }
 
         // Compare ETL
-        if (!EtlDiffer.TryCompareETL(resultsEtlPath, baselineEtlPath, out bool regressionDetected))
-        {
-            return (false, false);
-        }
-
-        return (true, regressionDetected);
+        return compareEtl(resultsEtlPath, baselineEtlPath);
     }
 
     private const string ETLFileExtension = "etl.zip";

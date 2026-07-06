@@ -1,0 +1,39 @@
+{
+  "Title": "PerfDiff sample baseline",
+  "HostEnvironmentInfo": {
+    "BenchmarkDotNetCaption": "BenchmarkDotNet",
+    "BenchmarkDotNetVersion": "0.14.0"
+  },
+  "Benchmarks": [
+    {
+      "DisplayInfo": "SampleBenchmarks.Parse",
+      "Namespace": "PerfDiff.Samples",
+      "Type": "SampleBenchmarks",
+      "Method": "Parse",
+      "MethodTitle": "Parse",
+      "Parameters": "input=small",
+      "FullName": "PerfDiff.Samples.SampleBenchmarks.Parse(input: small)",
+      "Statistics": {
+        "Median": 10000000,
+        "Mean": 10000000,
+        "Percentiles": {
+          "P95": 12000000
+        }
+      },
+      "Memory": {
+        "Gen0Collections": 1,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 15,
+        "BytesAllocatedPerOperation": 128
+      },
+      "Measurements": [
+        { "IterationStage": "Result", "IterationIndex": 0, "Operations": 1, "Nanoseconds": 10000000 },
+        { "IterationStage": "Result", "IterationIndex": 1, "Operations": 1, "Nanoseconds": 10000000 },
+        { "IterationStage": "Result", "IterationIndex": 2, "Operations": 1, "Nanoseconds": 10000000 },
+        { "IterationStage": "Result", "IterationIndex": 3, "Operations": 1, "Nanoseconds": 10000000 },
+        { "IterationStage": "Result", "IterationIndex": 4, "Operations": 1, "Nanoseconds": 10000000 }
+      ]
+    }
+  ]
+}
