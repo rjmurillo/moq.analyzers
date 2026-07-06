@@ -44,9 +44,7 @@ public class SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer : MoqDia
             return;
         }
 
-        ISymbol? mockedMemberSymbol = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
-        if (mockedMemberSymbol is null
-            || mockedMemberSymbol.IsOverridableOrAllowedMockMember(knownSymbols))
+        if (!MoqVerificationHelpers.TryGetNonOverridableMockedMember(invocationOperation, knownSymbols, out ISymbol? mockedMemberSymbol))
         {
             return;
         }

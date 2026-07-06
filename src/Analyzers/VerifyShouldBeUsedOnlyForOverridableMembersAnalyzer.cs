@@ -46,28 +46,26 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : MoqDiagnostic
             return;
         }
 
-        ISymbol? mockedMemberSymbol;
         if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
         {
             IArgumentOperation? setterArgument = MoqVerificationHelpers.GetArgumentForParameterOrdinal(invocationOperation, 0);
             IAnonymousFunctionOperation? lambda = setterArgument is not null
                 ? MoqVerificationHelpers.ExtractLambdaFromArgument(setterArgument.Value)
                 : null;
-            mockedMemberSymbol = lambda is not null
+            ISymbol? verifySetMemberSymbol = lambda is not null
                 ? MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambda)
                 : null;
-        }
-        else
-        {
-            mockedMemberSymbol = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
-        }
 
-        if (mockedMemberSymbol == null)
-        {
+            if (verifySetMemberSymbol == null || IsVerifySetMemberAllowed(verifySetMemberSymbol))
+            {
+                return;
+            }
+
+            ReportDiagnostic(context, invocationOperation, verifySetMemberSymbol);
             return;
         }
 
-        if (IsMemberAllowedForVerification(mockedMemberSymbol, targetMethod, knownSymbols))
+        if (!MoqVerificationHelpers.TryGetNonOverridableMockedMember(invocationOperation, knownSymbols, out ISymbol? mockedMemberSymbol))
         {
             return;
         }
@@ -87,15 +85,9 @@ public class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer : MoqDiagnostic
         return !targetMethod.IsInstanceOf(knownSymbols.Mock1VerifyNoOtherCalls);
     }
 
-    private static bool IsMemberAllowedForVerification(ISymbol mockedMemberSymbol, IMethodSymbol targetMethod, MoqKnownSymbols knownSymbols)
+    private static bool IsVerifySetMemberAllowed(ISymbol mockedMemberSymbol)
     {
-        // Special handling for VerifySet: must check property overridability for set accessor
-        if (targetMethod.IsInstanceOf(knownSymbols.Mock1VerifySet))
-        {
-            return mockedMemberSymbol is IPropertySymbol propertySymbol && propertySymbol.IsOverridable();
-        }
-
-        return mockedMemberSymbol.IsOverridableOrAllowedMockMember(knownSymbols);
+        return mockedMemberSymbol is IPropertySymbol propertySymbol && propertySymbol.IsOverridable();
     }
 
     private static void ReportDiagnostic(OperationAnalysisContext context, IInvocationOperation invocationOperation, ISymbol mockedMemberSymbol)

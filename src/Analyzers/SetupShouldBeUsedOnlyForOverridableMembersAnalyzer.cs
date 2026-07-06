@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
@@ -40,45 +39,14 @@ public class SetupShouldBeUsedOnlyForOverridableMembersAnalyzer : MoqDiagnosticA
             return;
         }
 
-        if (!IsSetupOnNonOverridableMember(invocationOperation, knownSymbols, out ISymbol? mockedMemberSymbol))
+        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
+        if ((!targetMethod.IsMoqSetupMethod(knownSymbols) && !targetMethod.IsMoqEventSetupMethod(knownSymbols))
+            || !MoqVerificationHelpers.TryGetNonOverridableMockedMember(invocationOperation, knownSymbols, out ISymbol? mockedMemberSymbol))
         {
             return;
         }
 
         Diagnostic diagnostic = invocationOperation.Syntax.CreateDiagnostic(Rule, mockedMemberSymbol.ToDisplayString());
         context.ReportDiagnostic(diagnostic);
-    }
-
-    /// <summary>
-    /// Determines whether the invocation is a Moq Setup call targeting a non-overridable member.
-    /// </summary>
-    /// <param name="invocationOperation">The invocation operation to analyze.</param>
-    /// <param name="knownSymbols">A <see cref="MoqKnownSymbols"/> instance for resolving well-known types.</param>
-    /// <param name="mockedMemberSymbol">When this method returns <see langword="true"/>, contains the non-overridable member symbol.</param>
-    /// <returns><see langword="true"/> if the invocation targets a non-overridable member; otherwise <see langword="false"/>.</returns>
-    private static bool IsSetupOnNonOverridableMember(
-        IInvocationOperation invocationOperation,
-        MoqKnownSymbols knownSymbols,
-        [NotNullWhen(true)] out ISymbol? mockedMemberSymbol)
-    {
-        mockedMemberSymbol = null;
-        IMethodSymbol targetMethod = invocationOperation.TargetMethod;
-
-        // Check if the invoked method is a Moq Setup method.
-        if (!targetMethod.IsMoqSetupMethod(knownSymbols) && !targetMethod.IsMoqEventSetupMethod(knownSymbols))
-        {
-            return false;
-        }
-
-        // Attempt to locate the member reference from the Setup expression argument.
-        ISymbol? candidate = MoqVerificationHelpers.TryGetMockedMemberSymbol(invocationOperation);
-        if (candidate is null
-            || candidate.IsOverridableOrAllowedMockMember(knownSymbols))
-        {
-            return false;
-        }
-
-        mockedMemberSymbol = candidate;
-        return true;
     }
 }
