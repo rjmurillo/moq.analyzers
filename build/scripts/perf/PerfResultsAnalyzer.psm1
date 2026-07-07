@@ -9,9 +9,19 @@ function Resolve-PerfResultsFolders {
         [String] $Results
     )
 
+    $baselinePath = Join-Path $Baseline "results"
+    if (-not (Test-Path -LiteralPath $baselinePath)) {
+        throw "Perf results folder not found: '$baselinePath'"
+    }
+
+    $resultsPath = Join-Path $Results "results"
+    if (-not (Test-Path -LiteralPath $resultsPath)) {
+        throw "Perf results folder not found: '$resultsPath'"
+    }
+
     @{
-        baselineFolder = Resolve-Path (Join-Path $Baseline "results")
-        resultsFolder = Resolve-Path (Join-Path $Results "results")
+        baselineFolder = Resolve-Path $baselinePath
+        resultsFolder = Resolve-Path $resultsPath
     }
 }
 

@@ -19,9 +19,15 @@ Describe 'Resolve-PerfResultsFolders' {
         $folders.resultsFolder.Path | Should -Be (Join-Path $results 'results')
     }
 
-    It 'reports errors when result folders are missing' {
-        $errors = & { Resolve-PerfResultsFolders -Baseline (Join-Path $script:ScratchRoot 'missingA') -Results (Join-Path $script:ScratchRoot 'missingB') } 2>&1
-        $errors | Should -Not -BeNullOrEmpty
+    It 'throws when result folders are missing' {
+        { Resolve-PerfResultsFolders -Baseline (Join-Path $script:ScratchRoot 'missingA') -Results (Join-Path $script:ScratchRoot 'missingB') } | Should -Throw '*not found*'
+    }
+
+    It 'throws when only the results folder is missing' {
+        $baseline = Join-Path $script:ScratchRoot 'oneMissingBaseline'
+        New-Item -ItemType Directory -Force -Path (Join-Path $baseline 'results') | Out-Null
+
+        { Resolve-PerfResultsFolders -Baseline $baseline -Results (Join-Path $script:ScratchRoot 'stillMissing') } | Should -Throw '*not found*'
     }
 
     It 'handles folders that contain spaces' {
