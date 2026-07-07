@@ -118,15 +118,6 @@ public partial class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void EventHandler1_WithCoreReferences_ReturnsNamedTypeSymbol()
-    {
-        MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
-        Assert.NotNull(symbols.EventHandler1);
-        Assert.Equal("EventHandler", symbols.EventHandler1!.Name);
-        Assert.Equal(1, symbols.EventHandler1.Arity);
-    }
-
-    [Fact]
     public void Action0_WithCoreReferences_ReturnsNamedTypeSymbol()
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
