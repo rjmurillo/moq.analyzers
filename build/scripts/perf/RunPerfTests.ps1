@@ -8,84 +8,13 @@ Param(
     [bool]   $ci=$false           # run in ci mode (fail fast an keep all partial artifacts)
   )
 
-Push-Location $perftestRootFolder
-Write-Host "Running performance tests in folder: $perftestRootFolder"
+Import-Module (Join-Path $PSScriptRoot 'PerfTestRunner.psm1') -Force -DisableNameChecking
 
 try {
-    # Check if running on Windows and warn about ETL on non-Windows platforms
-    $isWindowsPlatform = $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
-    if ($etl -and -not $isWindowsPlatform) {
-        Write-Warning "ETL tracing is only supported on Windows. Disabling ETL for this run."
-        $etl = $false
-    }
-
-    $anyFailed = $false
-    $projectsList = $projects -split ";"
-    foreach ($project in $projectsList) {
-        $projectFullPath = Join-Path $perftestRootFolder $project
-        & dotnet restore $projectFullPath
-        if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed with exit code $LASTEXITCODE for project $project" }
-        & dotnet build -c Release --no-incremental $projectFullPath
-        if ($LASTEXITCODE -ne 0) { throw "dotnet build failed with exit code $LASTEXITCODE for project $project" }
-        $commandArguments = @("run", "-c", "Release", "--no-build", "--project", $projectFullPath, "--", "--outliers", "DontRemove", "--memory", "--threading", "--exceptions", "--exporters", "JSON", "--artifacts", $output)
-        if ($ci) {
-            $commandArguments += @("--stopOnFirstError", "--keepFiles")
-        }
-        if ($etl) {
-            $commandArguments += @("--profiler", "ETW")
-        }
-
-        $commandArguments += @("--filter", $filter)
-
-        $formattedArgs = ($commandArguments | ForEach-Object {
-            if ($_ -match '\s') { "`"$_`"" } else { $_ }
-        }) -join ' '
-        Write-Host "Invoking: dotnet $formattedArgs"
-
-        if ($etl -and $isWindowsPlatform) {
-            # Note: Using Start-Process with -Verb RunAs to ensure it runs with elevated permissions for
-            # 1. ETL, if it's enabled
-            # 2. To allow BenchmarkDotNet to set the power profile for the CPU
-            # The `-Verb RunAs` is only supported on Windows
-            Write-Warning "Running with elevated permissions will no longer capture stdout"
-
-            # Start-Process -ArgumentList joins array elements with spaces without quoting,
-            # so we must explicitly quote arguments that may contain spaces.
-            $quotedArgs = $commandArguments | ForEach-Object {
-                if ($_ -match '\s') { "`"$_`"" } else { $_ }
-            }
-            $proc = Start-Process -Wait -FilePath "dotnet" -Verb RunAs -ArgumentList $quotedArgs -PassThru
-            if ($proc.ExitCode -ne 0) {
-                Write-Warning "dotnet exited with code $($proc.ExitCode) for project $project"
-                $anyFailed = $true
-            }
-        } else {
-            # Use ProcessStartInfo to invoke dotnet directly.
-            # PowerShell glob-expands * in splatted arguments to native commands
-            # even with $PSNativeCommandArgumentPassing = 'Standard' (PowerShell bug).
-            # ProcessStartInfo bypasses PowerShell's argument handling entirely.
-            # Use Arguments (string) instead of ArgumentList (collection) for PS 5.1 compatibility.
-            $psi = [System.Diagnostics.ProcessStartInfo]::new("dotnet")
-            $psi.UseShellExecute = $false
-            $psi.Arguments = $formattedArgs
-            $proc = [System.Diagnostics.Process]::Start($psi)
-            $proc.WaitForExit()
-            if ($proc.ExitCode -ne 0) {
-                Write-Warning "dotnet exited with code $($proc.ExitCode) for project $project"
-                $anyFailed = $true
-            }
-        }
-    }
-
-    if ($anyFailed) {
-        throw "One or more benchmark projects failed"
-    }
+    Invoke-PerfTests @PSBoundParameters
 }
 catch {
     Write-Error "$_`n$($_.Exception)`n$($_.ScriptStackTrace)"
     $host.SetShouldExit(1)
     exit 1
-}
-finally {
-    Pop-Location
 }
