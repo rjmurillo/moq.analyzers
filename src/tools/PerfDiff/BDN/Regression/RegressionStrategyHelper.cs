@@ -29,11 +29,6 @@ public static class RegressionStrategyHelper
     internal const double AbsoluteNoiseFloorNs = 0.5D * TimeUnitConstants.NanoSecondsToMilliseconds;
 
     /// <summary>
-    /// BenchmarkDotNet warns that iteration time should be at least 100ms for stable measurements.
-    /// </summary>
-    internal const double BenchmarkDotNetStabilityFloorNs = 100D * TimeUnitConstants.NanoSecondsToMilliseconds;
-
-    /// <summary>
     /// Multiplier for the combined standard deviation noise band.
     /// </summary>
     internal const double NoiseBandStandardDeviationMultiplier = 2D;
@@ -203,7 +198,7 @@ public static class RegressionStrategyHelper
     internal static bool ExceedsRatioNoiseFloor(RegressionResult result, Func<RegressionResult, double> deltaSelector)
     {
         double deltaNs = deltaSelector(result);
-        if (!ExceedsAbsoluteNoiseFloor(deltaNs) || !MeetsBaselineStabilityFloor(result))
+        if (!ExceedsAbsoluteNoiseFloor(deltaNs))
         {
             return false;
         }
@@ -276,13 +271,6 @@ public static class RegressionStrategyHelper
     {
         Debug.Assert(deltaNs >= 0 || double.IsNaN(deltaNs), "Benchmark deltas are non-negative unless undefined.");
         return !double.IsNaN(deltaNs) && deltaNs > AbsoluteNoiseFloorNs;
-    }
-
-    private static bool MeetsBaselineStabilityFloor(RegressionResult result)
-    {
-        double baselineMeanNs = result.BaseResult.Statistics?.Mean ?? double.NaN;
-        Debug.Assert(baselineMeanNs >= 0 || double.IsNaN(baselineMeanNs), "Benchmark means are non-negative unless undefined.");
-        return !double.IsNaN(baselineMeanNs) && baselineMeanNs >= BenchmarkDotNetStabilityFloorNs;
     }
 
     private static bool ExceedsStandardDeviationNoiseBand(RegressionResult result, double deltaNs)

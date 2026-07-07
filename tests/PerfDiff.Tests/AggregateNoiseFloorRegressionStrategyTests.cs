@@ -20,12 +20,14 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
     {
         BdnComparisonResult comparison = CreateComparison(
             "Benchmark.TrueRegression",
-            baseMeanNs: Milliseconds(200),
-            diffMeanNs: Milliseconds(230),
-            baseP95Ns: Milliseconds(220),
-            diffP95Ns: Milliseconds(260),
-            baseMeasurements: MeasurementsInMilliseconds(200, 200, 200, 200, 200),
-            diffMeasurements: MeasurementsInMilliseconds(230, 230, 230, 230, 230));
+            baseMeanNs: Milliseconds(5),
+            diffMeanNs: Milliseconds(6),
+            baseP95Ns: Milliseconds(5.2),
+            diffP95Ns: Milliseconds(6.3),
+            baseStandardDeviationNs: Milliseconds(0.05),
+            diffStandardDeviationNs: Milliseconds(0.05),
+            baseMeasurements: MeasurementsInMilliseconds(5, 5, 5, 5, 5),
+            diffMeasurements: MeasurementsInMilliseconds(6, 6, 6, 6, 6));
 
         bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
 
@@ -34,7 +36,7 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
 
     [Theory]
     [MemberData(nameof(RatioStrategies))]
-    public void HasRegression_WithSubStabilityFloorNoise_ReturnsFalse(IBenchmarkRegressionStrategy strategy)
+    public void HasRegression_WithSubMillisecondNoise_ReturnsFalse(IBenchmarkRegressionStrategy strategy)
     {
         BdnComparisonResult comparison = CreateComparison(
             "Benchmark.Noisy",
@@ -42,6 +44,8 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
             diffMeanNs: Milliseconds(2.8),
             baseP95Ns: Milliseconds(3),
             diffP95Ns: Milliseconds(3.8),
+            baseStandardDeviationNs: Milliseconds(0.4),
+            diffStandardDeviationNs: Milliseconds(0.4),
             baseMeasurements: MeasurementsInMilliseconds(2, 2, 2, 2, 2),
             diffMeasurements: MeasurementsInMilliseconds(2.8, 2.8, 2.8, 2.8, 2.8));
 
@@ -60,6 +64,8 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
             diffMeanNs: Milliseconds(5.1),
             baseP95Ns: Milliseconds(6),
             diffP95Ns: Milliseconds(6.7),
+            baseStandardDeviationNs: Milliseconds(0.4),
+            diffStandardDeviationNs: Milliseconds(0.4),
             baseMeasurements: MeasurementsInMilliseconds(4.5, 4.5, 4.5, 4.5, 4.5),
             diffMeasurements: MeasurementsInMilliseconds(5.1, 5.1, 5.1, 5.1, 5.1));
         BdnComparisonResult stableBetter = CreateComparison(
@@ -72,6 +78,66 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
             diffMeasurements: MeasurementsInMilliseconds(180, 180, 180, 180, 180));
 
         bool hasRegression = strategy.HasRegression([noisyWorse, stableBetter], new PerfDiffTestLogger(), out _);
+
+        Assert.False(hasRegression);
+    }
+
+    [Theory]
+    [MemberData(nameof(RatioStrategies))]
+    public void HasRegression_WithIssue1315NoisySubMillisecondAggregate_ReturnsFalse(IBenchmarkRegressionStrategy strategy)
+    {
+        BdnComparisonResult firstNoisyBenchmark = CreateComparison(
+            "Benchmark.NoisyOne",
+            baseMeanNs: Microseconds(400),
+            diffMeanNs: Microseconds(900),
+            baseP95Ns: Microseconds(500),
+            diffP95Ns: Microseconds(1_000),
+            baseStandardDeviationNs: Microseconds(300),
+            diffStandardDeviationNs: Microseconds(300),
+            baseMeasurements: MeasurementsInMicroseconds(400, 400, 400, 400, 400),
+            diffMeasurements: MeasurementsInMicroseconds(900, 900, 900, 900, 900));
+        BdnComparisonResult secondNoisyBenchmark = CreateComparison(
+            "Benchmark.NoisyTwo",
+            baseMeanNs: Microseconds(600),
+            diffMeanNs: Microseconds(1_150),
+            baseP95Ns: Microseconds(700),
+            diffP95Ns: Microseconds(1_250),
+            baseStandardDeviationNs: Microseconds(325),
+            diffStandardDeviationNs: Microseconds(325),
+            baseMeasurements: MeasurementsInMicroseconds(600, 600, 600, 600, 600),
+            diffMeasurements: MeasurementsInMicroseconds(1_150, 1_150, 1_150, 1_150, 1_150));
+
+        bool hasRegression = strategy.HasRegression([firstNoisyBenchmark, secondNoisyBenchmark], new PerfDiffTestLogger(), out _);
+
+        Assert.False(hasRegression);
+    }
+
+    [Theory]
+    [MemberData(nameof(RatioStrategies))]
+    public void HasRegression_WithIssue1317NoiseBandFixtures_ReturnsFalse(IBenchmarkRegressionStrategy strategy)
+    {
+        BdnComparisonResult moq1000 = CreateComparison(
+            "Benchmark.Moq1000WithDiagnostics",
+            baseMeanNs: Milliseconds(4.78),
+            diffMeanNs: Milliseconds(5.66),
+            baseP95Ns: Milliseconds(5.39),
+            diffP95Ns: Milliseconds(6.27),
+            baseStandardDeviationNs: Milliseconds(0.35),
+            diffStandardDeviationNs: Milliseconds(0.36),
+            baseMeasurements: MeasurementsInMilliseconds(4.78, 4.78, 4.78, 4.78, 4.78),
+            diffMeasurements: MeasurementsInMilliseconds(5.66, 5.66, 5.66, 5.66, 5.66));
+        BdnComparisonResult moq1002 = CreateComparison(
+            "Benchmark.Moq1002WithDiagnostics",
+            baseMeanNs: Milliseconds(3.20),
+            diffMeanNs: Milliseconds(3.73),
+            baseP95Ns: Milliseconds(3.40),
+            diffP95Ns: Milliseconds(3.93),
+            baseStandardDeviationNs: Milliseconds(0.226),
+            diffStandardDeviationNs: Milliseconds(0.226),
+            baseMeasurements: MeasurementsInMilliseconds(3.20, 3.20, 3.20, 3.20, 3.20),
+            diffMeasurements: MeasurementsInMilliseconds(3.73, 3.73, 3.73, 3.73, 3.73));
+
+        bool hasRegression = strategy.HasRegression([moq1000, moq1002], new PerfDiffTestLogger(), out _);
 
         Assert.False(hasRegression);
     }
@@ -98,21 +164,31 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
     }
 
     [Fact]
-    public void ExceedsRatioNoiseFloor_WhenBaselineEqualsStabilityFloor_ReturnsTrue()
+    public void ExceedsRatioNoiseFloor_WhenSubMillisecondDeltaClearsNoiseBand_ReturnsTrue()
     {
-        RegressionResult result = CreateRegressionResult(RegressionStrategyHelper.BenchmarkDotNetStabilityFloorNs, Milliseconds(120));
+        RegressionResult result = CreateRegressionResult(
+            Milliseconds(0.4),
+            Milliseconds(1.1),
+            baseStandardDeviationNs: Milliseconds(0.05),
+            diffStandardDeviationNs: Milliseconds(0.05),
+            n: 5);
 
-        bool exceeds = RegressionStrategyHelper.ExceedsRatioNoiseFloor(result, _ => Milliseconds(20));
+        bool exceeds = RegressionStrategyHelper.ExceedsRatioNoiseFloor(result, _ => Milliseconds(0.7));
 
         Assert.True(exceeds);
     }
 
     [Fact]
-    public void ExceedsRatioNoiseFloor_WhenBaselineIsBelowStabilityFloor_ReturnsFalse()
+    public void ExceedsRatioNoiseFloor_WhenSubMillisecondDeltaIsWithinNoiseBand_ReturnsFalse()
     {
-        RegressionResult result = CreateRegressionResult(Milliseconds(99.999), Milliseconds(120));
+        RegressionResult result = CreateRegressionResult(
+            Milliseconds(0.4),
+            Milliseconds(1.1),
+            baseStandardDeviationNs: Milliseconds(0.3),
+            diffStandardDeviationNs: Milliseconds(0.3),
+            n: 5);
 
-        bool exceeds = RegressionStrategyHelper.ExceedsRatioNoiseFloor(result, _ => Milliseconds(20));
+        bool exceeds = RegressionStrategyHelper.ExceedsRatioNoiseFloor(result, _ => Milliseconds(0.7));
 
         Assert.False(exceeds);
     }
@@ -204,17 +280,17 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
     }
 
     [Fact]
-    public void ExceedsRatioNoiseFloor_WhenBaselineStatisticsAreMissing_ReturnsFalse()
+    public void ExceedsRatioNoiseFloor_WhenStatisticsAreMissing_FallsBackToAbsoluteFloor()
     {
         RegressionResult result = new(
-            "Benchmark.MissingBaseStats",
+            "Benchmark.MissingStats",
             new Benchmark(),
-            CreateBenchmark("Benchmark.MissingBaseStats", Milliseconds(220), Milliseconds(220), Milliseconds(240)),
+            new Benchmark(),
             ComparisonResult.Lesser);
 
         bool exceeds = RegressionStrategyHelper.ExceedsRatioNoiseFloor(result, _ => Milliseconds(20));
 
-        Assert.False(exceeds);
+        Assert.True(exceeds);
     }
 
     [Fact]
@@ -358,11 +434,13 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
         double baseP95Ns,
         double diffP95Ns,
         Measurement[] baseMeasurements,
-        Measurement[] diffMeasurements)
+        Measurement[] diffMeasurements,
+        double baseStandardDeviationNs = 0,
+        double diffStandardDeviationNs = 0)
         => new(
             id,
-            CreateBenchmark(id, baseMeanNs, baseMeanNs, baseP95Ns, measurements: baseMeasurements),
-            CreateBenchmark(id, diffMeanNs, diffMeanNs, diffP95Ns, measurements: diffMeasurements));
+            CreateBenchmark(id, baseMeanNs, baseMeanNs, baseP95Ns, standardDeviationNs: baseStandardDeviationNs, n: 5, measurements: baseMeasurements),
+            CreateBenchmark(id, diffMeanNs, diffMeanNs, diffP95Ns, standardDeviationNs: diffStandardDeviationNs, n: 5, measurements: diffMeasurements));
 
     private static Benchmark CreateBenchmark(
         string id,
@@ -408,5 +486,15 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
             Nanoseconds = Milliseconds(value),
         }).ToArray();
 
+    private static Measurement[] MeasurementsInMicroseconds(params double[] values)
+        => values.Select(value => new Measurement
+        {
+            IterationStage = "Result",
+            Operations = 1,
+            Nanoseconds = Microseconds(value),
+        }).ToArray();
+
     private static double Milliseconds(double value) => value * TimeUnitConstants.NanoSecondsToMilliseconds;
+
+    private static double Microseconds(double value) => value * 1_000D;
 }
