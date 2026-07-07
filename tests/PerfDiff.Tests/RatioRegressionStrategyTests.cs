@@ -9,7 +9,7 @@ namespace PerfDiff.Tests;
 public sealed class RatioRegressionStrategyTests
 {
     [Fact]
-    public void PercentageRegressionStrategy_WithInfiniteMedianRatio_ReturnsTrue()
+    public void PercentageRegressionStrategy_WithInfiniteMedianRatio_ReturnsFalse()
     {
         PercentageRegressionStrategy strategy = new();
         BdnComparisonResult comparison = CreateComparison(BenchmarkWithMedian(0), BenchmarkWithMedian(10));
@@ -17,7 +17,32 @@ public sealed class RatioRegressionStrategyTests
         bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
 
         Assert.True(double.IsPositiveInfinity(BenchmarkDotNetDiffer.GetMedianRatio(ComparisonResult.Lesser, comparison.BaseResult, comparison.DiffResult)));
+        Assert.False(hasRegression);
+    }
+
+    [Fact]
+    public void PercentageRegressionStrategy_WithStableLargeAggregateRegression_ReturnsTrue()
+    {
+        PercentageRegressionStrategy strategy = new();
+        BdnComparisonResult comparison = CreateComparison(BenchmarkWithMedian(Milliseconds(5)), BenchmarkWithMedian(Milliseconds(7)));
+
+        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
+
         Assert.True(hasRegression);
+    }
+
+    [Fact]
+    public void PercentageRegressionStrategy_WhenMedianDeltaIsBelowAbsoluteNoiseFloor_ReturnsFalse()
+    {
+        PercentageRegressionStrategy strategy = new();
+        BdnComparisonResult comparison = CreateComparison(
+            BenchmarkWithValues(192_800, 181_100, 192_800),
+            BenchmarkWithValues(260_800, 261_000, 260_800));
+
+        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
+
+        Assert.True(BenchmarkDotNetDiffer.GetMedianRatio(ComparisonResult.Lesser, comparison.BaseResult, comparison.DiffResult) > 1.35D);
+        Assert.False(hasRegression);
     }
 
     [Fact]

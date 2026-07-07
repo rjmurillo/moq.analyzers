@@ -86,7 +86,7 @@ public static class RegressionStrategyHelper
     /// <param name="logger">Logger for per-benchmark and aggregate diagnostics.</param>
     /// <param name="config">Ratio metric configuration.</param>
     /// <param name="details">The regression detection details.</param>
-    /// <returns><see langword="true"/> when the stable worse-set geomean is greater than 1.05.</returns>
+    /// <returns><see langword="true"/> when the stable worse-set geomean is greater than the configured threshold.</returns>
     internal static bool HasAggregateRatioRegression(
         BdnComparisonResult[] comparison,
         ILogger logger,
@@ -97,7 +97,7 @@ public static class RegressionStrategyHelper
         Debug.Assert(logger != null, "A logger is required.");
         Debug.Assert(config != null, "A ratio metric config is required.");
 
-        Threshold relativeThreshold = Threshold.Parse(AggregateRatioRegressionThresholdText);
+        Threshold relativeThreshold = Threshold.Parse(config.ThresholdText);
         RegressionResult[] notSame = BenchmarkDotNetDiffer.FindRegressions(comparison, relativeThreshold);
 
         List<RegressionResult> better = GetStableResults(notSame, ComparisonResult.Greater, config.DeltaSelector);
@@ -106,7 +106,7 @@ public static class RegressionStrategyHelper
         List<RegressionResult> worse = GetStableResults(notSame, ComparisonResult.Lesser, config.DeltaSelector);
         LogRatioResults(worse, logger, config, "more");
 
-        bool aggregateRegression = IsAggregateRatioRegression(worse, config.RatioSelector, out _);
+        bool aggregateRegression = IsAggregateRatioRegression(worse, config.RatioSelector, config.AggregateThreshold, out _);
         details = new RegressionDetectionResult(config.MetricName, relativeThreshold);
         return aggregateRegression;
     }
@@ -181,13 +181,18 @@ public static class RegressionStrategyHelper
     }
 
     internal static bool IsAggregateRatioRegression(IEnumerable<RegressionResult> results, Func<RegressionResult, double> ratioSelector, out double geometricMean)
+        => IsAggregateRatioRegression(results, ratioSelector, AggregateRatioRegressionThreshold, out geometricMean);
+
+    internal static bool IsAggregateRatioRegression(IEnumerable<RegressionResult> results, Func<RegressionResult, double> ratioSelector, double aggregateThreshold, out double geometricMean)
     {
+        Debug.Assert(aggregateThreshold >= 1D, "Ratio regression thresholds must not flag improvements.");
+
         if (!TryGetGeometricMean(results, ratioSelector, out geometricMean))
         {
             return false;
         }
 
-        return geometricMean > AggregateRatioRegressionThreshold;
+        return geometricMean > aggregateThreshold;
     }
 
     internal static bool ExceedsRatioNoiseFloor(RegressionResult result, Func<RegressionResult, double> deltaSelector)

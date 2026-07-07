@@ -75,22 +75,22 @@ public sealed class RegressionBoundaryTests
     }
 
     [Fact]
-    public void PercentageRegressionStrategy_WhenWorseGeomeanIsUndefined_StillReportsRegression()
+    public void PercentageRegressionStrategy_WhenWorseGeomeanIsUndefined_ReturnsFalse()
     {
         PercentageRegressionStrategy strategy = new();
         BdnComparisonResult comparison = CreateStatisticallyWorseComparison(baseMedianNs: 0, diffMedianNs: 0);
 
         bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out RegressionDetectionResult details);
 
-        Assert.True(hasRegression);
+        Assert.False(hasRegression);
         Assert.Equal("Median ratio", details.MetricName);
     }
 
     [Fact]
-    public void PercentageRegressionStrategy_WhenWorseGeomeanIsDefined_LogsGeomean()
+    public void PercentageRegressionStrategy_WhenWorseExceedsAbsoluteThreshold_LogsGeomean()
     {
         PercentageRegressionStrategy strategy = new();
-        BdnComparisonResult comparison = CreateStatisticallyWorseComparison(baseMedianNs: 100, diffMedianNs: 300);
+        BdnComparisonResult comparison = CreateStatisticallyWorseComparison(baseMedianNs: Milliseconds(5), diffMedianNs: Milliseconds(8));
         PerfDiffTestLogger logger = new();
 
         bool hasRegression = strategy.HasRegression([comparison], logger, out _);
