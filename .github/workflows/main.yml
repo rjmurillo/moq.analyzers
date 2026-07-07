@@ -79,6 +79,21 @@ jobs:
             echo "Code files changed: ${{ steps.filter.outputs.code }}"
           fi
 
+  powershell-perf-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install Pester
+        shell: pwsh
+        run: Install-Module Pester -MinimumVersion 5.0 -Force -Scope CurrentUser
+
+      - name: Run perf module Pester tests
+        shell: pwsh
+        run: |
+          $result = Invoke-Pester -Path build/scripts/perf/tests -Output Detailed -PassThru
+          if ($result.FailedCount -gt 0) { exit 1 }
+
   # Build, validate, and package. Fast gate (~5 min).
   # Tests, analyzer-load-test, and perf run as separate downstream jobs.
   build:

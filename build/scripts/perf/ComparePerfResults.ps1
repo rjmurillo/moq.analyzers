@@ -5,31 +5,15 @@ Param(
     [switch] $ci        # the scripts is running on a CI server
   )
 
-$currentLocation = Get-Location
+Import-Module (Join-Path $PSScriptRoot 'PerfResultsAnalyzer.psm1') -Force -DisableNameChecking
+
 try {
-
-    #Get result files
-    $baselineFolder = Resolve-Path (Join-Path $baseline "results")
-    
-    $resultsFolder = Resolve-Path (Join-Path $results "results")
-
-    Write-Host "Comparing performance results baseline: '$baselineFolder' "
-    Write-Host " - baseline: '$baselineFolder' "
-    Write-Host " - results: '$resultsFolder' "
-    
-    $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
-    $perfDiff = Join-Path $RepoRoot "src\tools\PerfDiff\PerfDiff.csproj"
-    & dotnet build $perfDiff -c Release
-    if ($LASTEXITCODE -ne 0) { throw "dotnet build failed with exit code $LASTEXITCODE" }
-    & dotnet run -c Release --project $perfDiff -- --baseline $baselineFolder --results $resultsFolder --failOnRegression
-    $host.SetShouldExit($LASTEXITCODE)
+    $exitCode = Invoke-PerfResultsComparison @PSBoundParameters
+    $host.SetShouldExit([int]$exitCode)
     exit
 }
 catch {
     Write-Error "$_`n$($_.Exception)`n$($_.ScriptStackTrace)"
     $host.SetShouldExit(1)
     exit 1
-}
-finally {
-    Set-Location $currentLocation
 }

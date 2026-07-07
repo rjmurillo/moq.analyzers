@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
@@ -48,31 +49,25 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
     /// Attempts to report a diagnostic for a MockBehavior parameter issue, with the mocked type name.
     /// </summary>
     /// <param name="context">The operation analysis context.</param>
-    /// <param name="method">The method to check for MockBehavior parameter.</param>
-    /// <param name="knownSymbols">The known Moq symbols.</param>
+    /// <param name="parameterMatch">The MockBehavior parameter to edit.</param>
     /// <param name="rule">The diagnostic rule to report.</param>
     /// <param name="editType">The type of edit for the code fix.</param>
-    /// <param name="mockedTypeName">The mocked type name to format into the diagnostic message.</param>
+    /// <param name="mockedTypeNameSource">The method whose type arguments name the mocked type.</param>
     /// <returns>True if a diagnostic was reported; otherwise, false.</returns>
     internal bool TryReportMockBehaviorDiagnostic(
         OperationAnalysisContext context,
-        IMethodSymbol method,
-        MoqKnownSymbols knownSymbols,
+        IParameterSymbol parameterMatch,
         DiagnosticDescriptor rule,
         DiagnosticEditProperties.EditType editType,
-        string mockedTypeName)
+        IMethodSymbol mockedTypeNameSource)
     {
-        if (!method.TryGetParameterOfType(knownSymbols.MockBehavior!, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken))
-        {
-            return false;
-        }
-
         ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
         {
             TypeOfEdit = editType,
             EditPosition = parameterMatch.Ordinal,
         }.ToImmutableDictionary();
 
+        string mockedTypeName = GetMockedTypeName(context.Operation, mockedTypeNameSource);
         context.ReportDiagnostic(context.Operation.CreateDiagnostic(rule, properties, mockedTypeName));
         return true;
     }
@@ -82,31 +77,54 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
     /// with the mocked type name.
     /// </summary>
     /// <param name="context">The operation analysis context.</param>
-    /// <param name="mockParameter">The MockBehavior parameter (should be null to trigger overload check).</param>
     /// <param name="target">The target method to check for overloads.</param>
     /// <param name="knownSymbols">The known Moq symbols.</param>
     /// <param name="rule">The diagnostic rule to report.</param>
-    /// <param name="mockedTypeName">The mocked type name to format into the diagnostic message.</param>
+    /// <param name="mockedTypeNameSource">The method whose type arguments name the mocked type.</param>
     /// <returns>True if a diagnostic was reported; otherwise, false.</returns>
     internal bool TryHandleMissingMockBehaviorParameter(
         OperationAnalysisContext context,
-        IParameterSymbol? mockParameter,
         IMethodSymbol target,
         MoqKnownSymbols knownSymbols,
         DiagnosticDescriptor rule,
-        string mockedTypeName)
+        IMethodSymbol mockedTypeNameSource)
     {
-        return mockParameter is null
-            && target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out IMethodSymbol? methodMatch, out _, cancellationToken: context.CancellationToken)
-            && TryReportMockBehaviorDiagnostic(context, methodMatch, knownSymbols, rule, DiagnosticEditProperties.EditType.Insert, mockedTypeName);
+        INamedTypeSymbol? mockBehavior = knownSymbols.MockBehavior;
+        if (mockBehavior is null)
+        {
+            Debug.Assert(false, "knownSymbols.MockBehavior must be non-null: registration is gated on it.");
+            return false;
+        }
+
+        return target.TryGetOverloadWithParameterOfType(mockBehavior, out _, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken)
+            && TryReportMockBehaviorDiagnostic(context, parameterMatch, rule, DiagnosticEditProperties.EditType.Insert, mockedTypeNameSource);
     }
 
     private protected abstract void AnalyzeMockBehaviorArgument(
         OperationAnalysisContext context,
         IMethodSymbol target,
+        IParameterSymbol mockParameter,
         IArgumentOperation? mockArgument,
-        MoqKnownSymbols knownSymbols,
-        string mockedTypeName);
+        MoqKnownSymbols knownSymbols);
+
+    private protected bool ContainsFieldReference(IOperation operation, IFieldSymbol? field)
+    {
+        System.Diagnostics.Debug.Assert(field is not null, "MockBehavior field symbols are required once the MockBehavior type is resolved.");
+        if (operation is IFieldReferenceOperation fieldReference && fieldReference.Member.IsInstanceOf(field!))
+        {
+            return true;
+        }
+
+        foreach (IOperation child in operation.ChildOperations)
+        {
+            if (ContainsFieldReference(child, field))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private protected override void RegisterCompilationActions(CompilationStartAnalysisContext context, MoqKnownSymbols knownSymbols)
     {
@@ -163,17 +181,16 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
         ImmutableArray<IArgumentOperation> arguments,
         MoqKnownSymbols knownSymbols)
     {
-        string mockedTypeName = GetMockedTypeName(context.Operation, target);
-
         IParameterSymbol? mockParameter = target.Parameters.DefaultIfNotSingle(parameter => parameter.Type.IsInstanceOf(knownSymbols.MockBehavior));
 
-        if (TryHandleMissingMockBehaviorParameter(context, mockParameter, target, knownSymbols, DiagnosticRule, mockedTypeName))
+        if (mockParameter is null)
         {
+            TryHandleMissingMockBehaviorParameter(context, target, knownSymbols, DiagnosticRule, target);
             return;
         }
 
         IArgumentOperation? mockArgument = arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
 
-        AnalyzeMockBehaviorArgument(context, target, mockArgument, knownSymbols, mockedTypeName);
+        AnalyzeMockBehaviorArgument(context, target, mockParameter, mockArgument, knownSymbols);
     }
 }

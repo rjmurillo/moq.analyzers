@@ -13,6 +13,7 @@ public class SetExplicitMockBehaviorAnalyzerTests
             // new Mock<T>() patterns
             ["""{|Moq1400:new Mock<ISample>()|};"""],
             ["""{|Moq1400:new Mock<ISample>(MockBehavior.Default)|};"""],
+            ["""{|Moq1400:new Mock<ISample>(MockBehavior.Default | MockBehavior.Strict)|};"""],
             ["""new Mock<ISample>(MockBehavior.Loose);"""],
             ["""new Mock<ISample>(MockBehavior.Strict);"""],
             ["""MockBehavior GetBehavior() => MockBehavior.Strict; MockBehavior behavior = GetBehavior(); new Mock<ISample>(behavior);"""],
@@ -120,5 +121,114 @@ public class SetExplicitMockBehaviorAnalyzerTests
 
         // CompilerDiagnostics.None suppresses CS1001/CS1026/CS1002/CS0117 from the incomplete code.
         await Verifier.VerifyAnalyzerAsync(source, referenceAssemblyGroup, CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task ShouldReportWhenConstructorUsesDefaultMockBehaviorParameter()
+    {
+        const string source = """
+            namespace Moq
+            {
+                public enum MockBehavior
+                {
+                    Strict = 0,
+                    Loose = 1,
+                    Default = 1,
+                }
+
+                public class Mock<T>
+                {
+                    public Mock(MockBehavior behavior = MockBehavior.Default) { }
+                }
+            }
+
+            public interface ISample
+            {
+                void Method();
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    {|Moq1400:new Moq.Mock<ISample>()|};
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80);
+    }
+
+    [Fact]
+    public async Task ShouldNotReportWhenConstructorHasNoMockBehaviorOverload()
+    {
+        const string source = """
+            namespace Moq
+            {
+                public enum MockBehavior
+                {
+                    Strict = 0,
+                    Loose = 1,
+                    Default = 1,
+                }
+
+                public class Mock<T>
+                {
+                    public Mock(int value) { }
+                }
+            }
+
+            public interface ISample
+            {
+                void Method();
+            }
+
+            internal class UnitTest
+            {
+                private void Test()
+                {
+                    new Moq.Mock<ISample>(1);
+                }
+            }
+            """;
+
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80);
+    }
+
+    [Fact]
+    public void TryHandleMissingMockBehaviorParameter_MissingMockBehaviorSymbol_ReturnsFalse()
+    {
+        (SemanticModel model, _) = CompilationHelper.CreateCompilation("class C { }");
+        SetExplicitMockBehaviorAnalyzer analyzer = new SetExplicitMockBehaviorAnalyzer();
+        System.Reflection.MethodInfo? method = typeof(MockBehaviorDiagnosticAnalyzerBase).GetMethod(
+            "TryHandleMissingMockBehaviorParameter",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        Assert.NotNull(method);
+
+        Type knownSymbolsType = method.GetParameters()[2].ParameterType;
+        object knownSymbols = knownSymbolsType
+            .GetConstructor(
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
+                binder: null,
+                [typeof(Compilation)],
+                modifiers: null)!
+            .Invoke([model.Compilation]);
+
+#pragma warning disable ECS0900 // Reflection boxes OperationAnalysisContext to cover the unreachable guard path.
+#if DEBUG
+        System.Reflection.TargetInvocationException exception = Assert.Throws<System.Reflection.TargetInvocationException>(
+            () => method!.Invoke(
+                analyzer,
+                [default(Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext), null, knownSymbols, null, null]));
+        Assert.Equal(
+            "Microsoft.VisualStudio.TestPlatform.TestHost.DebugAssertException",
+            exception.InnerException?.GetType().FullName);
+#else
+        object? result = method!.Invoke(
+            analyzer,
+            [default(Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext), null, knownSymbols, null, null]);
+        Assert.False(Assert.IsType<bool>(result));
+#endif
+#pragma warning restore ECS0900
     }
 }

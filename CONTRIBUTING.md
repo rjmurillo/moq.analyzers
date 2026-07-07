@@ -320,7 +320,10 @@ ci(workflow): add performance testing to nightly builds
 - **Code Coverage:**  
   Code coverage is generated automatically if you use the `test.runsettings` from above, which produces Cobertura format. If you wish to have a different format, you can specify on the command line. Example:
   `dotnet test --collect:"XPlat Code Coverage" --settings ./build/targets/tests/test.runsettings`  
-  PRs must not reduce coverage for critical paths without justification.
+  PRs must not reduce coverage for critical paths without justification. The
+  generated HTML report also ranks risk hotspots by the CRAP metric; see
+  [`docs/crap-metric.md`](docs/crap-metric.md) for what it means and how to
+  lower it.
 - **Mutation Testing:**
   Stryker.NET is available as an optional local tool and as a manual or scheduled workflow. It is not a required PR gate because mutation testing is slow. To run it locally:
 
@@ -557,6 +560,10 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
 - **Comprehensive Coverage**: Tests against ALL analyzers simultaneously to ensure no false positives
 
 **Important**: When you add a new analyzer, the `AllAnalyzersVerifier` automatically discovers and includes it. No manual updates to test infrastructure are required.
+
+### New Language Crash-Safety Tests
+
+Per-version projects named `Moq.Analyzers.CSharpNN.Test` run the analyzer suite with a newer isolated Roslyn test compiler. They protect the shipped netstandard2.0 analyzers from crashing on new C# syntax without raising the shipping Roslyn 4.8 API ceiling. Adding the next leg, such as C# 15, should copy the latest per-version test project and update only the isolated test compiler version and covered constructs.
 
 ### Moq-Specific Testing Guidelines
 

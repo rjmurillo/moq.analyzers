@@ -124,6 +124,27 @@ If tests fail after adding/modifying symbol-based detection:
 - **Method Chain Returns**: Different interfaces at each chain position
 - **Missing Symbol Registration**: String fallback masks missing symbols
 
+## Crash Safety: Symbol Casts and Forward Language Versions (MANDATORY)
+
+An analyzer that throws is worse than a missing diagnostic: Roslyn reports `AD0001` and **disables the analyzer for the rest of the session**. New C# language features are the most common trigger, because the test harness compiles at the language version its pinned reference-assembly group allows, so future constructs execute against code no test ever exercised.
+
+### Never cast a symbol type without a pattern guard
+
+Casts from `ITypeSymbol`/`ISymbol` to a derived interface (`IArrayTypeSymbol`, `INamedTypeSymbol`, `IPointerTypeSymbol`, ...) **MUST** use a pattern test with a graceful early-return, never a direct `(T)` cast or `as` + unchecked dereference.
+
+- ❌ `var element = ((IArrayTypeSymbol)paramsParameter.Type).ElementType;`
+- ✅ `if (paramsParameter.Type is not IArrayTypeSymbol arrayType) { return; }` then use `arrayType.ElementType`.
+
+**Concrete failure this rule prevents (#1241):** `ConstructorArgumentsShouldMatchAnalyzer` cast `(IArrayTypeSymbol)paramsParameter.Type`. On a host compiling **C# 13 params collections** (`params List<int>`, `params ReadOnlySpan<int>`), `Type` is an `INamedTypeSymbol`, the cast throws `InvalidCastException`, and the analyzer dies with `AD0001`. `IsParams` does **not** imply array. The same shape recurs for any assumption that a symbol subtype is fixed.
+
+Program defensively: when a code path assumes an invariant about a symbol's shape, guard it (pattern test + early-return, or `Debug.Assert` for truly-impossible states).
+
+### Ship a regression test at the language version that triggers the crash
+
+Any crash-path fix tied to a specific language feature **MUST** include a regression test compiled at the C# version that reproduces it. If the default harness pins an older language version (e.g. the `net8.0` group pins C# 12, so `params List<int>` fails `CS0225`), use the isolated newest-language test project (`Moq.Analyzers.CSharp13.Test`, Roslyn 4.13 — kept separate so shipping analyzers keep their netstandard2.0 + Roslyn 4.8 API ceiling). A fix without a test at the triggering language version does not close the defect.
+
+For the broader structural guardrails (a first-class "latest language version" test leg, an automated unguarded-cast guard, a scheduled newest-SDK CI probe), see issue [#1321](https://github.com/rjmurillo/moq.analyzers/issues/1321).
+
 ## Test Data & Sample Inputs/Outputs
 
 ### What Constitutes Good Test Data?
