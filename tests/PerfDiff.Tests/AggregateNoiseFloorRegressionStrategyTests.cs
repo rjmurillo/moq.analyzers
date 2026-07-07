@@ -364,7 +364,7 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
             MeanNs = meanNs,
             P95Ns = p95Ns,
             StandardDeviationNs = standardDeviationNs,
-            N = 5,
+            N = measurements.Length,
             Measurements = measurements,
         };
 

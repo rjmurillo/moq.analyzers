@@ -10,6 +10,8 @@ namespace PerfDiff.BDN.Regression;
 /// </summary>
 public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
 {
+    private const double MedianAggregateRatioRegressionThreshold = 1.35D;
+
     /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
         => RegressionStrategyHelper.HasAggregateRatioRegression(
@@ -20,7 +22,7 @@ public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
                 BenchmarkDotNetDiffer.GetMedianRatio,
                 GetMedianDelta,
                 "35%",
-                1.35D),
+                MedianAggregateRatioRegressionThreshold),
             out details);
 
     private static double GetMedianDelta(RegressionResult result)

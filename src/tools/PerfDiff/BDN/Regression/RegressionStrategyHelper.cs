@@ -33,6 +33,8 @@ public static class RegressionStrategyHelper
     /// </summary>
     internal const double NoiseBandStandardDeviationMultiplier = 2D;
 
+    private const double PercentScale = 100D;
+
     public static bool HasRegression(
         BdnComparisonResult[] comparison,
         ILogger logger,
@@ -167,7 +169,7 @@ public static class RegressionStrategyHelper
                 continue;
             }
 
-            logSum += Math.Log10(ratio);
+            logSum += Math.Log(ratio);
             count++;
         }
 
@@ -177,7 +179,7 @@ public static class RegressionStrategyHelper
         }
 
         Debug.Assert(count > 0, "At least one numeric ratio is required before dividing.");
-        return Math.Pow(10, logSum / count);
+        return Math.Exp(logSum / count);
     }
 
     internal static bool IsAggregateRatioRegression(IEnumerable<RegressionResult> results, Func<RegressionResult, double> ratioSelector, out double geometricMean)
@@ -253,7 +255,7 @@ public static class RegressionStrategyHelper
     }
 
     private static double ToPercentChange(double ratio)
-        => (ratio - 1D) * 100D;
+        => (ratio - 1D) * PercentScale;
 
     private static bool TryGetCombinedStandardDeviation(RegressionResult result, out double combinedStandardDeviationNs)
     {
@@ -293,18 +295,43 @@ public static class RegressionStrategyHelper
             return false;
         }
 
+        if (TryGetSampleStandardDeviation(statistics, out standardDeviationNs)
+            || TryGetSampleStandardErrorAsStandardDeviation(statistics, out standardDeviationNs)
+            || TryGetConfidenceIntervalStandardErrorAsStandardDeviation(statistics, out standardDeviationNs))
+        {
+            return true;
+        }
+
+        standardDeviationNs = double.NaN;
+        return false;
+    }
+
+    private static bool TryGetSampleStandardDeviation(Statistics statistics, out double standardDeviationNs)
+    {
         if (statistics.N > 1 && IsFiniteNonNegative(statistics.StandardDeviation))
         {
             standardDeviationNs = statistics.StandardDeviation;
             return true;
         }
 
+        standardDeviationNs = double.NaN;
+        return false;
+    }
+
+    private static bool TryGetSampleStandardErrorAsStandardDeviation(Statistics statistics, out double standardDeviationNs)
+    {
         if (statistics.N > 1 && IsFiniteNonNegative(statistics.StandardError))
         {
             standardDeviationNs = statistics.StandardError * Math.Sqrt(statistics.N);
             return true;
         }
 
+        standardDeviationNs = double.NaN;
+        return false;
+    }
+
+    private static bool TryGetConfidenceIntervalStandardErrorAsStandardDeviation(Statistics statistics, out double standardDeviationNs)
+    {
         global::PerfDiff.BDN.DataContracts.ConfidenceInterval? confidenceInterval = statistics.ConfidenceInterval;
         if (confidenceInterval?.N > 1 && IsFiniteNonNegative(confidenceInterval.StandardError))
         {
