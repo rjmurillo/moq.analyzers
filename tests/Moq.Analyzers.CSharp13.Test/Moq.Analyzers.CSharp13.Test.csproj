@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- C# 13 params collections require Roslyn 4.13+. Keep the project on net8.0 while using a newer test compiler. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.13.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="4.13.0" />
+    <PackageReference Update="Polyfill" ExcludeAssets="compile" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)/src/Analyzers/Moq.Analyzers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)/tests/Moq.Analyzers.Test/Helpers/ReferenceAssemblyCatalog.cs" Link="Helpers/ReferenceAssemblyCatalog.cs" />
+  </ItemGroup>
+
+  <Target Name="RemovePolyfillSourcesFromCSharp13Tests" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <!-- Moq.Analyzers already exposes Polyfill through the project reference. Compiling it again causes duplicate BCL shim types. -->
+      <Compile Remove="$(NuGetPackageRoot)polyfill/**/*.cs" />
+    </ItemGroup>
+  </Target>
+
+</Project>
