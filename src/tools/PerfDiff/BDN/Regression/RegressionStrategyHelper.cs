@@ -11,6 +11,33 @@ namespace PerfDiff.BDN.Regression;
 /// </summary>
 public static class RegressionStrategyHelper
 {
+    private static readonly Func<RegressionResult, double> MedianRatioSelector = BenchmarkDotNetDiffer.GetMedianRatio;
+
+    /// <summary>
+    /// Relative ratio threshold for aggregate mean and P95 ratio gates.
+    /// </summary>
+    internal const double AggregateRatioRegressionThreshold = 1.05D;
+
+    /// <summary>
+    /// Display form of the 5% aggregate ratio threshold used by Perfolizer.
+    /// </summary>
+    internal const string AggregateRatioRegressionThresholdText = "5%";
+
+    /// <summary>
+    /// Lower bound for benchmark deltas that can affect ratio gates.
+    /// </summary>
+    internal const double AbsoluteNoiseFloorNs = 0.5D * TimeUnitConstants.NanoSecondsToMilliseconds;
+
+    /// <summary>
+    /// BenchmarkDotNet warns that iteration time should be at least 100ms for stable measurements.
+    /// </summary>
+    internal const double BenchmarkDotNetStabilityFloorNs = 100D * TimeUnitConstants.NanoSecondsToMilliseconds;
+
+    /// <summary>
+    /// Multiplier for the combined standard deviation noise band.
+    /// </summary>
+    internal const double NoiseBandStandardDeviationMultiplier = 2D;
+
     public static bool HasRegression(
         BdnComparisonResult[] comparison,
         ILogger logger,
@@ -31,7 +58,8 @@ public static class RegressionStrategyHelper
                 logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; better than the threshold {Threshold}", betterResult.Id, config.MetricName, value, config.DisplayThreshold);
             }
 
-            if (TryGetGeometricMean(better, BenchmarkDotNetDiffer.GetMedianRatio, out double betterGeoMean))
+            double betterGeoMean = GetGeometricMeanOrNaN(better, MedianRatioSelector);
+            if (!double.IsNaN(betterGeoMean))
             {
                 logger.LogInformation("========== {MetricName} {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", config.MetricName, betterCount, betterGeoMean);
             }
@@ -45,7 +73,8 @@ public static class RegressionStrategyHelper
                 logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; worse than the threshold {Threshold}", worseResult.Id, config.MetricName, value, config.DisplayThreshold);
             }
 
-            if (TryGetGeometricMean(worse, BenchmarkDotNetDiffer.GetMedianRatio, out double worseGeoMean))
+            double worseGeoMean = GetGeometricMeanOrNaN(worse, MedianRatioSelector);
+            if (!double.IsNaN(worseGeoMean))
             {
                 logger.LogInformation("========== {MetricName} {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", config.MetricName, worseCount, worseGeoMean);
             }
@@ -53,6 +82,43 @@ public static class RegressionStrategyHelper
 
         details = new RegressionDetectionResult(config.MetricName, config.DisplayThreshold);
         return worseCount > 0;
+    }
+
+    /// <summary>
+    /// Detects ratio regressions by logging stable per-benchmark changes, then gating on the worse-set geomean.
+    /// </summary>
+    /// <param name="comparison">Benchmark comparisons to inspect.</param>
+    /// <param name="logger">Logger for per-benchmark and aggregate diagnostics.</param>
+    /// <param name="metricName">Name displayed in logs and detection details.</param>
+    /// <param name="ratioSelector">Selects the ratio used for display and aggregate gating.</param>
+    /// <param name="deltaSelector">Selects the absolute delta used for noise filtering.</param>
+    /// <param name="details">The regression detection details.</param>
+    /// <returns><see langword="true"/> when the stable worse-set geomean is greater than 1.05.</returns>
+    internal static bool HasAggregateRatioRegression(
+        BdnComparisonResult[] comparison,
+        ILogger logger,
+        string metricName,
+        Func<RegressionResult, double> ratioSelector,
+        Func<RegressionResult, double> deltaSelector,
+        out RegressionDetectionResult details)
+    {
+        Debug.Assert(comparison != null, "Comparison input is required.");
+        Debug.Assert(logger != null, "A logger is required.");
+        Debug.Assert(ratioSelector != null, "A ratio selector is required.");
+        Debug.Assert(deltaSelector != null, "A delta selector is required.");
+
+        Threshold relativeThreshold = Threshold.Parse(AggregateRatioRegressionThresholdText);
+        RegressionResult[] notSame = BenchmarkDotNetDiffer.FindRegressions(comparison, relativeThreshold);
+
+        List<RegressionResult> better = GetStableResults(notSame, ComparisonResult.Greater, deltaSelector);
+        LogRatioResults(better, logger, metricName, ratioSelector, deltaSelector, "less");
+
+        List<RegressionResult> worse = GetStableResults(notSame, ComparisonResult.Lesser, deltaSelector);
+        LogRatioResults(worse, logger, metricName, ratioSelector, deltaSelector, "more");
+
+        bool aggregateRegression = IsAggregateRatioRegression(worse, ratioSelector, out _);
+        details = new RegressionDetectionResult(metricName, relativeThreshold);
+        return aggregateRegression;
     }
 
     private static RegressionResult[] FindRegressions(
@@ -92,6 +158,12 @@ public static class RegressionStrategyHelper
 
     internal static bool TryGetGeometricMean(IEnumerable<RegressionResult> results, Func<RegressionResult, double> ratioSelector, out double geometricMean)
     {
+        geometricMean = GetGeometricMeanOrNaN(results, ratioSelector);
+        return !double.IsNaN(geometricMean);
+    }
+
+    private static double GetGeometricMeanOrNaN(IEnumerable<RegressionResult> results, Func<RegressionResult, double> ratioSelector)
+    {
         int count = 0;
         double logSum = 0;
 
@@ -99,9 +171,9 @@ public static class RegressionStrategyHelper
         {
             double ratio = ratioSelector(result);
             Debug.Assert(ratio >= 0 || double.IsNaN(ratio), "Benchmark ratios are non-negative unless undefined.");
-            if (double.IsNaN(ratio))
+            if (ratio <= 0 || double.IsNaN(ratio) || double.IsInfinity(ratio))
             {
-                // 0 ns baseline and 0 ns diff produces 0/0. It has no ratio to aggregate.
+                // Undefined and infinite ratios cannot contribute to a finite aggregate gate.
                 continue;
             }
 
@@ -111,12 +183,150 @@ public static class RegressionStrategyHelper
 
         if (count == 0)
         {
-            geometricMean = double.NaN;
-            return false;
+            return double.NaN;
         }
 
         Debug.Assert(count > 0, "At least one numeric ratio is required before dividing.");
-        geometricMean = Math.Pow(10, logSum / count);
+        return Math.Pow(10, logSum / count);
+    }
+
+    internal static bool IsAggregateRatioRegression(IEnumerable<RegressionResult> results, Func<RegressionResult, double> ratioSelector, out double geometricMean)
+    {
+        if (!TryGetGeometricMean(results, ratioSelector, out geometricMean))
+        {
+            return false;
+        }
+
+        return geometricMean > AggregateRatioRegressionThreshold;
+    }
+
+    internal static bool ExceedsRatioNoiseFloor(RegressionResult result, Func<RegressionResult, double> deltaSelector)
+    {
+        double deltaNs = deltaSelector(result);
+        if (!ExceedsAbsoluteNoiseFloor(deltaNs) || !MeetsBaselineStabilityFloor(result))
+        {
+            return false;
+        }
+
+        return ExceedsStandardDeviationNoiseBand(result, deltaNs);
+    }
+
+    private static List<RegressionResult> GetStableResults(RegressionResult[] results, ComparisonResult conclusion, Func<RegressionResult, double> deltaSelector)
+    {
+        List<RegressionResult> stableResults = [];
+        foreach (RegressionResult result in results.Where(result => result.Conclusion == conclusion).OrderBy(result => result.Id, StringComparer.Ordinal))
+        {
+            if (!ExceedsRatioNoiseFloor(result, deltaSelector))
+            {
+                continue;
+            }
+
+            stableResults.Add(result);
+        }
+
+        return stableResults;
+    }
+
+    private static void LogRatioResults(
+        List<RegressionResult> results,
+        ILogger logger,
+        string metricName,
+        Func<RegressionResult, double> ratioSelector,
+        Func<RegressionResult, double> deltaSelector,
+        string direction)
+    {
+        if (results.Count == 0)
+        {
+            return;
+        }
+
+        foreach (RegressionResult result in results)
+        {
+            double ratio = ratioSelector(result);
+            double deltaMs = deltaSelector(result) / TimeUnitConstants.NanoSecondsToMilliseconds;
+            logger.LogInformation(
+                "test: '{TestId}' took {Ratio:F3} times ({Delta:F2} ms) {Direction}",
+                result.Id,
+                ratio,
+                deltaMs,
+                direction);
+        }
+
+        if (TryGetGeometricMean(results, ratioSelector, out double geoMean))
+        {
+            string label = string.Equals(direction, "less", StringComparison.Ordinal) ? "better" : "worse";
+            logger.LogInformation("========== {MetricName}: {Count} {Label}, geomean: {GeoMean:F3}% ==========", metricName, results.Count, label, geoMean);
+        }
+    }
+
+    private static bool TryGetCombinedStandardDeviation(RegressionResult result, out double combinedStandardDeviationNs)
+    {
+        if (!TryGetStandardDeviation(result.BaseResult.Statistics, out double baseStandardDeviationNs)
+            || !TryGetStandardDeviation(result.DiffResult.Statistics, out double diffStandardDeviationNs))
+        {
+            combinedStandardDeviationNs = double.NaN;
+            return false;
+        }
+
+        combinedStandardDeviationNs = Math.Sqrt((baseStandardDeviationNs * baseStandardDeviationNs) + (diffStandardDeviationNs * diffStandardDeviationNs));
         return true;
     }
+
+    private static bool ExceedsAbsoluteNoiseFloor(double deltaNs)
+    {
+        Debug.Assert(deltaNs >= 0 || double.IsNaN(deltaNs), "Benchmark deltas are non-negative unless undefined.");
+        return !double.IsNaN(deltaNs) && deltaNs > AbsoluteNoiseFloorNs;
+    }
+
+    private static bool MeetsBaselineStabilityFloor(RegressionResult result)
+    {
+        double baselineMeanNs = result.BaseResult.Statistics?.Mean ?? double.NaN;
+        Debug.Assert(baselineMeanNs >= 0 || double.IsNaN(baselineMeanNs), "Benchmark means are non-negative unless undefined.");
+        return !double.IsNaN(baselineMeanNs) && baselineMeanNs >= BenchmarkDotNetStabilityFloorNs;
+    }
+
+    private static bool ExceedsStandardDeviationNoiseBand(RegressionResult result, double deltaNs)
+    {
+        if (!TryGetCombinedStandardDeviation(result, out double combinedStandardDeviationNs))
+        {
+            return true;
+        }
+
+        double noiseBandNs = NoiseBandStandardDeviationMultiplier * combinedStandardDeviationNs;
+        return deltaNs > noiseBandNs;
+    }
+
+    private static bool TryGetStandardDeviation(Statistics? statistics, out double standardDeviationNs)
+    {
+        if (statistics == null)
+        {
+            standardDeviationNs = double.NaN;
+            return false;
+        }
+
+        if (statistics.N > 1 && IsFiniteNonNegative(statistics.StandardDeviation))
+        {
+            standardDeviationNs = statistics.StandardDeviation;
+            return true;
+        }
+
+        if (statistics.N > 1 && IsFiniteNonNegative(statistics.StandardError))
+        {
+            standardDeviationNs = statistics.StandardError * Math.Sqrt(statistics.N);
+            return true;
+        }
+
+        global::PerfDiff.BDN.DataContracts.ConfidenceInterval? confidenceInterval = statistics.ConfidenceInterval;
+        if (confidenceInterval?.N > 1 && IsFiniteNonNegative(confidenceInterval.StandardError))
+        {
+            standardDeviationNs = confidenceInterval.StandardError * Math.Sqrt(confidenceInterval.N);
+            return true;
+        }
+
+        standardDeviationNs = double.NaN;
+        return false;
+    }
+
+    private static bool IsFiniteNonNegative(double value)
+        => value >= 0 && !double.IsNaN(value) && !double.IsInfinity(value);
 }

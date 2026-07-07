@@ -38,7 +38,7 @@ public sealed class RatioRegressionStrategyTests
     }
 
     [Fact]
-    public void P95RatioRegressionStrategy_WithInfiniteMedianRatio_ReturnsTrue()
+    public void P95RatioRegressionStrategy_WithInfiniteMedianRatio_ReturnsFalse()
     {
         P95RatioRegressionStrategy strategy = new();
         BdnComparisonResult comparison = new(
@@ -56,11 +56,11 @@ public sealed class RatioRegressionStrategyTests
 
         bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
 
-        Assert.True(hasRegression);
+        Assert.False(hasRegression);
     }
 
     [Fact]
-    public void MeanPercentageRegressionStrategy_WithInfiniteMedianRatio_ReturnsTrue()
+    public void MeanPercentageRegressionStrategy_WithInfiniteMedianRatio_ReturnsFalse()
     {
         MeanPercentageRegressionStrategy strategy = new();
         BdnComparisonResult comparison = new(
@@ -78,7 +78,7 @@ public sealed class RatioRegressionStrategyTests
 
         bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
 
-        Assert.True(hasRegression);
+        Assert.False(hasRegression);
     }
 
     [Fact]
