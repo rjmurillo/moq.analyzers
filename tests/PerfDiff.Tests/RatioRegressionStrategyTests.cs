@@ -125,6 +125,28 @@ public sealed class RatioRegressionStrategyTests
     }
 
     [Fact]
+    public void P95RatioRegressionStrategy_WhenPercentilesMissingButMeanDeltaExceedsFloor_ReturnsFalseWithoutThrowing()
+    {
+        P95RatioRegressionStrategy strategy = new();
+        BdnComparisonResult comparison = CreateComparison(
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(5),
+                meanNs: Milliseconds(5),
+                p95Ns: Milliseconds(5)),
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(6),
+                meanNs: Milliseconds(6),
+                p95Ns: Milliseconds(6),
+                hasPercentiles: false));
+
+        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
+
+        Assert.True(BenchmarkDotNetDiffer.GetMeanDelta(ComparisonResult.Lesser, comparison.BaseResult, comparison.DiffResult) > RegressionStrategyHelper.AbsoluteNoiseFloorNs);
+        Assert.True(double.IsNaN(BenchmarkDotNetDiffer.GetP95Delta(ComparisonResult.Lesser, comparison.BaseResult, comparison.DiffResult)));
+        Assert.False(hasRegression);
+    }
+
+    [Fact]
     public void P95RatioRegressionStrategy_WhenMeanDeltaEqualsNoiseBand_ReturnsFalse()
     {
         P95RatioRegressionStrategy strategy = new();
@@ -388,7 +410,8 @@ public sealed class RatioRegressionStrategyTests
         double measurementNs,
         double meanNs,
         double p95Ns,
-        double standardDeviationNs = 0)
+        double standardDeviationNs = 0,
+        bool hasPercentiles = true)
         => new()
         {
             FullName = "Benchmark.A",
@@ -398,10 +421,12 @@ public sealed class RatioRegressionStrategyTests
                 Median = measurementNs,
                 Mean = meanNs,
                 StandardDeviation = standardDeviationNs,
-                Percentiles = new Percentiles
-                {
-                    P95 = p95Ns,
-                },
+                Percentiles = hasPercentiles
+                    ? new Percentiles
+                    {
+                        P95 = p95Ns,
+                    }
+                    : null,
             },
             Measurements = BenchmarkTestData.CreateMeasurements(measurementNs, measurementNs, measurementNs, measurementNs, measurementNs),
         };

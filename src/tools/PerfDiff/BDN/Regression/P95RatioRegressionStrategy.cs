@@ -20,8 +20,16 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
                 "P95 ratio",
                 GetP95Ratio,
                 result => BenchmarkDotNetDiffer.GetP95Delta(result.Conclusion, result.BaseResult, result.DiffResult),
-                stabilityDeltaSelector: result => BenchmarkDotNetDiffer.GetMeanDelta(result.Conclusion, result.BaseResult, result.DiffResult)),
+                stabilityDeltaSelector: GetStabilityDelta),
             out details);
+
+    private static double GetStabilityDelta(RegressionResult result)
+    {
+        double p95Delta = BenchmarkDotNetDiffer.GetP95Delta(result.Conclusion, result.BaseResult, result.DiffResult);
+        return double.IsNaN(p95Delta)
+            ? double.NaN
+            : BenchmarkDotNetDiffer.GetMeanDelta(result.Conclusion, result.BaseResult, result.DiffResult);
+    }
 
     private static double GetP95Ratio(RegressionResult result)
     {
