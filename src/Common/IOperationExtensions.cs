@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers.Common;
 
@@ -11,7 +11,7 @@ internal static class IOperationExtensions
     /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
     public static IOperation WalkDownConversion(this IOperation operation)
     {
-        while (operation is IConversionOperation conversionOperation)
+        while (operation is IConversionOperation { Operand: not null } conversionOperation)
         {
             operation = conversionOperation.Operand;
         }

@@ -194,4 +194,41 @@ public class SetExplicitMockBehaviorAnalyzerTests
 
         await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80);
     }
+
+    [Fact]
+    public void TryHandleMissingMockBehaviorParameter_MissingMockBehaviorSymbol_ReturnsFalse()
+    {
+        (SemanticModel model, _) = CompilationHelper.CreateCompilation("class C { }");
+        SetExplicitMockBehaviorAnalyzer analyzer = new SetExplicitMockBehaviorAnalyzer();
+        System.Reflection.MethodInfo? method = typeof(MockBehaviorDiagnosticAnalyzerBase).GetMethod(
+            "TryHandleMissingMockBehaviorParameter",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        Assert.NotNull(method);
+
+        Type knownSymbolsType = method.GetParameters()[2].ParameterType;
+        object knownSymbols = knownSymbolsType
+            .GetConstructor(
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
+                binder: null,
+                [typeof(Compilation)],
+                modifiers: null)!
+            .Invoke([model.Compilation]);
+
+#pragma warning disable ECS0900 // Reflection boxes OperationAnalysisContext to cover the unreachable guard path.
+#if DEBUG
+        System.Reflection.TargetInvocationException exception = Assert.Throws<System.Reflection.TargetInvocationException>(
+            () => method!.Invoke(
+                analyzer,
+                [default(Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext), null, knownSymbols, null, null]));
+        Assert.Equal(
+            "Microsoft.VisualStudio.TestPlatform.TestHost.DebugAssertException",
+            exception.InnerException?.GetType().FullName);
+#else
+        object? result = method!.Invoke(
+            analyzer,
+            [default(Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext), null, knownSymbols, null, null]);
+        Assert.False(Assert.IsType<bool>(result));
+#endif
+#pragma warning restore ECS0900
+    }
 }
