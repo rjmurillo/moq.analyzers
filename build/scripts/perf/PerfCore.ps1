@@ -11,6 +11,9 @@ Param(
     [Parameter(ValueFromRemainingArguments=$true)][String[]]$properties
   )
 
+Import-Module (Join-Path $PSScriptRoot 'PerfUtils.psm1') -Force -DisableNameChecking
+Import-Module (Join-Path $PSScriptRoot 'PerfConfig.psm1') -Force -DisableNameChecking
+
   function Print-Usage() {
     Write-Host "Common settings:"
     Write-Host "  -verbosity <value>      Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic] (short: -v)"
@@ -31,58 +34,26 @@ Param(
     Write-Host "The above arguments can be shortened as much as to be unambiguous (e.g. -co for configuration, -t for test, etc.)."
   }
 
-  function Show-Invocation {
-    param(
-        [string]$ScriptPath,
-        [hashtable]$Arguments
-    )
-    $parts = @($ScriptPath)
-    foreach ($key in $Arguments.Keys) {
-        $value = $Arguments[$key]
-        if ($null -eq $value) { continue }
-
-        if ($value -eq $true) {
-            $parts += "-$key"
-        }
-        elseif ($value -is [string] -and $value -match '\s') {
-            $parts += "-$key `"$value`""
-        }
-        else {
-            $parts += "-$key $value"
-        }
-    }
-    Write-Host "Invoking: $($parts -join ' ')"
-}
-
 try {
     # Check if running on Windows and warn about ETL on non-Windows platforms
-    $isWindowsPlatform = $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
-    if ($etl -and -not $isWindowsPlatform) {
-        Write-Warning "ETL tracing is only supported on Windows. Disabling ETL for this run."
-        $etl = $false
-    }
+    $etl = Resolve-PerfEtl -Etl $etl
 
     if ($help -or (($null -ne $properties) -and ($properties.Contains('/help') -or $properties.Contains('/?')))) {
         Print-Usage
         exit 0
     }
 
-    if ([string]::IsNullOrWhiteSpace($projects)) {
-        $projects = "tests\Moq.Analyzers.Benchmarks\Moq.Analyzers.Benchmarks.csproj"
-    }
+    $projects = Normalize-PerfProjects -Projects $projects
+    $filter = Normalize-PerfFilter -Filter $filter
 
-    if ([string]::IsNullOrWhiteSpace($filter)) {
-        $filter = "'*'"
-    }
-
-    $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
-    $output = Join-Path $RepoRoot "artifacts\performance\perfResults"
+    $RepoRoot = Get-RepoRoot
+    $output = Get-PerfOutputRoot -RepoRoot $RepoRoot
 
     #  Diff two different SHAs
     if ($diff) {
-        $forceBaseline = $env:FORCE_PERF_BASELINE -eq 'true'
+        $forceBaseline = Test-ForcePerfBaseline
         $DiffPerfToBaseLine = Join-Path $RepoRoot "build\scripts\perf\DiffPerfToBaseline.ps1"
-        $baselineJsonPath = Resolve-Path (Join-Path $RepoRoot "build\perf\baseline.json")
+        $baselineJsonPath = Get-PerfBaselineJsonPath -RepoRoot $RepoRoot
         $baselinejson = Get-Content -Raw -Path $baselineJsonPath | ConvertFrom-Json
         $baselineSHA = $baselinejson.sha
         $baselineResultsDir = Join-Path $output "baseline"
