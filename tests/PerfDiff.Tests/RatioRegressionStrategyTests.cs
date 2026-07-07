@@ -38,7 +38,7 @@ public sealed class RatioRegressionStrategyTests
     }
 
     [Fact]
-    public void P95RatioRegressionStrategy_WithInfiniteMedianRatio_ReturnsFalse()
+    public void P95RatioRegressionStrategy_WithInfiniteP95Ratio_ReturnsFalse()
     {
         P95RatioRegressionStrategy strategy = new();
         BdnComparisonResult comparison = new(
@@ -57,6 +57,30 @@ public sealed class RatioRegressionStrategyTests
         bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
 
         Assert.False(hasRegression);
+    }
+
+    [Fact]
+    public void P95RatioRegressionStrategy_WhenP95RegressesAndMedianDoesNot_ReturnsTrue()
+    {
+        P95RatioRegressionStrategy strategy = new();
+        BdnComparisonResult comparison = new(
+            "Benchmark.A",
+            BenchmarkTestData.CreateBenchmark(
+                "Benchmark.A",
+                medianNs: Milliseconds(5),
+                meanNs: Milliseconds(5),
+                p95Ns: Milliseconds(5),
+                measurements: BenchmarkTestData.CreateMeasurements(Milliseconds(5), Milliseconds(5), Milliseconds(5), Milliseconds(5), Milliseconds(5))),
+            BenchmarkTestData.CreateBenchmark(
+                "Benchmark.A",
+                medianNs: Milliseconds(5),
+                meanNs: Milliseconds(6),
+                p95Ns: Milliseconds(6),
+                measurements: BenchmarkTestData.CreateMeasurements(Milliseconds(6), Milliseconds(6), Milliseconds(6), Milliseconds(6), Milliseconds(6))));
+
+        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
+
+        Assert.True(hasRegression);
     }
 
     [Fact]
@@ -236,6 +260,47 @@ public sealed class RatioRegressionStrategyTests
     }
 
     [Fact]
+    public void GetP95Ratio_WhenConclusionIsLesser_UsesDiffOverBaseline()
+    {
+        double ratio = BenchmarkDotNetDiffer.GetP95Ratio(
+            ComparisonResult.Lesser,
+            BenchmarkTestData.CreateBenchmark("Benchmark.A", p95Ns: 10),
+            BenchmarkTestData.CreateBenchmark("Benchmark.A", p95Ns: 15));
+
+        Assert.Equal(1.5D, ratio);
+    }
+
+    [Fact]
+    public void GetP95Ratio_WhenConclusionIsGreater_UsesBaselineOverDiff()
+    {
+        double ratio = BenchmarkDotNetDiffer.GetP95Ratio(
+            ComparisonResult.Greater,
+            BenchmarkTestData.CreateBenchmark("Benchmark.A", p95Ns: 15),
+            BenchmarkTestData.CreateBenchmark("Benchmark.A", p95Ns: 10));
+
+        Assert.Equal(1.5D, ratio);
+    }
+
+    [Fact]
+    public void GetP95Ratio_WhenStatisticsMissing_ReturnsNaN()
+    {
+        double ratio = BenchmarkDotNetDiffer.GetP95Ratio(ComparisonResult.Greater, new Benchmark(), new Benchmark());
+
+        Assert.True(double.IsNaN(ratio));
+    }
+
+    [Fact]
+    public void GetP95Ratio_WhenPercentilesMissing_ReturnsNaN()
+    {
+        Benchmark benchmark = BenchmarkTestData.CreateBenchmark("Benchmark.A");
+        benchmark.Statistics!.Percentiles = null;
+
+        double ratio = BenchmarkDotNetDiffer.GetP95Ratio(ComparisonResult.Greater, benchmark, BenchmarkTestData.CreateBenchmark("Benchmark.A"));
+
+        Assert.True(double.IsNaN(ratio));
+    }
+
+    [Fact]
     public void GetMeanDelta_WhenStatisticsMissing_ReturnsNaN()
     {
         double delta = BenchmarkDotNetDiffer.GetMeanDelta(ComparisonResult.Greater, new Benchmark(), new Benchmark());
@@ -257,4 +322,6 @@ public sealed class RatioRegressionStrategyTests
             BenchmarkTestData.CreateBenchmark("Benchmark.A", medianNs: baseMedian),
             BenchmarkTestData.CreateBenchmark("Benchmark.A", medianNs: diffMedian),
             ComparisonResult.Lesser);
+
+    private static double Milliseconds(double value) => value * TimeUnitConstants.NanoSecondsToMilliseconds;
 }

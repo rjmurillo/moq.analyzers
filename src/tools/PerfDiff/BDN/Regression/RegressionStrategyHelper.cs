@@ -84,35 +84,30 @@ public static class RegressionStrategyHelper
     /// </summary>
     /// <param name="comparison">Benchmark comparisons to inspect.</param>
     /// <param name="logger">Logger for per-benchmark and aggregate diagnostics.</param>
-    /// <param name="metricName">Name displayed in logs and detection details.</param>
-    /// <param name="ratioSelector">Selects the ratio used for display and aggregate gating.</param>
-    /// <param name="deltaSelector">Selects the absolute delta used for noise filtering.</param>
+    /// <param name="config">Ratio metric configuration.</param>
     /// <param name="details">The regression detection details.</param>
     /// <returns><see langword="true"/> when the stable worse-set geomean is greater than 1.05.</returns>
     internal static bool HasAggregateRatioRegression(
         BdnComparisonResult[] comparison,
         ILogger logger,
-        string metricName,
-        Func<RegressionResult, double> ratioSelector,
-        Func<RegressionResult, double> deltaSelector,
+        RegressionRatioMetricConfig config,
         out RegressionDetectionResult details)
     {
         Debug.Assert(comparison != null, "Comparison input is required.");
         Debug.Assert(logger != null, "A logger is required.");
-        Debug.Assert(ratioSelector != null, "A ratio selector is required.");
-        Debug.Assert(deltaSelector != null, "A delta selector is required.");
+        Debug.Assert(config != null, "A ratio metric config is required.");
 
         Threshold relativeThreshold = Threshold.Parse(AggregateRatioRegressionThresholdText);
         RegressionResult[] notSame = BenchmarkDotNetDiffer.FindRegressions(comparison, relativeThreshold);
 
-        List<RegressionResult> better = GetStableResults(notSame, ComparisonResult.Greater, deltaSelector);
-        LogRatioResults(better, logger, metricName, ratioSelector, deltaSelector, "less");
+        List<RegressionResult> better = GetStableResults(notSame, ComparisonResult.Greater, config.DeltaSelector);
+        LogRatioResults(better, logger, config, "less");
 
-        List<RegressionResult> worse = GetStableResults(notSame, ComparisonResult.Lesser, deltaSelector);
-        LogRatioResults(worse, logger, metricName, ratioSelector, deltaSelector, "more");
+        List<RegressionResult> worse = GetStableResults(notSame, ComparisonResult.Lesser, config.DeltaSelector);
+        LogRatioResults(worse, logger, config, "more");
 
-        bool aggregateRegression = IsAggregateRatioRegression(worse, ratioSelector, out _);
-        details = new RegressionDetectionResult(metricName, relativeThreshold);
+        bool aggregateRegression = IsAggregateRatioRegression(worse, config.RatioSelector, out _);
+        details = new RegressionDetectionResult(config.MetricName, relativeThreshold);
         return aggregateRegression;
     }
 
@@ -225,9 +220,7 @@ public static class RegressionStrategyHelper
     private static void LogRatioResults(
         List<RegressionResult> results,
         ILogger logger,
-        string metricName,
-        Func<RegressionResult, double> ratioSelector,
-        Func<RegressionResult, double> deltaSelector,
+        RegressionRatioMetricConfig config,
         string direction)
     {
         if (results.Count == 0)
@@ -237,8 +230,8 @@ public static class RegressionStrategyHelper
 
         foreach (RegressionResult result in results)
         {
-            double ratio = ratioSelector(result);
-            double deltaMs = deltaSelector(result) / TimeUnitConstants.NanoSecondsToMilliseconds;
+            double ratio = config.RatioSelector(result);
+            double deltaMs = config.DeltaSelector(result) / TimeUnitConstants.NanoSecondsToMilliseconds;
             logger.LogInformation(
                 "test: '{TestId}' took {Ratio:F3} times ({Delta:F2} ms) {Direction}",
                 result.Id,
@@ -247,10 +240,11 @@ public static class RegressionStrategyHelper
                 direction);
         }
 
-        if (TryGetGeometricMean(results, ratioSelector, out double geoMean))
+        if (TryGetGeometricMean(results, config.RatioSelector, out double geoMean))
         {
             string label = string.Equals(direction, "less", StringComparison.Ordinal) ? "better" : "worse";
-            logger.LogInformation("========== {MetricName}: {Count} {Label}, geomean: {GeoMean:F3}% ==========", metricName, results.Count, label, geoMean);
+            double percentChange = (geoMean - 1D) * 100D;
+            logger.LogInformation("========== {MetricName}: {Count} {Label}, geomean: {GeoMean:F3}% ==========", config.MetricName, results.Count, label, percentChange);
         }
     }
 

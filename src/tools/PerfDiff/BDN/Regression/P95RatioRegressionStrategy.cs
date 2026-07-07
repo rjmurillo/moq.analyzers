@@ -13,8 +13,9 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
         => RegressionStrategyHelper.HasAggregateRatioRegression(
             comparison,
             logger,
-            "P95 ratio",
-            result => BenchmarkDotNetDiffer.GetMedianRatio(result),
-            result => BenchmarkDotNetDiffer.GetP95Delta(result.Conclusion, result.BaseResult, result.DiffResult),
+            new RegressionRatioMetricConfig(
+                "P95 ratio",
+                BenchmarkDotNetDiffer.GetP95Ratio,
+                result => BenchmarkDotNetDiffer.GetP95Delta(result.Conclusion, result.BaseResult, result.DiffResult)),
             out details);
 }

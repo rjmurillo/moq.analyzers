@@ -13,8 +13,9 @@ public sealed class MeanPercentageRegressionStrategy : IBenchmarkRegressionStrat
         => RegressionStrategyHelper.HasAggregateRatioRegression(
             comparison,
             logger,
-            "Mean Ratio",
-            result => BenchmarkDotNetDiffer.GetMeanRatio(result.Conclusion, result.BaseResult, result.DiffResult),
-            result => BenchmarkDotNetDiffer.GetMeanDelta(result.Conclusion, result.BaseResult, result.DiffResult),
+            new RegressionRatioMetricConfig(
+                "Mean Ratio",
+                result => BenchmarkDotNetDiffer.GetMeanRatio(result.Conclusion, result.BaseResult, result.DiffResult),
+                result => BenchmarkDotNetDiffer.GetMeanDelta(result.Conclusion, result.BaseResult, result.DiffResult)),
             out details);
 }
