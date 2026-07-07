@@ -9,7 +9,7 @@ Import-Module (Join-Path $PSScriptRoot 'PerfResultsAnalyzer.psm1') -Force -Disab
 
 try {
     $exitCode = Invoke-PerfResultsComparison @PSBoundParameters
-    $host.SetShouldExit($exitCode)
+    $host.SetShouldExit([int]$exitCode)
     exit
 }
 catch {

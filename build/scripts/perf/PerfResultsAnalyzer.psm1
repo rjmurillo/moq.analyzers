@@ -53,10 +53,10 @@ function Invoke-PerfResultsComparison {
 
         $RepoRoot = Get-RepoRoot
         $perfDiff = Get-PerfDiffProjectPath -RepoRoot $RepoRoot
-        & dotnet build $perfDiff -c Release
+        & dotnet build $perfDiff -c Release | Out-Host
         if ($LASTEXITCODE -ne 0) { throw "dotnet build failed with exit code $LASTEXITCODE" }
-        & dotnet run -c Release --project $perfDiff -- --baseline $baselineFolder --results $resultsFolder --failOnRegression
-        return $LASTEXITCODE
+        & dotnet run -c Release --project $perfDiff -- --baseline $baselineFolder --results $resultsFolder --failOnRegression | Out-Host
+        return [int]$LASTEXITCODE
     }
     finally {
         Set-Location $currentLocation

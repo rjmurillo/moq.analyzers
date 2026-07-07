@@ -56,3 +56,46 @@ Describe 'Get-PerfDiffProjectPath' {
         { Get-PerfDiffProjectPath -RepoRoot '' } | Should -Throw
     }
 }
+
+Describe 'Invoke-PerfResultsComparison exit-code contract' {
+    BeforeEach {
+        $script:comparisonBaseline = Join-Path $script:ScratchRoot "comparisonBaseline-$([guid]::NewGuid())"
+        $script:comparisonResults = Join-Path $script:ScratchRoot "comparisonResults-$([guid]::NewGuid())"
+        New-Item -ItemType Directory -Force -Path (Join-Path $script:comparisonBaseline 'results') | Out-Null
+        New-Item -ItemType Directory -Force -Path (Join-Path $script:comparisonResults 'results') | Out-Null
+    }
+
+    It 'returns a scalar zero exit code when PerfDiff succeeds' {
+        Mock dotnet { $global:LASTEXITCODE = 0 } -ModuleName PerfResultsAnalyzer
+
+        $result = Invoke-PerfResultsComparison -baseline $script:comparisonBaseline -results $script:comparisonResults
+
+        $result | Should -BeOfType [int]
+        $result | Should -Be 0
+        @($result).Count | Should -Be 1
+    }
+
+    It 'returns a scalar non-zero exit code when PerfDiff reports a regression' {
+        $script:dotnetCallCount = 0
+        Mock dotnet {
+            $script:dotnetCallCount++
+            if ($script:dotnetCallCount -eq 1) {
+                $global:LASTEXITCODE = 0
+            } else {
+                $global:LASTEXITCODE = 1
+            }
+        } -ModuleName PerfResultsAnalyzer
+
+        $result = Invoke-PerfResultsComparison -baseline $script:comparisonBaseline -results $script:comparisonResults
+
+        $result | Should -BeOfType [int]
+        $result | Should -Be 1
+        @($result).Count | Should -Be 1
+    }
+
+    It 'throws when the PerfDiff build fails' {
+        Mock dotnet { $global:LASTEXITCODE = 2 } -ModuleName PerfResultsAnalyzer
+
+        { Invoke-PerfResultsComparison -baseline $script:comparisonBaseline -results $script:comparisonResults } | Should -Throw '*dotnet build failed*'
+    }
+}
