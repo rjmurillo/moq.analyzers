@@ -324,6 +324,16 @@ ci(workflow): add performance testing to nightly builds
   generated HTML report also ranks risk hotspots by the CRAP metric; see
   [`docs/crap-metric.md`](docs/crap-metric.md) for what it means and how to
   lower it.
+- **Mutation Testing:**
+  Stryker.NET is available as an optional local tool and as a manual or scheduled workflow. It is not a required PR gate because mutation testing is slow. To run it locally:
+
+  ```bash
+  dotnet tool restore
+  cd build/stryker
+  dotnet stryker
+  ```
+
+  The default config mutates `NoMockOfLoggerAnalyzer.cs` only. Open `artifacts/stryker/**/reports/mutation-report.html` after the run. Killed mutants show tests caught semantic changes. Survived mutants show behavior gaps to review.
 - **Codacy Analysis:**
   Run Codacy CLI analysis on all changed files. Fix all reported issues before submitting the PR.
 - **Evidence Required:**

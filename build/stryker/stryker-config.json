@@ -1,0 +1,31 @@
+{
+  "stryker-config": {
+    "project": "Moq.Analyzers.csproj",
+    "test-projects": [
+      "Moq.Analyzers.Test.csproj"
+    ],
+    "configuration": "Release",
+    "mutation-level": "Basic",
+    "coverage-analysis": "off",
+    "test-case-filter": "FullyQualifiedName~NoMockOfLoggerAnalyzerTests",
+    "mutate": [
+      "../../src/Analyzers/NoMockOfLoggerAnalyzer.cs",
+      "!**/*.Designer.cs",
+      "!**/*.Generated.cs",
+      "!**/bin/**/*.cs",
+      "!**/obj/**/*.cs",
+      "!../../src/tools/PerfDiff/**/*.cs",
+      "!../../tests/**/*.cs"
+    ],
+    "reporters": [
+      "Progress",
+      "Html",
+      "ClearText"
+    ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    }
+  }
+}
