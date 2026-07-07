@@ -38,8 +38,7 @@ internal static class MoqVerificationHelpers
         {
             if (op is IExpressionStatementOperation exprStmt)
             {
-                IAssignmentOperation? assignOp = exprStmt.Operation as IAssignmentOperation
-                    ?? exprStmt.Operation as ISimpleAssignmentOperation;
+                IAssignmentOperation? assignOp = exprStmt.Operation as IAssignmentOperation;
 
                 if (assignOp?.Target is IPropertyReferenceOperation propRef)
                 {

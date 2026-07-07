@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Moq.Analyzers;
@@ -88,7 +89,14 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
         DiagnosticDescriptor rule,
         IMethodSymbol mockedTypeNameSource)
     {
-        return target.TryGetOverloadWithParameterOfType(knownSymbols.MockBehavior!, out _, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken)
+        INamedTypeSymbol? mockBehavior = knownSymbols.MockBehavior;
+        if (mockBehavior is null)
+        {
+            Debug.Assert(false, "knownSymbols.MockBehavior must be non-null: registration is gated on it.");
+            return false;
+        }
+
+        return target.TryGetOverloadWithParameterOfType(mockBehavior, out _, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken)
             && TryReportMockBehaviorDiagnostic(context, parameterMatch, rule, DiagnosticEditProperties.EditType.Insert, mockedTypeNameSource);
     }
 

@@ -77,6 +77,16 @@ class C
     }
 
     [Fact]
+    public void WalkDownConversion_ConversionWithNullOperand_ReturnsSelf()
+    {
+        IOperation operation = System.Reflection.DispatchProxy.Create<IConversionOperation, NullOperandConversionProxy>();
+
+        IOperation result = operation.WalkDownConversion();
+
+        Assert.Same(operation, result);
+    }
+
+    [Fact]
     public void WalkDownImplicitConversion_NonConversionOperation_ReturnsSelf()
     {
         const string code = @"
@@ -679,5 +689,13 @@ class C
             .FirstOrDefault();
         Assert.NotNull(lambda);
         return lambda!;
+    }
+
+    private class NullOperandConversionProxy : System.Reflection.DispatchProxy
+    {
+        protected override object? Invoke(System.Reflection.MethodInfo? targetMethod, object?[]? args)
+        {
+            return targetMethod?.ReturnType.IsValueType == true ? Activator.CreateInstance(targetMethod.ReturnType) : null;
+        }
     }
 }

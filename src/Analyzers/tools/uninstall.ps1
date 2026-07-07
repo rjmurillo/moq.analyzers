@@ -1,4 +1,4 @@
-﻿param($installPath, $toolsPath, $package, $project)
+param($installPath, $toolsPath, $package, $project)
 
 if($project.Object.SupportsPackageDependencyResolution)
 {
@@ -57,7 +57,7 @@ foreach($analyzersPath in $analyzersPaths)
                 }
                 catch
                 {
-
+                    Write-Warning "Failed to remove analyzer reference '$($analyzerFilePath.FullName)': $($_.Exception.Message)"
                 }
             }
         }
