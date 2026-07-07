@@ -320,7 +320,10 @@ ci(workflow): add performance testing to nightly builds
 - **Code Coverage:**  
   Code coverage is generated automatically if you use the `test.runsettings` from above, which produces Cobertura format. If you wish to have a different format, you can specify on the command line. Example:
   `dotnet test --collect:"XPlat Code Coverage" --settings ./build/targets/tests/test.runsettings`  
-  PRs must not reduce coverage for critical paths without justification.
+  PRs must not reduce coverage for critical paths without justification. The
+  generated HTML report also ranks risk hotspots by the CRAP metric; see
+  [`docs/crap-metric.md`](docs/crap-metric.md) for what it means and how to
+  lower it.
 - **Codacy Analysis:**
   Run Codacy CLI analysis on all changed files. Fix all reported issues before submitting the PR.
 - **Evidence Required:**
