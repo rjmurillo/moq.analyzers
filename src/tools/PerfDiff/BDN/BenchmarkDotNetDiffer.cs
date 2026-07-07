@@ -314,34 +314,6 @@ public static class BenchmarkDotNetDiffer
     }
 
     /// <summary>
-    /// Gets the ratio of P95 values for a regression result.
-    /// </summary>
-    /// <param name="item">The regression result.</param>
-    /// <returns>The ratio of P95 values.</returns>
-    public static double GetP95Ratio(RegressionResult item)
-        => GetP95Ratio(item.Conclusion, item.BaseResult, item.DiffResult);
-
-    /// <summary>
-    /// Gets the ratio of P95 values for the specified benchmarks and conclusion.
-    /// </summary>
-    /// <param name="conclusion">The comparison result.</param>
-    /// <param name="baseResult">The baseline benchmark.</param>
-    /// <param name="diffResult">The diff benchmark.</param>
-    /// <returns>The ratio of P95 values.</returns>
-    public static double GetP95Ratio(ComparisonResult conclusion, Benchmark baseResult, Benchmark diffResult)
-    {
-        if (baseResult.Statistics == null || diffResult.Statistics == null
-            || baseResult.Statistics.Percentiles == null || diffResult.Statistics.Percentiles == null)
-        {
-            return double.NaN;
-        }
-
-        return conclusion == ComparisonResult.Greater
-            ? baseResult.Statistics.Percentiles.P95 / diffResult.Statistics.Percentiles.P95
-            : diffResult.Statistics.Percentiles.P95 / baseResult.Statistics.Percentiles.P95;
-    }
-
-    /// <summary>
     /// Gets the delta of mean values for the specified benchmarks and conclusion.
     /// </summary>
     /// <param name="conclusion">The comparison result.</param>

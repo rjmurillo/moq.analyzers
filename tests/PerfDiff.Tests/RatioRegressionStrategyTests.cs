@@ -260,47 +260,6 @@ public sealed class RatioRegressionStrategyTests
     }
 
     [Fact]
-    public void GetP95Ratio_WhenConclusionIsLesser_UsesDiffOverBaseline()
-    {
-        double ratio = BenchmarkDotNetDiffer.GetP95Ratio(
-            ComparisonResult.Lesser,
-            BenchmarkTestData.CreateBenchmark("Benchmark.A", p95Ns: 10),
-            BenchmarkTestData.CreateBenchmark("Benchmark.A", p95Ns: 15));
-
-        Assert.Equal(1.5D, ratio);
-    }
-
-    [Fact]
-    public void GetP95Ratio_WhenConclusionIsGreater_UsesBaselineOverDiff()
-    {
-        double ratio = BenchmarkDotNetDiffer.GetP95Ratio(
-            ComparisonResult.Greater,
-            BenchmarkTestData.CreateBenchmark("Benchmark.A", p95Ns: 15),
-            BenchmarkTestData.CreateBenchmark("Benchmark.A", p95Ns: 10));
-
-        Assert.Equal(1.5D, ratio);
-    }
-
-    [Fact]
-    public void GetP95Ratio_WhenStatisticsMissing_ReturnsNaN()
-    {
-        double ratio = BenchmarkDotNetDiffer.GetP95Ratio(ComparisonResult.Greater, new Benchmark(), new Benchmark());
-
-        Assert.True(double.IsNaN(ratio));
-    }
-
-    [Fact]
-    public void GetP95Ratio_WhenPercentilesMissing_ReturnsNaN()
-    {
-        Benchmark benchmark = BenchmarkTestData.CreateBenchmark("Benchmark.A");
-        benchmark.Statistics!.Percentiles = null;
-
-        double ratio = BenchmarkDotNetDiffer.GetP95Ratio(ComparisonResult.Greater, benchmark, BenchmarkTestData.CreateBenchmark("Benchmark.A"));
-
-        Assert.True(double.IsNaN(ratio));
-    }
-
-    [Fact]
     public void GetMeanDelta_WhenStatisticsMissing_ReturnsNaN()
     {
         double delta = BenchmarkDotNetDiffer.GetMeanDelta(ComparisonResult.Greater, new Benchmark(), new Benchmark());

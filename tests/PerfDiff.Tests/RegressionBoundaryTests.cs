@@ -102,17 +102,13 @@ public sealed class RegressionBoundaryTests
     [Fact]
     public void MeanPercentageRegressionStrategy_WhenWorseGeomeanIsUndefined_ReturnsFalse()
     {
-        MeanPercentageRegressionStrategy strategy = new();
         BdnComparisonResult comparison = CreateStatisticallyWorseComparison(
             baseMedianNs: 0,
             diffMedianNs: 0,
             baseMeanNs: 0,
             diffMeanNs: 1_000_000);
 
-        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out RegressionDetectionResult details);
-
-        Assert.False(hasRegression);
-        Assert.Equal("Mean Ratio", details.MetricName);
+        AssertNoRatioRegression(new MeanPercentageRegressionStrategy(), comparison, "Mean Ratio");
     }
 
     [Fact]
@@ -168,17 +164,13 @@ public sealed class RegressionBoundaryTests
     [Fact]
     public void P95RatioRegressionStrategy_WhenWorseGeomeanIsUndefined_ReturnsFalse()
     {
-        P95RatioRegressionStrategy strategy = new();
         BdnComparisonResult comparison = CreateStatisticallyWorseComparison(
             baseMedianNs: 0,
             diffMedianNs: 0,
             baseP95Ns: 0,
             diffP95Ns: 1_000_000);
 
-        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out RegressionDetectionResult details);
-
-        Assert.False(hasRegression);
-        Assert.Equal("P95 ratio", details.MetricName);
+        AssertNoRatioRegression(new P95RatioRegressionStrategy(), comparison, "P95 ratio");
     }
 
     [Fact]
@@ -380,6 +372,14 @@ public sealed class RegressionBoundaryTests
             "Benchmark.A",
             BenchmarkTestData.CreateBenchmark("Benchmark.A", medianNs: baseMedianNs, p95Ns: baseP95Ns),
             BenchmarkTestData.CreateBenchmark("Benchmark.A", medianNs: diffMedianNs, p95Ns: diffP95Ns));
+
+    private static void AssertNoRatioRegression(IBenchmarkRegressionStrategy strategy, BdnComparisonResult comparison, string metricName)
+    {
+        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out RegressionDetectionResult details);
+
+        Assert.False(hasRegression);
+        Assert.Equal(metricName, details.MetricName);
+    }
 
     private static double Milliseconds(double value) => value * TimeUnitConstants.NanoSecondsToMilliseconds;
 }
