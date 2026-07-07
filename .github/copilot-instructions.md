@@ -98,6 +98,10 @@ If you encounter a diagnostic span test failure, or are unsure about any Roslyn 
 - Example: `Setup()` → `ISetup<T>` → `.Raises()` → `IRaise<T>` → `.Returns()` → `IReturns<T>`
 - **Register ALL interfaces in the chain**, not just endpoint types
 
+### Symbol-Cast Crash Safety (MANDATORY)
+
+Never cast an `ITypeSymbol`/`ISymbol` to a derived interface (`IArrayTypeSymbol`, `INamedTypeSymbol`, ...) with a direct `(T)` cast. Use a pattern test with a graceful early-return, or the analyzer throws `InvalidCastException` → Roslyn `AD0001` → the analyzer is disabled for the session. Example of the exact defect (#1241): `(IArrayTypeSymbol)paramsParameter.Type` throws on C# 13 `params List<int>` because `Type` is an `INamedTypeSymbol`; `IsParams` does not imply array. Fix pattern: `if (x.Type is not IArrayTypeSymbol arr) { return; }`. Any crash-path fix tied to a new C# feature must ship a regression test at the triggering language version (use the isolated `Moq.Analyzers.CSharp13.Test` project when the default harness pins an older version). See `.github/instructions/csharp.instructions.md` and issue #1321.
+
 ### Diagnostic Investigation Pattern
 
 When tests fail after removing string-based detection:
