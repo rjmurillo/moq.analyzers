@@ -17,6 +17,10 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
             ["""new Mock<ClassWithParams>(MockBehavior.Default, "42", DateTime.Now, DateTime.Now);"""],
             ["""new Mock<ClassWithParams>("42", DateTime.Now, DateTime.Now);"""],
 
+            // Params-array tail with a non-convertible argument must still be flagged.
+            ["""new Mock<ClassWithParams>{|Moq1002:(DateTime.Now, 42)|};"""],
+            ["""new Mock<ClassWithParams>{|Moq1002:(MockBehavior.Default, DateTime.Now, 42)|};"""],
+
             ["""new Mock<Foo>(false, 0);"""],
             ["""new Mock<Foo>(MockBehavior.Default, true, 1);"""],
             ["""Mock<Foo> targetTypedMock = new(false, 0);"""],
