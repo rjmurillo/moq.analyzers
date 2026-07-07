@@ -14,6 +14,26 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
         yield return [new P95RatioRegressionStrategy()];
     }
 
+    public static IEnumerable<object[]> StandardDeviationNoiseFloorCases()
+    {
+        yield return
+        [
+            new NoiseFloorCase { BaseMeanNs = Milliseconds(0.4), DiffMeanNs = Milliseconds(1.1), BaseStandardDeviationNs = Milliseconds(0.05), DiffStandardDeviationNs = Milliseconds(0.05), N = 5, DeltaNs = Milliseconds(0.7), Expected = true },
+        ];
+        yield return
+        [
+            new NoiseFloorCase { BaseMeanNs = Milliseconds(0.4), DiffMeanNs = Milliseconds(1.1), BaseStandardDeviationNs = Milliseconds(0.3), DiffStandardDeviationNs = Milliseconds(0.3), N = 5, DeltaNs = Milliseconds(0.7), Expected = false },
+        ];
+        yield return
+        [
+            new NoiseFloorCase { BaseMeanNs = Milliseconds(200), DiffMeanNs = Milliseconds(220), BaseStandardDeviationNs = Milliseconds(8), DiffStandardDeviationNs = Milliseconds(8), N = 10, DeltaNs = Milliseconds(20), Expected = false },
+        ];
+        yield return
+        [
+            new NoiseFloorCase { BaseMeanNs = Milliseconds(200), DiffMeanNs = Milliseconds(240), BaseStandardDeviationNs = Milliseconds(4), DiffStandardDeviationNs = Milliseconds(4), N = 10, DeltaNs = Milliseconds(40), Expected = true },
+        ];
+    }
+
     [Theory]
     [MemberData(nameof(RatioStrategies))]
     public void HasRegression_WithStableLargeAggregateRegression_ReturnsTrue(IBenchmarkRegressionStrategy strategy)
@@ -117,76 +137,23 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
         Assert.False(exceeds);
     }
 
-    [Fact]
-    public void ExceedsRatioNoiseFloor_WhenSubMillisecondDeltaClearsNoiseBand_ReturnsTrue()
+    [Theory]
+    [MemberData(nameof(StandardDeviationNoiseFloorCases))]
+    public void ExceedsRatioNoiseFloor_WithStandardDeviationCases_ReturnsExpected(NoiseFloorCase testCase)
     {
         RegressionResult result = CreateRegressionResult(
-            Milliseconds(0.4),
-            Milliseconds(1.1),
+            testCase.BaseMeanNs,
+            testCase.DiffMeanNs,
             new MeasurementNoiseFixture
             {
-                BaseStandardDeviationNs = Milliseconds(0.05),
-                DiffStandardDeviationNs = Milliseconds(0.05),
-                N = 5,
+                BaseStandardDeviationNs = testCase.BaseStandardDeviationNs,
+                DiffStandardDeviationNs = testCase.DiffStandardDeviationNs,
+                N = testCase.N,
             });
 
-        bool exceeds = RegressionStrategyHelper.ExceedsRatioNoiseFloor(result, _ => Milliseconds(0.7));
+        bool exceeds = RegressionStrategyHelper.ExceedsRatioNoiseFloor(result, _ => testCase.DeltaNs);
 
-        Assert.True(exceeds);
-    }
-
-    [Fact]
-    public void ExceedsRatioNoiseFloor_WhenSubMillisecondDeltaIsWithinNoiseBand_ReturnsFalse()
-    {
-        RegressionResult result = CreateRegressionResult(
-            Milliseconds(0.4),
-            Milliseconds(1.1),
-            new MeasurementNoiseFixture
-            {
-                BaseStandardDeviationNs = Milliseconds(0.3),
-                DiffStandardDeviationNs = Milliseconds(0.3),
-                N = 5,
-            });
-
-        bool exceeds = RegressionStrategyHelper.ExceedsRatioNoiseFloor(result, _ => Milliseconds(0.7));
-
-        Assert.False(exceeds);
-    }
-
-    [Fact]
-    public void ExceedsRatioNoiseFloor_WhenDeltaIsWithinCombinedStandardDeviation_ReturnsFalse()
-    {
-        RegressionResult result = CreateRegressionResult(
-            Milliseconds(200),
-            Milliseconds(220),
-            new MeasurementNoiseFixture
-            {
-                BaseStandardDeviationNs = Milliseconds(8),
-                DiffStandardDeviationNs = Milliseconds(8),
-                N = 10,
-            });
-
-        bool exceeds = RegressionStrategyHelper.ExceedsRatioNoiseFloor(result, _ => Milliseconds(20));
-
-        Assert.False(exceeds);
-    }
-
-    [Fact]
-    public void ExceedsRatioNoiseFloor_WhenDeltaExceedsCombinedStandardDeviation_ReturnsTrue()
-    {
-        RegressionResult result = CreateRegressionResult(
-            Milliseconds(200),
-            Milliseconds(240),
-            new MeasurementNoiseFixture
-            {
-                BaseStandardDeviationNs = Milliseconds(4),
-                DiffStandardDeviationNs = Milliseconds(4),
-                N = 10,
-            });
-
-        bool exceeds = RegressionStrategyHelper.ExceedsRatioNoiseFloor(result, _ => Milliseconds(40));
-
-        Assert.True(exceeds);
+        Assert.Equal(testCase.Expected, exceeds);
     }
 
     [Fact]

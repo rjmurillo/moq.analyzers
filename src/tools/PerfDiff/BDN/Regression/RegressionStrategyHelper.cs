@@ -56,7 +56,7 @@ public static class RegressionStrategyHelper
             double betterGeoMean = GetGeometricMeanOrNaN(better, MedianRatioSelector);
             if (!double.IsNaN(betterGeoMean))
             {
-                logger.LogInformation("========== {MetricName} {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", config.MetricName, betterCount, betterGeoMean);
+                logger.LogInformation("========== {MetricName} {BetterCount} better, geomean: {BetterGeoMean:F3}% ==========", config.MetricName, betterCount, ToPercentChange(betterGeoMean));
             }
         }
 
@@ -71,7 +71,7 @@ public static class RegressionStrategyHelper
             double worseGeoMean = GetGeometricMeanOrNaN(worse, MedianRatioSelector);
             if (!double.IsNaN(worseGeoMean))
             {
-                logger.LogInformation("========== {MetricName} {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", config.MetricName, worseCount, worseGeoMean);
+                logger.LogInformation("========== {MetricName} {WorseCount} worse, geomean: {WorseGeoMean:F3}% ==========", config.MetricName, worseCount, ToPercentChange(worseGeoMean));
             }
         }
 
@@ -243,10 +243,12 @@ public static class RegressionStrategyHelper
         if (TryGetGeometricMean(results, config.RatioSelector, out double geoMean))
         {
             string label = string.Equals(direction, "less", StringComparison.Ordinal) ? "better" : "worse";
-            double percentChange = (geoMean - 1D) * 100D;
-            logger.LogInformation("========== {MetricName}: {Count} {Label}, geomean: {GeoMean:F3}% ==========", config.MetricName, results.Count, label, percentChange);
+            logger.LogInformation("========== {MetricName}: {Count} {Label}, geomean: {GeoMean:F3}% ==========", config.MetricName, results.Count, label, ToPercentChange(geoMean));
         }
     }
+
+    private static double ToPercentChange(double ratio)
+        => (ratio - 1D) * 100D;
 
     private static bool TryGetCombinedStandardDeviation(RegressionResult result, out double combinedStandardDeviationNs)
     {
