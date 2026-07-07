@@ -8,15 +8,15 @@ namespace PerfDiff.Tests;
 
 public sealed class AggregateNoiseFloorRegressionStrategyTests
 {
-    private const double NoisySubMillisecondMeanMs = 0.4D;
-    private const double NoisyRegressionMeanMs = 1.1D;
-    private const double LargeStableBaselineMs = 200D;
-    private const double LargeStableBelowNoiseMs = 220D;
-    private const double LargeStableAboveNoiseMs = 240D;
-    private const double TwentyMillisecondDeltaMs = 20D;
-    private const double FortyMillisecondDeltaMs = 40D;
-    private const double TenPercentRatio = 1.10D;
-    private const double MicrosecondsToNanoseconds = 1_000D;
+    private static readonly double NoisySubMillisecondMeanMs = 0.4D;
+    private static readonly double NoisyRegressionMeanMs = 1.1D;
+    private static readonly double LargeStableBaselineMs = 200D;
+    private static readonly double LargeStableBelowNoiseMs = 220D;
+    private static readonly double LargeStableAboveNoiseMs = 240D;
+    private static readonly double TwentyMillisecondDeltaMs = 20D;
+    private static readonly double FortyMillisecondDeltaMs = 40D;
+    private static readonly double TenPercentRatio = 1.10D;
+    private static readonly double MicrosecondsToNanoseconds = 1_000D;
 
     public static IEnumerable<object[]> RatioStrategies()
     {
