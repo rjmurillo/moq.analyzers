@@ -8,6 +8,16 @@ namespace PerfDiff.Tests;
 
 public sealed class AggregateNoiseFloorRegressionStrategyTests
 {
+    private const double NoisySubMillisecondMeanMs = 0.4D;
+    private const double NoisyRegressionMeanMs = 1.1D;
+    private const double LargeStableBaselineMs = 200D;
+    private const double LargeStableBelowNoiseMs = 220D;
+    private const double LargeStableAboveNoiseMs = 240D;
+    private const double TwentyMillisecondDeltaMs = 20D;
+    private const double FortyMillisecondDeltaMs = 40D;
+    private const double TenPercentRatio = 1.10D;
+    private const double MicrosecondsToNanoseconds = 1_000D;
+
     public static IEnumerable<object[]> RatioStrategies()
     {
         yield return [new MeanPercentageRegressionStrategy()];
@@ -18,19 +28,19 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
     {
         yield return
         [
-            new NoiseFloorCase { BaseMeanNs = Milliseconds(0.4), DiffMeanNs = Milliseconds(1.1), BaseStandardDeviationNs = Milliseconds(0.05), DiffStandardDeviationNs = Milliseconds(0.05), N = 5, DeltaNs = Milliseconds(0.7), Expected = true },
+            new NoiseFloorCase { BaseMeanNs = Milliseconds(NoisySubMillisecondMeanMs), DiffMeanNs = Milliseconds(NoisyRegressionMeanMs), BaseStandardDeviationNs = Milliseconds(0.05), DiffStandardDeviationNs = Milliseconds(0.05), N = 5, DeltaNs = Milliseconds(0.7), Expected = true },
         ];
         yield return
         [
-            new NoiseFloorCase { BaseMeanNs = Milliseconds(0.4), DiffMeanNs = Milliseconds(1.1), BaseStandardDeviationNs = Milliseconds(0.3), DiffStandardDeviationNs = Milliseconds(0.3), N = 5, DeltaNs = Milliseconds(0.7), Expected = false },
+            new NoiseFloorCase { BaseMeanNs = Milliseconds(NoisySubMillisecondMeanMs), DiffMeanNs = Milliseconds(NoisyRegressionMeanMs), BaseStandardDeviationNs = Milliseconds(0.3), DiffStandardDeviationNs = Milliseconds(0.3), N = 5, DeltaNs = Milliseconds(0.7), Expected = false },
         ];
         yield return
         [
-            new NoiseFloorCase { BaseMeanNs = Milliseconds(200), DiffMeanNs = Milliseconds(220), BaseStandardDeviationNs = Milliseconds(8), DiffStandardDeviationNs = Milliseconds(8), N = 10, DeltaNs = Milliseconds(20), Expected = false },
+            new NoiseFloorCase { BaseMeanNs = Milliseconds(LargeStableBaselineMs), DiffMeanNs = Milliseconds(LargeStableBelowNoiseMs), BaseStandardDeviationNs = Milliseconds(8), DiffStandardDeviationNs = Milliseconds(8), N = 10, DeltaNs = Milliseconds(TwentyMillisecondDeltaMs), Expected = false },
         ];
         yield return
         [
-            new NoiseFloorCase { BaseMeanNs = Milliseconds(200), DiffMeanNs = Milliseconds(240), BaseStandardDeviationNs = Milliseconds(4), DiffStandardDeviationNs = Milliseconds(4), N = 10, DeltaNs = Milliseconds(40), Expected = true },
+            new NoiseFloorCase { BaseMeanNs = Milliseconds(LargeStableBaselineMs), DiffMeanNs = Milliseconds(LargeStableAboveNoiseMs), BaseStandardDeviationNs = Milliseconds(4), DiffStandardDeviationNs = Milliseconds(4), N = 10, DeltaNs = Milliseconds(FortyMillisecondDeltaMs), Expected = true },
         ];
     }
 
@@ -258,10 +268,10 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
     {
         RegressionResult[] results = [CreateRegressionResult(Milliseconds(200), Milliseconds(210))];
 
-        bool hasRegression = RegressionStrategyHelper.IsAggregateRatioRegression(results, _ => 1.05D, out double geomean);
+        bool hasRegression = RegressionStrategyHelper.IsAggregateRatioRegression(results, _ => RegressionStrategyHelper.AggregateRatioRegressionThreshold, out double geomean);
 
         Assert.False(hasRegression);
-        Assert.Equal(1.05D, geomean);
+        Assert.Equal(RegressionStrategyHelper.AggregateRatioRegressionThreshold, geomean);
     }
 
     [Fact]
@@ -269,10 +279,10 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
     {
         RegressionResult[] results = [CreateRegressionResult(Milliseconds(200), Milliseconds(220))];
 
-        bool hasRegression = RegressionStrategyHelper.IsAggregateRatioRegression(results, _ => 1.10D, out double geomean);
+        bool hasRegression = RegressionStrategyHelper.IsAggregateRatioRegression(results, _ => TenPercentRatio, out double geomean);
 
         Assert.True(hasRegression);
-        Assert.Equal(1.10D, geomean);
+        Assert.Equal(TenPercentRatio, geomean);
     }
 
     [Fact]
@@ -300,31 +310,39 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
     private static RegressionResult CreateRegressionResult(double baseMeanNs, double diffMeanNs, MeasurementNoiseFixture? noise = null)
         => new(
             "Benchmark.A",
-            CreateBenchmark(
-                "Benchmark.A",
-                new BenchmarkFixture
-                {
-                    MeanNs = baseMeanNs,
-                    P95Ns = baseMeanNs,
-                    StandardDeviationNs = noise?.BaseStandardDeviationNs ?? 0,
-                    StandardErrorNs = noise?.BaseStandardErrorNs ?? 0,
-                    N = noise?.N ?? 0,
-                    ConfidenceIntervalN = noise?.ConfidenceIntervalN ?? 0,
-                    ConfidenceIntervalStandardErrorNs = noise?.ConfidenceIntervalStandardErrorNs ?? 0,
-                }),
-            CreateBenchmark(
-                "Benchmark.A",
-                new BenchmarkFixture
-                {
-                    MeanNs = diffMeanNs,
-                    P95Ns = diffMeanNs,
-                    StandardDeviationNs = noise?.DiffStandardDeviationNs ?? 0,
-                    StandardErrorNs = noise?.DiffStandardErrorNs ?? 0,
-                    N = noise?.N ?? 0,
-                    ConfidenceIntervalN = noise?.ConfidenceIntervalN ?? 0,
-                    ConfidenceIntervalStandardErrorNs = noise?.ConfidenceIntervalStandardErrorNs ?? 0,
-                }),
+            CreateBenchmark("Benchmark.A", CreateBaselineFixture(baseMeanNs, noise)),
+            CreateBenchmark("Benchmark.A", CreateDiffFixture(diffMeanNs, noise)),
             ComparisonResult.Lesser);
+
+    private static BenchmarkFixture CreateBaselineFixture(double meanNs, MeasurementNoiseFixture? noise)
+        => CreateNoiseFixture(
+            meanNs,
+            noise?.BaseStandardDeviationNs ?? 0,
+            noise?.BaseStandardErrorNs ?? 0,
+            noise);
+
+    private static BenchmarkFixture CreateDiffFixture(double meanNs, MeasurementNoiseFixture? noise)
+        => CreateNoiseFixture(
+            meanNs,
+            noise?.DiffStandardDeviationNs ?? 0,
+            noise?.DiffStandardErrorNs ?? 0,
+            noise);
+
+    private static BenchmarkFixture CreateNoiseFixture(
+        double meanNs,
+        double standardDeviationNs,
+        double standardErrorNs,
+        MeasurementNoiseFixture? noise)
+        => new()
+        {
+            MeanNs = meanNs,
+            P95Ns = meanNs,
+            StandardDeviationNs = standardDeviationNs,
+            StandardErrorNs = standardErrorNs,
+            N = noise?.N ?? 0,
+            ConfidenceIntervalN = noise?.ConfidenceIntervalN ?? 0,
+            ConfidenceIntervalStandardErrorNs = noise?.ConfidenceIntervalStandardErrorNs ?? 0,
+        };
 
     private static BdnComparisonResult CreateComparison(string id, BenchmarkFixture baseline, BenchmarkFixture diff)
         => new(
@@ -386,7 +404,7 @@ public sealed class AggregateNoiseFloorRegressionStrategyTests
 
     private static double Milliseconds(double value) => value * TimeUnitConstants.NanoSecondsToMilliseconds;
 
-    private static double Microseconds(double value) => value * 1_000D;
+    private static double Microseconds(double value) => value * MicrosecondsToNanoseconds;
 
     private sealed class BenchmarkFixture
     {

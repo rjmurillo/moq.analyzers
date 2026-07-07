@@ -8,8 +8,6 @@ namespace PerfDiff.Tests;
 
 public sealed class RatioRegressionStrategyTests
 {
-    private static readonly double MedianAggregateRatioRegressionThreshold = 1.35D;
-
     [Fact]
     public void PercentageRegressionStrategy_WithInfiniteMedianRatio_ReturnsFalse()
     {
@@ -43,7 +41,7 @@ public sealed class RatioRegressionStrategyTests
 
         bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
 
-        Assert.True(BenchmarkDotNetDiffer.GetMedianRatio(ComparisonResult.Lesser, comparison.BaseResult, comparison.DiffResult) > MedianAggregateRatioRegressionThreshold);
+        Assert.True(BenchmarkDotNetDiffer.GetMedianRatio(ComparisonResult.Lesser, comparison.BaseResult, comparison.DiffResult) > PercentageRegressionStrategy.MedianAggregateRatioRegressionThreshold);
         Assert.False(hasRegression);
     }
 

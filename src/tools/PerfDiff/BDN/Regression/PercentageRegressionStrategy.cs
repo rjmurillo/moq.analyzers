@@ -10,7 +10,7 @@ namespace PerfDiff.BDN.Regression;
 /// </summary>
 public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
 {
-    private const double MedianAggregateRatioRegressionThreshold = 1.35D;
+    internal const double MedianAggregateRatioRegressionThreshold = 1.35D;
 
     /// <inheritdoc/>
     public bool HasRegression(BdnComparisonResult[] comparison, ILogger logger, out RegressionDetectionResult details)
