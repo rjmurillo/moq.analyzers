@@ -81,6 +81,130 @@ public sealed class RatioRegressionStrategyTests
     }
 
     [Fact]
+    public void P95RatioRegressionStrategy_WhenP95RegressesButMeanDeltaIsBelowNoiseBand_ReturnsFalse()
+    {
+        P95RatioRegressionStrategy strategy = new();
+        BdnComparisonResult comparison = CreateComparison(
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(0.5),
+                meanNs: Milliseconds(0.50),
+                p95Ns: Milliseconds(0.50)),
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(0.7),
+                meanNs: Milliseconds(0.55),
+                p95Ns: Milliseconds(1.10)));
+
+        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
+
+        Assert.True(BenchmarkDotNetDiffer.GetP95Delta(ComparisonResult.Lesser, comparison.BaseResult, comparison.DiffResult) > RegressionStrategyHelper.AbsoluteNoiseFloorNs);
+        Assert.False(RegressionStrategyHelper.ExceedsRatioNoiseFloor(
+            new RegressionResult("Benchmark.A", comparison.BaseResult, comparison.DiffResult, ComparisonResult.Lesser),
+            result => BenchmarkDotNetDiffer.GetMeanDelta(result.Conclusion, result.BaseResult, result.DiffResult)));
+        Assert.False(hasRegression);
+    }
+
+    [Fact]
+    public void P95RatioRegressionStrategy_WhenP95AndMeanRegressBeyondNoiseBand_ReturnsTrue()
+    {
+        P95RatioRegressionStrategy strategy = new();
+        BdnComparisonResult comparison = CreateComparison(
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(5),
+                meanNs: Milliseconds(5),
+                p95Ns: Milliseconds(5),
+                standardDeviationNs: Milliseconds(0.05)),
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(6),
+                meanNs: Milliseconds(6),
+                p95Ns: Milliseconds(6),
+                standardDeviationNs: Milliseconds(0.05)));
+
+        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
+
+        Assert.True(hasRegression);
+    }
+
+    [Fact]
+    public void P95RatioRegressionStrategy_WhenMeanDeltaEqualsNoiseBand_ReturnsFalse()
+    {
+        P95RatioRegressionStrategy strategy = new();
+        BdnComparisonResult comparison = CreateComparison(
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(10),
+                meanNs: Milliseconds(10),
+                p95Ns: Milliseconds(10),
+                standardDeviationNs: Milliseconds(1)),
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(12),
+                meanNs: Milliseconds(12),
+                p95Ns: Milliseconds(12)));
+
+        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
+
+        Assert.False(hasRegression);
+    }
+
+    [Fact]
+    public void P95RatioRegressionStrategy_WhenP95AggregateGeomeanEqualsThreshold_ReturnsFalse()
+    {
+        P95RatioRegressionStrategy strategy = new();
+        BdnComparisonResult comparison = CreateComparison(
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(10),
+                meanNs: Milliseconds(10),
+                p95Ns: Milliseconds(10)),
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(11),
+                meanNs: Milliseconds(11),
+                p95Ns: Milliseconds(10.5)));
+
+        bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out _);
+
+        Assert.False(hasRegression);
+    }
+
+    [Fact]
+    public void MeanPercentageRegressionStrategy_WithP95CorroborationFixtures_KeepsMeanBehavior()
+    {
+        MeanPercentageRegressionStrategy strategy = new();
+        BdnComparisonResult meanRegression = CreateComparison(
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(5),
+                meanNs: Milliseconds(5),
+                p95Ns: Milliseconds(5),
+                standardDeviationNs: Milliseconds(0.05)),
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(6),
+                meanNs: Milliseconds(6),
+                p95Ns: Milliseconds(6),
+                standardDeviationNs: Milliseconds(0.05)));
+        BdnComparisonResult meanNoise = CreateComparison(
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(0.5),
+                meanNs: Milliseconds(0.50),
+                p95Ns: Milliseconds(0.50)),
+            BenchmarkWithMeasuredStatistics(
+                measurementNs: Milliseconds(0.7),
+                meanNs: Milliseconds(0.55),
+                p95Ns: Milliseconds(1.10)));
+
+        bool regressionDetected = strategy.HasRegression([meanRegression], new PerfDiffTestLogger(), out _);
+        bool noiseDetected = strategy.HasRegression([meanNoise], new PerfDiffTestLogger(), out _);
+
+        Assert.True(regressionDetected);
+        Assert.False(noiseDetected);
+    }
+
+    [Fact]
+    public void RegressionRatioMetricConfig_WhenStabilityDeltaSelectorIsOmitted_UsesDeltaSelector()
+    {
+        Func<RegressionResult, double> deltaSelector = _ => 42D;
+        RegressionRatioMetricConfig config = new("Test ratio", _ => 1D, deltaSelector);
+
+        Assert.Same(deltaSelector, config.StabilityDeltaSelector);
+    }
+
+    [Fact]
     public void MeanPercentageRegressionStrategy_WithInfiniteMedianRatio_ReturnsFalse()
     {
         MeanPercentageRegressionStrategy strategy = new();
@@ -259,6 +383,28 @@ public sealed class RatioRegressionStrategyTests
             meanNs: meanNs,
             p95Ns: p95Ns,
             measurements: BenchmarkTestData.CreateMeasurements(meanNs, meanNs, meanNs, meanNs, meanNs));
+
+    private static Benchmark BenchmarkWithMeasuredStatistics(
+        double measurementNs,
+        double meanNs,
+        double p95Ns,
+        double standardDeviationNs = 0)
+        => new()
+        {
+            FullName = "Benchmark.A",
+            Statistics = new Statistics
+            {
+                N = 5,
+                Median = measurementNs,
+                Mean = meanNs,
+                StandardDeviation = standardDeviationNs,
+                Percentiles = new Percentiles
+                {
+                    P95 = p95Ns,
+                },
+            },
+            Measurements = BenchmarkTestData.CreateMeasurements(measurementNs, measurementNs, measurementNs, measurementNs, measurementNs),
+        };
 
     private static double Milliseconds(double value) => value * TimeUnitConstants.NanoSecondsToMilliseconds;
 }

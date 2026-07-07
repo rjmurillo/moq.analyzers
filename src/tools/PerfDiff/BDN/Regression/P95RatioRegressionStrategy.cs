@@ -6,7 +6,8 @@ using Perfolizer.Mathematics.Common;
 namespace PerfDiff.BDN.Regression;
 
 /// <summary>
-/// Detects P95-ratio regressions only when the stable worse-set aggregate exceeds the 5% gate.
+/// Detects P95-ratio regressions only when the mean-corroborated stable worse-set aggregate exceeds the 5% gate.
+/// Tail-only jitter cannot trigger this gate because each P95 change must also have a mean change outside the mean noise band.
 /// </summary>
 public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
 {
@@ -18,7 +19,8 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
             new RegressionRatioMetricConfig(
                 "P95 ratio",
                 GetP95Ratio,
-                result => BenchmarkDotNetDiffer.GetP95Delta(result.Conclusion, result.BaseResult, result.DiffResult)),
+                result => BenchmarkDotNetDiffer.GetP95Delta(result.Conclusion, result.BaseResult, result.DiffResult),
+                stabilityDeltaSelector: result => BenchmarkDotNetDiffer.GetMeanDelta(result.Conclusion, result.BaseResult, result.DiffResult)),
             out details);
 
     private static double GetP95Ratio(RegressionResult result)

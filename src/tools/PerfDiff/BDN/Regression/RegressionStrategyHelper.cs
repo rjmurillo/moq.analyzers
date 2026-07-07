@@ -102,10 +102,10 @@ public static class RegressionStrategyHelper
         Threshold relativeThreshold = Threshold.Parse(config.ThresholdText);
         RegressionResult[] notSame = BenchmarkDotNetDiffer.FindRegressions(comparison, relativeThreshold);
 
-        List<RegressionResult> better = GetStableResults(notSame, ComparisonResult.Greater, config.DeltaSelector);
+        List<RegressionResult> better = GetStableResults(notSame, ComparisonResult.Greater, config.StabilityDeltaSelector);
         LogRatioResults(better, logger, config, "less");
 
-        List<RegressionResult> worse = GetStableResults(notSame, ComparisonResult.Lesser, config.DeltaSelector);
+        List<RegressionResult> worse = GetStableResults(notSame, ComparisonResult.Lesser, config.StabilityDeltaSelector);
         LogRatioResults(worse, logger, config, "more");
 
         bool aggregateRegression = IsAggregateRatioRegression(worse, config.RatioSelector, config.AggregateThreshold, out _);
