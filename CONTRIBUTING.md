@@ -551,6 +551,10 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
 
 **Important**: When you add a new analyzer, the `AllAnalyzersVerifier` automatically discovers and includes it. No manual updates to test infrastructure are required.
 
+### New Language Crash-Safety Tests
+
+Per-version projects named `Moq.Analyzers.CSharpNN.Test` run the analyzer suite with a newer isolated Roslyn test compiler. They protect the shipped netstandard2.0 analyzers from crashing on new C# syntax without raising the shipping Roslyn 4.8 API ceiling. Adding the next leg, such as C# 15, should copy the latest per-version test project and update only the isolated test compiler version and covered constructs.
+
 ### Moq-Specific Testing Guidelines
 
 **Test Data Grouping:**
