@@ -11,7 +11,7 @@
 | Formatting | Run `dotnet format` after every change |
 | Build | Run `dotnet build` (no warnings allowed) |
 | Tests | Run `dotnet test` (all must pass) |
-| Coverage | Validate code coverage after changes; report coverage for modified code |
+| Coverage | **100% block coverage is ante and non-negotiable** for modified code; cover positive, negative, and boundary cases. Evaluate changes with the `code-qualities` skill |
 | Codacy | Run Codacy CLI analysis and resolve all issues |
 | Validation Evidence | PRs must include logs/screenshots for all above steps |
 | Moq Version | Note Moq version compatibility for analyzer/test changes |
@@ -35,8 +35,9 @@
 - **Zero tolerance for false positives or false negatives.** An incorrect diagnostic erodes trust and causes developers to disable the analyzer entirely.
 - **Performance is a hard requirement.** Analyzers execute on every keystroke in IDEs. Allocations, LINQ overhead, and unnecessary computation directly impact developer experience.
 - **Symbol-based detection only.** String matching is fragile, not refactoring-safe, and produces false matches. Use `ISymbol`, `SymbolEqualityComparer`, and `MoqKnownSymbols` for all type resolution.
-- **Defensive coding.** Handle nulls, edge cases, and unexpected syntax gracefully. An analyzer crash is worse than a missed diagnostic.
-- **Tests prove correctness, not just coverage.** Every test must verify a specific, meaningful behavior. Include positive cases, negative cases, and edge cases that exercise boundary conditions.
+- **Defensive coding.** Handle nulls, edge cases, and unexpected syntax gracefully. An analyzer crash is worse than a missed diagnostic. When code relies on an invariant, guard it with `Debug.Assert` rather than leaving the assumption implicit.
+- **Tests prove correctness, not just coverage.** Every test must verify a specific, meaningful behavior. Explicitly cover positive, negative, AND boundary cases for all modified code.
+- **100% block coverage is ante (non-negotiable) for all code, especially modified code.** Coverage alone is not enough. Evaluate every change against the code qualities (high cohesion, encapsulation, loose coupling, low/no redundancy, testability as leverage) using the `code-qualities` skill.
 - **No speculative implementations.** Understand the problem fully before writing code. If you cannot explain why your approach is correct, stop and ask.
 
 ---
@@ -552,11 +553,13 @@ If you encounter:
 ### General Coding and Workflow Rules
 
 - Place new analyzers in `src/Analyzers/`, code fixes in `src/CodeFixes/`, and shared logic in `src/Common/`.
+- **Agent skills and AI configuration live under `.github/` so they work for both Copilot CLI and GitHub Copilot.** Put agent skill libraries in `.github/skills/` (not `.claude/skills/`), and keep shared instruction content in `.github/instructions/`.
 - Update `src/Analyzers/AnalyzerReleases.Unshipped.md` and add or update documentation in `docs/rules/` for each diagnostic.
 - **CRITICAL: Do not modify `AnalyzerReleases.Shipped.md`**. This file is an immutable record of past releases. All changes, including category or severity updates to existing rules, **MUST** be documented in `AnalyzerReleases.Unshipped.md`.
 - **Analyzer Release Notes Logic:** For this repository, `AnalyzerReleases.Unshipped.md` must **only** contain a `### New Rules` section. Any modification to a previously shipped rule (e.g., changing its category or severity) is listed as if it were a new rule in this file. The `Changed Rules` and `Removed Rules` sections are only used in `AnalyzerReleases.Shipped.md` when a release is being finalized.
 - **Prioritize Error Message URLs:** If a build or tool error message contains a URL, you **MUST** follow it immediately. This URL is your primary source of truth for fixing the error, taking precedence over web searches or other assumptions.
 - Add or update unit tests in `tests/Moq.Analyzers.Test/` for every analyzer or code fix change.
+- **`src/Common` coverage is measured only through analyzer/code-fix tests.** `src/Common` compiles into every importing project (including the test project), so direct unit tests of Common helpers exercise the test-assembly copy and report **0% coverage** in the shipping `Moq.Analyzers.dll`. The coverage runsettings instruments only `Moq.Analyzers.dll` and `Moq.CodeFixes.dll`. To earn shipping coverage for Common code, exercise it through analyzer or code-fix **verifier** tests, not standalone unit tests.
 - After any file edit, immediately run Codacy analysis for the edited file and resolve all reported issues before proceeding.
 - After any dependency change, run Codacy analysis with `tool: trivy` and resolve vulnerabilities before continuing.
 - Update `README.md` and `docs/rules/README.md` if workflows or rules change.
