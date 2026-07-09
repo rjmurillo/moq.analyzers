@@ -193,65 +193,6 @@ class C
         Assert.True(SymbolEqualityComparer.Default.Equals(parameterMatch!.Type, stringType));
     }
 
-    [Fact]
-    public void TryGetParameterOfType_MethodHasParameterOfType_ReturnsTrueWithMatch()
-    {
-        const string code = @"
-class C
-{
-    void M(int x, string y) { }
-}";
-        (SemanticModel model, IMethodSymbol method, _) =
-            GetMethodContextWithAllOverloads(code, "M", 0);
-        INamedTypeSymbol stringType = model.Compilation.GetSpecialType(SpecialType.System_String);
-
-        bool found = method.TryGetParameterOfType(stringType, out IParameterSymbol? match);
-
-        Assert.True(found);
-        Assert.NotNull(match);
-        Assert.Equal("y", match!.Name);
-        Assert.True(SymbolEqualityComparer.Default.Equals(match.Type, stringType));
-    }
-
-    [Fact]
-    public void TryGetParameterOfType_MethodHasNoParameterOfType_ReturnsFalse()
-    {
-        const string code = @"
-class C
-{
-    void M(int x) { }
-}";
-        (SemanticModel model, IMethodSymbol method, _) =
-            GetMethodContextWithAllOverloads(code, "M", 0);
-        INamedTypeSymbol doubleType = model.Compilation.GetSpecialType(SpecialType.System_Double);
-
-        bool found = method.TryGetParameterOfType(doubleType, out IParameterSymbol? match);
-
-        Assert.False(found);
-        Assert.Null(match);
-    }
-
-    [Fact]
-    public void TryGetParameterOfType_CancellationRequested_ThrowsOperationCanceledException()
-    {
-        const string code = @"
-class C
-{
-    void M(int x, string y) { }
-}";
-        (SemanticModel model, IMethodSymbol method, _) =
-            GetMethodContextWithAllOverloads(code, "M", 0);
-        INamedTypeSymbol stringType = model.Compilation.GetSpecialType(SpecialType.System_String);
-
-        using CancellationTokenSource cts = new();
-        cts.Cancel();
-
-        Assert.Throws<OperationCanceledException>(() =>
-        {
-            method.TryGetParameterOfType(stringType, out _, cancellationToken: cts.Token);
-        });
-    }
-
     private static (IMethodSymbol TargetMethod, IReadOnlyList<IMethodSymbol> AllOverloads) GetMethodAndOverloads(
         string code,
         string methodName,

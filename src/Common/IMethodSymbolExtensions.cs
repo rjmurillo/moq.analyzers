@@ -77,23 +77,4 @@ internal static class IMethodSymbolExtensions
     {
         return method.TryGetOverloadWithParameterOfType(method.Overloads(), type, out methodMatch, out parameterMatch, comparer, cancellationToken);
     }
-
-    public static bool TryGetParameterOfType(this IMethodSymbol method, INamedTypeSymbol type, [NotNullWhen(true)] out IParameterSymbol? match, SymbolEqualityComparer? comparer = null, CancellationToken cancellationToken = default)
-    {
-        comparer ??= SymbolEqualityComparer.Default;
-
-        foreach (IParameterSymbol parameter in method.Parameters)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (comparer.Equals(parameter.Type, type))
-            {
-                match = parameter;
-                return true;
-            }
-        }
-
-        match = null;
-        return false;
-    }
 }
