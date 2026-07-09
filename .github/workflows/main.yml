@@ -279,7 +279,7 @@ jobs:
           needs.check-paths.outputs.code-changed == 'true'
           && runner.os == 'Linux'
           && env.IS_QLTY_COVERAGE_ALLOWED == 'true'
-        uses: qltysh/qlty-action/coverage@fd52dc852530a708d68c3b7342f8d33d1df4cd55 # v2
+        uses: qltysh/qlty-action/coverage@dafbc1e328f1f92525f1a3916724bd5fa01498e8 # v2
         with:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
           files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
