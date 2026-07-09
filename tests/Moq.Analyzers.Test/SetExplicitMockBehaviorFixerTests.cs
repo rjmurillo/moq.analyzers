@@ -255,6 +255,47 @@ public class SetExplicitMockBehaviorFixerTests
         await AssertFirstFixAsync(model, tree, creation.Span, source, expected, "Replace", "0");
     }
 
+    [Fact]
+    public async Task MissingEditProperties_DoesNotThrow_AndRegistersNoActions()
+    {
+        (SemanticModel model, SyntaxTree tree) = await CompilationHelper.CreateMoqCompilationAsync(Source);
+        SyntaxNode root = await tree.GetRootAsync();
+
+        ObjectCreationExpressionSyntax creation = root
+            .DescendantNodes()
+            .OfType<ObjectCreationExpressionSyntax>()
+            .Single();
+
+        // A diagnostic without the recorded edit properties must be ignored: the fixer cannot know
+        // what edit to apply, so it must no-op rather than throw or register an action.
+        DiagnosticDescriptor descriptor = new(
+            DiagnosticIds.SetExplicitMockBehavior,
+            "Test",
+            "Test message",
+            "Test",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        Diagnostic diagnostic = Diagnostic.Create(descriptor, Location.Create(tree, creation.Span));
+
+        using AdhocWorkspace workspace = new();
+        Project project = workspace.AddProject("TestProject", LanguageNames.CSharp)
+            .AddMetadataReferences(model.Compilation.References);
+        Document document = project.AddDocument("Test.cs", SourceText.From(Source));
+
+        List<CodeAction> actions = [];
+        CodeFixContext context = new(
+            document,
+            diagnostic,
+            (action, _) => actions.Add(action),
+            CancellationToken.None);
+
+        Moq.CodeFixes.SetExplicitMockBehaviorFixer fixer = new();
+        await fixer.RegisterCodeFixesAsync(context);
+
+        Assert.Empty(actions);
+    }
+
     private static async Task AssertFixerNoOpAsync(SemanticModel model, SyntaxTree tree, TextSpan span, string sourceText, string editType, string editPosition)
     {
         await AssertFixerAsync(
