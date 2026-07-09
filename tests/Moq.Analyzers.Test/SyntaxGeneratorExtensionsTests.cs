@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Moq.Analyzers.Test;
@@ -23,13 +24,14 @@ public class SyntaxGeneratorExtensionsTests
         .Assembly
         .GetType("Moq.CodeFixes.SyntaxGeneratorExtensions", throwOnError: true)!;
 
-#pragma warning disable ECS0600 // The literals name methods in another assembly resolved via reflection, not local symbols.
-    private static readonly MethodInfo InsertArgumentsMethod =
-        ExtensionsType.GetMethod("InsertArguments", BindingFlags.Public | BindingFlags.Static)!;
+#pragma warning disable ECS1300 // Static field init is simpler than a static constructor for these test fixtures.
+    private static readonly MethodInfo InsertArgumentsMethod = GetGuardMethod(nameof(InsertArguments));
 
-    private static readonly MethodInfo ReplaceArgumentMethod =
-        ExtensionsType.GetMethod("ReplaceArgument", BindingFlags.Public | BindingFlags.Static)!;
-#pragma warning restore ECS0600
+    private static readonly MethodInfo ReplaceArgumentMethod = GetGuardMethod(nameof(ReplaceArgument));
+
+    private static readonly SyntaxGenerator SharedGenerator =
+        SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
+#pragma warning restore ECS1300
 
     [Fact]
     public void InsertArguments_IntoInvocation_InsertsArgument()
@@ -204,10 +206,13 @@ public class SyntaxGeneratorExtensionsTests
             ReplaceArgument(generator, invocation, 2, Argument("3")));
     }
 
-    private static SyntaxGenerator CreateGenerator()
+    private static SyntaxGenerator CreateGenerator() => SharedGenerator;
+
+    private static MethodInfo GetGuardMethod(string name)
     {
-        AdhocWorkspace workspace = new();
-        return SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
+        const BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+        return ExtensionsType.GetMethod(name, Flags)
+            ?? throw new MissingMethodException(ExtensionsType.FullName, name);
     }
 
     private static InvocationExpressionSyntax ParseInvocation(string text) =>
@@ -256,7 +261,8 @@ public class SyntaxGeneratorExtensionsTests
         }
         catch (TargetInvocationException ex) when (ex.InnerException is not null)
         {
-            throw ex.InnerException;
+            ExceptionDispatchInfo.Throw(ex.InnerException);
+            return null;
         }
     }
 }
