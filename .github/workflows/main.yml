@@ -44,7 +44,7 @@ jobs:
       # so the fallback 'true' is needed for non-PR events.
       code-changed: ${{ github.event_name != 'pull_request' || steps.filter.outputs.code }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Check for code changes
         uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
@@ -82,7 +82,7 @@ jobs:
   powershell-perf-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Pester
         shell: pwsh
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
@@ -203,7 +203,7 @@ jobs:
       IS_TARGET_MAIN: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
@@ -477,7 +477,7 @@ jobs:
       FORCE_PERF_BASELINE: ${{ github.event.inputs.force_baseline }}
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
@@ -501,7 +501,7 @@ jobs:
       # The baseline SHA may require a different .NET SDK version
       - name: Checkout baseline
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.get-baseline-sha.outputs.sha }}
           fetch-depth: 0
@@ -514,7 +514,7 @@ jobs:
 
       - name: Restore checkout
         if: needs.check-paths.outputs.code-changed == 'true'
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
