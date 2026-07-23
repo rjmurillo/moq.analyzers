@@ -11,7 +11,7 @@
   <ItemGroup>
     <!-- Version overrides required: PerfDiff has higher transitive versions than the central pin -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.14.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Update="Polyfill" ExcludeAssets="compile" />
     <PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.5" />
