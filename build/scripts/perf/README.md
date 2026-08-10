@@ -21,7 +21,7 @@ The batch and shell files call out to PowerShell, which can run on Windows, Linu
 The recommended way to run benchmarks is to use PowerShell.
 
 ```powershell
-./build/scripts/perf/PerfCore.ps1 -projects "<relative-path-to-project>" [-filter "<test-filter>"] [-etl] [-ci] [-diff] [-v <verbosity>]
+pwsh -ExecutionPolicy Bypass -NoProfile -File ./build/scripts/perf/PerfCore.ps1 -projects "<relative-path-to-project>" [-filter "<test-filter>"] [-etl] [-ci] [-diff] [-v <verbosity>]
 ```
 
 > NOTE: ETL tracing is only available on Windows and requires admin permissions. If you have not run elevated (from Admin terminal or with `sudo`) the test process will automatically be elevated. On Linux/macOS, ETL will be automatically disabled with a warning message.
@@ -72,7 +72,7 @@ The JSON data is what is used by the performance comparison tools to determine i
 You can run a quick pass of the benchmarks (about 20 minutes with baseline, then the baseline is reused)
 
 ```powershell
-./build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter '*(FileCount: 1)'
+pwsh -ExecutionPolicy Bypass -NoProfile -File ./build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter '*(FileCount: 1)'
 ```
 
 This is similar to what is run in the [main action](../../../.github/workflows/main.yml) when you raise a PR. To run the full suite, use `-filter '*'` or omit the parameter.
