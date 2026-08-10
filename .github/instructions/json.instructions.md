@@ -194,7 +194,7 @@ When updating version numbers:
 ### global.json Requirements
 
 - Specify correct .NET SDK version
-- Ensure compatibility with target framework (.NET 9)
+- Check compatibility against the project targets in `src/**/*.csproj` and `tests/**/*.csproj`
 - Maintain consistent SDK version across development team
 - Update when new SDK versions are required
 
