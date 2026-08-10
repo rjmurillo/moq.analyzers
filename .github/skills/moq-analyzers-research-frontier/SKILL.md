@@ -146,7 +146,7 @@ would not notice if analyzer logic silently broke.
 
 ### This project's specific assets
 
-- **3,357 tests** in `tests/Moq.Analyzers.Test` with span-exact assertions
+- Tests in `tests/Moq.Analyzers.Test` use span-exact assertions
   (`{|Moq1002:...|}` markup asserts ID *and* character range) — strong
   mutant killers, unlike assertion-light suites where mutants survive
   trivially.
@@ -165,8 +165,8 @@ would not notice if analyzer logic silently broke.
    `stryker-config.json` targeting the `Moq.Analyzers` project with
    `tests/Moq.Analyzers.Test` as the test project. Tool-manifest changes
    need a THIRD-PARTY-NOTICES review per change control.
-2. **Size the runtime before committing to anything.** 3,357 tests × hundreds
-   of mutants is expensive. First run: restrict to a single analyzer file
+2. **Size the runtime before committing to anything.** The full suite times
+   hundreds of mutants is expensive. First run: restrict to a single analyzer file
    (Stryker's mutate filter, e.g. `--mutate "**/MethodSetupShouldSpecifyReturnValueAnalyzer.cs"`)
    and record wall-clock time and mutation score. Extrapolate before scoping
    the CI job; expect to need Stryker's incremental/`since` mode for PRs.
@@ -467,7 +467,7 @@ Re-verify before relying on any volatile claim above:
 - Nightly cron + perf filters: `grep -n "cron\|FileCount" .github/workflows/main.yml`
 - Perf baseline pin: `cat build/perf/baseline.json`
 - Stryker still absent: `grep -i stryker .config/dotnet-tools.json` (expect no hits until Problem 2 step 1 lands).
-- Test count: `dotnet test --settings ./build/targets/tests/test.runsettings` (3,357 in Moq.Analyzers.Test as of 2026-07-02; 2 PackageTests failures are sandbox-remote-URL artifacts, not defects).
+- Test count: run `dotnet test --settings ./build/targets/tests/test.runsettings`; 2 PackageTests failures are sandbox-remote-URL artifacts, not defects.
 - Packed nupkg path: `ls artifacts/package/*/Moq.Analyzers.*.nupkg` (after `dotnet build`).
 
 Last verified: 2026-07-02 against commit 05135b2.

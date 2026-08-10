@@ -538,7 +538,7 @@ moq-analyzers-research-frontier, moq-analyzers-research-methodology.
 - Unguarded `Arguments[0]` still at `SemanticModelExtensions.cs:60`? `grep -n 'Arguments\[0\]' src/Common/SemanticModelExtensions.cs`
 - Moq1300 error-type guard still missing? `grep -n 'TypeKind' src/Analyzers/AsShouldBeUsedOnlyForInterfaceAnalyzer.cs`
 - All analyzers still compliant with the Initialize trio? `grep -L 'EnableConcurrentExecution' src/Analyzers/*Analyzer*.cs` — expected output today is exactly `SetExplicitMockBehaviorAnalyzer.cs` and `SetStrictMockBehaviorAnalyzer.cs`, which inherit the trio from `MockBehaviorDiagnosticAnalyzerBase`; anything else is a violation.
-- Test-compiler C# ceiling (currently C# 12 via Roslyn 4.8) and test count (3,357 in Moq.Analyzers.Test): re-run `dotnet test --settings ./build/targets/tests/test.runsettings` and check LangVersion behavior notes in moq-analyzers-build-and-env.
+- Test-compiler C# ceiling (currently C# 12 via Roslyn 4.8) and current test count: re-run `dotnet test --settings ./build/targets/tests/test.runsettings` and check LangVersion behavior notes in moq-analyzers-build-and-env.
 - AnalyzerReleases auto-include mechanism: `grep -n 'AnalyzerReleases' ~/.nuget/packages/microsoft.codeanalysis.analyzers/*/buildTransitive/*.targets`
 - Rule count/ID table: `cat src/Common/DiagnosticIds.cs` (25 rules, Moq1000-Moq1600, Moq1209 reserved).
 
