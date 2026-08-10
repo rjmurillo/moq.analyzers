@@ -98,10 +98,10 @@ dotnet test --settings ./build/targets/tests/test.runsettings
 
 - Build: **0 warnings, 0 errors** (plain `dotnet build` is lenient; the
   `/p:PedanticMode=true` form is what CI runs — always use it).
-- Tests: **Moq.Analyzers.Test 3,357 total; PerfDiff.Tests 4/4.** In
-  sandboxes whose git remote is not a `https://github.com/...` URL, exactly
-  2 `PackageTests.Baseline` snapshot tests fail (the nuspec scrubber expects
-  a github.com repository URL) — that is environmental, not a defect.
+- Tests: every discovered test passes. In sandboxes whose git remote is not a
+  `https://github.com/...` URL, exactly 2 `PackageTests.Baseline` snapshot
+  tests fail because the nuspec scrubber expects a github.com repository URL.
+  That is environmental, not a defect.
 
 **If you see X instead → branch to Y:**
 
@@ -496,7 +496,7 @@ moq-analyzers-failure-archaeology).
 Re-verify anything volatile before relying on it:
 
 - Backlog states: `gh issue list -R rjmurillo/moq.analyzers --state open --search "1241..1270 in:number"` (or open each of #1241–#1264, #1270; #1244/#1246/#1247/#1249/#1252/#1254 are closed duplicates).
-- Baseline test count (3,357 + 4) and 0-warning build: run the GATE 0 commands and record fresh numbers.
+- Baseline test count and 0-warning build: run the GATE 0 commands and record fresh numbers.
 - Moq version pins (4.8.2 / 4.18.4): `grep -n "PackageIdentity" tests/Moq.Analyzers.Test/Helpers/ReferenceAssemblyCatalog.cs`.
 - Saga commits still resolve: `for c in 6ec810c c270302 894313b 0bef80b 5eec7e1 4b705e2 3399297 5172cf3 35d363d; do git log -1 --oneline $c; done`.
 - Helper line anchors: `grep -n "WalkDownParentheses" src/Common/SyntaxNodeExtensions.cs; grep -n "FindSetupInvocation" src/Common/InvocationExpressionSyntaxExtensions.cs`.
