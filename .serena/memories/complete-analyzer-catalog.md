@@ -1,6 +1,6 @@
 # Complete Analyzer and Code Fix Catalog
 
-## 24 Diagnostic Rules
+## 25 Diagnostic Rules
 
 ### Usage Category
 
@@ -15,6 +15,7 @@
 | Moq1301 | MockGetShouldNotTakeLiteralsAnalyzer | Mock.Get() should not take literals |
 | Moq1302 | LinqToMocksExpressionShouldBeValidAnalyzer | LINQ to Mocks expression should be valid |
 | Moq1420 | RedundantTimesSpecificationAnalyzer | Redundant Times.AtLeastOnce() can be removed |
+| Moq1600 | ProtectedSetupShouldUseItExprAnalyzer | Protected setup should use ItExpr matchers |
 
 ### Correctness Category
 
@@ -62,4 +63,4 @@ Note: Moq1209 is intentionally reserved (undocumented reason).
 ## Analyzers Without Code Fixes (gaps)
 
 Moq1000, Moq1001, Moq1002, Moq1003, Moq1004, Moq1101, Moq1200, Moq1201, Moq1202, Moq1203,
-Moq1204, Moq1205, Moq1206, Moq1207, Moq1300, Moq1301, Moq1302, Moq1420, Moq1500
+Moq1204, Moq1205, Moq1206, Moq1207, Moq1300, Moq1301, Moq1302, Moq1420, Moq1500, Moq1600
