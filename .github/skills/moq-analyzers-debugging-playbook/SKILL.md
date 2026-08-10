@@ -422,7 +422,7 @@ every `[MemberData]` row:
   Moq 4.18.4 (`Net80WithNewMoq`)
 
 So one authored row = 4 executed rows (2,000 authored rows ≈ 8,000 executed).
-Suite total 2026-07-02: 3,357 tests in Moq.Analyzers.Test.
+Read the current suite total from the full `dotnet test` output.
 
 Debugging value: the group name is the **first** test argument. If only
 `Net80WithOldMoq` rows fail, the behavior is Moq-4.8.2-specific (API missing
@@ -489,7 +489,7 @@ Re-verify before trusting anything volatile:
 - PerfDiff defect issue states: check <https://github.com/rjmurillo/moq.analyzers/issues/1265> through /1269 (all open on 2026-07-02); once fixed, delete the "tool bug" branch of section 10
 - AllAnalyzersVerifier namespace contract: `grep -n '"Moq.Analyzers"' tests/Moq.Analyzers.Test/Helpers/AllAnalyzersVerifier.cs`
 - Hook task list: `cat .husky/task-runner.json`
-- Test count (3,357): `dotnet test --settings ./build/targets/tests/test.runsettings` summary line
+- Test count: `dotnet test --settings ./build/targets/tests/test.runsettings` summary line
 - Received-file rule: `grep -n "received" CONTRIBUTING.md`
 
 Last verified: 2026-07-02 against commit 05135b2.

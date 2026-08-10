@@ -8,9 +8,9 @@ description: Recreates the moq.analyzers development environment from scratch an
 Goal state, verified 2026-07-02 on commit 05135b2:
 
 - `dotnet build` → 0 warnings, 0 errors (~13 s incremental, longer first run).
-- `dotnet test --settings ./build/targets/tests/test.runsettings` → 3,357 tests in
-  Moq.Analyzers.Test + 4 in PerfDiff.Tests. All pass on a normal GitHub clone
-  (2 environment-only failures in sandboxes — see "PackageTests failures" below).
+- `dotnet test --settings ./build/targets/tests/test.runsettings` passes on a
+  normal GitHub clone. Two environment-only failures can occur in sandboxes;
+  see "PackageTests failures" below.
 
 All commands are repo-root relative. This repo builds a **Roslyn analyzer** — a plugin
 DLL that runs inside other people's C# compilers and IDEs — so the build has unusual
@@ -240,22 +240,13 @@ dotnet test --settings ./build/targets/tests/test.runsettings
 ```
 
 The `--settings` file matters: `build/targets/tests/test.runsettings` enables parallel
-execution (`MaxCpuCount=0`) and Cobertura code coverage limited to the two shipping
-assemblies (`Moq.Analyzers.dll`, `Moq.CodeFixes.dll`). After the run, an MSBuild target
-automatically generates a coverage report at `artifacts/TestResults/coverage/`
-(`SummaryGithub.md`, `Cobertura.xml`, `index.html`).
+execution (`MaxCpuCount=0`) and Cobertura code coverage for the product assemblies
+listed in `ModulePaths`. After the run, an MSBuild target automatically generates a
+coverage report at `artifacts/TestResults/coverage/` (`SummaryGithub.md`,
+`Cobertura.xml`, `index.html`).
 
-**Expected counts (2026-07-02, commit 05135b2):**
-
-| Project | Tests | Notes |
-| --- | --- | --- |
-| tests/Moq.Analyzers.Test | **3,357** | analyzer + code-fix + package tests, net8.0 |
-| tests/PerfDiff.Tests | **4** | tests for the perf-comparison tool |
-| tests/Moq.Analyzers.Benchmarks | 0 | BenchmarkDotNet project, not a test project |
-
-Counts grow with every rule/test PR — treat a *lower* count than an earlier run as a
-red flag (a test project failed to build or an analyzer fell out of discovery), not a
-higher one.
+Read per-project totals from the command output. Counts grow with test changes, so
+treat a lower count than the last known-good run as a red flag.
 
 Run one class or one test while iterating:
 
@@ -280,9 +271,9 @@ which it derives from your git remote.
 In sandboxes/proxies where `git remote get-url origin` is not a github.com URL (e.g. a
 local proxy URL), the scrub misses and both cases fail with a snapshot mismatch. So:
 
-- **3,355/3,357 + 4/4 passing with exactly these 2 failures = green** in such an
-  environment (state this in any evidence you record).
-- On a normal GitHub clone, all 3,357 must pass.
+- All discovered tests except these 2 PackageTests passing is green in such an
+  environment. State this in any evidence you record.
+- On a normal GitHub clone, every discovered test must pass.
 - Check with: `git remote get-url origin`.
 
 These failures produce `*.received.*` files next to the `*.verified.*` baselines.
@@ -376,8 +367,8 @@ dotnet build /p:PedanticMode=true
 
 # 5. Test
 dotnet test --settings ./build/targets/tests/test.runsettings
-# ~2.5 min; expect 3,357 + 4 passing (minus the 2 PackageTests cases iff your
-# origin remote is not a github.com URL — check: git remote get-url origin)
+# Expect every discovered test to pass, except the 2 PackageTests cases when
+# origin is not a github.com URL. Check with: git remote get-url origin
 ```
 
 ## When NOT to use this skill
@@ -409,7 +400,7 @@ Re-verify each volatile claim with one command before trusting it after 2026-07-
 - Pre-push flags: `cat build/scripts/hooks/Invoke-PrePushBuild.ps1`
 - Large-file limits: `head -25 build/scripts/hooks/Test-LargeFiles.ps1`
 - PedanticMode wiring: `sed -n 1,8p build/targets/codeanalysis/CodeAnalysis.targets`
-- Test counts: `dotnet test --settings ./build/targets/tests/test.runsettings` (3,357 + 4 on 2026-07-02; grows over time)
+- Test counts: run `dotnet test --settings ./build/targets/tests/test.runsettings`
 - PackageTests scrubber behavior: `sed -n 28,44p tests/Moq.Analyzers.Test/PackageTests.cs` and `git remote get-url origin`
 - Roslyn/AnalyzerUtilities pins: `grep -n 'CodeAnalysis' Directory.Packages.props`
 - LF rule for ps1: `grep -n 'ps1' .gitattributes` and `docs/architecture/ADR-010-eol-lf-for-powershell-files.md`
