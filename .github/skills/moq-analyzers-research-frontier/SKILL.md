@@ -1,6 +1,6 @@
 ---
 name: moq-analyzers-research-frontier
-description: "Navigate the five maintainer-confirmed open problems where moq.analyzers can advance the state of the art — corpus-based zero-false-positive validation, mutation-tested rule quality (#904), sequence-pattern analyzers (reviving #614-#617), full Moq semantic modeling (protected members, default interface members, MockBehavior data flow), and performance-as-a-tested-contract (#1265-#1269). Load this when asked \"what should we work on next at the research level\", when scoping a new ambitious capability, when someone proposes corpus testing, Stryker/mutation testing, MockSequence analysis, or per-keystroke perf budgets, or when deciding whether a frontier claim is publishable. Do NOT load it for fixing a known bug (moq-analyzers-fp-convergence-campaign), shipping a scoped new rule (moq-analyzers-rule-lifecycle), how to run experiments rigorously (moq-analyzers-research-methodology), or proof techniques for a single claim (moq-analyzers-proof-toolkit)."
+description: "Navigate five maintainer-confirmed research directions for moq.analyzers: corpus-based zero-false-positive validation, mutation-testing expansion after the bounded #904 smoke check, sequence-pattern analyzers (reviving #614-#617), full Moq semantic modeling (protected members, default interface members, MockBehavior data flow), and performance as a tested contract (#1265-#1269). Load this when asked \"what should we work on next at the research level\", when scoping a new ambitious capability, when someone proposes corpus testing, Stryker or mutation testing, MockSequence analysis, per-keystroke perf budgets, or when deciding whether a frontier claim is publishable. Do NOT load it for fixing a known bug (moq-analyzers-fp-convergence-campaign), shipping a scoped new rule (moq-analyzers-rule-lifecycle), designing experiments (moq-analyzers-research-methodology), or proving one claim (moq-analyzers-proof-toolkit)."
 ---
 
 # Research frontier: open problems where this project can lead
@@ -11,6 +11,9 @@ notes, or marketing until its "you have a result when…" milestone is met — s
 the positioning rules in moq-analyzers-docs-and-writing. All work routes
 through normal change control (moq-analyzers-change-control); this skill
 authorizes no shortcut.
+
+Issue #904 delivered a bounded Stryker smoke check. Problem 2 remains open at
+the baseline, expansion, and gate milestones.
 
 These five directions were confirmed by the maintainer (2026-07-02) as the
 places where this project can go beyond the current state of the art:
@@ -36,10 +39,10 @@ semantic modeling, and per-keystroke performance as a measured contract.
 
 ## The five problems at a glance
 
-| # | Problem | Anchor issues (state, 2026-07-02) | First result milestone |
+| # | Problem | Anchor issues | First result milestone |
 |---|---|---|---|
 | 1 | Corpus-based provably-zero-FP validation | none filed yet (candidate) | N-repo corpus runs clean or every hit is a filed, classified issue |
-| 2 | Mutation-tested rule quality | #904 (open) | Checked-in mutation score baseline; gate for new rules |
+| 2 | Mutation-tested rule quality | #904 (closed; bounded smoke check shipped in #1314) | Checked-in mutation score baseline; gate for new rules |
 | 3 | Sequence-pattern analyzers | #614–#617 (CLOSED as stale 2026-05-09 — not implemented) | First sequence rule beyond Moq1207 ships through full lifecycle |
 | 4 | Full Moq semantic modeling | #1264, #1270 (open); #579 (closed, partially shipped as Moq1600) | Each pinned FN flips to a real diagnostic with an issue-linked fix |
 | 5 | Perf as a tested contract | #1265–#1269, #594–#602 (open) | PerfDiff gate proven sound; per-rule budgets published as tested guarantees |
@@ -131,12 +134,12 @@ result no comparable analyzer has published.
 
 ---
 
-## Problem 2 — Mutation-tested rule quality (issue #904)
+## Problem 2: Expand mutation-tested rule quality after #904
 
 ### Why current SOTA fails
 
-The industry gate is line/branch coverage. Issue #904 (open, filed
-2026-02-18) documents the failure: Moq1203's tests had 100% coverage yet
+The industry gate is line/branch coverage. Issue #904 documented the failure:
+Moq1203's tests had 100% coverage yet
 missed the #849 FP, because code with *the same execution path but different
 semantics* (literal vs. variable, `Task` vs. `Task<T>`) looks identical to a
 coverage tool. This repo already requires 100% block coverage for new
@@ -150,31 +153,23 @@ would not notice if analyzer logic silently broke.
   (`{|Moq1002:...|}` markup asserts ID *and* character range) — strong
   mutant killers, unlike assertion-light suites where mutants survive
   trivially.
-- **#904 is already scoped by the maintainer**: start with `src/Analyzers/`
-  and `src/Common/`, run non-blocking in CI first, promote to a gate later.
+- **#904 shipped the first bounded step**: Stryker 4.16.0, one
+  `NoMockOfLoggerAnalyzer` smoke config, and a manual plus weekly workflow.
 - **Known ground truth to calibrate against**: issue #1270 documents dead
   test fixtures and pinned FNs — exactly the gap class mutation testing
   should rediscover. If a first run does *not* flag those areas, the
   configuration is wrong.
 
-### First three steps in this repo
+### Next three steps in this repo
 
-1. Add Stryker.NET to the tool manifest (it is absent today — verified
-   2026-07-02 in `.config/dotnet-tools.json`):
-   `dotnet tool install dotnet-stryker` from repo root, then create a
-   `stryker-config.json` targeting the `Moq.Analyzers` project with
-   `tests/Moq.Analyzers.Test` as the test project. Tool-manifest changes
-   need a THIRD-PARTY-NOTICES review per change control.
-2. **Size the runtime before committing to anything.** The full suite times
-   hundreds of mutants is expensive. First run: restrict to a single analyzer file
-   (Stryker's mutate filter, e.g. `--mutate "**/MethodSetupShouldSpecifyReturnValueAnalyzer.cs"`)
-   and record wall-clock time and mutation score. Extrapolate before scoping
-   the CI job; expect to need Stryker's incremental/`since` mode for PRs.
-3. Land the non-blocking CI job per #904's own plan (informational report,
-   no gate), publish the per-file scores as an artifact, and file the
-   baseline as a checked-in JSON. Only then propose the gate: **new analyzer
-   files must meet an agreed mutation score before merge** (threshold is a
-   maintainer decision, not yours — take options to the issue).
+1. Re-run the existing bounded smoke config before changing its scope:
+   `cd build/stryker && dotnet stryker`. Record runtime, mutation score, and
+   surviving mutants.
+2. Expand `mutate` and `test-case-filter` one analyzer at a time. Convert at
+   least one surviving mutant into a test that kills it before widening again.
+3. After repeatable runs cover `src/Analyzers/` and `src/Common/`, check in a
+   mutation-score baseline. Then take gate thresholds to a follow-up issue for
+   maintainer approval.
 
 ### You have a result when…
 
@@ -186,7 +181,7 @@ rule demonstrably fails CI when its tests are weakened below threshold.
 **Falsifier:** if the suite kills >98% of mutants out of the box and
 survivors are all equivalent mutants (mutants with no observable behavior
 change), mutation testing adds cost without signal here — record that
-negative result on #904 and stop.
+negative result in a follow-up issue linked to #904 and stop.
 
 ---
 
@@ -457,7 +452,7 @@ Re-verify before relying on any volatile claim above:
 
 - Commit context: `git log -1 --format='%h %s'` (expect `05135b2` lineage or later).
 - Rule count (25): `grep -c '= "Moq' src/Common/DiagnosticIds.cs`
-- Issue states (use GitHub UI/API; `gh` is not installed in all sandboxes): check #904, #615–#617, #1264, #1265–#1269, #1270, #594–#602 at <https://github.com/rjmurillo/moq.analyzers/issues> — and read closing comments, not just `state_reason`.
+- Issue states (use GitHub UI/API; `gh` is not installed in all sandboxes): #904 is closed after the bounded smoke check; check #615-#617, #1264, #1265-#1269, #1270, #594-#602 at <https://github.com/rjmurillo/moq.analyzers/issues> and read closing comments, not just `state_reason`.
 - Sequence work still unbuilt: `grep -rn "MockSequence\|InSequence" src/ --include=*.cs` (expect no hits).
 - Non-generic Setup FN root cause: `grep -n "IsGenericMethod" src/Common/ISymbolExtensions.Moq.cs`
 - MockBehavior data-flow limitation comment: `grep -n "data flow analysis" src/Analyzers/SetExplicitMockBehaviorAnalyzer.cs`
@@ -466,7 +461,7 @@ Re-verify before relying on any volatile claim above:
 - Perf gate invocation: `grep -n "failOnRegression" build/scripts/perf/ComparePerfResults.ps1`
 - Nightly cron + perf filters: `grep -n "cron\|FileCount" .github/workflows/main.yml`
 - Perf baseline pin: `cat build/perf/baseline.json`
-- Stryker still absent: `grep -i stryker .config/dotnet-tools.json` (expect no hits until Problem 2 step 1 lands).
+- Stryker adoption: `grep -i stryker .config/dotnet-tools.json build/stryker/stryker-config.json .github/workflows/mutation-testing.yml`; expect the pinned tool, bounded config, and scheduled workflow.
 - Test count: run `dotnet test --settings ./build/targets/tests/test.runsettings`; 2 PackageTests failures are sandbox-remote-URL artifacts, not defects.
 - Packed nupkg path: `ls artifacts/package/*/Moq.Analyzers.*.nupkg` (after `dotnet build`).
 
