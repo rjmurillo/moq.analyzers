@@ -19,12 +19,13 @@
             <ModulePaths>
               <Include>
                 <!--
-                  Limit code coverage to the shipping binary.
+                  Limit code coverage to production binaries with unit tests.
                   TODO: Consider using a "Just my code"-esque tool to automatically include all project references.
                   Discuss in https://github.com/microsoft/codecoverage.
                 -->
                 <ModulePath>.*Moq\.Analyzers\.dll$</ModulePath>
                 <ModulePath>.*Moq\.CodeFixes\.dll$</ModulePath>
+                <ModulePath>.*PerfDiff\.dll$</ModulePath>
               </Include>
               <Exclude>
                 <ModulePath>.*\.TestAdapter\.dll$</ModulePath> <!-- Excludes test adapters -->
