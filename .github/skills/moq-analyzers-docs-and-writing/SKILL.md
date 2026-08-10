@@ -329,10 +329,7 @@ normal change control; until then, do not propagate their claims.
 
 | Location | Stale claim | Ground truth |
 | --- | --- | --- |
-| `.serena/memories/complete-analyzer-catalog.md` | "24 Diagnostic Rules"; omits Moq1600 entirely | 25 rule IDs (`src/Common/DiagnosticIds.cs`), 24 `[DiagnosticAnalyzer]` classes (ConstructorArgumentsShouldMatchAnalyzer owns both Moq1001 and Moq1002); Moq1600 shipped via PR #1088 |
-| `.github/instructions/project.instructions.md` | "Target .NET 8, C# 12 by default"; elsewhere "target framework (.NET 9)" | Dev toolchain is .NET 10 SDK / C# 14 per `global.json` and `.github/copilot-instructions.md` Quick Reference; shipped analyzers still target netstandard2.0 (that part is correct) |
 | `.github/copilot-instructions.md` (AnalyzerReleases paragraph) | Unshipped.md "must only contain a `### New Rules` section" | Actual `Unshipped.md` on `main` also carries `### Changed Rules` since PR #1087; build is green. See §5 |
-| Benchmark how-to (multiple variants across docs/memories) | Divergent invocation instructions | Canonical script is `build/scripts/perf/PerfCore.ps1` per `build/scripts/perf/README.md` (`PerfCore.ps1 -projects "<path>" [-filter "<glob>"] [-diff]`). Invoke it via `pwsh build/scripts/perf/PerfCore.ps1 ...` on Linux/macOS — the script has no shebang and is not executable, so a bare `./` call fails; the `Perf.sh`/`Perf.cmd` and `build/scripts/perf/CIPerf.sh`/`.cmd` wrappers do exactly that (`pwsh -File`). `CONTRIBUTING.md` correctly points at PerfCore.ps1 |
 | Issue #944 sometimes cited as open doc debt | "Unshipped categories all say Usage" | CLOSED as completed 2026-03-15 (fixed by PR #1087); do not re-file |
 
 General rule: `.serena/memories/` files are convenience summaries, not docs of
@@ -450,8 +447,6 @@ Re-verify before trusting any volatile fact above:
 - super-linter exclusions: `grep FILTER_REGEX_EXCLUDE .github/workflows/linters.yml`
 - Commit length rule: `grep -n '50 characters' CONTRIBUTING.md`
 - Issue #944 state: `gh issue view 944 --json state` (expect CLOSED)
-- Stale memory check: `grep -n 'Moq1600' .serena/memories/complete-analyzer-catalog.md` (empty ⇒ still stale)
-- Stale instructions check: `grep -n '.NET 8, C# 12' .github/instructions/project.instructions.md`
 - Package description owner: `grep -n '<Description>' Directory.Build.props`
 - Version stem: `grep '"version"' version.json` (expect `0.5.0-alpha.{height}`)
 - Release-drafter behavior: `sed -n 1,20p .github/release-drafter.yml`
