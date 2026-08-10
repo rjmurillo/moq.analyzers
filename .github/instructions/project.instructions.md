@@ -34,7 +34,7 @@ Before submitting any changes, verify:
 
 **Build & Dependency Management:**
 
-- [ ] Target .NET 8, C# 12 by default; Analyzers and Code Fixes target .NET Standard 2.0
+- [ ] Use the .NET 10 SDK pinned in global.json with its default C# 14 compiler; shipped analyzers and code fixes target .NET Standard 2.0; tests and tools target .NET 8
 - [ ] All build and dependency requirements met
 - [ ] No warnings or errors in build
 - [ ] All tests pass
@@ -161,7 +161,7 @@ Your changes are successful when:
 
 Before updating any dependencies:
 
-1. **Check compatibility** with target framework (.NET 9)
+1. **Check compatibility** with each consuming project target: .NET Standard 2.0 for shipped assemblies and .NET 8 for tests and tools
 2. **Verify breaking changes** in release notes
 3. **Test locally** with the new dependency version
 4. **Run security scans** using Trivy
