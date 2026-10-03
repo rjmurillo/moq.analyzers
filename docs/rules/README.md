@@ -52,3 +52,5 @@
 - When adding new rules, assign the next available ID in the appropriate category range.
 - Document new rules in this table, including their category, a concise title, and links to both documentation and implementation.
 - For more, see the root [README.md](../../README.md).
+- CI workflow artifacts are retained for seven days; see the
+  [CI workflow requirements](../../CONTRIBUTING.md#ci-workflow-requirements).
