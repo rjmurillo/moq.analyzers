@@ -37,4 +37,5 @@ jobs:
         with:
           name: stryker-mutation-reports
           path: artifacts/stryker/**/reports/**
+          retention-days: 7
           if-no-files-found: warn
