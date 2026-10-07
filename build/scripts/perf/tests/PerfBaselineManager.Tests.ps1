@@ -100,9 +100,13 @@ exit 0
         $caseRoot = $script:CaseRoot
         Mock Get-RepoRoot { $caseRoot } -ModuleName PerfBaselineManager
         Mock git { $global:LASTEXITCODE = 0 } -ModuleName PerfBaselineManager
+        # Ensure-Folder Join-Path (issue #1383) creates a stray 'Join-Path' folder in
+        # the current directory. Run from the case folder so it is cleaned up with it.
+        Push-Location $script:CaseRoot
     }
 
     AfterEach {
+        Pop-Location
         Remove-Item Env:STUB_LOG, Env:STUB_FAIL_PHASE, Env:STUB_NOREPORT_PHASE -ErrorAction SilentlyContinue
     }
 
@@ -142,6 +146,20 @@ exit 0
         $fields[3] | Should -Be '*Moq1000SealedClassBenchmarks*'
         $fields[4] | Should -Be 'False'
         $fields[5] | Should -Be 'False'
+    }
+
+    It 'keeps ETL off for the warm-up when the comparison runs with ETL (AC1)' {
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" -etl $true `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        $etlByPhase = @{}
+        Get-Content $env:STUB_LOG | Where-Object { $_ -ne 'compare' } | ForEach-Object {
+            $fields = $_ -split '\|'
+            $etlByPhase[$fields[0]] = $fields[4]
+        }
+        $etlByPhase['warmup'] | Should -Be 'False'
+        $etlByPhase['baseline'] | Should -Be 'True'
+        $etlByPhase['perfTest'] | Should -Be 'True'
     }
 
     It 'passes CI mode through to the warm-up (AC1)' {
