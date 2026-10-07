@@ -123,4 +123,6 @@ This allows the central pin (8.0.0) to protect shipped analyzer DLLs while letti
 A consolidated workflow (`.github/workflows/dependabot-approve-and-auto-merge.yml`) handles auto-approval for dependency update PRs.
 
 - **Renovate** (NuGet and GitHub Actions): The workflow approves the PR. Auto-merge is controlled by Renovate via `platformAutomerge: true` and per-package `automerge` rules in `renovate.json`. Packages with `automerge: false` (e.g., `analyzer-compat`, `benchmark-tooling`) require manual merge after review.
+  - Auto-merged: minor and patch updates for packages at 1.0 or later, lock file maintenance, and GitHub Actions digest updates.
+  - Manual merge: major updates and packages below 1.0.
 - **Security alerts**: GitHub may open security alert PRs regardless of bot configuration. These are a repo-level setting, not controlled by any config file. The workflow approves and enables auto-merge for non-major security updates.
