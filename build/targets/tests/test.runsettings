@@ -19,7 +19,8 @@
             <ModulePaths>
               <Include>
                 <!--
-                  Limit code coverage to production binaries with unit tests.
+                  Limit code coverage to this explicit allowlist of production binaries.
+                  Add a binary here only when it ships or runs in CI and has its own tests.
                   TODO: Consider using a "Just my code"-esque tool to automatically include all project references.
                   Discuss in https://github.com/microsoft/codecoverage.
                 -->
