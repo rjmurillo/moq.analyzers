@@ -11,7 +11,7 @@ function Test-PerfResults {
     )
 
     if (-not (Test-Path $ResultsOutput)) {
-            Write-Warning "Results directory '$ResultsOutput' does not exist after running baseline tests."
+            Write-Warning "Results directory '$ResultsOutput' does not exist."
             return $false
         } else {
             # There can be issues with things mismatching between the baseline and the branch we're on
@@ -21,7 +21,7 @@ function Test-PerfResults {
                         Select-Object -First 1
 
             if (-not $exists) {
-                Write-Warning "No baseline results found in '$ResultsOutput'."
+                Write-Warning "No benchmark report found in '$ResultsOutput'."
                 return $false
             }
         }
@@ -124,11 +124,9 @@ function Invoke-PerfBaselineComparison {
     )
 
     $RepoRoot = Get-RepoRoot
-    $RunPerfTests = $RunPerfTestsPath
-    $ComparePerfResults = $ComparePerfResultsPath
     $Temp = Join-Path $RepoRoot "artifacts"
 
-    Invoke-PerfWarmup -RepoRoot $RepoRoot -Output $output -Ci $ci -RunPerfTestsPath $RunPerfTests
+    Invoke-PerfWarmup -RepoRoot $RepoRoot -Output $output -Ci $ci -RunPerfTestsPath $RunPerfTestsPath
 
     # Get baseline results
     Write-Host "Running Baseline Tests"
@@ -147,8 +145,8 @@ function Invoke-PerfBaselineComparison {
 
         $baselineCommandArgs = New-PerfRunArguments -PerfTestRootFolder $baselineFolder -Projects $projects -Output $resultsOutput -Filter $filter -Etl $etl -Ci $ci
 
-        Show-Invocation -ScriptPath $RunPerfTests -Arguments $baselineCommandArgs
-        & $RunPerfTests @baselineCommandArgs
+        Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $baselineCommandArgs
+        & $RunPerfTestsPath @baselineCommandArgs
         if ($LASTEXITCODE -ne 0) { throw "Baseline perf test run failed with exit code $LASTEXITCODE." }
 
         # Ensure the results exist
@@ -159,8 +157,8 @@ function Invoke-PerfBaselineComparison {
                 Write-Warning "The filter '$filter' may not match any benchmarks. We're going to try again without a filter."
                 $baselineCommandArgs.filter = "*"
 
-                Show-Invocation -ScriptPath $RunPerfTests -Arguments $baselineCommandArgs
-                & $RunPerfTests @baselineCommandArgs
+                Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $baselineCommandArgs
+                & $RunPerfTestsPath @baselineCommandArgs
                 if ($LASTEXITCODE -ne 0) { throw "Baseline rerun failed with exit code $LASTEXITCODE." }
             }
 
@@ -180,11 +178,11 @@ function Invoke-PerfBaselineComparison {
 
     $commandArgs = New-PerfRunArguments -PerfTestRootFolder $RepoRoot -Projects $projects -Output $testOutput -Filter $filter -Etl $etl -Ci $ci
 
-    Show-Invocation -ScriptPath $RunPerfTests -Arguments $commandArgs
+    Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $commandArgs
 
     # Get perf results
     Write-Host "Running performance tests"
-    & $RunPerfTests @commandArgs
+    & $RunPerfTestsPath @commandArgs
     if ($LASTEXITCODE -ne 0) { throw "Performance test run failed with exit code $LASTEXITCODE." }
     Write-Host "Done with performance run"
 
@@ -195,8 +193,8 @@ function Invoke-PerfBaselineComparison {
     }
     if ($ci) { $ComparePerfResultsArgs.ci = $True }
 
-    Show-Invocation -ScriptPath $ComparePerfResults -Arguments $ComparePerfResultsArgs
-    & $ComparePerfResults @ComparePerfResultsArgs
+    Show-Invocation -ScriptPath $ComparePerfResultsPath -Arguments $ComparePerfResultsArgs
+    & $ComparePerfResultsPath @ComparePerfResultsArgs
     if ($LASTEXITCODE -ne 0) { throw "Performance comparison failed with exit code $LASTEXITCODE." }
 }
 

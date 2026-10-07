@@ -7,6 +7,10 @@ BeforeAll {
     Import-Module (Join-Path $script:PerfRoot 'PerfConfig.psm1') -Force -DisableNameChecking
 }
 
+AfterAll {
+    Remove-Item -Path $script:ScratchRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 Describe 'Test-PerfResults' {
     It 'returns false when the results folder is missing' {
         Test-PerfResults -ResultsOutput (Join-Path $script:ScratchRoot 'missing') | Should -BeFalse
@@ -166,6 +170,19 @@ exit 0
             Should -Throw '*Warm-up perf run produced no benchmark report*'
 
         @(Get-Content $env:STUB_LOG).Count | Should -Be 1
+    }
+
+    It 'defaults every script path to a file next to the module (AC1)' -ForEach @(
+        @{ Function = 'Invoke-PerfWarmup'; Parameter = 'RunPerfTestsPath' }
+        @{ Function = 'Invoke-PerfBaselineComparison'; Parameter = 'RunPerfTestsPath' }
+        @{ Function = 'Invoke-PerfBaselineComparison'; Parameter = 'ComparePerfResultsPath' }
+    ) {
+        $paramAst = (Get-Command $Function).ScriptBlock.Ast.Body.ParamBlock.Parameters |
+            Where-Object { $_.Name.VariablePath.UserPath -eq $Parameter }
+        $fileName = [regex]::Match($paramAst.DefaultValue.Extent.Text, '"([^"]+\.ps1)"').Groups[1].Value
+
+        $fileName | Should -Not -BeNullOrEmpty
+        Join-Path $script:PerfRoot $fileName | Should -Exist
     }
 
     It 'ignores a stale warm-up report from an earlier run (AC3)' {
