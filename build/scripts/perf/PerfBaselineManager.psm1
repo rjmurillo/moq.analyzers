@@ -1,4 +1,9 @@
 Import-Module (Join-Path $PSScriptRoot 'PerfUtils.psm1') -Force -DisableNameChecking
+Import-Module (Join-Path $PSScriptRoot 'PerfConfig.psm1') -Force -DisableNameChecking
+
+# The first benchmark process in a CI job runs faster than every later one (#1382).
+# One short discarded run keeps both measured phases out of that first slot.
+$script:PerfWarmupFilter = '*Moq1000SealedClassBenchmarks*'
 
 function Test-PerfResults {
     param(
@@ -53,6 +58,58 @@ function New-PerfRunArguments {
     return $commandArgs
 }
 
+function Invoke-PerfWarmup {
+    <#
+    .SYNOPSIS
+    Runs one discarded benchmark process before the measured phases.
+
+    .DESCRIPTION
+    On CI runners the first benchmark process in a job runs faster than every
+    later one. This run takes that slot so the baseline and current runs are
+    measured under the same conditions. See issue #1382.
+
+    .PARAMETER RepoRoot
+    Root of the current branch. The warm-up always runs the current branch.
+
+    .PARAMETER Output
+    Perf results root. Warm-up results go to its 'warmup' subfolder.
+
+    .PARAMETER Ci
+    Passes CI mode to RunPerfTests.ps1.
+
+    .PARAMETER RunPerfTestsPath
+    Script that runs the benchmarks. Tests replace it with a stub.
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [String] $RepoRoot,
+
+        [Parameter(Mandatory=$true)]
+        [String] $Output,
+
+        [bool] $Ci = $false,
+
+        [String] $RunPerfTestsPath = (Join-Path $PSScriptRoot "RunPerfTests.ps1")
+    )
+
+    $warmupOutput = Join-Path $Output "warmup"
+    if (Test-Path $warmupOutput) {
+        Remove-Item -Path $warmupOutput -Recurse -Force
+    }
+
+    # ETL stays off so a local Windows run does not prompt for elevation twice.
+    $warmupArgs = New-PerfRunArguments -PerfTestRootFolder $RepoRoot -Projects (Get-PerfDefaultProjects) -Output $warmupOutput -Filter $script:PerfWarmupFilter -Etl $false -Ci $Ci
+
+    Write-PerfLog -Message "Running warm-up benchmark process. Results are discarded."
+    Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $warmupArgs
+    & $RunPerfTestsPath @warmupArgs
+    if ($LASTEXITCODE -ne 0) { throw "Warm-up perf run failed with exit code $LASTEXITCODE." }
+
+    if (-not (Test-PerfResults $warmupOutput)) {
+        throw "Warm-up perf run produced no benchmark report in '$warmupOutput'. Check that filter '$($script:PerfWarmupFilter)' matches a benchmark."
+    }
+}
+
 function Invoke-PerfBaselineComparison {
     param(
         [String] $baselineSHA,
@@ -61,13 +118,17 @@ function Invoke-PerfBaselineComparison {
         [string] $filter,
         [bool] $etl = $false,
         [bool] $ci = $false,
-        [bool] $useCachedBaseline = $false
+        [bool] $useCachedBaseline = $false,
+        [String] $RunPerfTestsPath = (Join-Path $PSScriptRoot "RunPerfTests.ps1"),
+        [String] $ComparePerfResultsPath = (Join-Path $PSScriptRoot "ComparePerfResults.ps1")
     )
 
     $RepoRoot = Get-RepoRoot
-    $RunPerfTests = Join-Path $PSScriptRoot "RunPerfTests.ps1"
-    $ComparePerfResults = Join-Path $PSScriptRoot "ComparePerfResults.ps1"
+    $RunPerfTests = $RunPerfTestsPath
+    $ComparePerfResults = $ComparePerfResultsPath
     $Temp = Join-Path $RepoRoot "artifacts"
+
+    Invoke-PerfWarmup -RepoRoot $RepoRoot -Output $output -Ci $ci -RunPerfTestsPath $RunPerfTests
 
     # Get baseline results
     Write-Host "Running Baseline Tests"
@@ -139,4 +200,4 @@ function Invoke-PerfBaselineComparison {
     if ($LASTEXITCODE -ne 0) { throw "Performance comparison failed with exit code $LASTEXITCODE." }
 }
 
-Export-ModuleMember -Function Test-PerfResults, New-PerfRunArguments, Invoke-PerfBaselineComparison
+Export-ModuleMember -Function Test-PerfResults, New-PerfRunArguments, Invoke-PerfWarmup, Invoke-PerfBaselineComparison

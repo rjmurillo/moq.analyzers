@@ -67,6 +67,16 @@ The JSON data is what is used by the performance comparison tools to determine i
 3. For comparing performance results, use the `-diff` flag with `PerfCore.ps1`.
 4. Both scripts will automatically handle restoring and building the projects before running tests.
 
+## Warm-up Run
+
+With `-diff`, `PerfCore.ps1` runs one warm-up benchmark process before the baseline and current runs. It runs `*Moq1000SealedClassBenchmarks*` from the current branch. Its results go to `artifacts/performance/perfResults/warmup` and are not compared.
+
+Why it exists: on CI runners, the first benchmark process in a job runs faster than every later one. Without the warm-up, the baseline always got that faster slot. Every PR then looked about 1.3x slower on `Moq1000WithDiagnostics(FileCount: 1)`, even with identical code. See [#1382](https://github.com/rjmurillo/moq.analyzers/issues/1382) for the measurements.
+
+The warm-up adds about one minute. It fails the comparison if it exits with an error or writes no report. If you rename `Moq1000SealedClassBenchmarks`, update `$script:PerfWarmupFilter` in `PerfBaselineManager.psm1`.
+
+> NOTE: Without `-diff` there is no warm-up. That run is the first process, so its absolute numbers can read about 25% fast on CI runners.
+
 ## Example Usage
 
 You can run a quick pass of the benchmarks (about 20 minutes with baseline, then the baseline is reused)
