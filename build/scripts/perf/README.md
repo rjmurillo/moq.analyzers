@@ -73,6 +73,8 @@ With `-diff`, `PerfCore.ps1` runs one warm-up benchmark process before the basel
 
 Why it exists: on CI runners, the first benchmark process in a job runs faster than every later one. Without the warm-up, the baseline always got that faster slot. Every PR then looked about 1.3x slower on `Moq1000WithDiagnostics(FileCount: 1)`, even with identical code. See [#1382](https://github.com/rjmurillo/moq.analyzers/issues/1382) for the measurements.
 
+A smaller bias remains: `Moq1002WithDiagnostics(FileCount: 1)` still reads about 1.4x slower in the current run with identical code. See [#1385](https://github.com/rjmurillo/moq.analyzers/issues/1385).
+
 The warm-up adds about one minute. It fails the comparison if it exits with an error or writes no report. If you rename `Moq1000SealedClassBenchmarks`, update `$script:PerfWarmupFilter` in `PerfBaselineManager.psm1`.
 
 > NOTE: Without `-diff` there is no warm-up. That run is the first process, so its absolute numbers can read about 25% fast on CI runners.
