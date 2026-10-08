@@ -18,7 +18,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
     steps:
       - name: Fetch metadata
@@ -44,7 +44,7 @@ jobs:
     name: Renovate
     permissions:
       pull-requests: write
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     if: github.actor == 'renovate[bot]'
     steps:
       # Renovate handles auto-merge decisions via platformAutomerge and
