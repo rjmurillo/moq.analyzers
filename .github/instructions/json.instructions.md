@@ -194,7 +194,7 @@ When updating version numbers:
 ### global.json Requirements
 
 - Specify correct .NET SDK version
-- Check compatibility against the project targets in `src/**/*.csproj` and `tests/**/*.csproj`
+- Check compatibility against the project targets in `src/**/*.csproj`, `tests/**/*.csproj`, and `build/stryker/*.csproj`
 - Maintain consistent SDK version across development team
 - Update when new SDK versions are required
 
