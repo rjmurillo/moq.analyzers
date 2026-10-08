@@ -214,6 +214,9 @@ exit 0
     It 'uses the scripts next to the module when no paths are passed (AC1)' {
         $runStub = $script:RunStub
         $compareStub = $script:CompareStub
+        # Pester 6 no longer falls through to the real command when no filter matches.
+        # The default mock calls the real cmdlet by its module-qualified name.
+        Mock Join-Path { Microsoft.PowerShell.Management\Join-Path @PesterBoundParameters } -ModuleName PerfBaselineManager
         Mock Join-Path { $runStub } -ModuleName PerfBaselineManager -ParameterFilter { $ChildPath -eq 'RunPerfTests.ps1' }
         Mock Join-Path { $compareStub } -ModuleName PerfBaselineManager -ParameterFilter { $ChildPath -eq 'ComparePerfResults.ps1' }
 
