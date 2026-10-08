@@ -90,7 +90,7 @@ class C
         Assert.True(found);
         Assert.NotNull(methodMatch);
         Assert.NotNull(parameterMatch);
-        Assert.True(SymbolEqualityComparer.Default.Equals(parameterMatch!.Type, stringType));
+        Assert.True(SymbolEqualityComparer.Default.Equals(parameterMatch.Type, stringType));
     }
 
     [Fact]
@@ -190,7 +190,7 @@ class C
         Assert.True(found);
         Assert.NotNull(methodMatch);
         Assert.NotNull(parameterMatch);
-        Assert.True(SymbolEqualityComparer.Default.Equals(parameterMatch!.Type, stringType));
+        Assert.True(SymbolEqualityComparer.Default.Equals(parameterMatch.Type, stringType));
     }
 
     private static (IMethodSymbol TargetMethod, IReadOnlyList<IMethodSymbol> AllOverloads) GetMethodAndOverloads(

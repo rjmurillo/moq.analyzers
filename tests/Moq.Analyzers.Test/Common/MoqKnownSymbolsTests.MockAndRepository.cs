@@ -213,7 +213,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.Mock);
-        Assert.Equal("Mock", symbols.Mock!.Name);
+        Assert.Equal("Mock", symbols.Mock.Name);
         Assert.Equal("Moq", symbols.Mock.ContainingNamespace.Name);
     }
 
@@ -222,7 +222,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.Mock1);
-        Assert.Equal("Mock", symbols.Mock1!.Name);
+        Assert.Equal("Mock", symbols.Mock1.Name);
         Assert.Equal(1, symbols.Mock1.Arity);
     }
 
@@ -231,7 +231,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.MockRepository);
-        Assert.Equal("MockRepository", symbols.MockRepository!.Name);
+        Assert.Equal("MockRepository", symbols.MockRepository.Name);
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.MockBehavior);
-        Assert.Equal(TypeKind.Enum, symbols.MockBehavior!.TypeKind);
+        Assert.Equal(TypeKind.Enum, symbols.MockBehavior.TypeKind);
     }
 
     [Fact]
@@ -247,7 +247,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.MockBehaviorStrict);
-        Assert.Equal("Strict", symbols.MockBehaviorStrict!.Name);
+        Assert.Equal("Strict", symbols.MockBehaviorStrict.Name);
     }
 
     [Fact]
@@ -255,7 +255,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.MockBehaviorLoose);
-        Assert.Equal("Loose", symbols.MockBehaviorLoose!.Name);
+        Assert.Equal("Loose", symbols.MockBehaviorLoose.Name);
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.MockBehaviorDefault);
-        Assert.Equal("Default", symbols.MockBehaviorDefault!.Name);
+        Assert.Equal("Default", symbols.MockBehaviorDefault.Name);
     }
 
     [Fact]
@@ -271,7 +271,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.It);
-        Assert.Equal("It", symbols.It!.Name);
+        Assert.Equal("It", symbols.It.Name);
     }
 
     [Fact]
@@ -289,7 +289,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.Times);
-        Assert.Equal("Times", symbols.Times!.Name);
+        Assert.Equal("Times", symbols.Times.Name);
     }
 
     [Fact]

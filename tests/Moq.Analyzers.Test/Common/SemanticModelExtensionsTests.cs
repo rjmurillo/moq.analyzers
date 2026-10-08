@@ -461,7 +461,7 @@ public class C
             knownSymbols, returnsInvocation, CancellationToken.None);
 
         Assert.NotNull(setupInvocation);
-        MemberAccessExpressionSyntax setupAccess = (MemberAccessExpressionSyntax)setupInvocation!.Expression;
+        MemberAccessExpressionSyntax setupAccess = (MemberAccessExpressionSyntax)setupInvocation.Expression;
         Assert.Equal("Setup", setupAccess.Name.Identifier.Text);
     }
 
@@ -884,7 +884,7 @@ public class C
             knownSymbols, callbackInvocation, CancellationToken.None);
 
         Assert.NotNull(setupInvocation);
-        MemberAccessExpressionSyntax setupAccess = (MemberAccessExpressionSyntax)setupInvocation!.Expression;
+        MemberAccessExpressionSyntax setupAccess = (MemberAccessExpressionSyntax)setupInvocation.Expression;
         Assert.Equal("Setup", setupAccess.Name.Identifier.Text);
     }
 

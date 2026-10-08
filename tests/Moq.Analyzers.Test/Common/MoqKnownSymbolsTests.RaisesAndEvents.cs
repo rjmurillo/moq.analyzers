@@ -173,6 +173,6 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.IRaise1);
-        Assert.Equal(1, symbols.IRaise1!.Arity);
+        Assert.Equal(1, symbols.IRaise1.Arity);
     }
 }

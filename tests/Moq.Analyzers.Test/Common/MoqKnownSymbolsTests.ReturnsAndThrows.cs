@@ -115,7 +115,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.IReturns2);
-        Assert.Equal(2, symbols.IReturns2!.Arity);
+        Assert.Equal(2, symbols.IReturns2.Arity);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.IThrows);
-        Assert.Equal("IThrows", symbols.IThrows!.Name);
+        Assert.Equal("IThrows", symbols.IThrows.Name);
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.IReturnsResult1);
-        Assert.Equal("IReturnsResult", symbols.IReturnsResult1!.Name);
+        Assert.Equal("IReturnsResult", symbols.IReturnsResult1.Name);
         Assert.Equal(1, symbols.IReturnsResult1.Arity);
     }
 
@@ -154,7 +154,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.IThrowsResult);
-        Assert.Equal("IThrowsResult", symbols.IThrowsResult!.Name);
+        Assert.Equal("IThrowsResult", symbols.IThrowsResult.Name);
         Assert.Equal(0, symbols.IThrowsResult.Arity);
     }
 
@@ -163,7 +163,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.ReturnsExtensions);
-        Assert.Equal("ReturnsExtensions", symbols.ReturnsExtensions!.Name);
+        Assert.Equal("ReturnsExtensions", symbols.ReturnsExtensions.Name);
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.NotNull(symbols.GeneratedReturnsExtensions);
-        Assert.Equal("GeneratedReturnsExtensions", symbols.GeneratedReturnsExtensions!.Name);
+        Assert.Equal("GeneratedReturnsExtensions", symbols.GeneratedReturnsExtensions.Name);
     }
 
     [Fact]

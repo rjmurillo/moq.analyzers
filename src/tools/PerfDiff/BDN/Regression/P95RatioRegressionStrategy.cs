@@ -35,8 +35,8 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
     {
         Debug.Assert(result.BaseResult.Statistics?.Percentiles != null, "Stable P95 results have baseline percentiles.");
         Debug.Assert(result.DiffResult.Statistics?.Percentiles != null, "Stable P95 results have diff percentiles.");
-        Percentiles basePercentiles = result.BaseResult.Statistics!.Percentiles!;
-        Percentiles diffPercentiles = result.DiffResult.Statistics!.Percentiles!;
+        Percentiles basePercentiles = result.BaseResult.Statistics.Percentiles;
+        Percentiles diffPercentiles = result.DiffResult.Statistics.Percentiles;
 
         return result.Conclusion == ComparisonResult.Greater
             ? basePercentiles.P95 / diffPercentiles.P95

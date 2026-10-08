@@ -64,6 +64,10 @@ internal static class EventSyntaxExtensions
             else if (offset == 1)
             {
                 System.Diagnostics.Debug.Assert(eventArgsType != null, "The omitted-sender path requires the EventArgs symbol.");
+
+                // netstandard2.0 Debug.Assert has no [DoesNotReturnIf], so the compiler needs the '!' there.
+                // The net8.0 copy of this file (compiled into test projects) narrows, so Sonar flags it.
+#pragma warning disable S8969 // Null-forgiving operator is redundant (true only for net8.0)
                 hasConversion = HasOmittedSenderConversion(
                     context.SemanticModel,
                     eventArguments[i].Expression,
@@ -71,6 +75,7 @@ internal static class EventSyntaxExtensions
                     eventArgsType!,
                     expectedParameterTypes[i + offset],
                     context.CancellationToken);
+#pragma warning restore S8969 // Null-forgiving operator is redundant (true only for net8.0)
             }
             else
             {
@@ -361,7 +366,9 @@ internal static class EventSyntaxExtensions
         if (semanticModel.TryGetUserDefinedConversionReturnType(payloadType, eventArgsType, out ITypeSymbol? convertedType))
         {
             System.Diagnostics.Debug.Assert(convertedType != null, "A user-defined conversion has a non-null operator return type.");
+#pragma warning disable S8969 // Null-forgiving operator is redundant (true only for net8.0; see ValidateEventArgumentTypes)
             return semanticModel.HasReferenceOrIdentityConversion(convertedType!, delegateArgumentType);
+#pragma warning restore S8969 // Null-forgiving operator is redundant (true only for net8.0; see ValidateEventArgumentTypes)
         }
 
         // Runtime compatibility: once the sender-supplying overload is chosen, Moq casts the payload to
@@ -373,7 +380,9 @@ internal static class EventSyntaxExtensions
         if (TryGetKnownExactType(semanticModel, payloadExpression, eventArgsType, cancellationToken, out ITypeSymbol? exactType))
         {
             System.Diagnostics.Debug.Assert(exactType != null, "A known-exact payload type is non-null.");
+#pragma warning disable S8969 // Null-forgiving operator is redundant (true only for net8.0; see ValidateEventArgumentTypes)
             return IsOrDerivesFrom(exactType!, delegateArgumentType);
+#pragma warning restore S8969 // Null-forgiving operator is redundant (true only for net8.0; see ValidateEventArgumentTypes)
         }
 
         // Runtime type unknown (locals, parameters, properties, method results, casts): a base EventArgs
