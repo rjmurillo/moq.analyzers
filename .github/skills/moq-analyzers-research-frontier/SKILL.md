@@ -461,7 +461,7 @@ Re-verify before relying on any volatile claim above:
 - Perf gate invocation: `grep -n "failOnRegression" build/scripts/perf/ComparePerfResults.ps1`
 - Nightly cron + perf filters: `grep -n "cron\|FileCount" .github/workflows/main.yml`
 - Perf baseline pin: `cat build/perf/baseline.json`
-- Stryker adoption: `grep -i stryker .config/dotnet-tools.json build/stryker/stryker-config.json .github/workflows/mutation-testing.yml`; expect the pinned tool, bounded config, and scheduled workflow.
+- Stryker adoption: `jq -r '.tools["dotnet-stryker"].version' .config/dotnet-tools.json`, `jq -c '."stryker-config" | {project, "test-case-filter", mutate}' build/stryker/stryker-config.json`, and `sed -n '/^on:/,/^permissions/p' .github/workflows/mutation-testing.yml`; expect the pinned tool version, the NoMockOfLogger-only filter and mutate scope, and the weekly schedule.
 - Test count: run `dotnet test --settings ./build/targets/tests/test.runsettings`; 2 PackageTests failures are sandbox-remote-URL artifacts, not defects.
 - Packed nupkg path: `ls artifacts/package/*/Moq.Analyzers.*.nupkg` (after `dotnet build`).
 
