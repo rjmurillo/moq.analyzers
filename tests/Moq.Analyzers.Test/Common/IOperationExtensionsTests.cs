@@ -41,7 +41,7 @@ class C
         IOperation? declOp = model.GetOperation(declarator);
         Assert.NotNull(declOp);
 #pragma warning disable ECS0900 // Minimize boxing and unboxing
-        IConversionOperation conversion = declOp!.ChildOperations
+        IConversionOperation conversion = declOp.ChildOperations
             .SelectMany(Flatten)
             .OfType<IConversionOperation>()
             .First();
@@ -71,7 +71,7 @@ class C
         IOperation? initializerOp = model.GetOperation(declarator.Initializer!.Value);
         Assert.NotNull(initializerOp);
 
-        IOperation result = initializerOp!.WalkDownConversion();
+        IOperation result = initializerOp.WalkDownConversion();
 
         Assert.IsNotAssignableFrom<IConversionOperation>(result);
     }
@@ -123,7 +123,7 @@ class C
         IOperation? declOp = model.GetOperation(declarator);
         Assert.NotNull(declOp);
 #pragma warning disable ECS0900 // Minimize boxing and unboxing
-        IConversionOperation conversion = declOp!.ChildOperations
+        IConversionOperation conversion = declOp.ChildOperations
             .SelectMany(Flatten)
             .OfType<IConversionOperation>()
             .First();
@@ -153,7 +153,7 @@ class C
         Assert.NotNull(castOp);
         Assert.IsAssignableFrom<IConversionOperation>(castOp);
 
-        IOperation result = castOp!.WalkDownImplicitConversion();
+        IOperation result = castOp.WalkDownImplicitConversion();
 
         Assert.Same(castOp, result);
     }
@@ -177,7 +177,7 @@ class C
         IOperation? initializerOp = model.GetOperation(declarator.Initializer!.Value);
         Assert.NotNull(initializerOp);
 
-        IOperation result = initializerOp!.WalkDownImplicitConversion();
+        IOperation result = initializerOp.WalkDownImplicitConversion();
 
         Assert.IsNotAssignableFrom<IConversionOperation>(result);
     }
@@ -210,7 +210,7 @@ class C
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IPropertySymbol>(result);
-        Assert.Equal("Prop", result!.Name);
+        Assert.Equal("Prop", result.Name);
     }
 
     [Fact]
@@ -231,7 +231,7 @@ class C
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IMethodSymbol>(result);
-        Assert.Equal("GetValue", result!.Name);
+        Assert.Equal("GetValue", result.Name);
     }
 
     [Fact]
@@ -252,7 +252,7 @@ class C
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IPropertySymbol>(result);
-        Assert.Equal("Prop", result!.Name);
+        Assert.Equal("Prop", result.Name);
     }
 
     [Fact]
@@ -273,7 +273,7 @@ class C
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IMethodSymbol>(result);
-        Assert.Equal("GetValue", result!.Name);
+        Assert.Equal("GetValue", result.Name);
     }
 
     [Fact]
@@ -294,7 +294,7 @@ class C
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IFieldSymbol>(result);
-        Assert.Equal("_field", result!.Name);
+        Assert.Equal("_field", result.Name);
     }
 
     [Fact]
@@ -315,7 +315,7 @@ class C
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IEventSymbol>(result);
-        Assert.Equal("MyEvent", result!.Name);
+        Assert.Equal("MyEvent", result.Name);
     }
 
     [Fact]
@@ -336,7 +336,7 @@ class C
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IFieldSymbol>(result);
-        Assert.Equal("_field", result!.Name);
+        Assert.Equal("_field", result.Name);
     }
 
     [Fact]
@@ -384,7 +384,7 @@ class C
         SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
 
         Assert.NotNull(result);
-        Assert.Contains("Prop", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Prop", result.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -404,7 +404,7 @@ class C
         SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
 
         Assert.NotNull(result);
-        Assert.Contains("GetValue", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("GetValue", result.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -424,7 +424,7 @@ class C
         SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
 
         Assert.NotNull(result);
-        Assert.Contains("Prop", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Prop", result.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -444,7 +444,7 @@ class C
         SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
 
         Assert.NotNull(result);
-        Assert.Contains("GetValue", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("GetValue", result.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -464,7 +464,7 @@ class C
         SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
 
         Assert.NotNull(result);
-        Assert.Contains("MyEvent", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("MyEvent", result.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -484,7 +484,7 @@ class C
         SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
 
         Assert.NotNull(result);
-        Assert.Contains("_field", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("_field", result.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -524,7 +524,7 @@ class C
         ISymbol? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSymbolFromLambda();
 
         Assert.NotNull(result);
-        Assert.Equal("Prop", result!.Name);
+        Assert.Equal("Prop", result.Name);
     }
 
     [Fact]
@@ -544,7 +544,7 @@ class C
         SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
 
         Assert.NotNull(result);
-        Assert.Contains("Prop", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Prop", result.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -601,7 +601,7 @@ class C
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IEventSymbol>(result);
-        Assert.Equal("MyEvent", result!.Name);
+        Assert.Equal("MyEvent", result.Name);
     }
 
     [Fact]
@@ -621,7 +621,7 @@ class C
         SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
 
         Assert.NotNull(result);
-        Assert.Contains("MyEvent", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("MyEvent", result.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -641,7 +641,7 @@ class C
         SyntaxNode? result = funcOp.Body.WalkDownConversion().GetReferencedMemberSyntaxFromLambda();
 
         Assert.NotNull(result);
-        Assert.Contains("_field", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("_field", result.ToString(), StringComparison.Ordinal);
     }
 
     private static IAnonymousFunctionOperation GetLambdaOperation(string code)
@@ -650,7 +650,7 @@ class C
         LambdaExpressionSyntax lambda = GetFirstLambda(tree);
         IOperation? lambdaOp = model.GetOperation(lambda);
         Assert.NotNull(lambdaOp);
-        IAnonymousFunctionOperation funcOp = (IAnonymousFunctionOperation)lambdaOp!;
+        IAnonymousFunctionOperation funcOp = (IAnonymousFunctionOperation)lambdaOp;
         return funcOp;
     }
 
@@ -666,7 +666,7 @@ class C
 
         T? found = allOperations.OfType<T>().FirstOrDefault();
         Assert.NotNull(found);
-        return found!;
+        return found;
     }
 
     private static IEnumerable<IOperation> Flatten(IOperation operation)
@@ -688,7 +688,7 @@ class C
             .OfType<LambdaExpressionSyntax>()
             .FirstOrDefault();
         Assert.NotNull(lambda);
-        return lambda!;
+        return lambda;
     }
 
     private class NullOperandConversionProxy : System.Reflection.DispatchProxy

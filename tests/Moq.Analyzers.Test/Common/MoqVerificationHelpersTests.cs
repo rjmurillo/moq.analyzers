@@ -96,11 +96,11 @@ public class Test
         IAnonymousFunctionOperation? lambda = MoqVerificationHelpers.ExtractLambdaFromArgument(invocation.Arguments[0].Value);
         Assert.NotNull(lambda);
 
-        ISymbol? result = MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambda!);
+        ISymbol? result = MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambda);
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IPropertySymbol>(result);
-        Assert.Equal("Value", result!.Name);
+        Assert.Equal("Value", result.Name);
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class Test
         IAnonymousFunctionOperation? lambda = MoqVerificationHelpers.ExtractLambdaFromArgument(invocation.Arguments[0].Value);
         Assert.NotNull(lambda);
 
-        ISymbol? result = MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambda!);
+        ISymbol? result = MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambda);
 
         Assert.Null(result);
     }
@@ -159,7 +159,7 @@ public class Test
         IAnonymousFunctionOperation? lambda = MoqVerificationHelpers.ExtractLambdaFromArgument(invocation.Arguments[0].Value);
         Assert.NotNull(lambda);
 
-        ISymbol? result = MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambda!);
+        ISymbol? result = MoqVerificationHelpers.ExtractPropertyFromVerifySetLambda(lambda);
 
         Assert.Null(result);
     }
@@ -216,7 +216,7 @@ public class Test
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IMethodSymbol>(result);
-        Assert.Equal("DoSomething", result!.Name);
+        Assert.Equal("DoSomething", result.Name);
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class Test
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IPropertySymbol>(result);
-        Assert.Equal("Value", result!.Name);
+        Assert.Equal("Value", result.Name);
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public class Test
 
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IMethodSymbol>(result);
-        Assert.Equal("DoSomething", result!.Name);
+        Assert.Equal("DoSomething", result.Name);
     }
 
     [Fact]
@@ -299,7 +299,7 @@ public class Test
         IArgumentOperation? result = MoqVerificationHelpers.GetArgumentForParameterOrdinal(invocation, 0);
 
         Assert.NotNull(result);
-        Assert.Equal(0, result!.Parameter?.Ordinal);
+        Assert.Equal(0, result.Parameter?.Ordinal);
         Assert.Equal("expression", result.Parameter?.Name);
         Assert.Contains("DoSomething", result.Value.Syntax.ToString(), StringComparison.Ordinal);
     }
@@ -380,7 +380,7 @@ public class Test
         SyntaxNode? result = MoqVerificationHelpers.TryGetMockedMemberSyntax(invocation);
 
         Assert.NotNull(result);
-        Assert.Contains("DoSomething", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("DoSomething", result.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -407,7 +407,7 @@ public class Test
         SyntaxNode? result = MoqVerificationHelpers.TryGetMockedMemberSyntax(invocation);
 
         Assert.NotNull(result);
-        Assert.Contains("DoSomething", result!.ToString(), StringComparison.Ordinal);
+        Assert.Contains("DoSomething", result.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -461,7 +461,7 @@ class C
         IOperation? operation = model.GetOperation(invocationSyntax);
         Assert.NotNull(operation);
         Assert.IsAssignableFrom<IInvocationOperation>(operation);
-        return (IInvocationOperation)operation!;
+        return (IInvocationOperation)operation;
     }
 
     private static async Task<IInvocationOperation> GetMoqInvocationAsync(string code, string methodName)
@@ -479,6 +479,6 @@ class C
         IOperation? operation = model.GetOperation(invocationSyntax);
         Assert.NotNull(operation);
         Assert.IsAssignableFrom<IInvocationOperation>(operation);
-        return (IInvocationOperation)operation!;
+        return (IInvocationOperation)operation;
     }
 }

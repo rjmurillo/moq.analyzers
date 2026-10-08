@@ -29,8 +29,8 @@ public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
     {
         Debug.Assert(result.BaseResult.Statistics != null, "Stable median results have baseline statistics.");
         Debug.Assert(result.DiffResult.Statistics != null, "Stable median results have diff statistics.");
-        Statistics baseStatistics = result.BaseResult.Statistics!;
-        Statistics diffStatistics = result.DiffResult.Statistics!;
+        Statistics baseStatistics = result.BaseResult.Statistics;
+        Statistics diffStatistics = result.DiffResult.Statistics;
 
         return result.Conclusion == ComparisonResult.Greater
             ? baseStatistics.Median - diffStatistics.Median
