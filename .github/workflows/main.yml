@@ -149,7 +149,7 @@ jobs:
           if ($failed) { exit 1 }
 
       - name: Upload binlogs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
         with:
           name: binlogs
@@ -157,14 +157,14 @@ jobs:
           if-no-files-found: error
 
       - name: Upload SARIF files
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
         with:
           name: SARIF files
           path: ./artifacts/obj/**/*.sarif
 
       - name: Upload packages
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           name: packages
@@ -173,7 +173,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
         with:
           name: artifacts
@@ -227,7 +227,7 @@ jobs:
           REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
       - name: Upload coverage history
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: >-
           needs.check-paths.outputs.code-changed == 'true'
           && success()
@@ -237,7 +237,7 @@ jobs:
           path: ./artifacts/TestResults/coveragehistory
 
       - name: Upload *.received.* files
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: needs.check-paths.outputs.code-changed == 'true' && failure()
         with:
           name: verify-test-results-${{ matrix.os }}
@@ -245,7 +245,7 @@ jobs:
             **/*.received.*
 
       - name: Upload Test Report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
         with:
           name: .NET Test Reports (${{ matrix.os }})
@@ -253,7 +253,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload Code Coverage Report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
         with:
           name: .NET Code Coverage Reports (${{ matrix.os }})
@@ -564,7 +564,7 @@ jobs:
           }
 
       - name: Upload performance files
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: needs.check-paths.outputs.code-changed == 'true' && (success() || failure())
         with:
           name: performance
