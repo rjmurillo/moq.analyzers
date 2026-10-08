@@ -255,14 +255,14 @@ public sealed class MSBuildProjectCreatorEndToEndTests
         {
             await process.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
             if (!process.HasExited)
             {
                 process.Kill(entireProcessTree: true);
             }
 
-            throw new TimeoutException("dotnet build did not complete within two minutes.");
+            throw new TimeoutException("dotnet build did not complete within two minutes.", ex);
         }
 
         string output = await standardOutput.ConfigureAwait(false);

@@ -224,7 +224,7 @@ public class SetExplicitMockBehaviorAnalyzerTests
             "Microsoft.VisualStudio.TestPlatform.TestHost.DebugAssertException",
             exception.InnerException?.GetType().FullName);
 #else
-        object? result = method!.Invoke(
+        object? result = method.Invoke(
             analyzer,
             [default(Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext), null, knownSymbols, null, null]);
         Assert.False(Assert.IsType<bool>(result));

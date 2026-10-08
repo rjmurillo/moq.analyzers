@@ -88,7 +88,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
         Assert.NotNull(symbols.Task);
-        Assert.Equal("Task", symbols.Task!.Name);
+        Assert.Equal("Task", symbols.Task.Name);
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
         Assert.NotNull(symbols.Task1);
-        Assert.Equal("Task", symbols.Task1!.Name);
+        Assert.Equal("Task", symbols.Task1.Name);
         Assert.Equal(1, symbols.Task1.Arity);
     }
 
@@ -105,7 +105,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
         Assert.NotNull(symbols.ValueTask);
-        Assert.Equal("ValueTask", symbols.ValueTask!.Name);
+        Assert.Equal("ValueTask", symbols.ValueTask.Name);
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
         Assert.NotNull(symbols.ValueTask1);
-        Assert.Equal("ValueTask", symbols.ValueTask1!.Name);
+        Assert.Equal("ValueTask", symbols.ValueTask1.Name);
         Assert.Equal(1, symbols.ValueTask1.Arity);
     }
 
@@ -122,7 +122,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
         Assert.NotNull(symbols.Action0);
-        Assert.Equal("Action", symbols.Action0!.Name);
+        Assert.Equal("Action", symbols.Action0.Name);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
         Assert.NotNull(symbols.Action1);
-        Assert.Equal("Action", symbols.Action1!.Name);
+        Assert.Equal("Action", symbols.Action1.Name);
         Assert.Equal(1, symbols.Action1.Arity);
     }
 }

@@ -73,7 +73,7 @@ public sealed class EtlDifferTests
 
         ImmutableArray<OverWeightResult> report = EtlDiffer.ComputeOverweights(200, sourceData, 100, baselineData);
 
-        Assert.Equal(["Hot", "Neutral", "Warm"], report.Select(static result => result.Name));
+        Assert.Equal(["Hot", "Neutral", "Warm"], report.Select(static result => result.Name), StringComparer.Ordinal);
         foreach (OverWeightResult result in report)
         {
             Assert.True(result.Interest > 0);
@@ -96,7 +96,7 @@ public sealed class EtlDifferTests
 
         ImmutableArray<OverWeightResult> report = EtlDiffer.ComputeOverweights(200, sourceData, 100, baselineData);
 
-        Assert.Equal(["SmallDelta", "LargeDelta"], report.Select(static result => result.Name));
+        Assert.Equal(["SmallDelta", "LargeDelta"], report.Select(static result => result.Name), StringComparer.Ordinal);
     }
 
     [Fact]

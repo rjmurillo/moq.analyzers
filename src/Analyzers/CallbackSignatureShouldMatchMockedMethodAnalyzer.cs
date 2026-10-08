@@ -101,7 +101,7 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzer : MoqDiagnosticAna
         }
 
         // Extract the lambda from the delegate constructor (support both parenthesized and simple lambdas)
-        return delegateConstructor.ArgumentList!.Arguments[0]?.Expression as LambdaExpressionSyntax;
+        return delegateConstructor.ArgumentList.Arguments[0]?.Expression as LambdaExpressionSyntax;
     }
 
     private static SeparatedSyntaxList<ParameterSyntax> GetLambdaParameters(LambdaExpressionSyntax lambda)

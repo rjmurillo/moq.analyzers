@@ -72,7 +72,7 @@ public class MockBehaviorConstantValuesTests
         INamedTypeSymbol? behavior = model.Compilation.GetTypeByMetadataName("Behavior");
         Assert.NotNull(behavior);
 
-        return behavior!.GetMembers(fieldName).OfType<IFieldSymbol>().Single();
+        return behavior.GetMembers(fieldName).OfType<IFieldSymbol>().Single();
     }
 
     private static IFieldSymbol GetStringField(string fieldName)
@@ -88,6 +88,6 @@ public class MockBehaviorConstantValuesTests
         INamedTypeSymbol? constants = model.Compilation.GetTypeByMetadataName("Constants");
         Assert.NotNull(constants);
 
-        return constants!.GetMembers(fieldName).OfType<IFieldSymbol>().Single();
+        return constants.GetMembers(fieldName).OfType<IFieldSymbol>().Single();
     }
 }

@@ -20,7 +20,7 @@ public sealed class DataContractAndFixtureTests
 
         Assert.True(success);
         Assert.Same(result, values[0]);
-        Assert.Equal("Benchmark.A", result.Benchmarks!.Single().FullName);
+        Assert.Equal("Benchmark.A", result.Benchmarks.Single().FullName);
     }
 
     [Fact]
@@ -77,8 +77,8 @@ public sealed class DataContractAndFixtureTests
 
         Assert.Equal(5, statistics.N);
         Assert.Equal(3, statistics.Median);
-        Assert.Equal(8, statistics.AllOutliers![1]);
-        Assert.Equal(95, statistics.ConfidenceInterval!.Level);
+        Assert.Equal(8, statistics.AllOutliers[1]);
+        Assert.Equal(95, statistics.ConfidenceInterval.Level);
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public sealed class DataContractAndFixtureTests
         Assert.Equal("caption", info.BenchmarkDotNetCaption);
         Assert.Equal(4, info.LogicalCoreCount);
         Assert.True(info.HasRyuJit);
-        Assert.Equal(1, info.ChronometerFrequency!.Hertz);
+        Assert.Equal(1, info.ChronometerFrequency.Hertz);
     }
 
     [Fact]
