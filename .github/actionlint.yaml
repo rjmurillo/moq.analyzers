@@ -1,0 +1,6 @@
+# actionlint configuration. The super-linter Lint check reads this file too
+# (GITHUB_ACTIONS_CONFIG_FILE in .github/workflows/linters.yml).
+# List runner labels GitHub supports that actionlint does not know yet.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04-arm
