@@ -63,6 +63,7 @@ Describe 'Warm-up and phase order (#1382)' {
     BeforeAll {
         # Stub for RunPerfTests.ps1. It logs one line per call and writes a fake report.
         # STUB_FAIL_PHASE makes that phase exit 1. STUB_NOREPORT_PHASE skips its report.
+        # STUB_STARONLY_PHASE writes that phase's report only when the filter is '*'.
         $script:RunStub = Join-Path $script:ScratchRoot 'RunPerfTestsStub.ps1'
         Set-Content -Path $script:RunStub -Value @'
 param(
@@ -75,17 +76,22 @@ param(
 )
 $phase = Split-Path $output -Leaf
 Add-Content -Path $env:STUB_LOG -Value "$phase|$perftestRootFolder|$projects|$filter|$etl|$ci"
-if ($env:STUB_NOREPORT_PHASE -ne $phase) {
-    New-Item -ItemType Directory -Force -Path $output | Out-Null
+$skipReport = ($env:STUB_NOREPORT_PHASE -eq $phase) -or ($env:STUB_STARONLY_PHASE -eq $phase -and $filter -ne '*')
+New-Item -ItemType Directory -Force -Path $output | Out-Null
+if (-not $skipReport) {
     New-Item -ItemType File -Force -Path (Join-Path $output "$phase-report-full-compressed.json") | Out-Null
 }
-if ($env:STUB_FAIL_PHASE -eq $phase) { exit 1 }
+# A trailing '*' (for example 'baseline*') fails only that phase's run with filter '*'.
+$failOnStar = $filter -eq '*' -and $env:STUB_FAIL_PHASE -eq "$phase*"
+if ($env:STUB_FAIL_PHASE -eq $phase -or $failOnStar) { exit 1 }
 exit 0
 '@
+        # STUB_COMPARE_FAIL makes the comparison exit 1.
         $script:CompareStub = Join-Path $script:ScratchRoot 'ComparePerfResultsStub.ps1'
         Set-Content -Path $script:CompareStub -Value @'
 param([string] $baseline, [string] $results, [switch] $ci)
-Add-Content -Path $env:STUB_LOG -Value 'compare'
+Add-Content -Path $env:STUB_LOG -Value "compare|$ci"
+if ($env:STUB_COMPARE_FAIL) { exit 1 }
 exit 0
 '@
     }
@@ -97,6 +103,8 @@ exit 0
         $env:STUB_LOG = Join-Path $script:CaseRoot 'calls.log'
         $env:STUB_FAIL_PHASE = ''
         $env:STUB_NOREPORT_PHASE = ''
+        $env:STUB_STARONLY_PHASE = ''
+        $env:STUB_COMPARE_FAIL = ''
         $caseRoot = $script:CaseRoot
         Mock Get-RepoRoot { $caseRoot } -ModuleName PerfBaselineManager
         Mock git { $global:LASTEXITCODE = 0 } -ModuleName PerfBaselineManager
@@ -107,7 +115,7 @@ exit 0
 
     AfterEach {
         Pop-Location
-        Remove-Item Env:STUB_LOG, Env:STUB_FAIL_PHASE, Env:STUB_NOREPORT_PHASE -ErrorAction SilentlyContinue
+        Remove-Item Env:STUB_LOG, Env:STUB_FAIL_PHASE, Env:STUB_NOREPORT_PHASE, Env:STUB_STARONLY_PHASE, Env:STUB_COMPARE_FAIL -ErrorAction SilentlyContinue
     }
 
     It 'runs the warm-up before the baseline and head phases (AC1)' {
@@ -153,7 +161,7 @@ exit 0
             -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
 
         $etlByPhase = @{}
-        Get-Content $env:STUB_LOG | Where-Object { $_ -ne 'compare' } | ForEach-Object {
+        Get-Content $env:STUB_LOG | Where-Object { $_ -notlike 'compare*' } | ForEach-Object {
             $fields = $_ -split '\|'
             $etlByPhase[$fields[0]] = $fields[4]
         }
@@ -201,6 +209,62 @@ exit 0
 
         $fileName | Should -Not -BeNullOrEmpty
         Join-Path $script:PerfRoot $fileName | Should -Exist
+    }
+
+    It 'uses the scripts next to the module when no paths are passed (AC1)' {
+        $runStub = $script:RunStub
+        $compareStub = $script:CompareStub
+        Mock Join-Path { $runStub } -ModuleName PerfBaselineManager -ParameterFilter { $ChildPath -eq 'RunPerfTests.ps1' }
+        Mock Join-Path { $compareStub } -ModuleName PerfBaselineManager -ParameterFilter { $ChildPath -eq 'ComparePerfResults.ps1' }
+
+        Invoke-PerfWarmup -RepoRoot $script:CaseRoot -Output $script:Output
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'"
+
+        $phases = Get-Content $env:STUB_LOG | ForEach-Object { ($_ -split '\|')[0] }
+        $phases | Should -Be @('warmup', 'warmup', 'baseline', 'perfTest', 'compare')
+    }
+
+    It 'reruns the baseline with filter * when the first run writes no report' {
+        $env:STUB_STARONLY_PHASE = 'baseline'
+
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter 'Moq*' `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        $calls = @(Get-Content $env:STUB_LOG | ForEach-Object { , ($_ -split '\|') })
+        ($calls | ForEach-Object { $_[0] }) | Should -Be @('warmup', 'baseline', 'baseline', 'perfTest', 'compare')
+        $calls[1][3] | Should -Be 'Moq*'
+        $calls[2][3] | Should -Be '*'
+    }
+
+    It 'stops when <Case>' -ForEach @(
+        @{ Case = 'git worktree add fails'; Fail = ''; GitExit = 128; Message = '*git worktree add failed with exit code 128*' }
+        @{ Case = 'the baseline run fails'; Fail = 'baseline'; GitExit = 0; Message = '*Baseline perf test run failed with exit code 1*' }
+        @{ Case = 'the baseline rerun fails'; Fail = 'baseline*'; GitExit = 0; Message = '*Baseline rerun failed with exit code 1*' }
+        @{ Case = 'the head run fails'; Fail = 'perfTest'; GitExit = 0; Message = '*Performance test run failed with exit code 1*' }
+    ) {
+        $env:STUB_FAIL_PHASE = $Fail
+        $env:STUB_STARONLY_PHASE = 'baseline'
+        $gitExit = $GitExit
+        Mock git { $global:LASTEXITCODE = $gitExit } -ModuleName PerfBaselineManager
+
+        { Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter 'Moq*' `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub } |
+            Should -Throw $Message
+    }
+
+    It 'stops when the comparison fails' {
+        $env:STUB_COMPARE_FAIL = '1'
+
+        { Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub } |
+            Should -Throw '*Performance comparison failed with exit code 1*'
+    }
+
+    It 'passes CI mode to the comparison' {
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" -ci $true `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        Get-Content $env:STUB_LOG | Select-Object -Last 1 | Should -Be 'compare|True'
     }
 
     It 'ignores a stale warm-up report from an earlier run (AC3)' {
