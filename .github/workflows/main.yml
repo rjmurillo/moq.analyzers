@@ -37,7 +37,7 @@ jobs:
   # expensive steps when only docs/non-code files changed.
   # Pattern: https://github.com/rjmurillo/ai-agents/blob/main/.github/workflows/codeql-analysis.yml
   check-paths:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     outputs:
       # For non-PR events, always run full pipeline; for PRs use paths-filter result.
       # When paths-filter is skipped, outputs are '' (empty), which is not 'true',
@@ -98,7 +98,7 @@ jobs:
   # Tests, analyzer-load-test, and perf run as separate downstream jobs.
   build:
     needs: check-paths
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -478,7 +478,7 @@ jobs:
   perf:
     needs: [check-paths, build, test]
     timeout-minutes: 60
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     env:
       RUN_FULL_PERF: ${{ (github.event_name == 'schedule'  && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance == 'true') }}
