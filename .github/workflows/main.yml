@@ -154,6 +154,7 @@ jobs:
         with:
           name: binlogs
           path: ./artifacts/logs
+          retention-days: 7
           if-no-files-found: error
 
       - name: Upload SARIF files
@@ -162,6 +163,7 @@ jobs:
         with:
           name: SARIF files
           path: ./artifacts/obj/**/*.sarif
+          retention-days: 7
 
       - name: Upload packages
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -170,6 +172,7 @@ jobs:
           name: packages
           path: |
             ./artifacts/package
+          retention-days: 7
           if-no-files-found: error
 
       - name: Upload artifacts
@@ -178,6 +181,7 @@ jobs:
         with:
           name: artifacts
           path: ./artifacts
+          retention-days: 7
           if-no-files-found: error
 
       - name: Skip notice
@@ -235,6 +239,7 @@ jobs:
         with:
           name: CoverageHistory-${{ matrix.os }}
           path: ./artifacts/TestResults/coveragehistory
+          retention-days: 7
 
       - name: Upload *.received.* files
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -243,6 +248,7 @@ jobs:
           name: verify-test-results-${{ matrix.os }}
           path: |
             **/*.received.*
+          retention-days: 7
 
       - name: Upload Test Report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -250,6 +256,7 @@ jobs:
         with:
           name: .NET Test Reports (${{ matrix.os }})
           path: "artifacts/TestResults/**/*.trx"
+          retention-days: 7
           if-no-files-found: error
 
       - name: Upload Code Coverage Report
@@ -258,6 +265,7 @@ jobs:
         with:
           name: .NET Code Coverage Reports (${{ matrix.os }})
           path: "artifacts/TestResults/coverage/**"
+          retention-days: 7
 
       - name: Publish coverage summary to GitHub
         if: needs.check-paths.outputs.code-changed == 'true'
@@ -570,6 +578,7 @@ jobs:
           name: performance
           path: |
             ./artifacts/performance/**
+          retention-days: 7
 
       - name: Skip notice
         if: needs.check-paths.outputs.code-changed != 'true'
