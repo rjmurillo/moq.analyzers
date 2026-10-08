@@ -147,6 +147,8 @@ Before submitting CI/CD changes:
 4. **Security Review**: Ensure no security vulnerabilities are introduced
 5. **Documentation Update**: Update relevant documentation
 
+`actionlint` and the super-linter `Lint` check both read `.github/actionlint.yaml`. It declares runner labels that GitHub supports before actionlint knows them, such as `ubuntu-26.04-arm`. When a workflow fails with `label "..." is unknown` but GitHub runs the job, add the label to that file.
+
 ## Performance Testing Guidelines
 
 ### When Performance Testing is Required
