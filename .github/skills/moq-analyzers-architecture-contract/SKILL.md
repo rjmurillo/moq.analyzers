@@ -244,7 +244,8 @@ Its verdict logic has multiple confirmed defects — see weak points.
 
 ### tests/
 
-- `tests/Moq.Analyzers.Test` — 3,357 tests (2026-07-02). Helpers in `Helpers/`:
+- `tests/Moq.Analyzers.Test` contains analyzer, fixer, package, and compatibility
+  tests. Helpers in `Helpers/`:
   `Test.cs`, `AnalyzerVerifier`/`CodeFixVerifier`, `ReferenceAssemblyCatalog`
   (keys: `Net80` = no Moq, `Net80WithOldMoq` = 4.8.2, `Net80WithNewMoq` = 4.18.4),
   `TestDataExtensions` (`WithNamespaces() × With*MoqReferenceAssemblyGroups()`
@@ -253,8 +254,8 @@ Its verdict logic has multiple confirmed defects — see weak points.
   no-diagnostic suites), `DoppelgangerTestHelper`. PackageTests snapshot the nupkg
   via Verify.Xunit.
 - `tests/Moq.Analyzers.Benchmarks` — per-rule `Moq{Id}Benchmarks.cs` convention.
-- `tests/PerfDiff.Tests` — 4 tests (2026-07-02), logging-registration only; it does
-  not yet reference PerfDiff itself (planned by #1265–#1269).
+- `tests/PerfDiff.Tests` covers command-line, regression, ETL, input, logging,
+  and integration behavior.
 
 ## Known-weak points (2026-07-02 audit — stated plainly)
 
@@ -336,7 +337,8 @@ Re-verify each volatile claim before relying on it:
 - Issue states: `gh issue view 1241 1242 1248 1250 1265 1266 1267 1268 1269 1270 986 --json state` (or one at a time) — remove fixed items from the weak-points table.
 - Phantom symbols: `grep -n 'Moq.Language.IReturns"' src/Common/WellKnown/MoqKnownSymbols.cs` and the `_ReturnsNull` tests in `tests/Moq.Analyzers.Test/Common/MoqKnownSymbolsTests.ReturnsAndThrows.cs`.
 - SquiggleCop wiring: `grep -rni squigglecop --include='*.yml' --include='*.props' --include='*.targets' .github build` (empty ⇒ still unwired) and version in `.config/dotnet-tools.json`.
-- Test counts: `dotnet test --settings ./build/targets/tests/test.runsettings` (3,357 + 4 as of 2026-07-02; 2 PackageTests fail only in sandboxes with non-github.com git remotes).
+- Test counts: run `dotnet test --settings ./build/targets/tests/test.runsettings`;
+  2 PackageTests fail only in sandboxes with non-github.com git remotes.
 - Perf gate wiring: `grep -n 'failOnRegression' build/scripts/perf/ComparePerfResults.ps1` and the `perf:` job in `.github/workflows/main.yml`.
 
 Last verified: 2026-07-02 against commit 05135b2.

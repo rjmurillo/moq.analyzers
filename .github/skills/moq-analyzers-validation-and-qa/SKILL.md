@@ -37,10 +37,10 @@ Run one test class:
 dotnet test --settings ./build/targets/tests/test.runsettings --filter "FullyQualifiedName~MethodSetupShouldSpecifyReturnValue"
 ```
 
-Suite size (2026-07-02): 3,357 tests in `Moq.Analyzers.Test` (+4 in
-`PerfDiff.Tests`). Tests target net8.0 and run against a pinned Roslyn 4.8
-test compiler, so test code parses as C# 12 — C# 13 features (e.g. `params`
-collections) are NOT parseable inside test sources.
+Read the current suite size from the full command output. Tests target net8.0
+and run against a pinned Roslyn 4.8 test compiler, so test code parses as C# 12.
+C# 13 features such as `params` collections are not parseable inside test
+sources.
 
 ## 1. Evidence hierarchy — compiling test code is the floor
 
@@ -517,7 +517,7 @@ coverage) and `MethodSetupShouldSpecifyReturnValueAnalyzerTests`
 
 Re-verify volatile claims with:
 
-- Test count: `dotnet test --settings ./build/targets/tests/test.runsettings 2>&1 | grep -E "Passed!|Failed!|total"` (3,357 in Moq.Analyzers.Test as of 2026-07-02; 2 PackageTests failures are sandbox-remote-URL artifacts only).
+- Test count: `dotnet test --settings ./build/targets/tests/test.runsettings 2>&1 | grep -E "Passed!|Failed!|total"`; 2 PackageTests failures are sandbox-remote-URL artifacts only.
 - Helper inventory: `ls tests/Moq.Analyzers.Test/Helpers/` (8 files as of 2026-07-02).
 - Catalog keys and Moq pins (4.8.2 / 4.18.4): `grep -n "PackageIdentity" tests/Moq.Analyzers.Test/Helpers/ReferenceAssemblyCatalog.cs`.
 - Namespace-trap filter still exact-match: `grep -n '"Moq.Analyzers"' tests/Moq.Analyzers.Test/Helpers/AllAnalyzersVerifier.cs`.

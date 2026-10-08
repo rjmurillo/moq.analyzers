@@ -475,10 +475,9 @@ working.
    dotnet test --settings ./build/targets/tests/test.runsettings
    ```
 
-   Baseline 2026-07-02: 3,357 tests in Moq.Analyzers.Test + 4 in PerfDiff.Tests; in
-   sandboxes whose git remote is not a github.com URL, the 2 `PackageTests.Baseline`
-   snapshot tests fail for environment reasons (nuspec repository-URL scrubber) —
-   anything ELSE failing is yours.
+   Read current totals from the command output. In sandboxes whose git remote is
+   not a github.com URL, the 2 `PackageTests.Baseline` snapshot tests fail for
+   environment reasons. Anything else failing is yours.
 2. Read every failure through the span-pin lens: **existing span pins are inviolable.**
    If your change moves a pinned span, the default conclusion is that your change is
    wrong, not the pin. Recipe 4's STOP protocol applies to pre-existing tests with full
@@ -538,7 +537,7 @@ own issue and review, not a test edit in passing.
 - Host-compat maxima: `grep -n "_MaxSystemCollectionsImmutable\|8.0.0.0" build/targets/packaging/Packaging.targets .github/workflows/main.yml | head`
 - Load-test matrix legs: count `tfm:` entries under `analyzer-load-test:` in `.github/workflows/main.yml` (9 as of 2026-07-02)
 - PerfDiff thresholds: `grep -rn "Threshold.Parse" src/tools/PerfDiff/BDN/Regression/` (35%; 5%+0.5ms ×2; 250ms; 100ms as of 2026-07-02)
-- Test count: `dotnet test --settings ./build/targets/tests/test.runsettings` summary (3,357 + 4 as of 2026-07-02); PackageTests sandbox caveat holds only where the git remote is not a github.com URL
+- Test count: `dotnet test --settings ./build/targets/tests/test.runsettings` summary; PackageTests sandbox caveat holds only where the git remote is not a github.com URL
 - Moq overload counts (20 vs 19 Returns; the 4.18.4-only addition is `Returns(InvocationFunc)` — `Returns(Delegate)` exists in both): `dotnet-inspect member "IReturns<TMock, TResult>" --package Moq@4.18.4 --all` and `@4.8.2`
 - Frontmatter stays parser-safe: `python3 -c "import yaml; print(len(yaml.safe_load(open('.github/skills/moq-analyzers-proof-toolkit/SKILL.md').read().split('---')[1])['description']))"` — expect the full description length, not an error or a truncated count
 - Shipped DLL list (3 files): `grep -n "PackagePath=\"analyzers/dotnet/cs\"" src/Analyzers/Moq.Analyzers.csproj`
