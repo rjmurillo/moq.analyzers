@@ -161,6 +161,10 @@ gh act -n -W .github/workflows/main.yml \
 | Merge strategy | Squash merge ONLY; merge commits and rebase merges are disabled | Repo settings; stated in CONTRIBUTING.md §"Strict Workflow Requirements" |
 | Release branches | `release/v{X}.{Y}.{Z}`; major/minor branch from `main`, patches branch from the prior release branch and cherry-pick fixes oldest-first | CONTRIBUTING.md §"Branch Strategy" |
 | Label check | `release-drafter` label check may show failed — it is NOT a required check and does not block merge | CONTRIBUTING.md §"Strict Workflow Requirements" |
+| Merge gate | One approval from any write collaborator other than the last pusher; a bot account such as `rjmurillo-bot` counts. New pushes dismiss approvals. All threads resolved, all required checks green | `main` ruleset (classic branch protection is not used) |
+| Admin bypass | Admins can bypass only by merging a PR, never by direct push. Use it for emergencies, not routine merges | `main` ruleset bypass mode `pull_request` |
+| CLA | `Verify CLA status` passes only when cla-assistant.io (the repo owner's account) posted `license/cla` success. Re-run it after signing | `cla-guard.yml`; required check pinned to GitHub Actions |
+| Release tags | `v*` tags cannot be deleted, moved, or force-pushed | `release tags` tag ruleset |
 
 Worked example of a good PR title / squash commit from this repo's history:
 

@@ -13,8 +13,9 @@ actually load-bearing safety pins — changing them can crash customer builds.
 All file paths are repo-root relative. All quotes verified against the working
 tree on 2026-07-02 (commit `05135b2`).
 
-Change control baseline: `CODEOWNERS` is `* @rjmurillo` — every file below is
-owner-reviewed. Nothing here documents a way around that; see
+Change control baseline: the `main` ruleset requires one approval from a write
+collaborator other than the last pusher. `rjmurillo-bot` counts. Nothing here
+documents a way around that; see
 `moq-analyzers-change-control` before touching any axis marked LOAD-BEARING.
 
 ## Axis map (read this first)
