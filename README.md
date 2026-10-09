@@ -66,4 +66,5 @@ for documentation on how to configure rules for your project.
 Moq.Analyzers continues to evolve and add new features. Any help will be appreciated. You can report issues,
 develop new features, improve the documentation, or do other cool stuff. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 CI artifacts from the main and mutation-testing workflows are retained for seven days. See the
-[CI workflow requirements](./CONTRIBUTING.md#ci-workflow-requirements).
+[CI workflow requirements](./CONTRIBUTING.md#ci-workflow-requirements). See [merge requirements](./docs/merge-requirements.md)
+for what a pull request needs before it can merge.
