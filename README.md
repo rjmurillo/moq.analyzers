@@ -67,6 +67,7 @@ for documentation on how to configure rules for your project.
 Moq.Analyzers continues to evolve and add new features. Any help will be appreciated. You can report issues,
 develop new features, improve the documentation, or do other cool stuff. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 Docs-only pull requests skip build and test. CI reports the base commit's coverage to Codacy for them, because no code changed.
+The list of skippable paths lives in `build/scripts/ci/classify-changed-paths.sh`. Any path not on that list runs the full pipeline.
 CI artifacts from the main and mutation-testing workflows are retained for seven days. See the
 [CI workflow requirements](./CONTRIBUTING.md#ci-workflow-requirements). See [merge requirements](./docs/merge-requirements.md)
 for what a pull request needs before it can merge.
