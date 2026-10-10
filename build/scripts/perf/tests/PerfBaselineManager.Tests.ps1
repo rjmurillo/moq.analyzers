@@ -76,6 +76,7 @@ param(
 )
 $phase = Split-Path $output -Leaf
 Add-Content -Path $env:STUB_LOG -Value "$phase|$perftestRootFolder|$projects|$filter|$etl|$ci"
+if ($env:STUB_ROLLFORWARD_LOG) { Add-Content -Path $env:STUB_ROLLFORWARD_LOG -Value "$phase|$env:DOTNET_ROLL_FORWARD" }
 $skipReport = ($env:STUB_NOREPORT_PHASE -eq $phase) -or ($env:STUB_STARONLY_PHASE -eq $phase -and $filter -ne '*')
 New-Item -ItemType Directory -Force -Path $output | Out-Null
 if (-not $skipReport) {
@@ -91,6 +92,7 @@ exit 0
         Set-Content -Path $script:CompareStub -Value @'
 param([string] $baseline, [string] $results, [switch] $ci)
 Add-Content -Path $env:STUB_LOG -Value "compare|$ci"
+if ($env:STUB_ROLLFORWARD_LOG) { Add-Content -Path $env:STUB_ROLLFORWARD_LOG -Value "compare|$env:DOTNET_ROLL_FORWARD" }
 if ($env:STUB_COMPARE_FAIL) { exit 1 }
 exit 0
 '@
@@ -105,6 +107,8 @@ exit 0
         $env:STUB_NOREPORT_PHASE = ''
         $env:STUB_STARONLY_PHASE = ''
         $env:STUB_COMPARE_FAIL = ''
+        $env:STUB_ROLLFORWARD_LOG = ''
+        $script:SavedRollForward = $env:DOTNET_ROLL_FORWARD
         $caseRoot = $script:CaseRoot
         Mock Get-RepoRoot { $caseRoot } -ModuleName PerfBaselineManager
         Mock git { $global:LASTEXITCODE = 0 } -ModuleName PerfBaselineManager
@@ -115,7 +119,41 @@ exit 0
 
     AfterEach {
         Pop-Location
-        Remove-Item Env:STUB_LOG, Env:STUB_FAIL_PHASE, Env:STUB_NOREPORT_PHASE, Env:STUB_STARONLY_PHASE, Env:STUB_COMPARE_FAIL -ErrorAction SilentlyContinue
+        Remove-Item Env:STUB_LOG, Env:STUB_FAIL_PHASE, Env:STUB_NOREPORT_PHASE, Env:STUB_STARONLY_PHASE, Env:STUB_COMPARE_FAIL, Env:STUB_ROLLFORWARD_LOG -ErrorAction SilentlyContinue
+        $env:DOTNET_ROLL_FORWARD = $script:SavedRollForward
+    }
+
+    It 'runs every phase on the latest major runtime' {
+        $env:STUB_ROLLFORWARD_LOG = Join-Path $script:CaseRoot 'rollforward.log'
+
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        Get-Content $env:STUB_ROLLFORWARD_LOG |
+            Should -Be @('warmup|LatestMajor', 'baseline|LatestMajor', 'perfTest|LatestMajor', 'compare|LatestMajor')
+    }
+
+    It 'restores DOTNET_ROLL_FORWARD when it was <Case>' -ForEach @(
+        @{ Case = 'set'; Previous = 'Disable' }
+        @{ Case = 'unset'; Previous = $null }
+    ) {
+        $env:DOTNET_ROLL_FORWARD = $Previous
+
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        $env:DOTNET_ROLL_FORWARD | Should -Be $Previous
+    }
+
+    It 'restores DOTNET_ROLL_FORWARD when the comparison fails' {
+        $env:DOTNET_ROLL_FORWARD = 'Disable'
+        $env:STUB_FAIL_PHASE = 'perfTest'
+
+        { Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub } |
+            Should -Throw '*Performance test run failed with exit code 1*'
+
+        $env:DOTNET_ROLL_FORWARD | Should -Be 'Disable'
     }
 
     It 'runs the warm-up before the baseline and head phases (AC1)' {
