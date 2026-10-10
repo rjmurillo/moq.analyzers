@@ -166,7 +166,9 @@ new Mock<IService>().Setup(x => x.Save()); // Moq1200
 ## Async setups done wrong
 
 Use `ReturnsAsync` to set up an async method. Three rules flag the common wrong patterns:
-[Moq1201](rules/Moq1201.md), [Moq1206](rules/Moq1206.md), and [Moq1208](rules/Moq1208.md).
+[Moq1201](rules/Moq1201.md), [Moq1206](rules/Moq1206.md), and [Moq1208](rules/Moq1208.md). For `null`, parameters,
+`ValueTask`, and methods that return `Task` with no value, see
+[How to set up async methods in Moq](moq-returnsasync.md).
 
 | Wrong pattern | Rule |
 | ------------- | ---- |
@@ -641,7 +643,8 @@ No. Moq generates a subclass, and a sealed class cannot be subclassed. [Moq1000]
 ### Should I use Returns or ReturnsAsync for async methods?
 
 Use `ReturnsAsync`. [Moq1201](rules/Moq1201.md), [Moq1206](rules/Moq1206.md), and [Moq1208](rules/Moq1208.md) flag the
-common wrong patterns. Moq1201 applies only to Moq versions older than 4.16.0.
+common wrong patterns. Moq1201 applies only to Moq versions older than 4.16.0. For a method that returns `Task` with no
+value, use `Returns(Task.CompletedTask)`. See [How to set up async methods in Moq](moq-returnsasync.md).
 
 ### Should I mock ILogger with Moq?
 
