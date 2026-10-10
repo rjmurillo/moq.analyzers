@@ -32,54 +32,51 @@ permissions:
   actions: read
 
 jobs:
-  # Detect whether expensive CI steps are needed based on changed file paths.
-  # All downstream jobs still run (required status checks) but skip their
-  # expensive steps when only docs/non-code files changed.
-  # Pattern: https://github.com/rjmurillo/ai-agents/blob/main/.github/workflows/codeql-analysis.yml
+  # Decide whether a pull request needs the expensive steps.
+  # Required jobs below always run so every required check reports. They
+  # skip their expensive steps when code-changed is not 'true'.
+  # The skippable path allowlist lives in build/scripts/ci/classify-changed-paths.sh.
+  #
+  # This job must fail safe. A job whose dependency fails is skipped, and a
+  # skipped required check does not block merge. So both steps continue on
+  # error, and only an explicit 'false' from the classifier skips anything.
   check-paths:
     runs-on: ubuntu-26.04-arm
+    timeout-minutes: 5
     outputs:
-      # For non-PR events, always run full pipeline; for PRs use paths-filter result.
-      # When paths-filter is skipped, outputs are '' (empty), which is not 'true',
-      # so the fallback 'true' is needed for non-PR events.
-      code-changed: ${{ github.event_name != 'pull_request' || steps.filter.outputs.code }}
+      code-changed: ${{ github.event_name != 'pull_request' || steps.classify.outputs.code-changed != 'false' }}
     steps:
+      # The pull_request ref is a test merge commit. Depth 2 fetches its
+      # first parent, which is the base branch tip.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Check for code changes
-        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
-        id: filter
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         with:
-          # SINGLE SOURCE OF TRUTH for paths that require the full CI pipeline.
-          # Everything not listed here is treated as docs-only (skips build/test/perf).
-          filters: |
-            code:
-              - 'src/**'
-              - 'tests/**'
-              - 'build/**'
-              - 'Directory.Build.props'
-              - 'Directory.Build.targets'
-              - 'Directory.Packages.props'
-              - 'global.json'
-              - 'version.json'
-              - 'nuget.config'
-              - '**/*.csproj'
-              - '**/*.sln'
-              - '.github/workflows/**'
-              - '.github/actions/**'
-              - '.config/**'
-              - '.editorconfig'
+          fetch-depth: 2
+          persist-credentials: false
 
-      - name: Report path check result
+      - name: Classify changed paths
+        id: classify
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
         run: |
-          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
-            echo "Non-PR event (${{ github.event_name }}) -- running full pipeline"
-          else
-            echo "Code files changed: ${{ steps.filter.outputs.code }}"
-          fi
+          # Use the base branch copy of the classifier, so a pull request
+          # cannot widen its own skip list. The build job tests the new copy.
+          classifier="$RUNNER_TEMP/classify-changed-paths.sh"
+          git show HEAD^1:build/scripts/ci/classify-changed-paths.sh > "$classifier"
+
+          # --no-renames lists both sides of a rename, so moving a file out
+          # of src/ still counts as a src/ change.
+          changed="$(git diff --name-only --no-renames HEAD^1 HEAD)"
+          echo "Changed paths:"
+          printf '%s\n' "$changed"
+          result="$(printf '%s\n' "$changed" | bash "$classifier")"
+          echo "Full pipeline needed: $result"
+          echo "code-changed=$result" >> "$GITHUB_OUTPUT"
 
   powershell-perf-tests:
+    needs: check-paths
+    if: needs.check-paths.outputs.code-changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -105,6 +102,18 @@ jobs:
         if: needs.check-paths.outputs.code-changed == 'true'
         with:
           fetch-depth: 0
+
+      # On a skipped run, fetch only the classifier so its tests still run
+      # and a broken skip list fails this required check.
+      - name: Check out path classifier
+        if: needs.check-paths.outputs.code-changed != 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: build/scripts/ci
+          persist-credentials: false
+
+      - name: Test path classifier
+        run: bash build/scripts/ci/classify-changed-paths.test.sh
 
       - name: Setup, Restore, and Build Solution
         if: needs.check-paths.outputs.code-changed == 'true'
