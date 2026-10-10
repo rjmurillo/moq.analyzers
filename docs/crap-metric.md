@@ -1,4 +1,4 @@
-# The CRAP Metric
+# The CRAP metric
 
 CRAP stands for **Change Risk Anti-Patterns**. It is a single number that
 combines how complex a method is with how well it is tested. A high CRAP score
@@ -19,7 +19,7 @@ CRAP(m) = comp(m)^2 * (1 - cov(m))^3 + comp(m)
   (fully covered).
 
 The formula rewards two things: lower complexity and higher coverage. Full
-coverage (`cov = 1`) collapses the score to just `comp(m)`, so a well-tested
+coverage (`cov = 1`) collapses the score to `comp(m)` alone, so a well-tested
 method can never be a hotspot no matter how complex. An untested method
 (`cov = 0`) pays the full `comp^2 + comp` penalty.
 
@@ -36,20 +36,19 @@ A common threshold is **30**: at or above it, a method is a risk hotspot.
 
 ## Where it shows up in this repository
 
-Coverage reports are generated automatically by
-[ReportGenerator](https://github.com/danielpalme/ReportGenerator) when you run
-the test suite (see `build/targets/tests/Tests.targets`). The `HtmlInline`
+[ReportGenerator](https://github.com/danielpalme/ReportGenerator) generates coverage
+reports automatically when you run the test suite (see `build/targets/tests/Tests.targets`). The `HtmlInline`
 report includes a **Risk Hotspots** section, and CRAP is one of the metrics it
 ranks methods by.
 
-Generate the report locally:
+To generate the report locally, run the test suite:
 
 ```shell
 dotnet test --settings ./build/targets/tests/test.runsettings
 ```
 
-Then open the HTML report under `artifacts/TestResults/` and look at the Risk
-Hotspots table.
+Then open the HTML report under `artifacts/TestResults/` and find the **Risk
+Hotspots** table.
 
 ## Why it matters
 
