@@ -7,8 +7,8 @@
 [![Codacy Coverage Badge](https://app.codacy.com/project/badge/Coverage/fc7c184dcb1843d4b1ae1b926fb82d5a)](https://app.codacy.com/gh/rjmurillo/moq.analyzers/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rjmurillo/moq.analyzers)
 
-**Moq.Analyzers** is a Roslyn analyzer that helps you to write unit tests using the popular
-[Moq](https://github.com/devlooped/moq) framework. Moq.Analyzers protects you from common mistakes and warns you if
+**Moq.Analyzers** is a set of Roslyn analyzers that help you write unit tests with the popular
+[Moq](https://github.com/devlooped/moq) framework. The analyzers catch common mistakes and warn you when
 something is wrong with your Moq configuration.
 
 ## Analyzer rules
@@ -41,32 +41,37 @@ something is wrong with your Moq configuration.
 | [Moq1500](docs/rules/Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                |
 | [Moq1600](docs/rules/Moq1600.md) | Usage         | Protected setup should use `ItExpr` matchers                                            |
 
-See [docs/rules/README.md](docs/rules/README.md) for full documentation.
-See [Common Moq mistakes](docs/common-moq-mistakes.md) for the mistake each rule catches, with examples and fixes.
+For details on each rule, see the [rule reference](docs/rules/README.md).
+To find the rule behind a mistake, with examples and fixes, see [Common Moq mistakes](docs/common-moq-mistakes.md).
 Rules Moq1200, Moq1207, and Moq1210 treat sealed default interface members as non-overridable because Moq cannot intercept them.
 
 ## Getting started
 
-Moq.Analyzers is installed from NuGet. Run this command for your test project(s):
+Before you install, make sure you use a
+[supported version of the .NET SDK](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core).
 
-```powershell
+To install Moq.Analyzers from NuGet, run this command in each test project:
+
+```shell
 dotnet add package Moq.Analyzers
 ```
 
-> NOTE: You must use a [supported version](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) of
-> the .NET SDK.
+After you install the package, the analyzers report diagnostics when you build and in IDEs that support Roslyn
+analyzers.
 
-### Configuring rules
+### Configure rules
 
-Moq.Analyzers follows existing conventions for enabling, disabling, or suppressing rules. See
-[Suppress code analysis warnings - .NET | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/suppress-warnings)
-for documentation on how to configure rules for your project.
+Moq.Analyzers uses the standard .NET settings to enable, disable, or suppress rules. To configure rules for your
+project, see [Suppress code analysis warnings](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/suppress-warnings)
+on Microsoft Learn.
 
 ## Contributions welcome
 
-Moq.Analyzers continues to evolve and add new features. Any help will be appreciated. You can report issues,
-develop new features, improve the documentation, or do other cool stuff. See [CONTRIBUTING.md](./CONTRIBUTING.md).
-Docs-only pull requests skip build and test. CI reports the base commit's coverage to Codacy for them, because no code changed.
-CI artifacts from the main and mutation-testing workflows are retained for seven days. See the
-[CI workflow requirements](./CONTRIBUTING.md#ci-workflow-requirements). See [merge requirements](./docs/merge-requirements.md)
-for what a pull request needs before it can merge.
+Moq.Analyzers keeps growing, and we welcome your help. You can report issues, build new features, or improve the
+documentation. To get started, see the [contributing guide](./CONTRIBUTING.md).
+
+- Docs-only pull requests skip build and test. Because no code changed, CI reports the base commit's coverage to
+  Codacy for them.
+- CI keeps artifacts from the main and mutation-testing workflows for seven days. For details, see the
+  [CI workflow requirements](./CONTRIBUTING.md#ci-workflow-requirements).
+- To learn what a pull request needs before it can merge, see the [merge requirements](./docs/merge-requirements.md).

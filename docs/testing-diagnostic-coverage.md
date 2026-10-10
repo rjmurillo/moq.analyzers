@@ -1,10 +1,10 @@
-# Diagnostic Coverage Testing
+# Diagnostic coverage testing
 
 Analyzer tests must cover more than the diagnostic location.
 
 Every rule needs descriptor metadata coverage for:
 
-- Id
+- ID
 - Title
 - Message format
 - Description
