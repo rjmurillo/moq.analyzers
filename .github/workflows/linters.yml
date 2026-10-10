@@ -41,4 +41,4 @@ jobs:
           VALIDATE_MARKDOWN: true
           VALIDATE_JSON: true
           VALIDATE_BASH: true
-          FILTER_REGEX_EXCLUDE: '(\.verified\.(txt|xml|json)$|AnalyzerReleases\.(Shipped|Unshipped)\.md$|/\.agents/)'
+          FILTER_REGEX_EXCLUDE: '(\.verified\.(txt|xml|json)$|AnalyzerReleases\.(Shipped|Unshipped)\.md$)'
