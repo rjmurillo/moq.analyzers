@@ -1,5 +1,7 @@
 # Diagnostics / rules
 
+Looking for the rule behind a mistake or a runtime error? See [Common Moq mistakes](../common-moq-mistakes.md).
+
 | ID                      | Category      | Title                                                                                   | Implementation File                                                                                                                                |
 | ----------------------- | ------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Moq1000](./Moq1000.md) | Usage         | Sealed classes cannot be mocked                                                         | [NoSealedClassMocksAnalyzer.cs](../../src/Analyzers/NoSealedClassMocksAnalyzer.cs)                                                                 |
