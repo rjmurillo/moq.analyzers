@@ -61,7 +61,7 @@ public static class ReferenceAssemblyCatalog
         // 4.18.4 is currently the most downloaded version of Moq.
         { nameof(Net80WithNewMoq), ReferenceAssemblies.Net.Net80.AddPackages([new PackageIdentity("Moq", "4.18.4")]) },
 
-        // .NET 9.0 reference assemblies select a C# 13-capable test compiler surface while the test project remains net8.0.
+        // .NET 9.0 reference assemblies select a C# 13-capable test compiler surface while the test project remains net10.0.
         { nameof(Net90WithNewMoq), ReferenceAssemblies.Net.Net90.AddPackages([new PackageIdentity("Moq", "4.18.4")]) },
 
         // Moq 4.18.4 with Microsoft.Extensions.Logging.Abstractions for ILogger-related analyzer tests.
