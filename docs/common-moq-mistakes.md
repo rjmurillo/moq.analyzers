@@ -1,6 +1,6 @@
 # Common Moq mistakes and the Moq.Analyzers rules that catch them
 
-This page lists the mistakes developers make most often with [Moq](https://github.com/devlooped/moq). Each mistake maps
+This page lists common mistakes developers make with [Moq](https://github.com/devlooped/moq). Each mistake maps
 to a [Moq.Analyzers](https://www.nuget.org/packages/Moq.Analyzers) rule that reports it at compile time, before the test
 runs. Install the analyzer in your test project:
 
@@ -8,7 +8,7 @@ runs. Install the analyzer in your test project:
 dotnet add package Moq.Analyzers
 ```
 
-Moq.Analyzers has 25 rules. It does not catch every Moq mistake, and it does not replace your tests.
+Moq.Analyzers reports the rules below. It does not catch every Moq mistake, and it does not replace your tests.
 
 ## Contents
 
@@ -46,7 +46,7 @@ Moq.Analyzers has 25 rules. It does not catch every Moq mistake, and it does not
 | You pass the wrong arguments to `Mock.Raise` | [Moq1202](rules/Moq1202.md) | Raise event arguments should match the event delegate signature | Correctness | Warning | No |
 | You set up a method and never say what it returns | [Moq1203](rules/Moq1203.md) | Method setup should specify a return value | Correctness | Warning | No |
 | You pass the wrong arguments to `Raises` | [Moq1204](rules/Moq1204.md) | Raises event arguments should match event signature | Correctness | Warning | No |
-| You pass the wrong handler type to `SetupAdd` or `SetupRemove` | [Moq1205](rules/Moq1205.md) | Event setup handler type should match event delegate type | Correctness | Warning | No |
+| Your `SetupAdd` or `SetupRemove` handler type differs from the event type, which the compiler also rejects (CS0029) | [Moq1205](rules/Moq1205.md) | Event setup handler type should match event delegate type | Correctness | Warning | No |
 | You pass an `async` lambda to `Returns` | [Moq1206](rules/Moq1206.md) | Async method setups should use ReturnsAsync instead of Returns with async lambda | Correctness | Warning | No |
 | You call `SetupSequence` on a non-virtual member | [Moq1207](rules/Moq1207.md) | SetupSequence should be used only for overridable members | Correctness | Error | No |
 | Your `Returns` delegate returns `int` for a `Task<int>` method | [Moq1208](rules/Moq1208.md) | Returns() delegate type mismatch on async method setup | Correctness | Warning | Yes |
@@ -130,16 +130,17 @@ struct members, or interface members.
 
 ### The runtime error this replaces
 
-The exact text depends on your Moq version. Moq replaces each placeholder with the expression or the member name.
+The exact text depends on your Moq version. Moq replaces each `{0}` with the expression or the member name.
 
-Moq 4.10.1 and earlier:
+Moq 4.2 through 4.10.1 (checked at 4.2.1510.2205, 4.5.30, 4.7.145, 4.9.0, and 4.10.1):
 
 ```text
 Invalid setup on a non-virtual (overridable in VB) member: {0}
 Invalid verify on a non-virtual (overridable in VB) member: {0}
 ```
 
-Moq 4.11.0 through 4.20.72 uses this text. Moq 4.18.4 throws it as `NotSupportedException`.
+Moq 4.11.0 through 4.20.72 (checked at 4.11.0, 4.18.4, and 4.20.72). Moq 4.18.4 throws it as
+`NotSupportedException`:
 
 ```text
 Unsupported expression: {0}
@@ -199,8 +200,12 @@ mock.Setup(x => x.GetValueAsync()).ReturnsAsync(42);
 
 You can also keep `Returns` and wrap the value yourself: `Returns(() => Task.FromResult(42))`.
 
-Moq1208 has a code fix that rewrites `Returns` to `ReturnsAsync`. The Moq1208 pattern compiles, then fails at run time
-with an "Invalid callback" error. See [Moq1208](rules/Moq1208.md) for the full text.
+Moq1208 has a code fix that rewrites `Returns` to `ReturnsAsync`. The Moq1208 pattern compiles. Without the analyzer,
+Moq 4.18.4 then throws `ArgumentException` at run time with this message:
+
+```text
+Invalid callback. Setup on method with return type '{0}' cannot invoke callback with return type '{1}'.
+```
 
 ## Callback parameters that do not match
 
@@ -323,7 +328,17 @@ Use `FakeLogger` from the `Microsoft.Extensions.Diagnostics.Testing` package whe
 using Microsoft.Extensions.Logging.Testing;
 
 var fakeLogger = new FakeLogger<MyService>();
+var service = new MyService(fakeLogger);
+
+service.Save();
+
+Assert.Equal(LogLevel.Information, fakeLogger.LatestRecord.Level);
+Assert.Equal("Saved", fakeLogger.LatestRecord.Message);
+Assert.Equal(1, fakeLogger.Collector.Count);
 ```
+
+This replaces `mock.Verify(x => x.Log(...))` on an `ILogger` mock. `LatestRecord` holds the last entry, and
+`Collector.GetSnapshot()` returns every entry.
 
 See [Moq1004](rules/Moq1004.md).
 
@@ -390,7 +405,8 @@ The rule skips `void` methods and property setups. See [Moq1203](rules/Moq1203.m
 
 Event arguments must match the event delegate. [Moq1202](rules/Moq1202.md) checks `Mock.Raise` and
 [Moq1204](rules/Moq1204.md) checks `Raises`. Both mismatches compile and then fail at run time.
-[Moq1205](rules/Moq1205.md) covers the handler type in `SetupAdd` and `SetupRemove`.
+[Moq1205](rules/Moq1205.md) covers the handler type in `SetupAdd` and `SetupRemove`, where the C# compiler already
+rejects a mismatch.
 
 ```csharp
 public interface INotifier
