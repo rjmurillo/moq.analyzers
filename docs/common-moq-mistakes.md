@@ -10,6 +10,26 @@ dotnet add package Moq.Analyzers
 
 Moq.Analyzers has 25 rules. It does not catch every Moq mistake, and it does not replace your tests.
 
+## Contents
+
+- [All rules at a glance](#all-rules-at-a-glance)
+- [Mocking a sealed class](#mocking-a-sealed-class)
+- [Setting up or verifying a non-virtual member](#setting-up-or-verifying-a-non-virtual-member)
+- [Async setups done wrong](#async-setups-done-wrong)
+- [Callback parameters that do not match](#callback-parameters-that-do-not-match)
+- [Constructor argument mistakes](#constructor-argument-mistakes)
+- [Mocking internal types without InternalsVisibleTo](#mocking-internal-types-without-internalsvisibleto)
+- [Mocking ILogger](#mocking-ilogger)
+- [Property and method setup confusion](#property-and-method-setup-confusion)
+- [Missing return values](#missing-return-values)
+- [Event mistakes](#event-mistakes)
+- [Mock.As, Mock.Get, and LINQ to Mocks misuse](#mockas-mockget-and-linq-to-mocks-misuse)
+- [Relying on default Loose behavior](#relying-on-default-loose-behavior)
+- [Verification hygiene](#verification-hygiene)
+- [Protected setups without ItExpr](#protected-setups-without-itexpr)
+- [Install and configure](#install-and-configure)
+- [FAQ](#faq)
+
 ## All rules at a glance
 
 | Mistake | Rule ID | Title | Category | Default severity | Code fix |
@@ -22,7 +42,7 @@ Moq.Analyzers has 25 rules. It does not catch every Moq mistake, and it does not
 | Your `Callback` parameters differ from the method you set up | [Moq1100](rules/Moq1100.md) | Callback signature must match the signature of the mocked method | Correctness | Warning | Yes |
 | You use `SetupGet`, `SetupSet`, or `SetupProperty` on a method | [Moq1101](rules/Moq1101.md) | SetupGet/SetupSet/SetupProperty should be used for properties, not for methods | Correctness | Warning | No |
 | You call `Setup` on a non-virtual member | [Moq1200](rules/Moq1200.md) | Setup should be used only for overridable members | Correctness | Error | No |
-| You put `.Result` inside a `Setup` expression | [Moq1201](rules/Moq1201.md) | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result` | Correctness | Error | No |
+| You put `.Result` inside a `Setup` expression (Moq older than 4.16.0) | [Moq1201](rules/Moq1201.md) | Setup of async methods should use `.ReturnsAsync` instance instead of `.Result` | Correctness | Error | No |
 | You pass the wrong arguments to `Mock.Raise` | [Moq1202](rules/Moq1202.md) | Raise event arguments should match the event delegate signature | Correctness | Warning | No |
 | You set up a method and never say what it returns | [Moq1203](rules/Moq1203.md) | Method setup should specify a return value | Correctness | Warning | No |
 | You pass the wrong arguments to `Raises` | [Moq1204](rules/Moq1204.md) | Raises event arguments should match event signature | Correctness | Warning | No |
@@ -160,10 +180,13 @@ public interface IService
 
 var mock = new Mock<IService>();
 
-mock.Setup(x => x.GetNameAsync().Result);                      // Moq1201
+mock.Setup(x => x.GetNameAsync().Result);                      // Moq1201 (Moq older than 4.16.0)
 mock.Setup(x => x.GetNameAsync()).Returns(async () => "name"); // Moq1206
 mock.Setup(x => x.GetValueAsync()).Returns(() => 42);          // Moq1208
 ```
+
+Moq1201 reports only when the project references a Moq version older than 4.16.0. The analyzer skips the rule for
+Moq 4.16.0 and later.
 
 `ReturnsAsync` fixes all three.
 
@@ -595,7 +618,7 @@ No. Moq generates a subclass, and a sealed class cannot be subclassed. [Moq1000]
 ### Should I use Returns or ReturnsAsync for async methods?
 
 Use `ReturnsAsync`. [Moq1201](rules/Moq1201.md), [Moq1206](rules/Moq1206.md), and [Moq1208](rules/Moq1208.md) flag the
-common wrong patterns.
+common wrong patterns. Moq1201 applies only to Moq versions older than 4.16.0.
 
 ### Should I mock ILogger with Moq?
 
