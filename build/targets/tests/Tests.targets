@@ -4,23 +4,16 @@
     <VSTestLogger>trx%3bLogFileName=$(MSBuildProjectName).trx</VSTestLogger>
     <VSTestResultsDirectory Condition="'$(VSTestResultsDirectory)' == ''">$(ArtifactsTestResultsPath)/$(TargetFramework)</VSTestResultsDirectory>
 
-    <_TestCoverageGlob>$(ArtifactsTestResultsPath)/**/*.cobertura.xml</_TestCoverageGlob>
-    <_TestCoverageReportDirectory>$(ArtifactsTestResultsPath)/coverage</_TestCoverageReportDirectory>
     <_TestCoverageHistoryDirectory>$(ArtifactsTestResultsPath)/coveragehistory</_TestCoverageHistoryDirectory>
+
+    <!--
+      A solution build passes BuildingSolutionFile=true to each project. In that case
+      Directory.Solution.targets cleans once for the whole run, so the project must not.
+    -->
+    <_CleanCoverageBeforeTest Condition=" '$(BuildingSolutionFile)' != 'true' ">true</_CleanCoverageBeforeTest>
   </PropertyGroup>
 
-  <Target Name="CleanCoverageReport" BeforeTargets="Test;VSTest" Condition=" '$(IsTestProject)' == 'true' ">
-    <!-- Prevent this previous runs' coverage files from being merged into this report run. -->
-    <RemoveDir Directories="$(_TestCoverageReportDirectory)" />
-
-    <ItemGroup>
-      <_CoverageFiles Include="$(_TestCoverageGlob)" />
-    </ItemGroup>
-    <Delete Files="@(_CoverageFiles)" />
-    <ItemGroup>
-      <_CoverageFiles Remove="@(_CoverageFiles)" />
-    </ItemGroup>
-  </Target>
+  <Import Project="CoverageCleanup.targets" />
 
   <Target Name="GenerateCoverageReport" AfterTargets="Test;VSTest" Condition=" '$(IsTestProject)' == 'true' ">
     <ItemGroup>

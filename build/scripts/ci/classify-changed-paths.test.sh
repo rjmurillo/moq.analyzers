@@ -32,7 +32,7 @@ expect() {
 # Docs-only changes skip the expensive steps.
 expect false "docs-only: root markdown" $'CONTRIBUTING.md\nAGENTS.md\n'
 expect false "docs-only: docs folder" $'docs/architecture/ADR-001-symbol-based-detection-over-string-matching.md\n'
-expect false "docs-only: agent skills and memories" $'.github/skills/x/SKILL.md\n.serena/memories/a.md\n'
+expect false "docs-only: agent skills and memories" $'.agents/skills/x/SKILL.md\n.serena/memories/a.md\n'
 expect false "docs-only: .github top-level markdown" $'.github/copilot-instructions.md\n.github/pull_request_template.md\n'
 expect false "docs-only: instructions, prompts, templates" $'.github/instructions/yaml.instructions.md\n.github/prompts/p.prompt.md\n.github/ISSUE_TEMPLATE/01_bug_report.yml\n'
 expect false "docs-only: lint and bot config" $'.markdownlint.json\n.yamllint.yml\nCODEOWNERS\n.git-blame-ignore-revs\nrenovate.json\n.vscode/settings.json\n'
@@ -69,6 +69,8 @@ expect true "markdown under build" $'build/scripts/perf/README.md\n'
 # Conservative defaults.
 expect true "empty diff" ''
 expect true "unknown root file" $'new-tool.config\n'
+expect true "agents dir outside skills" $'.agents/config.json\n'
+expect true "old skills location" $'.github/skills/x/SKILL.md\n'
 expect true "git-quoted unusual path" $'"docs/caf\\303\\251.md"\n'
 
 echo "$cases cases, $failures failed"
