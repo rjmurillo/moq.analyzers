@@ -1,8 +1,8 @@
-# Dependency Management
+# Dependency management
 
 This project uses **Renovate** as the sole dependency update bot. Renovate manages both NuGet packages and GitHub Actions. Dependabot configuration has been removed. GitHub may still open Dependabot security alert PRs automatically.
 
-## Package Categories
+## Package categories
 
 Dependencies fall into distinct categories with different upgrade policies.
 
@@ -14,7 +14,7 @@ These packages are bundled in the analyzer NuGet package and run inside the **us
 | ---------------------------------------- | ---------------------------- | ----------------------------------------------------------------- |
 | Microsoft.CodeAnalysis.CSharp            | 4.8                          | Minimum supported VS/SDK version                                  |
 | Microsoft.CodeAnalysis.CSharp.Workspaces | 4.8                          | Same as above                                                     |
-| Microsoft.CodeAnalysis.AnalyzerUtilities | 3.3.4                        | Must reference SCI <= 8.0.0.0                                     |
+| Microsoft.CodeAnalysis.AnalyzerUtilities | 3.3.4                        | Must reference System.Collections.Immutable (SCI) <= 8.0.0.0                                     |
 | System.Collections.Immutable             | 8.0.0                        | Must not exceed .NET 8 SDK host assembly version                  |
 | System.Formats.Asn1                      | 10.0.0                       | Transitive pin in shipped section; flagged for host compat review |
 | System.Reflection.Metadata               | (transitive, no central pin) | Must not exceed .NET 8 SDK host assembly version                  |
@@ -29,7 +29,7 @@ These packages are bundled in the analyzer NuGet package and run inside the **us
 - `System.Formats.Asn1` has `automerge: false` and the `analyzer-compat` label for manual review.
 - The `ValidateAnalyzerHostCompatibility` MSBuild target blocks the build if shipped assemblies exceed host bounds. `AnalyzerAssemblyCompatibilityTests` provides test-level verification.
 
-### Build-time Code Analysis - SAFE
+### Build-time code analysis - SAFE
 
 These run only during builds and are not shipped. Updates do not affect end users. See [`build/targets/codeanalysis/Packages.props`](../build/targets/codeanalysis/Packages.props) for the full list.
 
@@ -45,7 +45,7 @@ Representative packages:
 
 **Upgrade policy:** Automerge minor/patch. Major versions may introduce new warnings that break the build (warnings are errors). Review new rules before merging major bumps.
 
-### Test Framework - SAFE
+### Test framework - SAFE
 
 Test-only dependencies with no shipped impact. See [`build/targets/tests/Packages.props`](../build/targets/tests/Packages.props) for the full list.
 
@@ -60,7 +60,7 @@ Representative packages:
 
 **Upgrade policy:** Automerge minor/patch. CI validates compatibility.
 
-### Benchmark Tooling - COORDINATED
+### Benchmark tooling - COORDINATED
 
 BenchmarkDotNet and Perfolizer have intertwined version requirements. BenchmarkDotNet declares a minimum Perfolizer version and a minimum Microsoft.CodeAnalysis.CSharp version.
 
@@ -71,11 +71,11 @@ BenchmarkDotNet and Perfolizer have intertwined version requirements. BenchmarkD
 
 **Upgrade policy:**
 
-- **Perfolizer is disabled in Renovate.** BenchmarkDotNet declares an exact version constraint on Perfolizer (e.g., `[0.6.1]`). Updating Perfolizer alone produces NuGet warning NU1608 and risks PerfDiff runtime failures. Update Perfolizer only when BenchmarkDotNet targets a newer version.
+- **Perfolizer is disabled in Renovate.** BenchmarkDotNet declares an exact version constraint on Perfolizer (for example, `[0.6.1]`). Updating Perfolizer alone produces NuGet warning NU1608 and risks PerfDiff runtime failures. Update Perfolizer only when BenchmarkDotNet targets a newer version.
 - **BenchmarkDotNet** has `automerge: false` and the `benchmark-tooling` label. Updates require manual verification that the new Perfolizer transitive pin is compatible.
-- The benchmark project uses `VersionOverride` for packages whose central pins are constrained by shipped analyzer compatibility (e.g., `System.Collections.Immutable`).
+- The benchmark project uses `VersionOverride` for packages whose central pins are constrained by shipped analyzer compatibility (for example, `System.Collections.Immutable`).
 
-### PerfDiff Tool - SPECIAL HANDLING
+### PerfDiff tool - SPECIAL HANDLING
 
 The PerfDiff tool (`src/tools/PerfDiff/`) uses System.CommandLine, which had breaking API changes between beta and stable releases. The `IConsole` interface was removed in 2.0.3.
 
@@ -86,7 +86,7 @@ The PerfDiff tool (`src/tools/PerfDiff/`) uses System.CommandLine, which had bre
 
 **Why disabled:** The perf CI check builds PerfDiff on-demand. It is excluded from the normal build/test matrix. Updates that break PerfDiff only surface as `perf` check failures, which are a required status check.
 
-### Build Infrastructure - MODERATE CAUTION
+### Build infrastructure - MODERATE CAUTION
 
 | Package                            | Location                                     | Notes                    |
 | ---------------------------------- | -------------------------------------------- | ------------------------ |
@@ -95,9 +95,9 @@ The PerfDiff tool (`src/tools/PerfDiff/`) uses System.CommandLine, which had bre
 | DotNet.ReproducibleBuilds.Isolated | global.json (msbuild-sdks)                   | MSBuild SDK isolation    |
 | Nerdbank.GitVersioning             | Directory.Packages.props                     | Version calculation      |
 
-**Upgrade policy:** Automerge minor/patch for stable versions. ReproducibleBuilds and Isolated should be updated together (same release cadence).
+**Upgrade policy:** Automerge minor/patch for stable versions. Update ReproducibleBuilds and ReproducibleBuilds.Isolated together, because they share a release cadence.
 
-## Configuration Files
+## Configuration files
 
 | File                             | Purpose                                                              |
 | -------------------------------- | -------------------------------------------------------------------- |
@@ -105,7 +105,7 @@ The PerfDiff tool (`src/tools/PerfDiff/`) uses System.CommandLine, which had bre
 | `Directory.Packages.props`       | Central package version management                                   |
 | `build/targets/*/Packages.props` | Category-specific package versions                                   |
 
-## VersionOverride Pattern
+## VersionOverride pattern
 
 Non-shipped projects (benchmarks, PerfDiff) that need higher versions of centrally pinned packages use `VersionOverride` in their `.csproj`:
 
@@ -116,13 +116,13 @@ Non-shipped projects (benchmarks, PerfDiff) that need higher versions of central
 
 This allows the central pin (8.0.0) to protect shipped analyzer DLLs while letting tools use newer versions.
 
-**Interaction with Renovate:** Renovate `allowedVersions` caps apply globally by package name. They only affect upgrade proposals. By default, Renovate does not propose downgrades (see [Renovate docs on allowedVersions](https://docs.renovatebot.com/configuration-options/#allowedversions)). A `<=8.0.0` cap on `System.Collections.Immutable` does not affect `VersionOverride` entries at 10.x. Manage those overrides manually.
+**Interaction with Renovate:** Renovate `allowedVersions` caps apply globally by package name. They only affect upgrade proposals. By default, Renovate does not propose downgrades (see the [Renovate `allowedVersions` documentation](https://docs.renovatebot.com/configuration-options/#allowedversions)). A `<=8.0.0` cap on `System.Collections.Immutable` does not affect `VersionOverride` entries at 10.x. Manage those overrides manually.
 
 ## Workflow
 
 A consolidated workflow (`.github/workflows/dependabot-approve-and-auto-merge.yml`) handles auto-approval for dependency update PRs.
 
-- **Renovate** (NuGet and GitHub Actions): The workflow approves the PR. Auto-merge is controlled by Renovate via `platformAutomerge: true` and per-package `automerge` rules in `renovate.json`. Packages with `automerge: false` (e.g., `analyzer-compat`, `benchmark-tooling`) require manual merge after review.
+- **Renovate** (NuGet and GitHub Actions): The workflow approves the PR. Auto-merge is controlled by Renovate via `platformAutomerge: true` and per-package `automerge` rules in `renovate.json`. Packages with `automerge: false` (for example, `analyzer-compat`, `benchmark-tooling`) require manual merge after review.
   - Auto-merged: minor and patch updates for packages at 1.0 or later, lock file maintenance, and GitHub Actions digest updates.
   - Manual merge: major updates and packages below 1.0.
 - **Security alerts**: GitHub may open security alert PRs regardless of bot configuration. These are a repo-level setting, not controlled by any config file. The workflow approves and enables auto-merge for non-major security updates.
