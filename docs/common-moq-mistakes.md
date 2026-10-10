@@ -543,11 +543,15 @@ public void TestMethod()
     var repository = new MockRepository(MockBehavior.Strict);
     var mock = repository.Create<IMyInterface>();
 
-    mock.Setup(x => x.DoSomething()).Returns(42);
+    mock.Setup(x => x.DoSomething()).Returns(42).Verifiable();
+
+    mock.Object.DoSomething();
 
     repository.Verify();
 }
 ```
+
+`repository.Verify()` checks only the setups marked `Verifiable()`. Use `repository.VerifyAll()` to check every setup.
 
 ## Protected setups without ItExpr
 
