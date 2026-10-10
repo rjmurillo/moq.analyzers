@@ -1,6 +1,6 @@
-# Diagnostics / rules
+# Diagnostics and rules
 
-Looking for the rule behind a mistake or a runtime error? See [Common Moq mistakes](../common-moq-mistakes.md).
+To find the rule behind a mistake or a runtime error, see [Common Moq mistakes](../common-moq-mistakes.md).
 
 | ID                      | Category      | Title                                                                                   | Implementation File                                                                                                                                |
 | ----------------------- | ------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -30,29 +30,29 @@ Looking for the rule behind a mistake or a runtime error? See [Common Moq mistak
 | [Moq1500](./Moq1500.md) | Best Practice | MockRepository.Verify() should be called                                                | [MockRepositoryVerifyAnalyzer.cs](../../src/Analyzers/MockRepositoryVerifyAnalyzer.cs)                                                             |
 | [Moq1600](./Moq1600.md) | Usage         | Protected setup should use `ItExpr` matchers                                            | [ProtectedSetupShouldUseItExprAnalyzer.cs](../../src/Analyzers/ProtectedSetupShouldUseItExprAnalyzer.cs)                                           |
 
-## Guidance for Future Rules
+## Guidance for future rules
 
 ### Categories
 
-- **Usage**: Rules that guide correct use of Moq APIs (e.g., not mocking sealed classes, correct use of As<T>, etc.)
-- **Correctness**: Rules that prevent bugs or incorrect test logic (e.g., callback signatures, constructor arguments).
-- **Best Practice**: Rules that encourage maintainable, robust, or idiomatic Moq usage (e.g., explicit/strict behavior).
+- **Usage**: Rules that guide correct use of Moq APIs (for example, not mocking sealed classes and using `As<T>` correctly).
+- **Correctness**: Rules that prevent bugs or incorrect test logic (for example, callback signatures and constructor arguments).
+- **Best Practice**: Rules that encourage maintainable, reliable, or idiomatic Moq usage (for example, explicit or strict behavior).
 
-### Diagnostic ID Ranges
+### Diagnostic ID ranges
 
-| Range        | Category      | Description / Example Rules                                 |
+| Range        | Category      | Description and example rules                               |
 | ------------ | ------------- | ----------------------------------------------------------- |
-| Moq1000-1099 | Usage         | Prohibits sealed class mocks, restricts As<T> to interfaces |
+| Moq1000-1099 | Usage         | Prohibits sealed class mocks, restricts `As<T>` to interfaces |
 | Moq1100-1199 | Correctness   | Ensures callback signatures match, setup is valid           |
 | Moq1200-1299 | Correctness   | Prevents async result setups, checks constructor args       |
 | Moq1300-1399 | Usage         | Restricts use of literals, enforces API usage patterns      |
-| Moq1400-1499 | Best Practice | Encourages explicit/strict mock behavior                    |
+| Moq1400-1499 | Best Practice | Encourages explicit or strict mock behavior                 |
 | Moq1500-1599 | Best Practice | Repository and verification patterns                        |
 | Moq1600-1699 | Usage         | Protected member setup and verification patterns            |
 | Moq1700-1999 | Reserved      | Reserved for future rules                                   |
 
-- When adding new rules, assign the next available ID in the appropriate category range.
-- Document new rules in this table, including their category, a concise title, and links to both documentation and implementation.
-- For more, see the root [README.md](../../README.md).
-- CI workflow artifacts are retained for seven days; see the
+- When you add a new rule, assign the next available ID in the appropriate category range.
+- Document each new rule in the rules table, including its category, a concise title, and links to both documentation and implementation.
+- For an overview of the project, see the root [README](../../README.md).
+- CI keeps workflow artifacts for seven days. For details, see the
   [CI workflow requirements](../../CONTRIBUTING.md#ci-workflow-requirements).

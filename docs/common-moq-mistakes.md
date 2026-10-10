@@ -2,9 +2,11 @@
 
 This page lists common mistakes developers make with [Moq](https://github.com/devlooped/moq). Each mistake maps
 to a [Moq.Analyzers](https://www.nuget.org/packages/Moq.Analyzers) rule that reports it at compile time, before the test
-runs. Install the analyzer in your test project:
+runs. Make sure you use a
+[supported version of the .NET SDK](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core). Then install
+the analyzer in your test project:
 
-```powershell
+```shell
 dotnet add package Moq.Analyzers
 ```
 
@@ -586,14 +588,14 @@ The lambda-based API, `Protected().As<TInterface>()`, uses the normal `It` match
 
 ## Install and configure
 
+Before you install, make sure you use a
+[supported version of the .NET SDK](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core).
+
 Run this command in each test project:
 
-```powershell
+```shell
 dotnet add package Moq.Analyzers
 ```
-
-You must use a [supported version](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) of the
-.NET SDK.
 
 To cover every test project at once, add the package in a `Directory.Build.props` file in the folder that holds your
 test projects. Replace `x.y.z` with the current version on [NuGet](https://www.nuget.org/packages/Moq.Analyzers).

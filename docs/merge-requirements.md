@@ -1,6 +1,6 @@
-# Merge Requirements
+# Merge requirements
 
-The `main` branch is protected by a repository ruleset. Classic branch protection is not used.
+A repository ruleset protects the `main` branch. The repository does not use classic branch protection.
 
 ## Pull request gate
 
