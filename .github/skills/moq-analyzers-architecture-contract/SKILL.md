@@ -234,7 +234,7 @@ Helpers: `CodeFixContextExtensions`, `SyntaxGeneratorExtensions`, `BehaviorType`
   `FilteredArgumentList` (zero-allocation argument filtering),
   `EnumerableExtensions.DefaultIfNotSingle` (crash-safe "exactly one" resolution).
 
-### src/tools/PerfDiff — net8.0 CLI, the ADR-008 gate
+### src/tools/PerfDiff — net10.0 CLI, the ADR-008 gate
 
 `Program.cs`/`DiffCommand.cs` (System.CommandLine 2.0.3, pinned),
 `PerfDiff.cs` (verdict orchestration), `BDN/` (BenchmarkDotNet JSON ingestion +

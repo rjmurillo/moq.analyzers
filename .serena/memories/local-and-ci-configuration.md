@@ -19,7 +19,7 @@ All tools are required. Missing tools fail the hook (no soft-skip).
 ### Pre-Push (2 tasks)
 
 1. **Tech debt scanner**: `Scan-TodoComments.ps1 -FailOnUnlinked`
-2. **Build and test**: `build/scripts/hooks/Invoke-PrePushBuild.ps1` runs `dotnet build` (CI-parity flags) then `dotnet test`. Sets `DOTNET_ROLL_FORWARD=LatestMajor` for cross-TFM test execution.
+2. **Build and test**: `build/scripts/hooks/Invoke-PrePushBuild.ps1` runs `dotnet build` (CI-parity flags) then `dotnet test`.
 
 ## CI Workflows (.github/workflows/)
 
