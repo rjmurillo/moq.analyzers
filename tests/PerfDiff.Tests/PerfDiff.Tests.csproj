@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <NonShipping>true</NonShipping>
@@ -14,7 +14,6 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Update="Polyfill" ExcludeAssets="compile" />
-    <PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.5" />
   </ItemGroup>
 
   <ItemGroup>

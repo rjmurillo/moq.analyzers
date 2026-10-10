@@ -123,79 +123,88 @@ function Invoke-PerfBaselineComparison {
         [String] $ComparePerfResultsPath = (Join-Path $PSScriptRoot "ComparePerfResults.ps1")
     )
 
-    $RepoRoot = Get-RepoRoot
-    $Temp = Join-Path $RepoRoot "artifacts"
+    # The baseline checkout can target an older TFM than the head checkout.
+    # Benchmarks run in-process, so each run would use its own TFM's runtime.
+    # LatestMajor runs every phase on the same newest installed runtime.
+    $previousRollForward = $env:DOTNET_ROLL_FORWARD
+    $env:DOTNET_ROLL_FORWARD = 'LatestMajor'
+    try {
+        $RepoRoot = Get-RepoRoot
+        $Temp = Join-Path $RepoRoot "artifacts"
 
-    Invoke-PerfWarmup -RepoRoot $RepoRoot -Output $output -Ci $ci -RunPerfTestsPath $RunPerfTestsPath
+        Invoke-PerfWarmup -RepoRoot $RepoRoot -Output $output -Ci $ci -RunPerfTestsPath $RunPerfTestsPath
 
-    # Get baseline results
-    Write-Host "Running Baseline Tests"
+        # Get baseline results
+        Write-Host "Running Baseline Tests"
 
-    # Ensure output directory has been created
-    Ensure-Folder Join-Path $output "baseline"
-    $resultsOutput = Join-Path $output "baseline"
+        # Ensure output directory has been created
+        Ensure-Folder Join-Path $output "baseline"
+        $resultsOutput = Join-Path $output "baseline"
 
-    if ($useCachedBaseline -and (Test-Path $resultsOutput)) {
-        Write-Warning "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
-    } else {
-        # Checkout SHA
-        $baselineFolder = Join-Path $Temp "perfBaseline"
-        & git worktree add $baselineFolder $baselineSHA -f
-        if ($LASTEXITCODE -ne 0) { throw "git worktree add failed with exit code $LASTEXITCODE" }
+        if ($useCachedBaseline -and (Test-Path $resultsOutput)) {
+            Write-Warning "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
+        } else {
+            # Checkout SHA
+            $baselineFolder = Join-Path $Temp "perfBaseline"
+            & git worktree add $baselineFolder $baselineSHA -f
+            if ($LASTEXITCODE -ne 0) { throw "git worktree add failed with exit code $LASTEXITCODE" }
 
-        $baselineCommandArgs = New-PerfRunArguments -PerfTestRootFolder $baselineFolder -Projects $projects -Output $resultsOutput -Filter $filter -Etl $etl -Ci $ci
+            $baselineCommandArgs = New-PerfRunArguments -PerfTestRootFolder $baselineFolder -Projects $projects -Output $resultsOutput -Filter $filter -Etl $etl -Ci $ci
 
-        Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $baselineCommandArgs
-        & $RunPerfTestsPath @baselineCommandArgs
-        if ($LASTEXITCODE -ne 0) { throw "Baseline perf test run failed with exit code $LASTEXITCODE." }
+            Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $baselineCommandArgs
+            & $RunPerfTestsPath @baselineCommandArgs
+            if ($LASTEXITCODE -ne 0) { throw "Baseline perf test run failed with exit code $LASTEXITCODE." }
 
-        # Ensure the results exist
-        $needRerun = -not (Test-PerfResults $resultsOutput)
+            # Ensure the results exist
+            $needRerun = -not (Test-PerfResults $resultsOutput)
 
-        if ($needRerun) {
-            if (-not ($filter -eq "*" -or $filter -eq "'*'")) {
-                Write-Warning "The filter '$filter' may not match any benchmarks. We're going to try again without a filter."
-                $baselineCommandArgs.filter = "*"
+            if ($needRerun) {
+                if (-not ($filter -eq "*" -or $filter -eq "'*'")) {
+                    Write-Warning "The filter '$filter' may not match any benchmarks. We're going to try again without a filter."
+                    $baselineCommandArgs.filter = "*"
 
-                Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $baselineCommandArgs
-                & $RunPerfTestsPath @baselineCommandArgs
-                if ($LASTEXITCODE -ne 0) { throw "Baseline rerun failed with exit code $LASTEXITCODE." }
-            }
+                    Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $baselineCommandArgs
+                    & $RunPerfTestsPath @baselineCommandArgs
+                    if ($LASTEXITCODE -ne 0) { throw "Baseline rerun failed with exit code $LASTEXITCODE." }
+                }
 
-            if (-not (Test-Path $resultsOutput)) {
-                Write-Error "Results directory '$resultsOutput' does not exist after running baseline tests."
-                $host.SetShouldExit(1)
-                exit 1
+                if (-not (Test-Path $resultsOutput)) {
+                    Write-Error "Results directory '$resultsOutput' does not exist after running baseline tests."
+                    $host.SetShouldExit(1)
+                    exit 1
+                }
             }
         }
+
+        Write-Host "Done with baseline run"
+
+        # Ensure output directory has been created
+        Ensure-Folder Join-Path $output "perfTest"
+        $testOutput = Join-Path $output "perfTest"
+
+        $commandArgs = New-PerfRunArguments -PerfTestRootFolder $RepoRoot -Projects $projects -Output $testOutput -Filter $filter -Etl $etl -Ci $ci
+
+        Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $commandArgs
+
+        # Get perf results
+        Write-Host "Running performance tests"
+        & $RunPerfTestsPath @commandArgs
+        if ($LASTEXITCODE -ne 0) { throw "Performance test run failed with exit code $LASTEXITCODE." }
+        Write-Host "Done with performance run"
+
+        # Diff perf results
+        $ComparePerfResultsArgs = @{
+                baseline = $resultsOutput
+                results = $testOutput
+        }
+        if ($ci) { $ComparePerfResultsArgs.ci = $True }
+
+        Show-Invocation -ScriptPath $ComparePerfResultsPath -Arguments $ComparePerfResultsArgs
+        & $ComparePerfResultsPath @ComparePerfResultsArgs
+        if ($LASTEXITCODE -ne 0) { throw "Performance comparison failed with exit code $LASTEXITCODE." }
+    } finally {
+        $env:DOTNET_ROLL_FORWARD = $previousRollForward
     }
-
-    Write-Host "Done with baseline run"
-
-    # Ensure output directory has been created
-    Ensure-Folder Join-Path $output "perfTest"
-    $testOutput = Join-Path $output "perfTest"
-
-    $commandArgs = New-PerfRunArguments -PerfTestRootFolder $RepoRoot -Projects $projects -Output $testOutput -Filter $filter -Etl $etl -Ci $ci
-
-    Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $commandArgs
-
-    # Get perf results
-    Write-Host "Running performance tests"
-    & $RunPerfTestsPath @commandArgs
-    if ($LASTEXITCODE -ne 0) { throw "Performance test run failed with exit code $LASTEXITCODE." }
-    Write-Host "Done with performance run"
-
-    # Diff perf results
-    $ComparePerfResultsArgs = @{
-            baseline = $resultsOutput
-            results = $testOutput
-    }
-    if ($ci) { $ComparePerfResultsArgs.ci = $True }
-
-    Show-Invocation -ScriptPath $ComparePerfResultsPath -Arguments $ComparePerfResultsArgs
-    & $ComparePerfResultsPath @ComparePerfResultsArgs
-    if ($LASTEXITCODE -ne 0) { throw "Performance comparison failed with exit code $LASTEXITCODE." }
 }
 
 Export-ModuleMember -Function Test-PerfResults, New-PerfRunArguments, Invoke-PerfWarmup, Invoke-PerfBaselineComparison

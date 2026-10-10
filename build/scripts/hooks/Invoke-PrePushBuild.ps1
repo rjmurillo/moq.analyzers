@@ -2,17 +2,13 @@
 .SYNOPSIS
     Runs dotnet build and test with CI-parity flags for pre-push validation.
 .DESCRIPTION
-    Sets DOTNET_ROLL_FORWARD=LatestMajor to allow tests targeting older TFMs
-    (e.g., net8.0) to run under the installed SDK. Mirrors the exact build
-    flags used in CI to catch issues before push.
+    Mirrors the exact build flags used in CI to catch issues before push.
 #>
 [CmdletBinding()]
 param()
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-
-$env:DOTNET_ROLL_FORWARD = "LatestMajor"
 
 $repoRoot = git rev-parse --show-toplevel
 if ($LASTEXITCODE -ne 0) {
