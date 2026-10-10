@@ -1,0 +1,30 @@
+<Project>
+  <!--
+    Deletes coverage output from earlier runs so it cannot leak into this run's merged report.
+
+    The cleanup must run once per test run, before any test project starts. Test projects run
+    in parallel and share these paths. A per-project cleanup races with the other projects: two
+    RemoveDir calls on the same folder fail with MSB3231, and a project that starts late deletes
+    the fresh coverage files of a project that already finished (issue #1389).
+
+    Importers opt in by setting _CleanCoverageBeforeTest to true:
+    - Directory.Solution.targets: the solution build, which runs this once before all projects.
+    - Tests.targets: a test project built on its own, outside a solution build.
+  -->
+  <PropertyGroup>
+    <_TestCoverageGlob>$(ArtifactsTestResultsPath)/**/*.cobertura.xml</_TestCoverageGlob>
+    <_TestCoverageReportDirectory>$(ArtifactsTestResultsPath)/coverage</_TestCoverageReportDirectory>
+  </PropertyGroup>
+
+  <Target Name="CleanCoverageReport" BeforeTargets="Test;VSTest" Condition=" '$(_CleanCoverageBeforeTest)' == 'true' ">
+    <RemoveDir Directories="$(_TestCoverageReportDirectory)" />
+
+    <ItemGroup>
+      <_CoverageFiles Include="$(_TestCoverageGlob)" />
+    </ItemGroup>
+    <Delete Files="@(_CoverageFiles)" />
+    <ItemGroup>
+      <_CoverageFiles Remove="@(_CoverageFiles)" />
+    </ItemGroup>
+  </Target>
+</Project>
