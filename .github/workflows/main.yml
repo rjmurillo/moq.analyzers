@@ -303,13 +303,11 @@ jobs:
           DOWNLOAD_DIR: ${{ runner.temp }}/base-coverage
         run: |
           runs_api="repos/$GH_REPO/actions/workflows/main.yml/runs?event=push&branch=main&status=success&per_page=1"
+          # Only the base commit's own run measured this PR's code. Never fall
+          # back to another commit's coverage.
           run_id="$(gh api "$runs_api&head_sha=$BASE_SHA" --jq '.workflow_runs[0].id // empty')"
           if [[ -z "$run_id" ]]; then
-            echo "::warning::No successful main push run for base $BASE_SHA. Using the latest one."
-            run_id="$(gh api "$runs_api" --jq '.workflow_runs[0].id // empty')"
-          fi
-          if [[ -z "$run_id" ]]; then
-            echo "::error::No successful main.yml push run on main. Cannot report coverage to Codacy."
+            echo "::error::No successful main.yml push run for base $BASE_SHA yet. Wait for main CI on that commit to pass, then re-run this job."
             exit 1
           fi
 
