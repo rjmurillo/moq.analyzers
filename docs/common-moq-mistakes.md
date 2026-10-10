@@ -149,6 +149,10 @@ Unsupported expression: {0}
 Non-overridable members (here: {0}) may not be used in setup / verification expressions.
 ```
 
+[Moq1200](rules/Moq1200.md#runtime-error-this-rule-prevents) shows rendered examples of both messages.
+[How to fix](rules/Moq1200.md#how-to-fix) covers three fixes with code: extract an interface, make the member
+`virtual`, or wrap a type you do not own.
+
 ### Sealed default interface members
 
 An interface member is normally overridable. A `sealed` default interface member is not, and Moq cannot intercept it.
@@ -631,7 +635,7 @@ on Microsoft Learn.
 
 Moq can only intercept `virtual`, `abstract`, or interface members. [Moq1200](rules/Moq1200.md) flags the setup at
 compile time. Newer Moq versions word the error differently. See
-[the runtime error this replaces](#the-runtime-error-this-replaces).
+[the runtime error this rule prevents](rules/Moq1200.md#runtime-error-this-rule-prevents).
 
 ### Can Moq mock a sealed class?
 
