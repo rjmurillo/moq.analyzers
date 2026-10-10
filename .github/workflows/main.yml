@@ -282,6 +282,60 @@ jobs:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           coverage-reports: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
 
+      # Docs-only PRs skip tests, but "Codacy Coverage Variation" is required
+      # and only posts after an upload for the PR head. No code changed, so
+      # the base commit's coverage is this PR's coverage. Reuse it from the
+      # main push run, which always runs the full pipeline. Fail if missing;
+      # never post coverage that was not measured.
+      - name: Download base branch coverage for Codacy
+        id: base-coverage
+        if: >-
+          needs.check-paths.outputs.code-changed != 'true'
+          && github.event_name == 'pull_request'
+          && runner.os == 'Linux'
+          && env.IS_CODACY_COVERAGE_ALLOWED == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          ARTIFACT_NAME: .NET Code Coverage Reports (${{ matrix.os }})
+          DOWNLOAD_DIR: ${{ runner.temp }}/base-coverage
+        run: |
+          runs_api="repos/$GH_REPO/actions/workflows/main.yml/runs?event=push&branch=main&status=success&per_page=1"
+          run_id="$(gh api "$runs_api&head_sha=$BASE_SHA" --jq '.workflow_runs[0].id // empty')"
+          if [[ -z "$run_id" ]]; then
+            echo "::warning::No successful main push run for base $BASE_SHA. Using the latest one."
+            run_id="$(gh api "$runs_api" --jq '.workflow_runs[0].id // empty')"
+          fi
+          if [[ -z "$run_id" ]]; then
+            echo "::error::No successful main.yml push run on main. Cannot report coverage to Codacy."
+            exit 1
+          fi
+
+          run_sha="$(gh api "repos/$GH_REPO/actions/runs/$run_id" --jq '.head_sha')"
+          echo "Using coverage from run $run_id (main at $run_sha)"
+          if ! gh run download "$run_id" --name "$ARTIFACT_NAME" --dir "$DOWNLOAD_DIR"; then
+            echo "::error::Could not download '$ARTIFACT_NAME' from run $run_id. It may have expired. Re-run main.yml on main, then re-run this job."
+            exit 1
+          fi
+
+          report="$DOWNLOAD_DIR/Cobertura.xml"
+          if [[ ! -s "$report" ]]; then
+            echo "::error::'$ARTIFACT_NAME' from run $run_id has no Cobertura.xml."
+            exit 1
+          fi
+          echo "report=$report" >> "$GITHUB_OUTPUT"
+
+      # The action reads the PR head SHA from the event payload, so this
+      # coverage is recorded against the PR head commit.
+      - name: Upload base branch coverage to Codacy
+        if: steps.base-coverage.outputs.report != ''
+        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1.3.0
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ${{ steps.base-coverage.outputs.report }}
+
       - name: Upload coverage data to Qlty
         if: >-
           needs.check-paths.outputs.code-changed == 'true'
