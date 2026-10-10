@@ -37,7 +37,7 @@ Moq.Analyzers has 25 rules. It does not catch every Moq mistake, and it does not
 | You rely on the default `Loose` behavior | [Moq1400](rules/Moq1400.md) | Explicitly choose a mocking behavior instead of relying on the default (Loose) behavior | Best Practice | Warning | Yes |
 | You do not use `MockBehavior.Strict` | [Moq1410](rules/Moq1410.md) | Explicitly set the Strict mocking behavior | Best Practice | Info | Yes |
 | You pass `Times.AtLeastOnce()` to `Verify` | [Moq1420](rules/Moq1420.md) | Redundant `Times.AtLeastOnce()` specification can be removed | Usage | Info | No |
-| You create a `MockRepository` and never call `Verify()` | [Moq1500](rules/Moq1500.md) | MockRepository.Verify() should be called | Best Practice | Warning | No |
+| You create mocks from a `MockRepository` and never call `Verify()` | [Moq1500](rules/Moq1500.md) | MockRepository.Verify() should be called | Best Practice | Warning | No |
 | You use `It` matchers in a string-based protected setup | [Moq1600](rules/Moq1600.md) | Protected setup should use `ItExpr` matchers | Usage | Warning | No |
 
 The [rule index](rules/README.md) lists the same rules with their implementation files.
@@ -48,7 +48,7 @@ Moq cannot mock a sealed class, and [Moq1000](rules/Moq1000.md) flags the attemp
 subclass. A sealed class cannot have one.
 
 ```csharp
-sealed class MyClass { }
+public sealed class MyClass { }
 
 var mock = new Mock<MyClass>(); // Moq1000: Sealed classes cannot be mocked
 ```
@@ -56,7 +56,7 @@ var mock = new Mock<MyClass>(); // Moq1000: Sealed classes cannot be mocked
 You have three fixes: introduce an interface and mock that, use the real class, or unseal the class.
 
 ```csharp
-class MyClass { }
+public class MyClass { }
 
 var mock = new Mock<MyClass>();
 ```
@@ -185,7 +185,7 @@ The parameters of `.Callback()` must match the method in `.Setup()`, and [Moq110
 A code fix corrects the callback signature for you.
 
 ```csharp
-interface IMyService
+public interface IMyService
 {
     int Do(int i, string s, DateTime dt);
 }
@@ -221,12 +221,12 @@ Arguments you pass to `new Mock<T>(...)` go to the constructor of `T`. Two rules
 that match no constructor.
 
 ```csharp
-interface IMyService
+public interface IMyService
 {
     void Do(string s);
 }
 
-class MyClass
+public class MyClass
 {
     public MyClass(string s) { }
 }
@@ -294,10 +294,10 @@ ILogger logger = NullLogger.Instance;
 ILogger<MyService> typedLogger = NullLogger<MyService>.Instance;
 ```
 
-Use `FakeLogger` from `Microsoft.Extensions.Diagnostics.Testing` when the test verifies log output.
+Use `FakeLogger` from the `Microsoft.Extensions.Diagnostics.Testing` package when the test verifies log output.
 
 ```csharp
-using Microsoft.Extensions.Diagnostics.Testing;
+using Microsoft.Extensions.Logging.Testing;
 
 var fakeLogger = new FakeLogger<MyService>();
 ```
@@ -310,7 +310,7 @@ See [Moq1004](rules/Moq1004.md).
 expression is a method call.
 
 ```csharp
-interface IMyInterface
+public interface IMyInterface
 {
     string Name { get; }
     string Method();
@@ -338,7 +338,7 @@ A setup for a method that returns a value must say what it returns, and [Moq1203
 does not. A `Callback` alone does not count.
 
 ```csharp
-interface IFoo
+public interface IFoo
 {
     int GetValue();
     Task<int> BarAsync();
@@ -365,12 +365,12 @@ The rule skips `void` methods and property setups. See [Moq1203](rules/Moq1203.m
 
 ## Event mistakes
 
-Event arguments and handler types must match the event delegate. Three rules check this:
-[Moq1202](rules/Moq1202.md) for `Mock.Raise`, [Moq1204](rules/Moq1204.md) for `Raises`, and
-[Moq1205](rules/Moq1205.md) for `SetupAdd` and `SetupRemove`. Each mismatch compiles and then fails at run time.
+Event arguments must match the event delegate. [Moq1202](rules/Moq1202.md) checks `Mock.Raise` and
+[Moq1204](rules/Moq1204.md) checks `Raises`. Both mismatches compile and then fail at run time.
+[Moq1205](rules/Moq1205.md) covers the handler type in `SetupAdd` and `SetupRemove`.
 
 ```csharp
-interface INotifier
+public interface INotifier
 {
     void Submit();
     event Action<string> Completed;
@@ -380,7 +380,6 @@ var mock = new Mock<INotifier>();
 
 mock.Raise(x => x.Completed += null, 42);                         // Moq1202: int passed, string expected
 mock.Setup(x => x.Submit()).Raises(x => x.Completed += null, 42); // Moq1204: int passed, string expected
-mock.SetupAdd(x => x.Completed += It.IsAny<Action<int>>());       // Moq1205: Action<int> passed, Action<string> expected
 ```
 
 ```csharp
@@ -390,6 +389,9 @@ mock.Raise(x => x.Completed += null, "done");
 mock.Setup(x => x.Submit()).Raises(x => x.Completed += null, "done");
 mock.SetupAdd(x => x.Completed += It.IsAny<Action<string>>());
 ```
+
+A wrong handler type such as `It.IsAny<Action<int>>()` in that `SetupAdd` call does not compile. The C# compiler
+reports CS0029 before Moq1205 can.
 
 For an `EventHandler` event you can pass only the `EventArgs`. Moq supplies the sender. See
 [Moq1202](rules/Moq1202.md), [Moq1204](rules/Moq1204.md), and [Moq1205](rules/Moq1205.md).
@@ -402,12 +404,12 @@ Three rules cover three helper APIs: [Moq1300](rules/Moq1300.md) for `Mock.As<T>
 `As<T>()` adds an interface to a mock, so `T` must be an interface. Moq1300 defaults to Error.
 
 ```csharp
-interface ISampleInterface
+public interface ISampleInterface
 {
     int Calculate(int a, int b);
 }
 
-class SampleClass { }
+public class SampleClass { }
 
 var bad = new Mock<SampleClass>().As<SampleClass>();       // Moq1300: Mock.As() should take interfaces only
 var good = new Mock<SampleClass>().As<ISampleInterface>();
@@ -449,7 +451,7 @@ up, which can hide a missing setup. [Moq1400](rules/Moq1400.md) asks you to choo
 [Moq1410](rules/Moq1410.md) asks for `MockBehavior.Strict`.
 
 ```csharp
-interface ISample
+public interface ISample
 {
     int Calculate();
 }
@@ -471,8 +473,8 @@ Turn off Moq1410 if your team accepts explicit `Loose` mocks.
 ## Verification hygiene
 
 Two rules keep verification honest. [Moq1420](rules/Moq1420.md) flags `Times.AtLeastOnce()`, because that is already
-the default for `Verify`, `VerifyGet`, and `VerifySet`. [Moq1500](rules/Moq1500.md) flags a `MockRepository` whose
-`Verify()` method is never called.
+the default for `Verify`, `VerifyGet`, and `VerifySet`. [Moq1500](rules/Moq1500.md) flags a local `MockRepository` that
+creates mocks and never calls `Verify()`.
 
 ```csharp
 var mock = new Mock<IService>();
@@ -560,6 +562,8 @@ test projects. Replace `x.y.z` with the current version on [NuGet](https://www.n
   </ItemGroup>
 </Project>
 ```
+
+With central package management, omit `Version` here and set it in `Directory.Packages.props`.
 
 MSBuild stops at the first `Directory.Build.props` it finds. If a parent folder has one too, import it from the new
 file. See [Customize the build by folder](https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory).
