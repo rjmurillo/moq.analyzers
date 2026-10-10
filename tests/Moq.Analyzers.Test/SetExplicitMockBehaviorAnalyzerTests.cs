@@ -217,7 +217,7 @@ public class SetExplicitMockBehaviorAnalyzerTests
 #pragma warning disable ECS0900 // Reflection boxes OperationAnalysisContext to cover the unreachable guard path.
 #if DEBUG
         System.Reflection.TargetInvocationException exception = Assert.Throws<System.Reflection.TargetInvocationException>(
-            () => method!.Invoke(
+            () => method.Invoke(
                 analyzer,
                 [default(Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext), null, knownSymbols, null, null]));
         Assert.Equal(
