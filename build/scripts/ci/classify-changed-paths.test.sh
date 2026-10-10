@@ -32,7 +32,7 @@ expect() {
 # docs-only: nothing reads these paths.
 expect docs-only "docs-only: root markdown" $'CONTRIBUTING.md\nAGENTS.md\n'
 expect docs-only "docs-only: docs folder" $'docs/architecture/ADR-001-symbol-based-detection-over-string-matching.md\n'
-expect docs-only "docs-only: agent skills and memories" $'.github/skills/x/SKILL.md\n.serena/memories/a.md\n'
+expect docs-only "docs-only: agent skills and memories" $'.agents/skills/x/SKILL.md\n.serena/memories/a.md\n'
 expect docs-only "docs-only: .github top-level markdown" $'.github/copilot-instructions.md\n.github/pull_request_template.md\n'
 expect docs-only "docs-only: instructions, prompts, templates" $'.github/instructions/yaml.instructions.md\n.github/prompts/p.prompt.md\n.github/ISSUE_TEMPLATE/01_bug_report.yml\n'
 expect docs-only "docs-only: lint and bot config" $'.markdownlint.json\n.yamllint.yml\nCODEOWNERS\n.git-blame-ignore-revs\nrenovate.json\n.vscode/settings.json\n'
@@ -91,6 +91,8 @@ expect full "full: rename from rule docs to src" $'docs/rules/Moq1000.md\nsrc/An
 expect full "full: empty diff" ''
 expect full "full: only blank lines" $'\n\n'
 expect full "full: unknown root file" $'new-tool.config\n'
+expect full "full: agents dir outside skills" $'.agents/config.json\n'
+expect full "full: old skills location" $'.github/skills/x/SKILL.md\n'
 expect full "full: git-quoted unusual path" $'"docs/caf\\303\\251.md"\n'
 
 echo "$cases cases, $failures failed"

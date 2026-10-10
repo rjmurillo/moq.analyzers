@@ -553,7 +553,8 @@ public void TestMethod()
 }
 ```
 
-`repository.Verify()` checks only the setups marked `Verifiable()`. Use `repository.VerifyAll()` to check every setup.
+`repository.Verify()` checks only the setups marked `Verifiable()`. `repository.VerifyAll()` checks every setup, but
+Moq1500 looks for `Verify()` only and still reports a repository that calls only `VerifyAll()`.
 
 ## Protected setups without ItExpr
 

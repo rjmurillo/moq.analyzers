@@ -63,7 +63,7 @@ is_docs_only() {
     docs/rules/*)
       return 1
       ;;
-    docs/* | .github/skills/* | .github/instructions/* | .github/prompts/* | .github/ISSUE_TEMPLATE/*)
+    docs/* | .agents/skills/* | .github/instructions/* | .github/prompts/* | .github/ISSUE_TEMPLATE/*)
       return 0
       ;;
     .serena/* | .vscode/*)
