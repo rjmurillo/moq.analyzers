@@ -63,6 +63,8 @@ All tools are required. Missing tools fail the hook (no soft-skip).
 
 AI instructions and configuration are consolidated under `.github/`, the standard location for GitHub Copilot and Copilot CLI.
 
+Agent skills are the exception. They live in `.agents/skills/`, the cross-harness Agent Skills location (#1416). Copilot CLI, Copilot cloud agent, VS Code, and Codex read it.
+
 Removed during consolidation:
 
 - Cursor rules directory
