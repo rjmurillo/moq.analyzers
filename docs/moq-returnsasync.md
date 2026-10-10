@@ -72,8 +72,8 @@ does not compile. The compiler reports CS1660.
 
 ## ReturnsAsync(null)
 
-A bare `null` does not compile. `ReturnsAsync` has one overload that takes a value and one that takes a `Func`.
-`null` fits both, so the compiler cannot choose.
+A bare `null` does not compile. Two `ReturnsAsync` overloads fit `null`. One takes a value and one takes a `Func`.
+The compiler cannot choose.
 
 ```csharp
 mock.Setup(x => x.FindAsync(42)).ReturnsAsync(null); // CS0121
