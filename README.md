@@ -68,4 +68,5 @@ develop new features, improve the documentation, or do other cool stuff. See [CO
 Docs-only pull requests skip build and test. CI reports the base commit's coverage to Codacy for them, because no code changed.
 The list of skippable paths lives in `build/scripts/ci/classify-changed-paths.sh`. Any path not on that list runs the full pipeline.
 CI artifacts from the main and mutation-testing workflows are retained for seven days. See the
-[CI workflow requirements](./CONTRIBUTING.md#ci-workflow-requirements).
+[CI workflow requirements](./CONTRIBUTING.md#ci-workflow-requirements). See [merge requirements](./docs/merge-requirements.md)
+for what a pull request needs before it can merge.

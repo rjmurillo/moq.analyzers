@@ -161,6 +161,11 @@ gh act -n -W .github/workflows/main.yml \
 | Merge strategy | Squash merge ONLY; merge commits and rebase merges are disabled | Repo settings; stated in CONTRIBUTING.md §"Strict Workflow Requirements" |
 | Release branches | `release/v{X}.{Y}.{Z}`; major/minor branch from `main`, patches branch from the prior release branch and cherry-pick fixes oldest-first | CONTRIBUTING.md §"Branch Strategy" |
 | Label check | `release-drafter` label check may show failed — it is NOT a required check and does not block merge | CONTRIBUTING.md §"Strict Workflow Requirements" |
+| Merge gate | One approval from any write collaborator other than the last pusher; a bot account such as `rjmurillo-bot` counts. New pushes dismiss approvals. All threads resolved, all required checks green on a branch up to date with `main` | `main` ruleset (classic branch protection is not used) |
+| Admin bypass | Admins can bypass only by merging a PR, never by direct push. Use it for emergencies, not routine merges | `main` ruleset bypass mode `pull_request` |
+| CLA | `license/cla` must be success. The `main` ruleset sets no app source for it, so any actor with commit-status write access can publish it: write collaborators, installed apps with that permission, and workflows granted `statuses: write`. cla-assistant.io publishes it through the repo owner's OAuth token, not as a GitHub App, so there is no app to pin | cla-assistant.io; required check in the `main` ruleset (no app source) |
+| Fork workflows | Every external contributor's workflow run needs maintainer approval. Read any `.github/workflows` diff first: a PR workflow can fake any Actions-pinned required check by job name | Actions fork approval policy `all_external_contributors` |
+| Release tags | `v*` tags cannot be deleted, moved, or force-pushed | `release tags` tag ruleset |
 
 Worked example of a good PR title / squash commit from this repo's history:
 
