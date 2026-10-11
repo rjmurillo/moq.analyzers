@@ -11,7 +11,8 @@ patterns: [Moq1201](rules/Moq1201.md), [Moq1206](rules/Moq1206.md), and [Moq1208
 | `Task`             | `Returns(Task.CompletedTask)`      |
 | `ValueTask`        | `Returns(ValueTask.CompletedTask)` |
 
-The samples on this page use this interface. Each sample was compiled and run with Moq 4.20.72 and .NET SDK 10.0.401.
+The samples on this page use this interface. Each sample was built with Moq 4.20.72 and .NET SDK 10.0.401. Samples
+marked with an error code or a rule ID fail as shown.
 
 ```csharp
 public record Customer(int Id);
@@ -78,8 +79,8 @@ Customer? customer = await mock.Object.FindAsync(7); // Customer { Id = 7 }
 
 ## ReturnsAsync(null)
 
-A bare `null` does not compile. `ReturnsAsync` has one overload that takes a value and one that takes a function, and
-`null` fits both.
+A bare `null` does not compile. It fits both the `ReturnsAsync` overload that takes a value and the overload that
+takes a function.
 
 ```csharp
 var mock = new Mock<ICustomerStore>();
@@ -162,7 +163,7 @@ Customer? customer = await find;
 
 ## Three mistakes Moq.Analyzers catches
 
-Install the analyzer to get these at build time:
+Install the analyzer to get these at build time. Moq1208 needs a version newer than 0.4.2.
 
 ```shell
 dotnet add package Moq.Analyzers
@@ -203,7 +204,8 @@ Moq 4.8.2, 4.15.2, and 4.16.0 throw the same exception type and print the type n
 Invalid callback. Setup on method with return type (System.Threading.Tasks.ValueTask`1[System.Int32]) cannot invoke callback with return type (System.Int32).
 ```
 
-Fix it with `ReturnsAsync`. The Moq1208 code fix makes this change for you.
+Fix it with `ReturnsAsync`. The Moq1208 code fix renames `Returns` to `ReturnsAsync` and keeps the lambda. You can
+then shorten `ReturnsAsync(() => 3)` to `ReturnsAsync(3)`.
 
 ```csharp
 var mock = new Mock<ICustomerStore>();
@@ -223,7 +225,7 @@ mock.Setup(x => x.FindAsync(1)).Returns(async () => new Customer(1)); // Moq1206
 warning Moq1206: Async method 'FindAsync' setups should use ReturnsAsync instead of Returns with async lambda
 ```
 
-This setup runs. `ReturnsAsync` says the same thing with less code. The compiler in .NET SDK 8.0.425 also reports
+This setup runs. `ReturnsAsync` does the same job here with less code. The compiler in .NET SDK 8.0.425 also reports
 CS1998 here, because the lambda is `async` and never awaits. The compiler in .NET SDK 10.0.401 does not.
 
 ```csharp

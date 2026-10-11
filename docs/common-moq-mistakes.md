@@ -167,7 +167,7 @@ new Mock<IService>().Setup(x => x.Save()); // Moq1200
 
 Use `ReturnsAsync` to set up an async method. Three rules flag the common wrong patterns:
 [Moq1201](rules/Moq1201.md), [Moq1206](rules/Moq1206.md), and [Moq1208](rules/Moq1208.md).
-For every async setup with code, including `null` results, parameters, and methods that return `Task`, see
+For more async setups with code, including `null` results, parameters, and methods that return `Task`, see
 [How to set up async methods in Moq](moq-returnsasync.md).
 
 | Wrong pattern | Rule |
