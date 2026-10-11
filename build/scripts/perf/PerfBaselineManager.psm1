@@ -137,13 +137,14 @@ function Invoke-PerfBaselineComparison {
         # Get baseline results
         Write-Host "Running Baseline Tests"
 
-        # Ensure output directory has been created
-        Ensure-Folder Join-Path $output "baseline"
         $resultsOutput = Join-Path $output "baseline"
 
         if ($useCachedBaseline -and (Test-Path $resultsOutput)) {
             Write-Warning "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
         } else {
+            # Create the folder only after the cache check, so an empty folder is not taken as a cache (#1383).
+            Ensure-Folder $resultsOutput | Out-Null
+
             # Checkout SHA
             $baselineFolder = Join-Path $Temp "perfBaseline"
             & git worktree add $baselineFolder $baselineSHA -f
@@ -168,8 +169,8 @@ function Invoke-PerfBaselineComparison {
                     if ($LASTEXITCODE -ne 0) { throw "Baseline rerun failed with exit code $LASTEXITCODE." }
                 }
 
-                if (-not (Test-Path $resultsOutput)) {
-                    throw "Baseline results directory '$resultsOutput' does not exist after the baseline perf run."
+                if (-not (Test-PerfResults $resultsOutput)) {
+                    throw "Baseline perf run produced no benchmark report in '$resultsOutput'. Check that baseline SHA '$baselineSHA' builds and contains benchmarks."
                 }
             }
         }
@@ -177,8 +178,8 @@ function Invoke-PerfBaselineComparison {
         Write-Host "Done with baseline run"
 
         # Ensure output directory has been created
-        Ensure-Folder Join-Path $output "perfTest"
         $testOutput = Join-Path $output "perfTest"
+        Ensure-Folder $testOutput | Out-Null
 
         $commandArgs = New-PerfRunArguments -PerfTestRootFolder $RepoRoot -Projects $projects -Output $testOutput -Filter $filter -Etl $etl -Ci $ci
 

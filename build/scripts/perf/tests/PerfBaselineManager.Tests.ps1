@@ -116,8 +116,8 @@ exit 0
         $caseRoot = $script:CaseRoot
         Mock Get-RepoRoot { $caseRoot } -ModuleName PerfBaselineManager
         Mock git { $global:LASTEXITCODE = 0 } -ModuleName PerfBaselineManager
-        # Ensure-Folder Join-Path (issue #1383) creates a stray 'Join-Path' folder in
-        # the current directory. Run from the case folder so it is cleaned up with it.
+        # Run from the case folder so a stray folder in the current directory (#1383)
+        # is cleaned up with the case and is visible to the tests that check for it.
         Push-Location $script:CaseRoot
     }
 
@@ -302,10 +302,71 @@ exit 0
 
         { Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" `
             -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub } |
-            Should -Throw "*Baseline results directory '$(Join-Path $script:Output 'baseline')' does not exist*"
+            Should -Throw "*Baseline perf run produced no benchmark report in '$(Join-Path $script:Output 'baseline')'*"
 
         $phases = Get-Content $env:STUB_LOG | ForEach-Object { ($_ -split '\|')[0] }
         $phases | Should -Be @('warmup', 'baseline')
+    }
+
+    It 'throws without a rerun when the baseline run with filter <Filter> writes no report (#1461)' -ForEach @(
+        @{ Filter = '*' }
+        @{ Filter = "'*'" }
+    ) {
+        $env:STUB_NOREPORT_PHASE = 'baseline'
+
+        { Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter $Filter `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub } |
+            Should -Throw "*Baseline perf run produced no benchmark report in '$(Join-Path $script:Output 'baseline')'*"
+
+        $phases = Get-Content $env:STUB_LOG | ForEach-Object { ($_ -split '\|')[0] }
+        $phases | Should -Be @('warmup', 'baseline')
+    }
+
+    It 'throws when the baseline rerun with filter * also writes no report (#1461)' {
+        $env:STUB_NOREPORT_PHASE = 'baseline'
+
+        { Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter 'Moq*' `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub } |
+            Should -Throw "*Baseline perf run produced no benchmark report in '$(Join-Path $script:Output 'baseline')'*"
+
+        $calls = @(Get-Content $env:STUB_LOG | ForEach-Object { , ($_ -split '\|') })
+        ($calls | ForEach-Object { $_[0] }) | Should -Be @('warmup', 'baseline', 'baseline')
+        $calls[2][3] | Should -Be '*'
+    }
+
+    It 'continues to the comparison when the baseline <Case> writes a report (#1461)' -ForEach @(
+        @{ Case = 'run'; Filter = "'*'"; StarOnly = ''; Phases = @('warmup', 'baseline', 'perfTest', 'compare') }
+        @{ Case = 'rerun'; Filter = 'Moq*'; StarOnly = 'baseline'; Phases = @('warmup', 'baseline', 'baseline', 'perfTest', 'compare') }
+    ) {
+        $env:STUB_STARONLY_PHASE = $StarOnly
+
+        { Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter $Filter `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub } |
+            Should -Not -Throw
+
+        $phases = Get-Content $env:STUB_LOG | ForEach-Object { ($_ -split '\|')[0] }
+        $phases | Should -Be $Phases
+    }
+
+    It 'creates the perfTest folder under the output folder (#1461)' {
+        # The stub does not create the head folder, so only Ensure-Folder can.
+        $env:STUB_NODIR_PHASE = 'perfTest'
+
+        $result = Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        $result | Should -BeNullOrEmpty
+        Join-Path $script:Output 'perfTest' | Should -Exist
+        Join-Path $script:CaseRoot 'Join-Path' | Should -Not -Exist
+    }
+
+    It 'runs the baseline when the cached baseline folder does not exist (#1383)' {
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" -useCachedBaseline $true `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        $phases = Get-Content $env:STUB_LOG | ForEach-Object { ($_ -split '\|')[0] }
+        $phases | Should -Be @('warmup', 'baseline', 'perfTest', 'compare')
+        Join-Path $script:CaseRoot 'Join-Path' | Should -Not -Exist
     }
 
     It 'stops when the comparison fails' {
