@@ -242,7 +242,6 @@ public class MockRepositoryVerifyAnalyzerTests
     {
         // The analyzer scopes to the containing method body. Verify() in a different
         // method than Create() results in a diagnostic. This documents the limitation.
-        // TODO(#986): Cross-method scope limitation
         return new object[][]
         {
             // Create() and Verify() in separate methods - diagnostic because analyzer is method-scoped
