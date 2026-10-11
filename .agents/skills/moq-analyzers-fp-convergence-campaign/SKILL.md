@@ -86,10 +86,10 @@ A "Bad fix" is a code fix (the lightbulb suggestion) whose output crashes or
 does not compile — treated at FP priority because it actively corrupts user
 code.
 
-### GATE 0 — reproduce the green baseline before touching anything
+### GATE 0: reproduce the green baseline before touching anything
 
 ```bash
-export PATH="$HOME/.dotnet:$PATH"      # repo builds with .NET SDK 10.0.301 (global.json)
+export PATH="$HOME/.dotnet:$PATH"      # repo builds with the .NET SDK pinned in global.json
 dotnet build /p:PedanticMode=true      # CI-parity: warnings become errors
 dotnet test --settings ./build/targets/tests/test.runsettings
 ```
