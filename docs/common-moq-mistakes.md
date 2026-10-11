@@ -614,7 +614,7 @@ test projects. Replace `x.y.z` with the current version on [NuGet](https://www.n
 </Project>
 ```
 
-With central package management, omit `Version` here and set it in `Directory.Packages.props`.
+With central package management, omit `Version` here and add a `PackageVersion` item to `Directory.Packages.props`.
 
 For mixed folders, central package management, and nested files, see
 [Install Moq.Analyzers in every test project](install.md).

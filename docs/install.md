@@ -10,7 +10,7 @@ That keeps the analyzer out of projects and packages that reference yours.
 | Every project under a folder | A `PackageReference` item | `Directory.Build.props` in that folder |
 | Only the projects that reference Moq | A conditional `PackageReference` item | `Directory.Build.targets` at the repository root |
 | A repository that uses central package management | A `PackageVersion` item plus a versionless `PackageReference` item | `Directory.Packages.props` for the version, `Directory.Build.props` for the reference |
-| Every project in a repository that uses central package management | One `GlobalPackageReference` item | `Directory.Packages.props` |
+| Every project under one `Directory.Packages.props` file | One `GlobalPackageReference` item | `Directory.Packages.props` |
 
 The sample solution behind this page builds every snippet with .NET SDK 10.0.401 and Moq.Analyzers 0.4.2. It has one
 xUnit test project that references Moq and one class library that does not.
@@ -165,11 +165,13 @@ You need both items:
 - A `PackageReference` item with no matching `PackageVersion` item fails restore with error `NU1010`.
 
 `dotnet add package Moq.Analyzers` writes both items for you in a repository that uses central package management.
+It puts the reference in that one project file. To cover a folder, move the reference to `Directory.Build.props` and
+keep `PrivateAssets="all"`.
 
 ### Add the package to every project
 
-A `GlobalPackageReference` item adds the package to every project in the repository. Add it to
-`Directory.Packages.props`:
+A `GlobalPackageReference` item adds the package to every project that uses this `Directory.Packages.props` file.
+Add it to that file:
 
 ```xml
 <Project>
@@ -183,8 +185,8 @@ A `GlobalPackageReference` item adds the package to every project in the reposit
 ```
 
 NuGet applies `PrivateAssets="All"` to a global package reference, so you do not set it. You need no
-`PackageReference` item and no `PackageVersion` item. Global package references need .NET SDK 7.0.100 or Visual Studio
-2022 17.4, or later. See
+`PackageReference` item and no `PackageVersion` item. Global package references need Visual Studio 2022 17.4, .NET
+SDK 7.0.100, and NuGet 6.4, or later. See
 [Global package references](https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management#global-package-references)
 on Microsoft Learn.
 
@@ -209,6 +211,9 @@ on Microsoft Learn:
 
 The `Condition` attribute skips the import when no parent file exists.
 
+`Directory.Build.targets` files follow the same rule. In the sample, a `tests/Directory.Build.targets` file hid the
+root one, and the same import line with the file name changed restored it.
+
 ## Check that it works
 
 Add a mock with no explicit behavior to a test:
@@ -232,7 +237,7 @@ If you see no warning, check these items:
 - The file name is exactly `Directory.Build.props` or `Directory.Build.targets`. Linux file systems are case
   sensitive.
 - The file sits in the project folder or in a folder above it.
-- No closer `Directory.Build.props` file hides it. See
+- No closer `Directory.Build.props` or `Directory.Build.targets` file hides it. See
   [Nested Directory.Build.props files](#nested-directorybuildprops-files).
 
 ## Set rule severity once
