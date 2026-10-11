@@ -196,7 +196,7 @@ Category: pick per the ID-range table in Part 1 — the ID range, the `Diagnosti
 
 ## Part 3 — Changing a SHIPPED rule
 
-A rule is "shipped" once it appears in `src/Analyzers/AnalyzerReleases.Shipped.md`. The repo's rules, quoted from `.github/copilot-instructions.md:552-553` (2026-07-02):
+A rule is "shipped" once it appears in `src/Analyzers/AnalyzerReleases.Shipped.md`. The repo's rules, quoted from `AGENTS.md:552-553` (2026-07-02):
 
 > **CRITICAL: Do not modify `AnalyzerReleases.Shipped.md`**. This file is an immutable record of past releases. All changes, including category or severity updates to existing rules, **MUST** be documented in `AnalyzerReleases.Unshipped.md`.
 >
@@ -206,8 +206,8 @@ So: change the descriptor in code, then record the rule's NEW state in `Unshippe
 
 **Known discrepancy — defer to root policy, escalate the divergence (2026-07-02):** the live `AnalyzerReleases.Unshipped.md` and the written root policy disagree on section shape. Handle it by these rules, in order:
 
-- **The conflict.** The live file carries a `### Changed Rules` section (14 recategorized rules with old/new columns). The root `.github/copilot-instructions.md:553` forbids this: it says `Unshipped.md` must **only** contain `### New Rules`, with a changed shipped rule recorded there as if it were a new rule.
-- **Root policy wins — do not default to the live layout.** The root file is a higher-priority policy than this skill (see `moq-analyzers-auto`: copilot-instructions wins on conflict). When you record a new shipped-rule category/severity change, add it as a `### New Rules` row per copilot-instructions.
+- **The conflict.** The live file carries a `### Changed Rules` section (14 recategorized rules with old/new columns). The root `AGENTS.md:553` forbids this: it says `Unshipped.md` must **only** contain `### New Rules`, with a changed shipped rule recorded there as if it were a new rule.
+- **Root policy wins — do not default to the live layout.** The root file is a higher-priority policy than this skill (see `moq-analyzers-auto`: AGENTS.md wins on conflict). When you record a new shipped-rule category/severity change, add it as a `### New Rules` row per AGENTS.md.
 - **Leave the existing `### Changed Rules` block alone.** The upstream Roslyn release-tracking format tolerates both shapes, which is why that pre-existing block — accepted on `main` since PR #1087 — still passes CI. Keep it in place (never restructure it in an unrelated PR), but do not append to it.
 - **This is a STOP-and-flag, not an auto-decision.** Because the on-disk file and the written policy genuinely diverge, state the divergence in the PR and let the maintainer decide whether to reconcile the file — never resolve it silently.
 - **Cross-references.** `moq-analyzers-change-control` defers to this section, and `moq-analyzers-docs-and-writing` tracks the divergence as a stale-doc item.
@@ -230,7 +230,7 @@ Throughout, `{X}.{Y}.{Z}` is the FULL target version: for a major/minor release 
 
 1. **Branch**: major/minor branches from `main` — `git checkout -b release/v{X}.{Y}.{Z} main`. A patch branches from the PRIOR release branch (`release/v{X}.{Y}.{Z-1}`) and cherry-picks fixes from `main`, oldest first.
 2. **`version.json`**: set `"version": "{X}.{Y}.{Z}"` (drop `-alpha`).
-3. **Promote release notes**: move every row from `src/Analyzers/AnalyzerReleases.Unshipped.md` into `src/Analyzers/AnalyzerReleases.Shipped.md` under a new `## Release {X}.{Y}.{Z}` heading. This is the ONLY sanctioned edit to `Shipped.md`. `New Rules` rows stay `New Rules`; per copilot-instructions, this promotion step is where `Changed Rules`/`Removed Rules` sections get written into `Shipped.md` for shipped-rule modifications. (Precedent: `## Release 0.4.0` in `Shipped.md` has both `### New Rules` and `### Changed Rules`.)
+3. **Promote release notes**: move every row from `src/Analyzers/AnalyzerReleases.Unshipped.md` into `src/Analyzers/AnalyzerReleases.Shipped.md` under a new `## Release {X}.{Y}.{Z}` heading. This is the ONLY sanctioned edit to `Shipped.md`. `New Rules` rows stay `New Rules`; per AGENTS.md, this promotion step is where `Changed Rules`/`Removed Rules` sections get written into `Shipped.md` for shipped-rule modifications. (Precedent: `## Release 0.4.0` in `Shipped.md` has both `### New Rules` and `### Changed Rules`.)
 4. **Reset `Unshipped.md`** to the empty header (comment lines + `### New Rules` + table header only — exact text in `CONTRIBUTING.md:1071-1082`).
 5. Commit `chore(release): prepare v{X}.{Y}.{Z} release branch`, push the branch, wait for CI green.
 6. **Bump `main`**: on `main`, set `version.json` to the next dev stem (e.g., `"0.6.0-alpha.{height}"`). Precedent commit: `bae5141` "chore(release): bump version to 0.5.0-alpha for next development cycle". Nothing automates this — a forgotten bump makes `main` produce prerelease versions of an already-shipped number.
@@ -263,7 +263,7 @@ Plus (this skill's addition, from step 6 above): post-release, bump the `main` v
 
 ## Part 5 — Retirement / deprecation: POLICY GAP
 
-There is **no documented rule-retirement or deprecation policy** in this repo (2026-07-02): nothing in CONTRIBUTING.md, copilot-instructions, or the ADRs describes how to sunset a rule, and no rule has been deprecated in the modern (2024+) era. Do not invent a process; if asked to retire a rule, stop and get maintainer direction.
+There is **no documented rule-retirement or deprecation policy** in this repo (2026-07-02): nothing in CONTRIBUTING.md, AGENTS.md, or the ADRs describes how to sunset a rule, and no rule has been deprecated in the modern (2024+) era. Do not invent a process; if asked to retire a rule, stop and get maintainer direction.
 
 Known historical facts to reason from (not a policy):
 
@@ -312,7 +312,7 @@ Total: 10 files, +713/−1. No code fix (doc says `CodeFix | False`), so no `src
 - Rule count / ID list: `grep -c 'internal const string' src/Common/DiagnosticIds.cs` (25 IDs, Moq1209 reserved, 2026-07-02).
 - helpLinkUri pattern still universal: `grep -c GitCommitId src/Analyzers/*.cs | grep -v ':0'` (25 uses, 2026-07-02).
 - Severity distribution: `grep -h 'DiagnosticSeverity\.' src/Analyzers/*.cs | grep -o 'DiagnosticSeverity\.[A-Za-z]*' | sort | uniq -c` (5 Error / 18 Warning / 2 Info descriptors, 2026-07-02; note one Error hit is an internal check in LinqToMocksExpressionShouldBeValidAnalyzer.cs:215, not a descriptor).
-- Unshipped/Shipped shape (and the Changed-Rules discrepancy vs copilot-instructions.md:553): `sed -n '1,30p' src/Analyzers/AnalyzerReleases.Unshipped.md`.
+- Unshipped/Shipped shape (and the Changed-Rules discrepancy vs AGENTS.md:553): `sed -n '1,30p' src/Analyzers/AnalyzerReleases.Unshipped.md`.
 - Release-tracking analyzer pin: `grep CodeAnalysis.Analyzers build/targets/codeanalysis/Packages.props` (5.6.0, 2026-07-04).
 - Version stem: `grep '"version"' version.json` (`0.5.0-alpha.{height}`, 2026-07-02); post-release bump precedent `git show bae5141 --stat`.
 - release.yml gates: `sed -n '1,80p' .github/workflows/release.yml` (verify step at `if: github.event_name == 'release'`; push uses `--skip-duplicate` with 3 retries).
@@ -320,5 +320,5 @@ Total: 10 files, +713/−1. No code fix (doc says `CodeFix | False`), so no `src
 - Moq1600 worked example: `git show --stat 3f98710`.
 - Benchmark file convention/coverage: `ls tests/Moq.Analyzers.Benchmarks/Moq1*Benchmarks.cs | wc -l` (18 files, 2026-07-02).
 - AllAnalyzersVerifier namespace predicate: `grep -n '"Moq.Analyzers"' tests/Moq.Analyzers.Test/Helpers/AllAnalyzersVerifier.cs`.
-- Retirement policy still absent: `grep -rin 'deprecat' CONTRIBUTING.md .github/copilot-instructions.md docs/` (no rule-deprecation policy hits, 2026-07-02).
+- Retirement policy still absent: `grep -rin 'deprecat' CONTRIBUTING.md AGENTS.md docs/` (no rule-deprecation policy hits, 2026-07-02).
 - Last verified: 2026-07-02 against commit 05135b2.

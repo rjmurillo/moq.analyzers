@@ -247,7 +247,7 @@ cloud static-analysis service wired into PRs.
     null.
   - `4052954` (2026-03-08, #1027) — `ArgumentNullException` for null source
     in `EnumerableExtensions.DefaultIfNotSingle`.
-- **Status:** SETTLED; now doctrine in `.github/copilot-instructions.md`.
+- **Status:** SETTLED; now doctrine in `AGENTS.md`.
 - **Standing rules:** `SymbolEqualityComparer` always; `!` is banned on any
   value that is not provably non-null; when the semantic model cannot resolve
   something mid-edit, the analyzer says "cannot verify" (usually: stay

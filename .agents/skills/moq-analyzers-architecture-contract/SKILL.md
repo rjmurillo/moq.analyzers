@@ -18,7 +18,7 @@ compilers — including mission-critical codebases — the failure hierarchy is:
 
 1. **An analyzer crash is the worst outcome.** A thrown exception surfaces as
    compiler warning `AD0001` and Roslyn disables the analyzer for the session.
-   Verbatim rule from `.github/copilot-instructions.md` (line 38): *"An analyzer
+   Verbatim rule from `AGENTS.md` (line 38): *"An analyzer
    crash is worse than a missed diagnostic."*
 2. **A false positive (FP — flagging correct code) is next worst.** It trains users
    to suppress or uninstall the analyzer.
@@ -129,7 +129,7 @@ enforced by code review plus `<Nullable>enable</Nullable>`
 
 ### 6. Diagnostic spans are character-precise, non-negotiable
 
-From `.github/copilot-instructions.md:510-513` (verbatim policy): all spans MUST be
+From `AGENTS.md:510-513` (verbatim policy): all spans MUST be
 character-precise; a span test failure is a CRITICAL failure — **stop after the
 first failure**, re-evaluate the syntax-tree navigation; after a second failure,
 escalate to a human. Report on the specific token (which token varies by rule and

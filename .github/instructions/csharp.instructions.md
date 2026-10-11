@@ -26,11 +26,11 @@ applyTo: '**/*.cs'
 
 ## Primary Instructions
 
-Always read and apply the instructions in [.github/copilot-instructions.md](../copilot-instructions.md) when working on C# source or project files.
+Always read and apply the instructions in [AGENTS.md](../../AGENTS.md) when working on C# source or project files.
 
 ## Additional Context
 
-This instruction file works in conjunction with the comprehensive C# development guidelines in the main copilot-instructions.md file. The main file contains detailed requirements for:
+This instruction file works in conjunction with the comprehensive C# development guidelines in the main AGENTS.md file. The main file contains detailed requirements for:
 
 - Roslyn analyzer development
 - Code quality standards
@@ -49,7 +49,7 @@ When working with C# files, ensure you also review:
 
 ## Maintenance Note
 
-If you update guidance in copilot-instructions.md that affects C# development, ensure consistency across all related instruction files.
+If you update guidance in AGENTS.md that affects C# development, ensure consistency across all related instruction files.
 
 ## Decision Trees for Complex Scenarios
 
