@@ -115,7 +115,8 @@ Moq 4.20.72 reports:
 Unsupported expression: OrderFactory.Create(clock)
 ```
 
-Moq1002 does not check the lambda form. The compiler already does.
+Moq1002 does not check the lambda form. On Moq 4.13.0 or later, the compiler already does. On Moq 4.12.0, nothing
+checks it before the test runs.
 
 ## Can not instantiate proxy of class: Could not find a parameterless constructor
 
