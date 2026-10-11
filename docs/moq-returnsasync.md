@@ -248,7 +248,8 @@ mock.Setup(x => x.FindAsync(1).Result).Returns(new Customer(1)); // Moq1201 on M
 error Moq1201: Setup of async method 'FindAsync' should use ReturnsAsync instead of .Result
 ```
 
-Older Moq versions cannot set up `.Result`. Moq 4.15.2 throws `System.NotSupportedException` when `Setup` runs:
+Older Moq versions cannot set up `.Result`. Moq 4.15.2 throws `System.NotSupportedException` when `Setup` runs. Moq
+abbreviates the expression as shown:
 
 ```text
 Unsupported expression: ... => ....Result
