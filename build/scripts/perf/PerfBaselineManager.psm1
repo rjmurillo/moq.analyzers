@@ -169,9 +169,7 @@ function Invoke-PerfBaselineComparison {
                 }
 
                 if (-not (Test-Path $resultsOutput)) {
-                    Write-Error "Results directory '$resultsOutput' does not exist after running baseline tests."
-                    $host.SetShouldExit(1)
-                    exit 1
+                    throw "Baseline results directory '$resultsOutput' does not exist after the baseline perf run."
                 }
             }
         }
