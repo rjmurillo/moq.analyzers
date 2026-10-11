@@ -196,7 +196,7 @@ Category: pick per the ID-range table in Part 1 — the ID range, the `Diagnosti
 
 ## Part 3 — Changing a SHIPPED rule
 
-A rule is "shipped" once it appears in `src/Analyzers/AnalyzerReleases.Shipped.md`. The repo's rules, quoted from `AGENTS.md:552-553` (2026-07-02):
+A rule is "shipped" once it appears in `src/Analyzers/AnalyzerReleases.Shipped.md`. The repo's rules, quoted from the `AGENTS.md` section "General Coding and Workflow Rules" (2026-07-02):
 
 > **CRITICAL: Do not modify `AnalyzerReleases.Shipped.md`**. This file is an immutable record of past releases. All changes, including category or severity updates to existing rules, **MUST** be documented in `AnalyzerReleases.Unshipped.md`.
 >
@@ -206,7 +206,7 @@ So: change the descriptor in code, then record the rule's NEW state in `Unshippe
 
 **Known discrepancy — defer to root policy, escalate the divergence (2026-07-02):** the live `AnalyzerReleases.Unshipped.md` and the written root policy disagree on section shape. Handle it by these rules, in order:
 
-- **The conflict.** The live file carries a `### Changed Rules` section (14 recategorized rules with old/new columns). The root `AGENTS.md:553` forbids this: it says `Unshipped.md` must **only** contain `### New Rules`, with a changed shipped rule recorded there as if it were a new rule.
+- **The conflict.** The live file carries a `### Changed Rules` section (14 recategorized rules with old/new columns). The root `AGENTS.md` section "General Coding and Workflow Rules" forbids this: it says `Unshipped.md` must **only** contain `### New Rules`, with a changed shipped rule recorded there as if it were a new rule.
 - **Root policy wins — do not default to the live layout.** The root file is a higher-priority policy than this skill (see `moq-analyzers-auto`: AGENTS.md wins on conflict). When you record a new shipped-rule category/severity change, add it as a `### New Rules` row per AGENTS.md.
 - **Leave the existing `### Changed Rules` block alone.** The upstream Roslyn release-tracking format tolerates both shapes, which is why that pre-existing block — accepted on `main` since PR #1087 — still passes CI. Keep it in place (never restructure it in an unrelated PR), but do not append to it.
 - **This is a STOP-and-flag, not an auto-decision.** Because the on-disk file and the written policy genuinely diverge, state the divergence in the PR and let the maintainer decide whether to reconcile the file — never resolve it silently.
@@ -312,7 +312,7 @@ Total: 10 files, +713/−1. No code fix (doc says `CodeFix | False`), so no `src
 - Rule count / ID list: `grep -c 'internal const string' src/Common/DiagnosticIds.cs` (25 IDs, Moq1209 reserved, 2026-07-02).
 - helpLinkUri pattern still universal: `grep -c GitCommitId src/Analyzers/*.cs | grep -v ':0'` (25 uses, 2026-07-02).
 - Severity distribution: `grep -h 'DiagnosticSeverity\.' src/Analyzers/*.cs | grep -o 'DiagnosticSeverity\.[A-Za-z]*' | sort | uniq -c` (5 Error / 18 Warning / 2 Info descriptors, 2026-07-02; note one Error hit is an internal check in LinqToMocksExpressionShouldBeValidAnalyzer.cs:215, not a descriptor).
-- Unshipped/Shipped shape (and the Changed-Rules discrepancy vs AGENTS.md:553): `sed -n '1,30p' src/Analyzers/AnalyzerReleases.Unshipped.md`.
+- Unshipped/Shipped shape (and the Changed-Rules discrepancy vs the AGENTS.md section "General Coding and Workflow Rules"): `sed -n '1,30p' src/Analyzers/AnalyzerReleases.Unshipped.md`.
 - Release-tracking analyzer pin: `grep CodeAnalysis.Analyzers build/targets/codeanalysis/Packages.props` (5.6.0, 2026-07-04).
 - Version stem: `grep '"version"' version.json` (`0.5.0-alpha.{height}`, 2026-07-02); post-release bump precedent `git show bae5141 --stat`.
 - release.yml gates: `sed -n '1,80p' .github/workflows/release.yml` (verify step at `if: github.event_name == 'release'`; push uses `--skip-duplicate` with 3 retries).

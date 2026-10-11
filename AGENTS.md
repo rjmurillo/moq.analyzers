@@ -1,11 +1,11 @@
-# Copilot & AI Agent Instructions
+# AI Agent Instructions
 
 ## 🚩 Quick Reference: Critical Rules for AI Agents
 
 | Rule | Requirement |
 | ------ | ------------- |
 | Quality Standard | Code MUST meet .NET BCL standards for quality and performance. These analyzers run on mission-critical codebases. |
-| .NET/C# Target | Development uses .NET 10 SDK (per global.json) with C# 14 language features; Analyzers and CodeFix must target .NET Standard 2.0 |
+| .NET/C# Target | Development uses .NET 10 SDK (per global.json) with C# 14 language features; Analyzers, CodeFix, and the shared `src/Common` code must target .NET Standard 2.0 |
 | No Trial-and-Error | Never guess or use trial-and-error; STOP if unsure |
 | Test Coverage | All changes must be covered by tests (including edge/failure paths) |
 | Formatting | Run `dotnet format` after every change |
@@ -42,7 +42,7 @@
 
 ---
 
-You are an experienced .NET developer working on Roslyn analyzers for the Moq framework. All code must target **.NET 10** and **C# 14**. Use only official .NET patterns and practices—**never** StackOverflow shortcuts. Keep responses clear, concise, and at a grade 9 reading level. Use plain English, avoid jargon. Follow SOLID, DRY, and YAGNI principles. Respond directly and keep explanations straightforward.
+You are an experienced .NET developer working on Roslyn analyzers for the Moq framework. The analyzer and code fix projects target **`netstandard2.0`** so they load in older hosts. So does the shared `src/Common` code, which compiles into both through `Common.projitems`. Do not retarget them. Tests and tools target **.NET 10** (`net10.0`). All projects build with the .NET 10 SDK and C# 14. Use only official .NET patterns and practices. **Never** use StackOverflow shortcuts. Keep responses clear, concise, and at a grade 9 reading level. Use plain English, avoid jargon. Follow SOLID, DRY, and YAGNI principles. Respond directly and keep explanations straightforward.
 
 ---
 
@@ -479,7 +479,7 @@ All commits must use the [Conventional Commits](https://www.conventionalcommits.
 
 ### AI Agent Accountability
 
-- If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
+- If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance. Explicitly check and enforce every rule in code and tests.
 - We are committed to maintaining high standards for code quality and collaboration. If code does not meet these guidelines, it may be revised or removed to ensure the best outcomes for the project.
 - AI agents are encouraged to review and learn from feedback. Consistently following these instructions helps everyone grow and keeps our project healthy and welcoming.
 
@@ -553,7 +553,7 @@ If you encounter:
 ### General Coding and Workflow Rules
 
 - Place new analyzers in `src/Analyzers/`, code fixes in `src/CodeFixes/`, and shared logic in `src/Common/`.
-- **Agent skills live in `.agents/skills/`, the cross-harness Agent Skills location.** Copilot CLI, Copilot cloud agent, VS Code, and Codex all read it. Do not add skills to `.github/skills/` or `.claude/skills/`. Keep other AI configuration under `.github/`, and keep shared instruction content in `.github/instructions/`.
+- **Agent skills live in `.agents/skills/`, the cross-harness Agent Skills location.** Copilot CLI, Copilot cloud agent, VS Code, and Codex all read it. Claude Code reads `.claude/skills/`, so `.claude/CLAUDE.md` tells it to create a local, git-ignored `.claude/skills` link to `../.agents/skills`. That link is allowed. Do not add or commit real skill files under `.github/skills/` or `.claude/skills/`. Keep other AI configuration under `.github/`, and keep shared instruction content in `.github/instructions/`.
 - Update `src/Analyzers/AnalyzerReleases.Unshipped.md` and add or update documentation in `docs/rules/` for each diagnostic.
 - **CRITICAL: Do not modify `AnalyzerReleases.Shipped.md`**. This file is an immutable record of past releases. All changes, including category or severity updates to existing rules, **MUST** be documented in `AnalyzerReleases.Unshipped.md`.
 - **Analyzer Release Notes Logic:** For this repository, `AnalyzerReleases.Unshipped.md` must **only** contain a `### New Rules` section. Any modification to a previously shipped rule (e.g., changing its category or severity) is listed as if it were a new rule in this file. The `Changed Rules` and `Removed Rules` sections are only used in `AnalyzerReleases.Shipped.md` when a release is being finalized.
@@ -568,7 +568,6 @@ If you encounter:
 
 ### AI Agent Compliance
 
-- If you are an AI agent, you must treat these rules as hard constraints. Do not infer, guess, or simulate compliance—explicitly check and enforce every rule in code and tests.
 - Never copy-and-tweak analyzer patterns. Re-read the requirements before you start.
 - If you find yourself guessing, stop and ask for more context or output a clear failure (e.g., `throw new NotImplementedException("Unclear requirement: ...")`).
 

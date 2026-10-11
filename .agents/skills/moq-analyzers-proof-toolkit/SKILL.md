@@ -245,7 +245,7 @@ parameter for Moq1100 — it varies by rule and is pinned by existing tests).
    carefully — the framework reports both — and treat the delta as information about
    your syntax-tree navigation, not as a number to patch in the test.
 
-**The STOP protocol (repo law, `AGENTS.md:513` and
+**The STOP protocol (repo law, `AGENTS.md` section "Step 3: Guiding Principles & CRITICAL Directives", and
 `CONTRIBUTING.md:1198`):**
 
 > If a diagnostic span test fails **even once**, you **MUST STOP** work on
