@@ -249,8 +249,9 @@ Without the analyzer, Moq 4.18.4 throws `ArgumentException` at run time with thi
 Invalid callback. Setup on method with parameters ({0}) cannot invoke callback with parameters ({1}).
 ```
 
-A callback for a `ref` or `out` parameter needs a custom delegate type. See [Moq1100](rules/Moq1100.md) for those
-patterns.
+A callback for a `ref` or `out` parameter needs a custom delegate type. On C# 10 or later, a typed lambda with a
+block body also works. For those patterns, and for `Returns`, `Callback<T>`, and async methods, see
+[How to use Callback in Moq](moq-callback.md).
 
 ## Constructor argument mistakes
 
@@ -683,7 +684,7 @@ check log output, see [Tests that verify logging](rules/Moq1004.md#tests-that-ve
 ### Why does my Moq Callback throw?
 
 The `Callback` parameters must match the signature of the method in `Setup`. [Moq1100](rules/Moq1100.md) flags a
-mismatch and offers a code fix.
+mismatch and offers a code fix. See [How to use Callback in Moq](moq-callback.md).
 
 ### How do I install Moq.Analyzers?
 

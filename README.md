@@ -44,6 +44,7 @@ something is wrong with your Moq configuration.
 For details on each rule, see the [rule reference](docs/rules/README.md).
 To find the rule behind a mistake, with examples and fixes, see [Common Moq mistakes](docs/common-moq-mistakes.md).
 To pass constructor arguments to a mock, see [Mocking a class with constructor parameters in Moq](docs/moq-constructor-arguments.md).
+To capture arguments or set `out` values with `Callback`, see [How to use Callback in Moq](docs/moq-callback.md).
 Rules Moq1200, Moq1207, and Moq1210 treat sealed default interface members as non-overridable because Moq cannot intercept them.
 
 ## Getting started
