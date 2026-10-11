@@ -156,5 +156,5 @@ artifacts — never commit them.
   facts owned by moq-analyzers-build-and-env and moq-analyzers-diagnostics-and-tooling —
   if a command changes there, change it here the same day.
 - Decision-principle ordering mirrors the project priority list in
-  `.github/copilot-instructions.md` ("Mission-Critical Quality Standard") — re-read
+  `AGENTS.md` ("Mission-Critical Quality Standard") — re-read
   that section if this file and it ever appear to disagree; it wins.

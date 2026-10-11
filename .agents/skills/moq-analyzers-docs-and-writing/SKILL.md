@@ -1,6 +1,6 @@
 ---
 name: moq-analyzers-docs-and-writing
-description: Maintains moq.analyzers documentation and writing standards. Load when adding or editing docs/rules/MoqXXXX.md pages, the README rule tables, ADRs under docs/architecture/, AnalyzerReleases files, CONTRIBUTING.md, or .github/copilot-instructions.md; when writing commit messages, PR descriptions, or release notes; when deciding which doc is the source of truth for a fact; or when a markdownlint/yamllint/super-linter gate fails on a doc change. Keywords - rule doc template, ADR template, docs update trigger, Conventional Commits, release-drafter, NuGet description, stale docs. Do NOT load for the mechanics of shipping a release or editing AnalyzerReleases.Shipped.md during release promotion (see moq-analyzers-rule-lifecycle), for CI/build setup (see moq-analyzers-build-and-env), or for writing analyzer code itself (see roslyn-analyzer-reference).
+description: Maintains moq.analyzers documentation and writing standards. Load when adding or editing docs/rules/MoqXXXX.md pages, the README rule tables, ADRs under docs/architecture/, AnalyzerReleases files, CONTRIBUTING.md, AGENTS.md, or the .github/copilot-instructions.md pointer; when writing commit messages, PR descriptions, or release notes; when deciding which doc is the source of truth for a fact; or when a markdownlint/yamllint/super-linter gate fails on a doc change. Keywords - rule doc template, ADR template, docs update trigger, Conventional Commits, release-drafter, NuGet description, stale docs. Do NOT load for the mechanics of shipping a release or editing AnalyzerReleases.Shipped.md during release promotion (see moq-analyzers-rule-lifecycle), for CI/build setup (see moq-analyzers-build-and-env), or for writing analyzer code itself (see roslyn-analyzer-reference).
 ---
 
 # moq.analyzers: docs of record, house style, and external positioning
@@ -27,8 +27,8 @@ PR (see moq-analyzers-change-control — never bypass review to "quickly fix doc
 | Rule category + ID-range allocation | `docs/rules/README.md` §"Guidance for Future Rules" | `src/Common/DiagnosticIds.cs` ordering; each analyzer's `DiagnosticDescriptor` category |
 | Release-tracking record of shipped/changed rules | `src/Analyzers/AnalyzerReleases.Shipped.md` (immutable) + `AnalyzerReleases.Unshipped.md` (pending) | None — this pair IS the record; build fails (RS2000 family) if a new rule is missing from Unshipped |
 | Architecture decisions | `docs/architecture/ADR-001` … `ADR-010` (10 files, 2026-07-02) | `.serena/memories/` summaries (informal, may be stale) |
-| Contributor workflow, commit format, release process | `CONTRIBUTING.md` | `.github/copilot-instructions.md` and `.github/instructions/*` (self-contained AI copies; drift is a known hazard, see §7) |
-| AI-agent hard constraints | `.github/copilot-instructions.md` (root `AGENTS.md` just includes it via `@.github/copilot-instructions.md`) | `.github/instructions/*.instructions.md` per file type |
+| Contributor workflow, commit format, release process | `CONTRIBUTING.md` | `AGENTS.md` and `.github/instructions/*` (self-contained AI copies; drift is a known hazard, see §7) |
+| AI-agent hard constraints | `AGENTS.md` (`AGENTS.md` is a short pointer to it for Copilot surfaces that do not read `AGENTS.md`) | `.github/instructions/*.instructions.md` per file type |
 | Dependency-update policy | `docs/dependency-management.md` (Renovate is the sole bot) | — |
 | NuGet package metadata (description, license, tags) | `Directory.Build.props` (`<Description>`) + `src/Analyzers/Moq.Analyzers.csproj` (package metadata block) | Root `README.md` is packed into the nupkg (`PackageReadmeFile`), so README claims ARE NuGet-page claims |
 | Release notes | GitHub Releases (drafted by `.github/release-drafter.yml`, hand-polished before publish) | `<PackageReleaseNotes>` links to the releases page |
@@ -40,7 +40,7 @@ without re-deriving it from the owner file first.
 
 ## 2. Doc-update triggers (the enforced rules, quoted)
 
-`.github/copilot-instructions.md` makes doc updates mandatory, not optional:
+`AGENTS.md` makes doc updates mandatory, not optional:
 
 - "Update `docs/rules/` and `README.md` for any analyzer, code fix, or workflow
   change" (Quick Reference table)
@@ -222,7 +222,7 @@ battles behind ADR-001, -003, -004, -010).
 These two files in `src/Analyzers/` are consumed by Roslyn's release-tracking
 analyzers (RS2000 family): a new diagnostic ID that is not listed FAILS THE BUILD.
 
-Hard rules (from `.github/copilot-instructions.md`, enforced by review):
+Hard rules (from `AGENTS.md`, enforced by review):
 
 - `AnalyzerReleases.Shipped.md` is an immutable record of past releases. Edit it
   ONLY during release promotion (move Unshipped rows under a new `## Release X.Y.Z`
@@ -234,13 +234,13 @@ Hard rules (from `.github/copilot-instructions.md`, enforced by review):
   (aligned with the README tables by PR #1087, which closed issue #944 on
   2026-03-15 — the old "everything says Usage" inconsistency is FIXED).
 
-KNOWN INCONSISTENCY (2026-07-02): `.github/copilot-instructions.md` states
+KNOWN INCONSISTENCY (2026-07-02): `AGENTS.md` states
 Unshipped "must only contain a `### New Rules` section", but the actual
 `AnalyzerReleases.Unshipped.md` on `main` contains both `### New Rules` (Moq1003,
 Moq1004, Moq1208, Moq1600) and a `### Changed Rules` section (the category
 realignment from PR #1087), and the build passes with it. **Do not treat the live
 file's shape as authoritative and do not append to `### Changed Rules`.** The root
-`.github/copilot-instructions.md` (loaded via `AGENTS.md`) is a higher-priority
+`AGENTS.md` is a higher-priority
 policy than this skill, so when you record a rule change, add it as a `### New
 Rules` row per that policy. Leave the pre-existing `### Changed Rules` block in
 place (the upstream Roslyn format tolerates it, which is why the build passes) but
@@ -258,7 +258,7 @@ their table format is dictated by Roslyn, not by markdownlint.
 ### Prose style
 
 - Target a grade 9 reading level, plain English, no unexplained jargon
-  (`.github/copilot-instructions.md`: "Keep responses clear, concise, and at a
+  (`AGENTS.md`: "Keep responses clear, concise, and at a
   grade 9 reading level. Use plain English, avoid jargon.").
 - Imperative voice in docs and commit subjects ("Add", "Guard", not "Added").
 - Define every term at first use; prefer tables and checklists over paragraphs.
@@ -289,7 +289,7 @@ Format (`CONTRIBUTING.md` §Commit Message Format):
 
 Use `.github/pull_request_template.md` (Description / Motivation and Context /
 Changes Made / Type of Change / Checklist). Every PR must additionally embed
-evidence blocks (`.github/copilot-instructions.md` §Required Validation Evidence):
+evidence blocks (`AGENTS.md` §Required Validation Evidence):
 
 - Output of `dotnet format`, `dotnet build`, `dotnet test`, and Codacy analysis
   (logs or screenshots).
@@ -329,7 +329,7 @@ normal change control; until then, do not propagate their claims.
 
 | Location | Stale claim | Ground truth |
 | --- | --- | --- |
-| `.github/copilot-instructions.md` (AnalyzerReleases paragraph) | Unshipped.md "must only contain a `### New Rules` section" | Actual `Unshipped.md` on `main` also carries `### Changed Rules` since PR #1087; build is green. See §5 |
+| `AGENTS.md` (AnalyzerReleases paragraph) | Unshipped.md "must only contain a `### New Rules` section" | Actual `Unshipped.md` on `main` also carries `### Changed Rules` since PR #1087; build is green. See §5 |
 | Issue #944 sometimes cited as open doc debt | "Unshipped categories all say Usage" | CLOSED as completed 2026-03-15 (fixed by PR #1087); do not re-file |
 
 General rule: `.serena/memories/` files are convenience summaries, not docs of

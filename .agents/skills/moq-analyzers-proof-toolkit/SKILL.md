@@ -245,7 +245,7 @@ parameter for Moq1100 — it varies by rule and is pinned by existing tests).
    carefully — the framework reports both — and treat the delta as information about
    your syntax-tree navigation, not as a number to patch in the test.
 
-**The STOP protocol (repo law, `.github/copilot-instructions.md:513` and
+**The STOP protocol (repo law, `AGENTS.md:513` and
 `CONTRIBUTING.md:1198`):**
 
 > If a diagnostic span test fails **even once**, you **MUST STOP** work on
@@ -533,7 +533,7 @@ own issue and review, not a test edit in passing.
 - Harness path unchanged: `ls .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh`
 - Roslyn pin: `grep -n "Microsoft.CodeAnalysis.CSharp\"" Directory.Packages.props` (4.8 as of 2026-07-02); Recipe 5 probes must track it
 - KnownSymbols test template: `ls tests/Moq.Analyzers.Test/Common/MoqKnownSymbolsTests.*.cs`
-- STOP protocol wording: `grep -n "even once" .github/copilot-instructions.md CONTRIBUTING.md`
+- STOP protocol wording: `grep -n "even once" AGENTS.md CONTRIBUTING.md`
 - Host-compat maxima: `grep -n "_MaxSystemCollectionsImmutable\|8.0.0.0" build/targets/packaging/Packaging.targets .github/workflows/main.yml | head`
 - Load-test matrix legs: count `tfm:` entries under `analyzer-load-test:` in `.github/workflows/main.yml` (9 as of 2026-07-02)
 - PerfDiff thresholds: `grep -rn "Threshold.Parse" src/tools/PerfDiff/BDN/Regression/` (35%; 5%+0.5ms ×2; 250ms; 100ms as of 2026-07-02)

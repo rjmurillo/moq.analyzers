@@ -6,13 +6,13 @@ description: Diagnose failures in the moq.analyzers repo by symptom — load thi
 # Debugging playbook: symptom → triage → fix
 
 This repo ships analyzers that run inside customers' compilers. Priority order
-(from `.github/copilot-instructions.md`): (1) no analyzer crashes, (2) no false
+(from `AGENTS.md`): (1) no analyzer crashes, (2) no false
 positives/negatives, (3) per-keystroke performance, (4) thread safety. The
 costliest historical failure mode here is *plausible-but-wrong fixes*: code
 nudged until a test passes, without understanding why it failed. This playbook
 exists to prevent that.
 
-**Cardinal rule (repo doctrine, `.github/copilot-instructions.md`): never
+**Cardinal rule (repo doctrine, `AGENTS.md`): never
 "fix" a failing test by slightly adjusting the code and re-running.** The fix
 must come from a deliberate, correct understanding of the failure. If a build
 or tool error message contains a URL, follow it first.
@@ -35,14 +35,14 @@ Terms used throughout:
 
 | # | Symptom | First discriminating check | Likely cause | Fix path | Story |
 |---|---|---|---|---|---|
-| 1 | Test fails: `Expected diagnostic to start on line/column ... was actually ...` (doctrine shorthand: "Expected span ... but got ...") | Is the *test markup* or the *analyzer* wrong? Markup is the pinned contract | Wrong syntax-node navigation in the analyzer | **STOP protocol** (section 1) — never nudge-and-rerun | Repo doctrine, `.github/copilot-instructions.md` |
+| 1 | Test fails: `Expected diagnostic to start on line/column ... was actually ...` (doctrine shorthand: "Expected span ... but got ...") | Is the *test markup* or the *analyzer* wrong? Markup is the pinned contract | Wrong syntax-node navigation in the analyzer | **STOP protocol** (section 1) — never nudge-and-rerun | Repo doctrine, `AGENTS.md` |
 | 2 | Build output shows AD0001; analyzer silently stops reporting | Get the exception stack from a binlog (`dotnet build -bl:msbuild.binlog`) | Unguarded cast/index/LINQ `Single` on mid-edit or exotic code | Fix root cause + regression test; never add catch blocks | Audit 2026-07-02: crash surfaces in section 2 |
 | 3 | CS8032 "analyzer could not be loaded" in a consumer project | Which host? Which dependency version does the shipped DLL reference? | Host-provided dependency (e.g. System.Collections.Immutable) bumped past the .NET 8 host ceiling | Respect version ceilings; see section 3 | Incident #850 (v0.4.0), fixed #888, release v0.4.1 |
 | 4 | User reports a diagnostic on correct code (FP) | Reproduce as a failing in-repo test FIRST, then against the built package | Missing syntactic-wrapper handling, or semantic check done by string name | Section 4; classification tree in moq-analyzers-fp-convergence-campaign | Moq1203 saga: 5 patches (section 4) |
 | 5 | User reports a missed diagnostic (FN) | Does the pattern even reach the analyzer? (Moq version, generic vs non-generic Setup, target-typed `new`) | Known analysis-scope gap or unresolved symbol | Section 5; never fix with string-name matching (ADR-001) | Known FN inventory in section 5 |
 | 6 | `PackageTests.Baseline` fails; `*.received.*` files appear | `git remote get-url origin` — is it a `https://github.com/...` URL? | Sandbox remote URL defeats the nuspec scrubber, OR a real packaging change | Section 6 | 2 sandbox-only failures observed 2026-07-02 |
 | 7 | `dotnet build` clean locally, CI build job fails with warnings-as-errors | Rerun with `dotnet build /p:PedanticMode=true` | PedanticMode divergence (warnings pass locally) | Section 7 | By-design divergence in `CodeAnalysis.targets` |
-| 8 | `MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed` | `git rev-parse --is-shallow-repository` | Shallow clone; NBGV needs full history | `git fetch --unshallow` | Documented in `.github/copilot-instructions.md` |
+| 8 | `MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed` | `git rev-parse --is-shallow-repository` | Shallow clone; NBGV needs full history | `git fetch --unshallow` | Documented in `AGENTS.md` |
 | 9 | New analyzer never runs in `AllAnalyzersVerifier` no-diagnostic suites (passes vacuously) | `grep -n "^namespace" src/Analyzers/YourAnalyzer.cs` | Namespace is not exactly `Moq.Analyzers` | Section 9 | Reflection discovery contract |
 | 10 | CI `perf` job (required check) fails | Read which strategy fired in the job log; compare baseline vs perfTest reports | Real regression, OR a known PerfDiff tool defect | Section 10 — decision procedure for "tool bug vs real" | Open defects #1265–#1269 (2026-07-02) |
 | 11 | A test class shows ~4x the rows you wrote | Count `WithNamespaces().WithMoqReferenceAssemblyGroups()` in the MemberData | Intentional fan-out: 2 namespaces x 2 Moq versions | Not a bug — section 11 | Test infra design |
@@ -64,7 +64,7 @@ followed by an `Expected diagnostic:` / `Actual diagnostic:` pair showing
 `// /0/Test0.cs(line,col,line,col): warning MoqXXXX: ...` for both. Repo docs
 refer to this class of failure as `Expected span ... but got ...`.
 
-**The STOP protocol** (verbatim doctrine from `.github/copilot-instructions.md`,
+**The STOP protocol** (verbatim doctrine from `AGENTS.md`,
 "Diagnostic Spans are Non-Negotiable"):
 
 1. All diagnostic spans MUST be character-precise.
@@ -329,7 +329,7 @@ error MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed un
 ```
 
 NBGV computes the version from git height; a shallow clone breaks it. Fix
-(documented in `.github/copilot-instructions.md`, "AI Agent Troubleshooting"):
+(documented in `AGENTS.md`, "AI Agent Troubleshooting"):
 
 ```bash
 git fetch --unshallow
@@ -477,7 +477,7 @@ CRLF (ADR-010; incident #1081). Check with `git ls-files --eol build/scripts`.
 
 Re-verify before trusting anything volatile:
 
-- STOP protocol wording: `grep -n "Expected span" .github/copilot-instructions.md`
+- STOP protocol wording: `grep -n "Expected span" AGENTS.md`
 - Span failure message templates: pinned by `Microsoft.CodeAnalysis.CSharp.CodeFix.Testing` version in `build/targets/tests/Packages.props` (1.1.2-beta1.24314.1 on 2026-07-02)
 - Crash-surface line numbers: `sed -n 383p src/Analyzers/ConstructorArgumentsShouldMatchAnalyzer.cs`, `sed -n 60p src/Common/SemanticModelExtensions.cs`, `sed -n 643p src/Common/WellKnown/MoqKnownSymbols.cs` — drift when files are edited; the fixes are tracked in issues #1241–#1264
 - Host-compat ceilings: `grep -n "MaxSystem" build/targets/packaging/Packaging.targets`

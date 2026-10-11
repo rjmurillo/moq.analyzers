@@ -105,7 +105,7 @@ in many CI/agent sandboxes) does not contain that history, and the build fails w
 error MSB4018: The "Nerdbank.GitVersioning.Tasks.GetBuildVersion" task failed unexpectedly.
 ```
 
-Fix (documented in `.github/copilot-instructions.md` and used by
+Fix (documented in `AGENTS.md` and used by
 `.github/workflows/copilot-setup-steps.yml`):
 
 ```bash
@@ -394,7 +394,7 @@ Re-verify each volatile claim with one command before trusting it after 2026-07-
 - LF rule for ps1: `grep -n 'ps1' .gitattributes` and `docs/architecture/ADR-010-eol-lf-for-powershell-files.md`
 - NuGet source mapping: `cat nuget.config`
 - Version stem / NBGV: `cat version.json`; `dotnet nbgv get-version`
-- Unshallow guidance still documented: `grep -n unshallow .github/copilot-instructions.md`
+- Unshallow guidance still documented: `grep -n unshallow AGENTS.md`
 - CI parity commands: `sed -n 25,35p .github/actions/setup-restore-build/action.yml` and `grep -n 'dotnet test' .github/workflows/main.yml`
 
 Last verified: 2026-07-02 against commit 05135b2.

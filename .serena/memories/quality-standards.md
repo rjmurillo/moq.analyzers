@@ -21,5 +21,5 @@ All code MUST adhere to the strict quality and performance standards of the .NET
 
 ## See Also
 
-- `.github/copilot-instructions.md` for full AI agent instructions
+- `AGENTS.md` for full AI agent instructions
 - `CONTRIBUTING.md` for general contributor guidance

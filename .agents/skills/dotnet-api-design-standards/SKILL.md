@@ -11,7 +11,7 @@ crash-free, allocation-conscious, thread-safe by default, precisely documented, 
 API shapes (Try-patterns, nullability, exception contracts) that cannot be misused.
 
 **Why the bar is this high:** these analyzers execute inside consumers' compilers and
-IDEs on every keystroke, in mission-critical codebases. `.github/copilot-instructions.md`
+IDEs on every keystroke, in mission-critical codebases. `AGENTS.md`
 (the repo's binding AI/contributor contract) states: *"All code MUST adhere to the strict
 quality and performance standards of the .NET Base Class Library (BCL)"* and *"An analyzer
 crash is worse than a missed diagnostic."* Every rule below is enforced somewhere
@@ -25,7 +25,7 @@ When two guidelines conflict, the higher priority wins.
 
 ## 1. Naming conventions
 
-### 1.1 File and type naming (mandatory, from `.github/copilot-instructions.md` "AI Agent Coding Rules" #3)
+### 1.1 File and type naming (mandatory, from `AGENTS.md` "AI Agent Coding Rules" #3)
 
 | Artifact | Pattern | Real example (verified 2026-07-02) |
 |---|---|---|
@@ -442,7 +442,7 @@ Re-verify volatile claims with these one-liners (repo root):
 - Rule registry row count (25 rules as of 2026-07-02): `grep -c "^| \[Moq" docs/rules/README.md`.
 - Issue states (open as of 2026-07-02): #1257 (Enum.TryParse/stale-shape), #1259 (name pre-filters + CancellationToken), #1260 (defer report-path allocations) — check `https://github.com/rjmurillo/moq.analyzers/issues/1257` etc.
 - Hardening-history commits: `git log --oneline --all | grep -E "ffed678|f9ec6ca|c61a66a|f0161a7|9febdda|3b5ac71|7595080"`.
-- Naming rules source: `.github/copilot-instructions.md` ("AI Agent Coding Rules" #3); BCL mandate: same file, "Mission-Critical Quality Standard".
+- Naming rules source: `AGENTS.md` ("AI Agent Coding Rules" #3); BCL mandate: same file, "Mission-Critical Quality Standard".
 - Cyclomatic ≤10 has no `.editorconfig` pin — if one appears (`grep -rn -i "cyclomatic" .editorconfig build/`), update §8.
 
 - Frontmatter must stay parser-safe (strict YAML: quote the description; no unquoted `#`); validate with any strict YAML parser before committing changes to this file.
