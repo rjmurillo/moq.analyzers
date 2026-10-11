@@ -273,9 +273,10 @@ int count = await mock.Object.CountAsync("A1"); // count is 3, skus holds "A1"
 
 ## Errors you might see
 
-Moq checks the callback when the `Callback` or `Returns` line runs. The test fails on the setup line, before your
-code calls the mocked method. Each case below throws `System.ArgumentException`. The text is from Moq 4.18.4 and
-4.20.72.
+Each case below throws `System.ArgumentException`. The text is from Moq 4.18.4 and 4.20.72.
+
+Moq checks the first three cases when the `Callback` or `Returns` line runs. The test fails on the setup line, before
+your code calls the mocked method. The fourth case fails later, when the mocked method is called.
 
 A `Callback` with the wrong number, order, or type of parameters:
 
@@ -295,7 +296,7 @@ A delegate with a return value passed to `Callback`:
 Invalid callback. This overload of the "Callback" method only accepts "void" (C#) or "Sub" (VB.NET) delegates with parameter types matching those of the set up method.
 ```
 
-One case fails later. A `Returns` lambda with the right number of parameters and the wrong types passes setup. For
+A `Returns` lambda with the right number of parameters and the wrong types passes setup. For
 example, `Returns((string sku, int id, DateTime at) => 1)` throws this when `Place` is called:
 
 ```text
@@ -304,7 +305,8 @@ Object of type 'System.Int32' cannot be converted to type 'System.String'.
 
 Older versions, such as Moq 4.10.1, print CLR type names in the first message, as in `(Int32,String,DateTime)`.
 
-Moq1100 reports the first, second, and fourth case at build time:
+Moq1100 reports three of these at build time: the `Callback` mismatch, the `Returns` lambda with the wrong number of
+parameters, and the `Returns` lambda with the wrong parameter types.
 
 ```text
 warning Moq1100: Callback signature for 'Place' must match the signature of the mocked method
