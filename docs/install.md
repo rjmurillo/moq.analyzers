@@ -1,18 +1,19 @@
 # Install Moq.Analyzers in every test project
 
-Run `dotnet add package Moq.Analyzers` in one test project, or add one `PackageReference` to a `Directory.Build.props`
-file to cover every project under a folder. Mark a reference you write by hand with `PrivateAssets="all"`, so the
-analyzer does not flow to projects or packages that reference yours.
+Run `dotnet add package Moq.Analyzers` in one test project. To cover every project under a folder, add one
+`PackageReference` to a `Directory.Build.props` file. Mark a reference you write by hand with `PrivateAssets="all"`.
+That keeps the analyzer out of projects and packages that reference yours.
 
 | You want to cover | Add this | Where |
 | ----------------- | -------- | ----- |
 | One project | `dotnet add package Moq.Analyzers` | The test project folder |
 | Every project under a folder | A `PackageReference` item | `Directory.Build.props` in that folder |
 | Only the projects that reference Moq | A conditional `PackageReference` item | `Directory.Build.targets` at the repository root |
-| A repository that uses central package management | A `PackageVersion` item plus a `PackageReference` item, or one `GlobalPackageReference` item | `Directory.Packages.props` |
+| A repository that uses central package management | A `PackageVersion` item plus a versionless `PackageReference` item | `Directory.Packages.props` for the version, `Directory.Build.props` for the reference |
+| Every project in a repository that uses central package management | One `GlobalPackageReference` item | `Directory.Packages.props` |
 
-Every snippet on this page was built with .NET SDK 10.0.401 and Moq.Analyzers 0.4.2. The sample solution has one xUnit
-test project that references Moq and one class library that does not.
+The sample solution behind this page builds every snippet with .NET SDK 10.0.401 and Moq.Analyzers 0.4.2. It has one
+xUnit test project that references Moq and one class library that does not.
 
 ## Contents
 
@@ -35,6 +36,8 @@ test project that references Moq and one class library that does not.
   that does not use Moq.
 
 In the snippets, replace `x.y.z` with the current version on [NuGet](https://www.nuget.org/packages/Moq.Analyzers).
+With central package management, remove `Version` from each `PackageReference` snippet and add a `PackageVersion`
+item. See [Central package management](#central-package-management).
 
 ## One project
 
@@ -53,7 +56,7 @@ The command writes this reference to the project file:
 </PackageReference>
 ```
 
-The command adds `PrivateAssets` because the package is marked as a
+The command adds `PrivateAssets` because Moq.Analyzers declares itself a
 [development dependency](https://learn.microsoft.com/en-us/nuget/reference/nuspec#developmentdependency).
 
 ## Every test project with Directory.Build.props
@@ -69,8 +72,8 @@ in the folder that holds your test projects, for example `tests/Directory.Build.
 </Project>
 ```
 
-Keep `PrivateAssets="all"`. Only `dotnet add package` adds it for you. Without it, the sample build showed two
-problems:
+Keep `PrivateAssets="all"`. `dotnet add package` adds it for you. A `PackageReference` you write by hand does not get
+it. Without it, the sample build showed two problems:
 
 - A project that references yours also runs the analyzer.
 - `dotnet pack` lists Moq.Analyzers as a dependency of your package.
@@ -96,10 +99,10 @@ repository root. The condition adds the analyzer to each project that references
 ```
 
 This condition must go in `Directory.Build.targets`. MSBuild imports `Directory.Build.props` before it reads the
-project's own package references, so the same condition in `Directory.Build.props` adds nothing.
+project file. The same condition in `Directory.Build.props` cannot see references declared in the project file.
 
-The condition checks direct references only. A project that gets Moq through another project needs its own Moq
-reference, or a reference to Moq.Analyzers in its project file.
+The condition checks direct references only. In the sample, a project that got Moq through a project reference did
+not get the analyzer. Give that project its own Moq.Analyzers reference.
 
 ### Do not rely on IsTestProject from the test SDK
 
@@ -112,7 +115,7 @@ A condition on `IsTestProject` looks like the obvious choice:
 ```
 
 In the sample, this condition added nothing, in `Directory.Build.props` and in `Directory.Build.targets`. The
-`Microsoft.NET.Test.Sdk` package sets `IsTestProject`, and NuGet restore does not import properties from packages. The
+`Microsoft.NET.Test.Sdk` package sets `IsTestProject`. NuGet restore does not import properties from packages. The
 property is empty when restore decides which packages to download.
 
 The condition works when each test project sets the property in its own project file:
@@ -179,7 +182,8 @@ A `GlobalPackageReference` item adds the package to every project in the reposit
 ```
 
 NuGet applies `PrivateAssets="All"` to a global package reference, so you do not set it. You need no
-`PackageReference` item and no `PackageVersion` item. Global package references need .NET SDK 7.0.100 or later. See
+`PackageReference` item and no `PackageVersion` item. Global package references need .NET SDK 7.0.100 or Visual Studio
+2022 17.4, or later. See
 [Global package references](https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management#global-package-references)
 on Microsoft Learn.
 
@@ -212,7 +216,8 @@ Add a mock with no explicit behavior to a test:
 var mock = new Mock<ISample>();
 ```
 
-Run `dotnet build`. The build reports [Moq1400](rules/Moq1400.md) on that line:
+Run `dotnet build --no-incremental`. The build reports [Moq1400](rules/Moq1400.md) on that line. The output below
+has shortened paths:
 
 ```text
 tests/Sample.Tests/UnitTest1.cs(15,20): warning Moq1400: Explicitly choose a mocking behavior for Sample.Tests.ISample instead of relying on the default (Loose) behavior (https://github.com/rjmurillo/moq.analyzers/blob/80cffeef62f9c25df474e55811f6d4960d5d3645/docs/rules/Moq1400.md) [tests/Sample.Tests/Sample.Tests.csproj]
@@ -220,8 +225,11 @@ tests/Sample.Tests/UnitTest1.cs(15,20): warning Moq1400: Explicitly choose a moc
 
 If you see no warning, check these items:
 
+- The build compiled the project. A second `dotnet build` with no changes skips the compile step and prints no
+  warnings. `--no-incremental` forces a compile.
 - The project references Moq.
-- The file name is exactly `Directory.Build.props`. Linux file systems are case sensitive.
+- The file name is exactly `Directory.Build.props` or `Directory.Build.targets`. Linux file systems are case
+  sensitive.
 - The file sits in the project folder or in a folder above it.
 - No closer `Directory.Build.props` file hides it. See
   [Nested Directory.Build.props files](#nested-directorybuildprops-files).
@@ -238,7 +246,7 @@ dotnet_diagnostic.Moq1400.severity = error
 dotnet_diagnostic.Moq1410.severity = none
 ```
 
-In the sample, `error` failed the build on the Moq1400 line, and `none` removed the diagnostic.
+In the sample, `error` failed the build on the Moq1400 line. Setting Moq1400 to `none` removed the warning.
 
 A [global AnalyzerConfig file](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-files#global-analyzerconfig)
 named `.globalconfig` at the repository root also worked in the sample:
@@ -266,7 +274,7 @@ Add a `PackageReference` item to a `Directory.Build.props` file in the folder th
 ### Do I need PrivateAssets="all"?
 
 Yes, when you write the reference by hand. `dotnet add package` and `GlobalPackageReference` set it for you. Without
-it, the analyzer flows to projects that reference yours, and `dotnet pack` lists it as a dependency of your package.
+it, the analyzer flows to projects that reference yours. `dotnet pack` also lists it as a dependency of your package.
 
 ### Will it affect projects that do not use Moq?
 
