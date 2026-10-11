@@ -343,7 +343,7 @@ These tools enforce the project's "No Trial-and-Error" policy by requiring struc
 
 ### Mandatory Workflow Integration
 
-- **Always check and follow** `.editorconfig` and all instructions in `AGENTS.md` before editing or creating C# files.
+- **Always check and follow** `.editorconfig` and all instructions in this file before editing or creating C# files.
 - **Always check for and follow** any new rules in `.github/instructions/`, `.github/prompts/`, `.editorconfig`, and `AGENTS.md` before making changes.
 - **Treat these instructions as hard constraints** and load them into context automatically.
 

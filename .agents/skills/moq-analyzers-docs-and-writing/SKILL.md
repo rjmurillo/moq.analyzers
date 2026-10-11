@@ -28,7 +28,7 @@ PR (see moq-analyzers-change-control — never bypass review to "quickly fix doc
 | Release-tracking record of shipped/changed rules | `src/Analyzers/AnalyzerReleases.Shipped.md` (immutable) + `AnalyzerReleases.Unshipped.md` (pending) | None — this pair IS the record; build fails (RS2000 family) if a new rule is missing from Unshipped |
 | Architecture decisions | `docs/architecture/ADR-001` … `ADR-010` (10 files, 2026-07-02) | `.serena/memories/` summaries (informal, may be stale) |
 | Contributor workflow, commit format, release process | `CONTRIBUTING.md` | `AGENTS.md` and `.github/instructions/*` (self-contained AI copies; drift is a known hazard, see §7) |
-| AI-agent hard constraints | `AGENTS.md` (`AGENTS.md` is a short pointer to it for Copilot surfaces that do not read `AGENTS.md`) | `.github/instructions/*.instructions.md` per file type |
+| AI-agent hard constraints | `AGENTS.md` (`.github/copilot-instructions.md` is a short pointer to it for Copilot surfaces that do not read `AGENTS.md`) | `.github/instructions/*.instructions.md` per file type |
 | Dependency-update policy | `docs/dependency-management.md` (Renovate is the sole bot) | — |
 | NuGet package metadata (description, license, tags) | `Directory.Build.props` (`<Description>`) + `src/Analyzers/Moq.Analyzers.csproj` (package metadata block) | Root `README.md` is packed into the nupkg (`PackageReadmeFile`), so README claims ARE NuGet-page claims |
 | Release notes | GitHub Releases (drafted by `.github/release-drafter.yml`, hand-polished before publish) | `<PackageReleaseNotes>` links to the releases page |
