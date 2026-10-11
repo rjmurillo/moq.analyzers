@@ -43,9 +43,8 @@ something is wrong with your Moq configuration.
 
 For details on each rule, see the [rule reference](docs/rules/README.md).
 To find the rule behind a mistake, with examples and fixes, see [Common Moq mistakes](docs/common-moq-mistakes.md).
-To choose analyzers for the rest of your test project, see
-[Analyzers that pair well with Moq.Analyzers](docs/recommended-analyzers.md).
 Rules Moq1200, Moq1207, and Moq1210 treat sealed default interface members as non-overridable because Moq cannot intercept them.
+For analyzers that cover the rest of a test project, see [Analyzers that pair well with Moq.Analyzers](docs/recommended-analyzers.md).
 
 ## Getting started
 

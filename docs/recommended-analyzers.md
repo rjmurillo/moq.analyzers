@@ -110,13 +110,14 @@ when the test runs. A mocking analyzer reports the mistake when you build.
 
 Use the analyzer that matches the library your tests call. An analyzer for a library you do not use reports nothing.
 
-Moq.Analyzers has 25 rules. Three examples:
+Moq.Analyzers has rules for setups, callbacks, events, and mock construction. Three examples:
 
-- [Moq1200](rules/Moq1200.md) reports a `Setup` on a non-virtual member.
+- [Moq1200](rules/Moq1200.md) reports a `Setup` on a member Moq cannot override.
 - [Moq1000](rules/Moq1000.md) reports a mock of a sealed class.
 - [Moq1100](rules/Moq1100.md) reports a `Callback` whose parameters do not match the method.
 
-To see every rule with an example and a fix, see [Common Moq mistakes](common-moq-mistakes.md).
+For the full list, see the [rule reference](rules/README.md). To see every rule with an example and a fix, see
+[Common Moq mistakes](common-moq-mistakes.md).
 
 For NSubstitute rules, see the
 [NSubstitute.Analyzers rule pages](https://github.com/nsubstitute/NSubstitute.Analyzers/tree/master/documentation/rules).
