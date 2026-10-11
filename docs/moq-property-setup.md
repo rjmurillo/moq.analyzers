@@ -4,6 +4,8 @@ Use `SetupGet` (or `Setup`) to return a fixed value from a property getter. Use 
 should remember values your code assigns. Use `SetupSet` to match assignments and `VerifySet` to verify them.
 `SetupGet`, `SetupSet`, and `SetupProperty` only work on properties.
 [Moq.Analyzers](https://www.nuget.org/packages/Moq.Analyzers) rule [Moq1101](rules/Moq1101.md) flags them on methods.
+Version 0.4.2 misses the generic `SetupSet<string>` form. See
+[Property setups on a method (Moq1101)](#property-setups-on-a-method-moq1101).
 
 | You want to | Use | Example |
 | ----------- | --- | ------- |
@@ -195,8 +197,8 @@ If your code assigned a different value, `VerifySet` throws `MockException`. The
 Expected invocation on the mock once, but was 0 times: x => x.Name = "Grace"
 ```
 
-On a strict mock, the assignment itself throws unless the setter has a setup, so add `SetupSet` or `SetupProperty`
-first. `VerifySet` then works the same way.
+On a strict mock, the assignment throws `MockException` unless you set the property up first with `SetupSet` or
+`SetupProperty`. `VerifySet` itself needs no setup.
 `VerifyGet(x => x.Name, Times.Once())` checks reads.
 
 ### Is SetupSet obsolete?
