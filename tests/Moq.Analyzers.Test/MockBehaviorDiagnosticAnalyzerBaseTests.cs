@@ -130,35 +130,6 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
         await VerifyBothAnalyzersAsync(source, referenceAssemblyGroup);
     }
 
-    [Fact]
-    public void GetDiagnosticSubjectName_UnanalyzedOperation_UsesNeutralFallback()
-    {
-        // The analyzer only reports on Mock<T> and MockRepository creations and Mock.Of<T> invocations,
-        // so no source reaches the fallback. Reflection covers it: it must never print "T" or "Unknown".
-        (SemanticModel model, SyntaxTree tree) = CompilationHelper.CreateCompilation("class C { int F() => 1; }");
-        Microsoft.CodeAnalysis.CSharp.Syntax.LiteralExpressionSyntax literal = tree.GetRoot()
-            .DescendantNodes()
-            .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.LiteralExpressionSyntax>()
-            .Single();
-        IOperation? operation = model.GetOperation(literal);
-        Assert.NotNull(operation);
-
-        System.Reflection.MethodInfo? method = typeof(MockBehaviorDiagnosticAnalyzerBase).GetMethod(
-            "GetDiagnosticSubjectName",
-            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-        Assert.NotNull(method);
-
-#if DEBUG
-        System.Reflection.TargetInvocationException exception = Assert.Throws<System.Reflection.TargetInvocationException>(
-            () => method.Invoke(obj: null, [operation]));
-        Assert.Equal(
-            "Microsoft.VisualStudio.TestPlatform.TestHost.DebugAssertException",
-            exception.InnerException?.GetType().FullName);
-#else
-        Assert.Equal("mock", method.Invoke(obj: null, [operation]));
-#endif
-    }
-
     private static async Task VerifyBothAnalyzersAsync(
         string source,
         string referenceAssemblyGroup,

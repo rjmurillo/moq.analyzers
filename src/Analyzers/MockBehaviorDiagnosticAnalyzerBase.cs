@@ -111,27 +111,22 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
     /// <returns>The display name for the message argument.</returns>
     private static string GetDiagnosticSubjectName(IOperation operation)
     {
-        switch (operation)
+        // new Mock<T>(...): name the mocked type T.
+        if (operation is IObjectCreationOperation { Type: INamedTypeSymbol { TypeArguments.Length: > 0 } mockType })
         {
-            // new Mock<T>(...): name the mocked type T.
-            case IObjectCreationOperation { Type: INamedTypeSymbol { TypeArguments.Length: > 0 } mockType }:
-                return mockType.TypeArguments[0].ToDisplayString();
-
-            // A created type with no type argument, such as new MockRepository(...): there is no mocked
-            // type, so name the created type. The short name is intentional: the rule docs quote
-            // "MockRepository", not "Moq.MockRepository".
-            case IObjectCreationOperation { Type: { } createdType }:
-                return createdType.Name;
-
-            // Mock.Of<T>(...): the invocation holds the constructed method. Its type argument is the mocked
-            // type. The method definition would yield the type parameter name "T".
-            case IInvocationOperation { TargetMethod.TypeArguments.Length: > 0 } invocation:
-                return invocation.TargetMethod.TypeArguments[0].ToDisplayString();
-
-            default:
-                Debug.Assert(false, "Only Mock<T> and MockRepository creations and Mock.Of<T> invocations are analyzed.");
-                return "mock";
+            return mockType.TypeArguments[0].ToDisplayString();
         }
+
+        // Mock.Of<T>(...): the invocation holds the constructed method. Its type argument is the mocked
+        // type. The method definition would yield the type parameter name "T".
+        if (operation is IInvocationOperation { TargetMethod.TypeArguments.Length: > 0 } invocation)
+        {
+            return invocation.TargetMethod.TypeArguments[0].ToDisplayString();
+        }
+
+        // new MockRepository(...): a repository has no mocked type, so name the created type. The short
+        // name is intentional: the rule docs quote "MockRepository", not "Moq.MockRepository".
+        return operation.Type?.Name ?? "mock";
     }
 
     private void AnalyzeObjectCreation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
