@@ -126,7 +126,8 @@ The condition works when each test project sets the property in its own project 
 </PropertyGroup>
 ```
 
-With that property in place, the condition worked in both files.
+With that property in place, the condition worked in both files. It works in `Directory.Build.props` because MSBuild
+evaluates every property in the project before it evaluates any item.
 
 ## Central package management
 
