@@ -8,7 +8,8 @@ name: Auto-Approve and Auto-Merge Bot PRs
 # See: https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened]
+    # labeled lets the Renovate job re-check after Renovate applies its labels.
+    types: [opened, synchronize, reopened, labeled]
 
 permissions: {}
 
@@ -16,22 +17,25 @@ jobs:
   dependabot:
     name: Dependabot (GitHub Actions)
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
     runs-on: ubuntu-26.04-arm
-    if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
+    if: >-
+      github.event.action != 'labeled' &&
+      (github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]')
     steps:
       - name: Fetch metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
         with:
-          github-token: "${{ secrets.GH_ACTIONS_PR_WRITE }}"
+          github-token: "${{ github.token }}"
 
       - name: Approve PR
+        if: steps.dependabot-metadata.outputs.update-type != 'version-update:semver-major'
         run: gh pr review --approve "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: Enable auto-merge for non-major updates
         if: steps.dependabot-metadata.outputs.update-type != 'version-update:semver-major'
@@ -46,28 +50,49 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-26.04-arm
     if: github.actor == 'renovate[bot]'
+    # Renovate adds several labels in one call, and each one fires a labeled
+    # event. Keep only the newest run per PR to avoid duplicate approvals.
+    concurrency:
+      group: renovate-approve-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       # Renovate handles auto-merge decisions via platformAutomerge and
       # per-package automerge rules in renovate.json. This workflow only
-      # provides the required approval for non-major updates. Major-version
-      # bumps are excluded from auto-approval and require manual review.
-      # Packages with automerge: false (analyzer-compat, benchmark-tooling)
-      # will not have auto-merge enabled by Renovate, so they require
-      # manual merge after review.
-      - name: Detect major update
-        id: detect-major
+      # provides the required approval for non-major updates. Packages with
+      # automerge: false (analyzer-compat, benchmark-tooling) will not have
+      # auto-merge enabled by Renovate, so they require manual merge.
+      #
+      # Major updates carry the major-update label, which renovate.json adds.
+      # Renovate opens the PR first and adds labels in a second API call, so
+      # the opened event payload has no labels yet. The gate reads labels
+      # from the API and fails closed: it approves only when the renovate
+      # label is present (Renovate's label call has finished) and
+      # major-update is absent. The labeled trigger re-runs the check once
+      # Renovate adds its labels.
+      #
+      # Caveat: anyone with triage permission can remove labels. Removing
+      # major-update from a major PR would let the next run approve it. In a
+      # single-maintainer repository this is acceptable, and it is stronger
+      # than the old PR title check, which Renovate's title format had
+      # already broken.
+      - name: Check update labels
+        id: labels
         run: |
-          if echo "$PR_TITLE" | grep -qiE '\(major\)'; then
-            echo "is_major=true" >> "$GITHUB_OUTPUT"
+          labels="$(gh pr view "$PR_URL" --json labels --jq '.labels[].name')"
+          if grep -qxF 'renovate' <<< "$labels" && ! grep -qxF 'major-update' <<< "$labels"; then
+            approve=true
           else
-            echo "is_major=false" >> "$GITHUB_OUTPUT"
+            approve=false
           fi
+          echo "Labels: $(paste -sd, <<< "$labels"); approve=$approve"
+          echo "approve=$approve" >> "$GITHUB_OUTPUT"
         env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
 
       - name: Approve PR
-        if: steps.detect-major.outputs.is_major != 'true'
+        if: steps.labels.outputs.approve == 'true'
         run: gh pr review --approve "$PR_URL"
         env:
-          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
+          GH_TOKEN: ${{ github.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}

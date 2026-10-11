@@ -122,7 +122,21 @@ This allows the central pin (8.0.0) to protect shipped analyzer DLLs while letti
 
 A consolidated workflow (`.github/workflows/dependabot-approve-and-auto-merge.yml`) handles auto-approval for dependency update PRs.
 
-- **Renovate** (NuGet and GitHub Actions): The workflow approves the PR. Auto-merge is controlled by Renovate via `platformAutomerge: true` and per-package `automerge` rules in `renovate.json`. Packages with `automerge: false` (for example, `analyzer-compat`, `benchmark-tooling`) require manual merge after review.
+- **Renovate** (NuGet and GitHub Actions): The workflow approves non-major PRs. Auto-merge is controlled by Renovate via `platformAutomerge: true` and per-package `automerge` rules in `renovate.json`. Packages with `automerge: false` (for example, `analyzer-compat`, `benchmark-tooling`) require manual merge after review.
   - Auto-merged: minor and patch updates for packages at 1.0 or later, lock file maintenance, and GitHub Actions digest updates.
   - Manual merge: major updates and packages below 1.0.
-- **Security alerts**: GitHub may open security alert PRs regardless of bot configuration. These are a repo-level setting, not controlled by any config file. The workflow approves and enables auto-merge for non-major security updates.
+- **Security alerts**: GitHub may open security alert PRs regardless of bot configuration. These are a repo-level setting, not controlled by any config file. The workflow approves and enables auto-merge only for non-major security updates. It does not approve major security updates.
+
+### NuGet release cooldown
+
+Renovate waits 14 days after a NuGet release before it proposes a minor or patch update. The rule uses `minimumReleaseAge` and applies to packages at 1.0 or later. The shipped analyzer runs inside consumers' compilers. The wait gives the ecosystem time to catch a bad release before it can auto-merge.
+
+Renovate does not create the branch or PR until the release is 14 days old. This comes from the default `internalChecksFilter: strict` setting. Updates that are still waiting show in the Dependency Dashboard. GitHub Actions updates have no cooldown.
+
+### Major update gate
+
+Renovate adds the `renovate` label to every PR it opens. It also adds the `major-update` label to major updates. It adds all labels in one API call, after it opens the PR.
+
+The workflow reads the PR labels from the API. It approves only when `renovate` is present and `major-update` is absent. A PR that has no labels yet gets no approval. The workflow runs again on the `labeled` event, once Renovate adds its labels.
+
+Anyone with triage permission can remove a label. If someone removes `major-update` from a major PR, the next run approves it.
