@@ -15,7 +15,7 @@ namespace Moq.Analyzers.Test;
 /// Subclass-specific tests live in SetExplicitMockBehaviorAnalyzerTests and
 /// SetStrictMockBehaviorAnalyzerTests.
 ///
-/// Not tested: MockBehavior-is-null branch (line 89-92 of MockBehaviorDiagnosticAnalyzerBase).
+/// Not tested: MockBehavior-is-null branch of RegisterCompilationActions in MockBehaviorDiagnosticAnalyzerBase.
 /// This guard requires a compilation where Moq.Mock resolves but Moq.MockBehavior does not.
 /// That scenario cannot occur with any real Moq assembly.
 /// </remarks>

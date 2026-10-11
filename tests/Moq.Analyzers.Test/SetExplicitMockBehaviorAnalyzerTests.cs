@@ -219,14 +219,14 @@ public class SetExplicitMockBehaviorAnalyzerTests
         System.Reflection.TargetInvocationException exception = Assert.Throws<System.Reflection.TargetInvocationException>(
             () => method.Invoke(
                 analyzer,
-                [default(Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext), null, knownSymbols, null, null]));
+                [default(Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext), null, knownSymbols, null]));
         Assert.Equal(
             "Microsoft.VisualStudio.TestPlatform.TestHost.DebugAssertException",
             exception.InnerException?.GetType().FullName);
 #else
         object? result = method.Invoke(
             analyzer,
-            [default(Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext), null, knownSymbols, null, null]);
+            [default(Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext), null, knownSymbols, null]);
         Assert.False(Assert.IsType<bool>(result));
 #endif
 #pragma warning restore ECS0900
