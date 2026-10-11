@@ -191,6 +191,9 @@ mock.Setup(x => x.CountAsync()).Returns(() => 3); // Moq1208
 warning Moq1208: Returns() delegate for async method 'CountAsync' should return 'ValueTask<int>', not 'int'. Use ReturnsAsync() or wrap with Task.FromResult().
 ```
 
+The message text is the same for every return type. `Task.FromResult(3)` returns `Task<int>`, so it does not fit
+this `ValueTask<int>` method. Use `ReturnsAsync(3)`, or `Returns(() => new ValueTask<int>(3))`.
+
 With C# 10 or later, this line compiles. Without the analyzer, you find the mistake when the test runs. Moq throws
 `System.ArgumentException` as soon as `Returns` runs. Checked at Moq 4.18.4 and 4.20.72:
 
