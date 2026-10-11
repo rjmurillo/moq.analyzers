@@ -43,6 +43,7 @@ something is wrong with your Moq configuration.
 
 For details on each rule, see the [rule reference](docs/rules/README.md).
 To find the rule behind a mistake, with examples and fixes, see [Common Moq mistakes](docs/common-moq-mistakes.md).
+To pass constructor arguments to a mock, see [Mocking a class with constructor parameters in Moq](docs/moq-constructor-arguments.md).
 To set up async methods with `ReturnsAsync`, see [How to set up async methods in Moq](docs/moq-returnsasync.md).
 Rules Moq1200, Moq1207, and Moq1210 treat sealed default interface members as non-overridable because Moq cannot intercept them.
 
@@ -56,6 +57,8 @@ To install Moq.Analyzers from NuGet, run this command in each test project:
 ```shell
 dotnet add package Moq.Analyzers
 ```
+
+To install in every test project at once, see [Install Moq.Analyzers in every test project](docs/install.md).
 
 After you install the package, the analyzers report diagnostics when you build and in IDEs that support Roslyn
 analyzers.
@@ -71,10 +74,16 @@ on Microsoft Learn.
 Moq.Analyzers keeps growing, and we welcome your help. You can report issues, build new features, or improve the
 documentation. To get started, see the [contributing guide](./CONTRIBUTING.md).
 
-- Docs-only pull requests skip build and test. Because no code changed, CI reports the base commit's coverage to
-  Codacy for them.
-- The list of skippable paths lives in `build/scripts/ci/classify-changed-paths.sh`. Any path not on that list
-  runs the full pipeline.
+- CI sorts each pull request into a tier based on the files it changes:
+  - Docs-only pull requests skip build and test.
+  - Pull requests that change rule pages or `README.md` build the package and run only the tests that read those
+    files.
+  - Pull requests that cannot change benchmark results, such as test-only changes, skip the perf job.
+  - All other pull requests run the full pipeline.
+- When a pull request skips the full test run, CI reports the base commit's coverage to Codacy, because no measured
+  code changed.
+- The tier rules live in `build/scripts/ci/classify-changed-paths.sh`. Any path the script does not name runs the
+  full pipeline.
 - CI keeps artifacts from the main and mutation-testing workflows for seven days. For details, see the
   [CI workflow requirements](./CONTRIBUTING.md#ci-workflow-requirements).
 - To learn what a pull request needs before it can merge, see the [merge requirements](./docs/merge-requirements.md).

@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    MSBuild imports this file into solution builds, such as `dotnet test Moq.Analyzers.sln`.
+    Solution builds do not import Directory.Build.props, so define the shared paths here too.
+  -->
+  <PropertyGroup>
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+  </PropertyGroup>
+
+  <Import Project="build/targets/artifacts/Artifacts.props" />
+</Project>

@@ -79,6 +79,12 @@ The warm-up adds about one minute. It fails the comparison if it exits with an e
 
 > NOTE: Without `-diff` there is no warm-up. That run is the first process, so its absolute numbers can read about 25% fast on CI runners.
 
+## Same Runtime for Both Runs
+
+The benchmarks run in-process, so each run uses the runtime of its own target framework. The pinned baseline can target an older framework than the current branch. For example, the baseline in `build/perf/baseline.json` targets `net8.0` while the current branch targets `net10.0`.
+
+With `-diff`, `PerfCore.ps1` sets `DOTNET_ROLL_FORWARD=LatestMajor` for the warm-up, baseline, current, and compare steps. Every run then uses the newest installed runtime, so a runtime change cannot pass for an analyzer change. The previous value is restored afterward.
+
 ## Example Usage
 
 You can run a quick pass of the benchmarks (about 20 minutes with baseline, then the baseline is reused)

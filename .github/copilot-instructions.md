@@ -553,7 +553,7 @@ If you encounter:
 ### General Coding and Workflow Rules
 
 - Place new analyzers in `src/Analyzers/`, code fixes in `src/CodeFixes/`, and shared logic in `src/Common/`.
-- **Agent skills and AI configuration live under `.github/` so they work for both Copilot CLI and GitHub Copilot.** Put agent skill libraries in `.github/skills/` (not `.claude/skills/`), and keep shared instruction content in `.github/instructions/`.
+- **Agent skills live in `.agents/skills/`, the cross-harness Agent Skills location.** Copilot CLI, Copilot cloud agent, VS Code, and Codex all read it. Do not add skills to `.github/skills/` or `.claude/skills/`. Keep other AI configuration under `.github/`, and keep shared instruction content in `.github/instructions/`.
 - Update `src/Analyzers/AnalyzerReleases.Unshipped.md` and add or update documentation in `docs/rules/` for each diagnostic.
 - **CRITICAL: Do not modify `AnalyzerReleases.Shipped.md`**. This file is an immutable record of past releases. All changes, including category or severity updates to existing rules, **MUST** be documented in `AnalyzerReleases.Unshipped.md`.
 - **Analyzer Release Notes Logic:** For this repository, `AnalyzerReleases.Unshipped.md` must **only** contain a `### New Rules` section. Any modification to a previously shipped rule (e.g., changing its category or severity) is listed as if it were a new rule in this file. The `Changed Rules` and `Removed Rules` sections are only used in `AnalyzerReleases.Shipped.md` when a release is being finalized.

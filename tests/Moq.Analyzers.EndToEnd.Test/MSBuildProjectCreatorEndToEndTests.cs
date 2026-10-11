@@ -10,7 +10,7 @@ public sealed class MSBuildProjectCreatorEndToEndTests
 {
     private static readonly string ExpectedDiagnosticId = "Moq1000";
     private static readonly string MoqVersion = "4.18.4";
-    private static readonly object MSBuildRegistrationGate = new();
+    private static readonly Lock MSBuildRegistrationGate = new();
 
     [Fact]
     public async Task BuildEmitsExpectedDiagnosticForSealedClassMock()

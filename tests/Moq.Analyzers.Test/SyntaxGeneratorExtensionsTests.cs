@@ -14,7 +14,7 @@ namespace Moq.Analyzers.Test;
 /// <remarks>
 /// The helper is internal to the shipping <c>Moq.CodeFixes</c> assembly. This project reaches it
 /// via reflection rather than <c>InternalsVisibleTo</c>: that assembly targets netstandard2.0 and
-/// embeds Polyfill-generated BCL attribute types, which collide (CS0433) with the net8.0 framework
+/// embeds Polyfill-generated BCL attribute types, which collide (CS0433) with the net10.0 framework
 /// types once the internals are made visible. Reflection is the same access strategy used by
 /// <c>VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests.InvokeCanMakeMemberVirtual</c>.
 /// </remarks>

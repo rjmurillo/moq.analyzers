@@ -1,0 +1,12 @@
+<Project>
+  <!--
+    MSBuild imports this file into solution builds. Targets here run once per solution build,
+    not once per project. Solution builds do not import Directory.Build.targets.
+  -->
+  <PropertyGroup>
+    <!-- Clean coverage once, before the solution starts any test project. -->
+    <_CleanCoverageBeforeTest>true</_CleanCoverageBeforeTest>
+  </PropertyGroup>
+
+  <Import Project="build/targets/tests/CoverageCleanup.targets" />
+</Project>

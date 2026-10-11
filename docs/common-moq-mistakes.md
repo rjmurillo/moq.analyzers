@@ -66,16 +66,19 @@ The [rule index](rules/README.md) lists the same rules with their implementation
 
 ## Mocking a sealed class
 
-Moq cannot mock a sealed class, and [Moq1000](rules/Moq1000.md) flags the attempt. Moq builds a mock by generating a
-subclass. A sealed class cannot have one.
+Moq cannot mock a sealed class. Moq builds a mock by generating a subclass, and a sealed class cannot have one.
+[Moq1000](rules/Moq1000.md) flags `new Mock<T>()` and `Mock.Of<T>()` on a sealed class. It does not flag
+`MockRepository.Create<T>()` or `MockRepository.OneOf<T>()`, which fail the same way at run time.
 
 ```csharp
 public sealed class MyClass { }
 
-var mock = new Mock<MyClass>(); // Moq1000: Sealed classes cannot be mocked
+var mock = new Mock<MyClass>(); // Moq1000: Sealed class 'MyClass' cannot be mocked
 ```
 
-You have three fixes: introduce an interface and mock that, use the real class, or unseal the class.
+You have four fixes: mock an interface the class implements, wrap the class behind your own interface, use the real
+object, or unseal the class. The [Moq1000 page](rules/Moq1000.md#how-to-fix) shows code for each. This is the last
+one:
 
 ```csharp
 public class MyClass { }
@@ -83,13 +86,14 @@ public class MyClass { }
 var mock = new Mock<MyClass>();
 ```
 
-Without the analyzer, Moq 4.18.4 throws `NotSupportedException` at run time with this message:
+Without the analyzer, Moq throws `NotSupportedException` at run time. Moq 4.16.0 through 4.20.72 use this message:
 
 ```text
 Type to mock ({0}) must be an interface, a delegate, or a non-sealed, non-static class.
 ```
 
-Moq replaces `{0}` with the type name. See [Moq1000](rules/Moq1000.md).
+Moq replaces `{0}` with the type name. Moq 4.15.2 and older word the message differently. See
+[Runtime error this rule prevents](rules/Moq1000.md#runtime-error-this-rule-prevents) for each version.
 
 ## Setting up or verifying a non-virtual member
 
@@ -148,6 +152,10 @@ Moq 4.11.0 through 4.20.72 (checked at 4.11.0, 4.18.4, and 4.20.72). Moq 4.18.4 
 Unsupported expression: {0}
 Non-overridable members (here: {0}) may not be used in setup / verification expressions.
 ```
+
+[Moq1200](rules/Moq1200.md#runtime-error-this-rule-prevents) shows rendered examples of both messages.
+[How to fix](rules/Moq1200.md#how-to-fix) covers three fixes with code: extract an interface, make the member
+`virtual`, or wrap a type you do not own.
 
 ### Sealed default interface members
 
@@ -250,9 +258,11 @@ patterns.
 
 ## Constructor argument mistakes
 
-Arguments you pass to `new Mock<T>(...)` go to the constructor of `T`. Two rules check them:
-[Moq1001](rules/Moq1001.md) flags any argument on an interface mock, and [Moq1002](rules/Moq1002.md) flags arguments
-that match no constructor.
+Arguments you pass to `new Mock<T>(...)`, after an optional `MockBehavior`, go to the constructor of `T`. Two rules
+check them: [Moq1001](rules/Moq1001.md) flags any argument on an interface mock, and [Moq1002](rules/Moq1002.md) flags
+arguments that match no constructor.
+To pass constructor arguments the right way, and to fix "Could not find a parameterless constructor", see
+[Mocking a class with constructor parameters in Moq](moq-constructor-arguments.md).
 
 ```csharp
 public interface IMyService
@@ -265,8 +275,15 @@ public class MyClass
     public MyClass(string s) { }
 }
 
-var mock1 = new Mock<IMyService>("123"); // Moq1001: Mocked interfaces cannot have constructor parameters
-var mock2 = new Mock<MyClass>(3);        // Moq1002: Parameters provided into mock do not match any existing constructors
+var mock1 = new Mock<IMyService>("123"); // Moq1001
+var mock2 = new Mock<MyClass>(3);        // Moq1002
+```
+
+The build reports:
+
+```text
+warning Moq1001: Mocked interface 'IMyService' cannot have constructor parameters ("123")
+warning Moq1002: Could not find a matching constructor for type 'MyClass' with arguments (3)
 ```
 
 ```csharp
@@ -274,11 +291,20 @@ var mock1 = new Mock<IMyService>();
 var mock2 = new Mock<MyClass>("three");
 ```
 
-Without the analyzer, Moq 4.18.4 reports these messages at run time:
+Without the analyzer, the interface mock throws `ArgumentException` on the line that creates it. Checked at
+Moq 4.18.4 and 4.20.72:
 
 ```text
 Constructor arguments cannot be passed for interface mocks.
-A matching constructor for the given arguments was not found on the mocked type.
+```
+
+The class mock throws `ArgumentException` later, when you read `mock2.Object`:
+
+```text
+Can not instantiate proxy of class: MyClass.
+Could not find a constructor that would match given arguments:
+System.Int32
+ (Parameter 'constructorArguments')
 ```
 
 ## Mocking internal types without InternalsVisibleTo
@@ -346,7 +372,8 @@ Assert.Equal(1, fakeLogger.Collector.Count);
 This replaces `mock.Verify(x => x.Log(...))` on an `ILogger` mock. `LatestRecord` holds the last entry, and
 `Collector.GetSnapshot()` returns every entry.
 
-See [Moq1004](rules/Moq1004.md).
+See [Moq1004](rules/Moq1004.md). Its
+[Tests that verify logging](rules/Moq1004.md#tests-that-verify-logging-fakelogger) section replaces a `Verify` call step by step.
 
 ## Property and method setup confusion
 
@@ -613,7 +640,10 @@ test projects. Replace `x.y.z` with the current version on [NuGet](https://www.n
 </Project>
 ```
 
-With central package management, omit `Version` here and set it in `Directory.Packages.props`.
+With central package management, omit `Version` here and add a `PackageVersion` item to `Directory.Packages.props`.
+
+For mixed folders, central package management, and nested files, see
+[Install Moq.Analyzers in every test project](install.md).
 
 MSBuild stops at the first `Directory.Build.props` it finds. If a parent folder has one too, import it from the new
 file. See [Customize the build by folder](https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory).
@@ -636,11 +666,12 @@ on Microsoft Learn.
 
 Moq can only intercept `virtual`, `abstract`, or interface members. [Moq1200](rules/Moq1200.md) flags the setup at
 compile time. Newer Moq versions word the error differently. See
-[the runtime error this replaces](#the-runtime-error-this-replaces).
+[the runtime error this rule prevents](rules/Moq1200.md#runtime-error-this-rule-prevents).
 
 ### Can Moq mock a sealed class?
 
-No. Moq generates a subclass, and a sealed class cannot be subclassed. [Moq1000](rules/Moq1000.md) flags it.
+No. Moq generates a subclass, and a sealed class cannot be subclassed. [Moq1000](rules/Moq1000.md) flags it and
+shows four ways to fix it.
 
 ### Should I use Returns or ReturnsAsync for async methods?
 
@@ -651,7 +682,8 @@ See [How to set up async methods in Moq](moq-returnsasync.md).
 
 ### Should I mock ILogger with Moq?
 
-No. Use `NullLogger` or `FakeLogger`. [Moq1004](rules/Moq1004.md) flags mocks of `ILogger` and `ILogger<T>`.
+No. Use `NullLogger` or `FakeLogger`. [Moq1004](rules/Moq1004.md) flags mocks of `ILogger` and `ILogger<T>`. To
+check log output, see [Tests that verify logging](rules/Moq1004.md#tests-that-verify-logging-fakelogger).
 
 ### Why does my Moq Callback throw?
 
