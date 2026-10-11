@@ -84,7 +84,8 @@ documentation. To get started, see the [contributing guide](./CONTRIBUTING.md).
   - Pull requests that cannot change benchmark results, such as test-only changes, skip the perf job.
   - All other pull requests run the full pipeline.
 - When a pull request skips the full test run, CI reports the base commit's coverage to Codacy, because no measured
-  code changed.
+  code changed. If main CI for the base commit is still queued or running, CI waits up to 40 minutes for it to
+  finish, and fails if that run does not pass.
 - The tier rules live in `build/scripts/ci/classify-changed-paths.sh`. Any path the script does not name runs the
   full pipeline.
 - CI keeps artifacts from the main and mutation-testing workflows for seven days. For details, see the
