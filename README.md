@@ -70,10 +70,16 @@ on Microsoft Learn.
 Moq.Analyzers keeps growing, and we welcome your help. You can report issues, build new features, or improve the
 documentation. To get started, see the [contributing guide](./CONTRIBUTING.md).
 
-- Docs-only pull requests skip build and test. Because no code changed, CI reports the base commit's coverage to
-  Codacy for them.
-- The list of skippable paths lives in `build/scripts/ci/classify-changed-paths.sh`. Any path not on that list
-  runs the full pipeline.
+- CI sorts each pull request into a tier based on the files it changes:
+  - Docs-only pull requests skip build and test.
+  - Pull requests that change rule pages or `README.md` build the package and run only the tests that read those
+    files.
+  - Pull requests that cannot change benchmark results, such as test-only changes, skip the perf job.
+  - All other pull requests run the full pipeline.
+- When a pull request skips the full test run, CI reports the base commit's coverage to Codacy, because no measured
+  code changed.
+- The tier rules live in `build/scripts/ci/classify-changed-paths.sh`. Any path the script does not name runs the
+  full pipeline.
 - CI keeps artifacts from the main and mutation-testing workflows for seven days. For details, see the
   [CI workflow requirements](./CONTRIBUTING.md#ci-workflow-requirements).
 - To learn what a pull request needs before it can merge, see the [merge requirements](./docs/merge-requirements.md).
