@@ -149,7 +149,8 @@ Constructor on type 'Castle.Proxies.OrderServiceProxy' not found.
 ```
 
 The text comes from Castle.Core, the library Moq uses to build the mock. It shows the full type name, with the
-namespace.
+namespace. The sample types on this page have no namespace. For a type in namespace `Shop`, the first line reads
+`Can not instantiate proxy of class: Shop.OrderService.`
 
 Moq 4.8.2 and 4.17.1 use Castle.Core 4. They print the same two lines without the `(Parameter ...)` part. They throw
 `Castle.DynamicProxy.InvalidProxyConstructorArgumentsException`, which derives from `ArgumentException`.
@@ -354,7 +355,7 @@ When the class also has a constructor the mock can reach, you get the "Can not i
 instead.
 
 To open `internal` members to the mock, add this attribute to the assembly that declares the class.
-[Moq1003](rules/Moq1003.md) covers the same attribute for internal types.
+[Moq1003](rules/Moq1003.md) covers the same attribute for internal types. Moq1003 is not in Moq.Analyzers 0.4.2.
 
 ```csharp
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
@@ -370,6 +371,8 @@ the version you use.
 This `DbContext` subclass has one constructor, and it takes options. Pass an options object.
 
 ```csharp
+using Microsoft.EntityFrameworkCore;
+
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
@@ -388,6 +391,8 @@ AppDbContext context = mock.Object;
 rest.
 
 ```csharp
+using Microsoft.AspNetCore.Identity;
+
 public class AppUser
 {
 }
@@ -447,7 +452,7 @@ mocks are the exception: Moq rejects their constructor arguments as soon as you 
 
 - [Moq1001](rules/Moq1001.md): Mocked interfaces cannot have constructor parameters
 - [Moq1002](rules/Moq1002.md): Parameters provided into mock do not match any existing constructors
-- [Moq1003](rules/Moq1003.md): Internal type requires InternalsVisibleTo for DynamicProxy
+- [Moq1003](rules/Moq1003.md): Internal type requires InternalsVisibleTo for DynamicProxy (not in Moq.Analyzers 0.4.2)
 - [Moq1000](rules/Moq1000.md): Sealed classes cannot be mocked
 - [Moq1200](rules/Moq1200.md): Setup should be used only for overridable members
 - [Constructor argument mistakes](common-moq-mistakes.md#constructor-argument-mistakes) in the guide to all common
