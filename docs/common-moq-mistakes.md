@@ -149,6 +149,10 @@ Unsupported expression: {0}
 Non-overridable members (here: {0}) may not be used in setup / verification expressions.
 ```
 
+[Moq1200](rules/Moq1200.md#runtime-error-this-rule-prevents) shows rendered examples of both messages.
+[How to fix](rules/Moq1200.md#how-to-fix) covers three fixes with code: extract an interface, make the member
+`virtual`, or wrap a type you do not own.
+
 ### Sealed default interface members
 
 An interface member is normally overridable. A `sealed` default interface member is not, and Moq cannot intercept it.
@@ -342,7 +346,8 @@ Assert.Equal(1, fakeLogger.Collector.Count);
 This replaces `mock.Verify(x => x.Log(...))` on an `ILogger` mock. `LatestRecord` holds the last entry, and
 `Collector.GetSnapshot()` returns every entry.
 
-See [Moq1004](rules/Moq1004.md).
+See [Moq1004](rules/Moq1004.md). Its
+[Tests that verify logging](rules/Moq1004.md#tests-that-verify-logging-fakelogger) section replaces a `Verify` call step by step.
 
 ## Property and method setup confusion
 
@@ -632,7 +637,7 @@ on Microsoft Learn.
 
 Moq can only intercept `virtual`, `abstract`, or interface members. [Moq1200](rules/Moq1200.md) flags the setup at
 compile time. Newer Moq versions word the error differently. See
-[the runtime error this replaces](#the-runtime-error-this-replaces).
+[the runtime error this rule prevents](rules/Moq1200.md#runtime-error-this-rule-prevents).
 
 ### Can Moq mock a sealed class?
 
@@ -645,7 +650,8 @@ common wrong patterns. Moq1201 applies only to Moq versions older than 4.16.0.
 
 ### Should I mock ILogger with Moq?
 
-No. Use `NullLogger` or `FakeLogger`. [Moq1004](rules/Moq1004.md) flags mocks of `ILogger` and `ILogger<T>`.
+No. Use `NullLogger` or `FakeLogger`. [Moq1004](rules/Moq1004.md) flags mocks of `ILogger` and `ILogger<T>`. To
+check log output, see [Tests that verify logging](rules/Moq1004.md#tests-that-verify-logging-fakelogger).
 
 ### Why does my Moq Callback throw?
 

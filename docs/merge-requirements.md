@@ -9,9 +9,15 @@ A repository ruleset protects the `main` branch. The repository does not use cla
 - The approver must not be the last person who pushed. A bot account with write access, such as `rjmurillo-bot`, counts.
 - A new push dismisses earlier approvals.
 - All review threads must be resolved.
-- All required status checks must pass on a branch that is up to date with `main`.
+- All required status checks must pass on the pull request.
 - CodeQL must report no high or critical security alerts and no errors.
 - Squash merge is the only merge method.
+
+## Branch freshness
+
+A pull request does not need to be up to date with `main` before it merges. Required checks run on the pull request merge commit at the time of each push.
+
+GitHub merge queues are not available for repositories owned by a personal account. The workflows that report required checks still trigger on `merge_group`, so a queue can be added if the repository moves to an organization.
 
 ## Contributor License Agreement
 
