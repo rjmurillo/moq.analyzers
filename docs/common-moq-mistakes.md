@@ -375,7 +375,8 @@ mock.Setup(x => x.Method()).Returns("value");
 mock.SetupGet(x => x.Name).Returns("name");
 ```
 
-See [Moq1101](rules/Moq1101.md).
+See [Moq1101](rules/Moq1101.md). To choose between `SetupGet`, `SetupSet`, `SetupProperty`, and `Setup` for a
+property, see [Mocking properties in Moq](moq-property-setup.md).
 
 ## Missing return values
 
