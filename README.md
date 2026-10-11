@@ -43,6 +43,7 @@ something is wrong with your Moq configuration.
 
 For details on each rule, see the [rule reference](docs/rules/README.md).
 To find the rule behind a mistake, with examples and fixes, see [Common Moq mistakes](docs/common-moq-mistakes.md).
+To pass constructor arguments to a mock, see [Mocking a class with constructor parameters in Moq](docs/moq-constructor-arguments.md).
 Rules Moq1200, Moq1207, and Moq1210 treat sealed default interface members as non-overridable because Moq cannot intercept them.
 For analyzers that cover the rest of a test project, see [Analyzers that pair well with Moq.Analyzers](docs/recommended-analyzers.md).
 
@@ -56,6 +57,8 @@ To install Moq.Analyzers from NuGet, run this command in each test project:
 ```shell
 dotnet add package Moq.Analyzers
 ```
+
+To install in every test project at once, see [Install Moq.Analyzers in every test project](docs/install.md).
 
 After you install the package, the analyzers report diagnostics when you build and in IDEs that support Roslyn
 analyzers.
