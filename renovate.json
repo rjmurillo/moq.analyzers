@@ -10,7 +10,13 @@
     "Microsoft.CodeAnalysis.Common",
     "Microsoft.CodeAnalysis.Workspaces.Common"
   ],
+  "labels": ["renovate"],
   "packageRules": [
+    {
+      "description": "Label major updates so the approval workflow can gate on structured metadata instead of PR title text. Renovate applies all labels in one API call, so the workflow treats the renovate label as proof that this label is final.",
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["major-update"]
+    },
     {
       "description": "Automerge non-major updates for development dependencies",
       "matchDepTypes": ["devDependencies"],
@@ -27,6 +33,13 @@
       "matchUpdateTypes": ["minor", "patch"],
       "matchCurrentVersion": "!/^0/",
       "automerge": true
+    },
+    {
+      "description": "Wait 14 days after a NuGet release before Renovate proposes it. The shipped analyzer runs inside consumers' compilers, so a cooldown gives the ecosystem time to catch a compromised release before it can automerge. Scoped to NuGet so GitHub Actions automerge timing does not change.",
+      "matchManagers": ["nuget"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "minimumReleaseAge": "14 days"
     },
     {
       "description": "Automerge GitHub Actions digest updates. Actions are pinned to commit SHAs, so a digest bump moves the pin within the same version tag.",
