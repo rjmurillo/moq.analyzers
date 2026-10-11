@@ -189,13 +189,14 @@ mock.Object.Name = "Grace";
 mock.VerifySet(x => x.Name = "Grace", Times.Once());
 ```
 
-If your code assigned a different value, `VerifySet` throws `MockException`. The first line of text is:
+If your code assigned a different value, `VerifySet` throws `MockException`. The message starts with:
 
 ```text
 Expected invocation on the mock once, but was 0 times: x => x.Name = "Grace"
 ```
 
-On a strict mock, set the property up first with `SetupSet` or `SetupProperty`. Then `VerifySet` works the same way.
+On a strict mock, the assignment itself throws unless the setter has a setup, so add `SetupSet` or `SetupProperty`
+first. `VerifySet` then works the same way.
 `VerifyGet(x => x.Name, Times.Once())` checks reads.
 
 ### Is SetupSet obsolete?
@@ -340,6 +341,10 @@ The return type of the last member shown above is not mockable.
 ```
 
 Moq1101 has no code fix. It does not check `SetupAllProperties`, `VerifyGet`, or `VerifySet`.
+
+Moq.Analyzers 0.4.2 does not report two forms: the generic call `SetupSet<string>(x => x.GetDisplayName())`, and
+`SetupProperty` with named arguments in a different order. Both still throw at run time. The analyzer on `main`
+reports both.
 
 ## Properties must be virtual or on an interface
 
