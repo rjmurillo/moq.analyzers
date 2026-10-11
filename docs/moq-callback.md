@@ -13,7 +13,8 @@ time.
 | Set an `out` or `ref` argument | A custom delegate type and `It.Ref<T>.IsAny` |
 | Run code on a method that returns `Task` | `Callback(...).Returns(Task.CompletedTask)` |
 
-The samples on this page use this interface. Each one compiles and runs against Moq 4.20.72.
+The samples on this page use this interface. Each one compiles against Moq 4.20.72. Blocks marked `// Moq1100` throw
+at run time. Blocks without `var mock` continue the block above.
 
 ```csharp
 public interface IOrderService
@@ -201,6 +202,14 @@ string name = "A1";
 mock.Object.Rename(ref name); // name is "B2"
 ```
 
+On C# 10 or later you can skip the delegate type. Pass a typed lambda with a block body.
+
+```csharp
+mock.Setup(x => x.TryGet(It.IsAny<int>(), out It.Ref<string>.IsAny))
+    .Callback((int id, out string sku) => { sku = "A1"; })
+    .Returns(true);
+```
+
 For a fixed `out` value you need no callback. Put the value in a variable and pass it in the setup.
 
 ```csharp
@@ -223,13 +232,16 @@ mock.Setup(x => x.TryGet(It.IsAny<int>(), out It.Ref<string>.IsAny))
     .Returns(new TryGetReturns((int id, out string sku) => { sku = "A1"; return true; }));
 ```
 
-Two mistakes to avoid:
+Three mistakes to avoid:
 
 - A plain lambda without the `out` modifier, `Callback((int id, string sku) => { })`, raises Moq1100 and throws at
   run time. Use the delegate pattern above.
 - A delegate that returns a value, such as `TryGetReturns`, works with `Returns` and throws when passed to
   `Callback`. `Callback` accepts `void` delegates only. Moq1100 does not report this case
   ([#1434](https://github.com/rjmurillo/moq.analyzers/issues/1434)).
+- A typed lambda with an expression body and no delegate type, `Callback((int id, out string sku) => sku = "A1")`.
+  It compiles. The lambda returns the assigned `string`, so it is not a `void` delegate, and Moq throws the same
+  error. Moq1100 does not report it. Use a block body: `{ sku = "A1"; }`.
 
 ## Async methods
 
@@ -283,8 +295,8 @@ A delegate with a return value passed to `Callback`:
 Invalid callback. This overload of the "Callback" method only accepts "void" (C#) or "Sub" (VB.NET) delegates with parameter types matching those of the set up method.
 ```
 
-One case fails later. A `Returns` lambda with the right number of parameters and the wrong types passes setup. It
-throws when the mocked method is called:
+One case fails later. A `Returns` lambda with the right number of parameters and the wrong types passes setup. For
+example, `Returns((string sku, int id, DateTime at) => 1)` throws this when `Place` is called:
 
 ```text
 Object of type 'System.Int32' cannot be converted to type 'System.String'.
@@ -333,8 +345,8 @@ Declare lambda parameters with the same types and order as the method, for examp
 
 ### How do I set an out parameter in Moq?
 
-For a fixed value, pass a variable that holds the value as the `out` argument in `Setup`. To compute it, use a custom
-delegate with an `out` parameter and `It.Ref<T>.IsAny`. See [Out and ref parameters](#out-and-ref-parameters).
+For a fixed value, pass a variable that holds the value as the `out` argument in `Setup`. To compute it, use
+`It.Ref<T>.IsAny` with a custom delegate that has an `out` parameter, or a typed lambda with a block body. See [Out and ref parameters](#out-and-ref-parameters).
 
 ### Can I use Callback on an async method?
 
