@@ -96,3 +96,5 @@ pwsh -ExecutionPolicy Bypass -NoProfile -File ./build/scripts/perf/PerfCore.ps1 
 This is similar to what is run in the [main action](../../../.github/workflows/main.yml) when you raise a PR. To run the full suite, use `-filter '*'` or omit the parameter.
 
 > NOTE: If you _always_ want to run the baseline, you can set the environment variable `FORCE_PERF_BASELINE=true`
+
+A cached baseline is reused only when it holds a benchmark report. A new baseline run first deletes the old baseline results. If a baseline run with a narrower filter writes no report, the script retries once with filter `*`. If there is still no report, the run stops with an error that names the baseline folder.
