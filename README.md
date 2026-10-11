@@ -46,7 +46,9 @@ To find the rule behind a mistake, with examples and fixes, see [Common Moq mist
 To set up async methods with `ReturnsAsync`, see [How to set up async methods in Moq](docs/moq-returnsasync.md).
 To pass constructor arguments to a mock, see [Mocking a class with constructor parameters in Moq](docs/moq-constructor-arguments.md).
 To capture arguments or set `out` values with `Callback`, see [How to use Callback in Moq](docs/moq-callback.md).
+To choose between `SetupGet`, `SetupProperty`, and `Setup` for a property, see [Mocking properties in Moq](docs/moq-property-setup.md).
 Rules Moq1200, Moq1207, and Moq1210 treat sealed default interface members as non-overridable because Moq cannot intercept them.
+For analyzers that cover the rest of a test project, see [Analyzers that pair well with Moq.Analyzers](docs/recommended-analyzers.md).
 
 ## Getting started
 

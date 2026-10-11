@@ -402,7 +402,8 @@ mock.Setup(x => x.Method()).Returns("value");
 mock.SetupGet(x => x.Name).Returns("name");
 ```
 
-See [Moq1101](rules/Moq1101.md).
+See [Moq1101](rules/Moq1101.md). To choose between `SetupGet`, `SetupSet`, `SetupProperty`, and `Setup` for a
+property, see [Mocking properties in Moq](moq-property-setup.md).
 
 ## Missing return values
 
@@ -661,6 +662,9 @@ dotnet_diagnostic.Moq1400.severity = error
 Each rule page shows how to suppress a single violation. See also
 [Suppress code analysis warnings](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/suppress-warnings)
 on Microsoft Learn.
+
+Moq.Analyzers checks Moq calls only. For the analyzers that cover your test framework and the rest of your test
+code, see [Analyzers that pair well with Moq.Analyzers](recommended-analyzers.md).
 
 ## FAQ
 
