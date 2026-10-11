@@ -516,7 +516,8 @@ var good = Mock.Of<IService>(s => s.Name == "test");
 
 A mock uses `MockBehavior.Loose` unless you say otherwise. A loose mock returns default values for calls you never set
 up, which can hide a missing setup. [Moq1400](rules/Moq1400.md) asks you to choose a behavior on purpose.
-[Moq1410](rules/Moq1410.md) asks for `MockBehavior.Strict`.
+[Moq1410](rules/Moq1410.md) asks for `MockBehavior.Strict`. To see what each behavior does on a call without a setup,
+read [MockBehavior.Strict vs MockBehavior.Loose](rules/Moq1400.md#mockbehaviorstrict-vs-mockbehaviorloose).
 
 ```csharp
 public interface ISample
