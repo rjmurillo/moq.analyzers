@@ -274,6 +274,64 @@ public class DiagnosticMessageTests
             CreateSource("internal interface IService { }", "{|#0:new MockRepository(MockBehavior.Loose)|};"),
             "Explicitly set the Strict mocking behavior for 'MockRepository'");
 
+        // Issue #1448 boundaries: predicate overloads of Mock.Of<T>, and a mocked type that is the
+        // caller's own type parameter. The message names the caller's type argument.
+        AddMessageCase<SetExplicitMockBehaviorAnalyzer>(
+            data,
+            DiagnosticIds.SetExplicitMockBehavior,
+            DiagnosticSeverity.Warning,
+            ReferenceAssemblyCatalog.Net80WithNewMoq,
+            CreateSource("internal interface IService { int Get(); }", "{|#0:Mock.Of<IService>(x => x.Get() == 1)|};"),
+            "Explicitly choose a mocking behavior for IService instead of relying on the default (Loose) behavior");
+
+        AddMessageCase<SetExplicitMockBehaviorAnalyzer>(
+            data,
+            DiagnosticIds.SetExplicitMockBehavior,
+            DiagnosticSeverity.Warning,
+            ReferenceAssemblyCatalog.Net80WithNewMoq,
+            CreateSource("internal interface IService { int Get(); }", "{|#0:Mock.Of<IService>(x => x.Get() == 1, MockBehavior.Default)|};"),
+            "Explicitly choose a mocking behavior for IService instead of relying on the default (Loose) behavior");
+
+        AddMessageCase<SetStrictMockBehaviorAnalyzer>(
+            data,
+            DiagnosticIds.SetStrictMockBehavior,
+            DiagnosticSeverity.Info,
+            ReferenceAssemblyCatalog.Net80WithNewMoq,
+            CreateSource("internal interface IService { int Get(); }", "{|#0:Mock.Of<IService>(x => x.Get() == 1)|};"),
+            "Explicitly set the Strict mocking behavior for 'IService'");
+
+        AddMessageCase<SetStrictMockBehaviorAnalyzer>(
+            data,
+            DiagnosticIds.SetStrictMockBehavior,
+            DiagnosticSeverity.Info,
+            ReferenceAssemblyCatalog.Net80WithNewMoq,
+            CreateSource("internal interface IService { int Get(); }", "{|#0:Mock.Of<IService>(x => x.Get() == 1, MockBehavior.Default)|};"),
+            "Explicitly set the Strict mocking behavior for 'IService'");
+
+        AddMessageCase<SetExplicitMockBehaviorAnalyzer>(
+            data,
+            DiagnosticIds.SetExplicitMockBehavior,
+            DiagnosticSeverity.Warning,
+            ReferenceAssemblyCatalog.Net80WithNewMoq,
+            CreateSource("internal interface IService { int Get(); }", "void Local<TFoo>() where TFoo : class { {|#0:Mock.Of<TFoo>()|}; }"),
+            "Explicitly choose a mocking behavior for TFoo instead of relying on the default (Loose) behavior");
+
+        AddMessageCase<SetStrictMockBehaviorAnalyzer>(
+            data,
+            DiagnosticIds.SetStrictMockBehavior,
+            DiagnosticSeverity.Info,
+            ReferenceAssemblyCatalog.Net80WithNewMoq,
+            CreateSource("internal interface IService { int Get(); }", "void Local<TFoo>() where TFoo : class { {|#0:Mock.Of<TFoo>()|}; }"),
+            "Explicitly set the Strict mocking behavior for 'TFoo'");
+
+        AddMessageCase<SetStrictMockBehaviorAnalyzer>(
+            data,
+            DiagnosticIds.SetStrictMockBehavior,
+            DiagnosticSeverity.Info,
+            ReferenceAssemblyCatalog.Net80WithNewMoq,
+            CreateSource("internal interface IService { int Get(); }", "void Local<TFoo>() where TFoo : class { {|#0:new Mock<TFoo>()|}; }"),
+            "Explicitly set the Strict mocking behavior for 'TFoo'");
+
         AddMessageCase<RedundantTimesSpecificationAnalyzer>(
             data,
             DiagnosticIds.RedundantTimesSpecification,

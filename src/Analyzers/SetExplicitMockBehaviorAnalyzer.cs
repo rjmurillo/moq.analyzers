@@ -31,7 +31,6 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
     /// <inheritdoc />
     private protected override void AnalyzeMockBehaviorArgument(
         OperationAnalysisContext context,
-        IMethodSymbol target,
         IParameterSymbol mockParameter,
         IArgumentOperation? mockArgument,
         MoqKnownSymbols knownSymbols)

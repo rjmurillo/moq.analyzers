@@ -67,7 +67,6 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
 
     private protected abstract void AnalyzeMockBehaviorArgument(
         OperationAnalysisContext context,
-        IMethodSymbol target,
         IParameterSymbol mockParameter,
         IArgumentOperation? mockArgument,
         MoqKnownSymbols knownSymbols);
@@ -118,7 +117,8 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
             case IObjectCreationOperation { Type: INamedTypeSymbol { TypeArguments.Length: > 0 } mockType }:
                 return mockType.TypeArguments[0].ToDisplayString();
 
-            // new MockRepository(...): a repository has no mocked type, so name the repository type.
+            // A created type with no type argument, such as new MockRepository(...): there is no mocked
+            // type, so name the created type.
             case IObjectCreationOperation { Type: { } createdType }:
                 return createdType.Name;
 
@@ -185,6 +185,6 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
 
         IArgumentOperation? mockArgument = arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
 
-        AnalyzeMockBehaviorArgument(context, target, mockParameter, mockArgument, knownSymbols);
+        AnalyzeMockBehaviorArgument(context, mockParameter, mockArgument, knownSymbols);
     }
 }
