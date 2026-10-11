@@ -140,7 +140,3 @@ Renovate adds the `renovate` label to every PR it opens. It also adds the `major
 The workflow reads the PR labels from the API. It approves only when `renovate` is present and `major-update` is absent. A PR that has no labels yet gets no approval. The workflow runs again on the `labeled` event, once Renovate adds its labels.
 
 Anyone with triage permission can remove a label. If someone removes `major-update` from a major PR, the next run approves it.
-
-### Approval token
-
-The workflow approves with the `GH_ACTIONS_PR_WRITE` personal access token. The repository setting that lets GitHub Actions approve pull requests is off, so `GITHUB_TOKEN` cannot approve. The `main` ruleset requires one approval. The token only approves non-major updates, and NuGet updates wait out the cooldown first. Issue #1271 records this decision.

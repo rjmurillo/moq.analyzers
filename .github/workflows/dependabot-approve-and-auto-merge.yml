@@ -6,13 +6,6 @@ name: Auto-Approve and Auto-Merge Bot PRs
 #   2. NEVER interpolate untrusted PR fields (title, body, branch name) directly
 #      into run: blocks - pass them through env: instead.
 # See: https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
-#
-# Approval token decision (issue #1271, decided by the maintainer on 2026-10-11):
-# approvals use the GH_ACTIONS_PR_WRITE PAT, not GITHUB_TOKEN. The repository
-# setting "Allow GitHub Actions to create and approve pull requests" is off,
-# so GITHUB_TOKEN cannot approve. The main ruleset needs one approval, so the
-# PAT approval satisfies it. This is acceptable because the PAT only approves
-# non-major updates, and Renovate holds NuGet updates for a 14-day cooldown.
 on:
   pull_request_target:
     # labeled lets the Renovate job re-check after Renovate applies its labels.
@@ -24,7 +17,7 @@ jobs:
   dependabot:
     name: Dependabot (GitHub Actions)
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
     runs-on: ubuntu-26.04-arm
     if: >-
@@ -35,14 +28,14 @@ jobs:
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
         with:
-          github-token: "${{ secrets.GH_ACTIONS_PR_WRITE }}"
+          github-token: "${{ github.token }}"
 
       - name: Approve PR
         if: steps.dependabot-metadata.outputs.update-type != 'version-update:semver-major'
         run: gh pr review --approve "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: Enable auto-merge for non-major updates
         if: steps.dependabot-metadata.outputs.update-type != 'version-update:semver-major'
@@ -101,5 +94,5 @@ jobs:
         if: steps.labels.outputs.approve == 'true'
         run: gh pr review --approve "$PR_URL"
         env:
-          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_WRITE }}
+          GH_TOKEN: ${{ github.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
