@@ -639,9 +639,17 @@ jobs:
           }
         shell: pwsh
 
+      # This step runs several dotnet builds. Each uses parallel MSBuild nodes.
+      # Nerdbank.GitVersioning appends version variables to GITHUB_ENV from
+      # every project. Concurrent appends from separate processes overwrite
+      # each other on Linux and leave lines with no NAME= prefix. The runner
+      # then fails the step. No later step reads those variables, so turn the
+      # writes off here. See issue #1451.
       - name: Validate performance
         if: needs.check-paths.outputs.run-perf == 'true'
         shell: pwsh
+        env:
+          NBGV_SetCloudBuildVersionVars: 'false'
         run: ${{ github.workspace }}/build/scripts/perf/PerfCore.ps1 -v diag -diff -ci -filter ${{ steps.get-perf-filter.outputs.filter }}
 
       - name: Publish baseline performance summaries to GitHub
