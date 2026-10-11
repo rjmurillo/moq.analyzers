@@ -118,7 +118,8 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
                 return mockType.TypeArguments[0].ToDisplayString();
 
             // A created type with no type argument, such as new MockRepository(...): there is no mocked
-            // type, so name the created type.
+            // type, so name the created type. The short name is intentional: the rule docs quote
+            // "MockRepository", not "Moq.MockRepository".
             case IObjectCreationOperation { Type: { } createdType }:
                 return createdType.Name;
 
