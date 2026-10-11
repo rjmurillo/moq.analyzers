@@ -57,6 +57,8 @@ To install Moq.Analyzers from NuGet, run this command in each test project:
 dotnet add package Moq.Analyzers
 ```
 
+To install in every test project at once, see [Install Moq.Analyzers in every test project](docs/install.md).
+
 After you install the package, the analyzers report diagnostics when you build and in IDEs that support Roslyn
 analyzers.
 
