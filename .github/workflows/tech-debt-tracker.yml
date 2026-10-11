@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   scan-todo:
-    name: Scan TODO/FIXME markers
+    name: Scan tech-debt markers
     runs-on: ubuntu-26.04-arm
     timeout-minutes: 5
 
