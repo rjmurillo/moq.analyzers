@@ -29,30 +29,6 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
     private protected override DiagnosticDescriptor DiagnosticRule => Rule;
 
     /// <inheritdoc />
-    /// <remarks>
-    /// The original strict analyzer resolved the mocked type name from <paramref name="target"/>'s
-    /// type arguments (not the invocation's) and fell back to "Unknown" instead of "T".
-    /// </remarks>
-    internal override string GetMockedTypeName(IOperation operation, IMethodSymbol target)
-    {
-        // For object creation (new Mock<T>), get the type argument from the Mock<T> type
-        if (operation is IObjectCreationOperation objectCreation
-            && objectCreation.Type is INamedTypeSymbol namedType
-            && namedType.TypeArguments.Length > 0)
-        {
-            return namedType.TypeArguments[0].ToDisplayString();
-        }
-
-        // For any other case, use the target method's type arguments
-        if (target.TypeArguments.Length > 0)
-        {
-            return target.TypeArguments[0].ToDisplayString();
-        }
-
-        return "Unknown";
-    }
-
-    /// <inheritdoc />
     private protected override void AnalyzeMockBehaviorArgument(
         OperationAnalysisContext context,
         IMethodSymbol target,
@@ -65,7 +41,7 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
         // Is the behavior set via a default value?
         if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue
             && MockBehaviorConstantValues.ConstantValueEquals(mockArgument.Value.WalkDownConversion().ConstantValue, knownSymbols.MockBehaviorDefault)
-            && TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Insert, target))
+            && TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Insert))
         {
             return;
         }
@@ -77,7 +53,7 @@ public class SetStrictMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBase
             || (!MockBehaviorConstantValues.ConstantValueEquals(mockArgument.Value.WalkDownConversion().ConstantValue, knownSymbols.MockBehaviorStrict)
                 && !ContainsFieldReference(mockArgument, knownSymbols.MockBehaviorStrict)))
         {
-            TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Replace, target);
+            TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Replace);
         }
     }
 }
