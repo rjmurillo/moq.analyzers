@@ -14,7 +14,7 @@ interface. [Moq.Analyzers](https://www.nuget.org/packages/Moq.Analyzers) reports
 | Never called | `mock.Verify(x => x.Cancel(It.IsAny<int>()), Times.Never())` | `Expected invocation on the mock should never have been performed, but was 1 times` |
 | Called with a value | `mock.Verify(x => x.Submit(It.Is<Order>(o => o.Id == 1)), Times.Once())` | `Expected invocation on the mock once, but was 0 times` |
 | Nothing else called | `mock.VerifyNoOtherCalls()` | `This mock failed verification due to the following unverified invocations` |
-| Every setup was used | `mock.VerifyAll()` | `This mock failed verification due to the following` |
+| Every setup was used, with [one limit](#verify-call-order) | `mock.VerifyAll()` | `This mock failed verification due to the following` |
 
 The samples on this page use these types. Each sample was built with Moq 4.20.72 and .NET SDK 10.0.401 and run with
 xUnit. Blocks without `var mock` or `var strict` continue the block above. The failure text was captured from those runs on Moq 4.18.4
@@ -316,7 +316,8 @@ A setup alone does not verify a call.
 ## Verifiable, Verify(), and VerifyAll()
 
 `Verifiable()` marks a setup. `mock.Verify()` with no arguments checks only the marked setups. `mock.VerifyAll()`
-checks every setup.
+checks every setup. One limit: it does not report a later `InSequence` step that never ran. See
+[Verify call order](#verify-call-order).
 
 ```csharp
 var strict = new Mock<IOrderService>(MockBehavior.Strict);
@@ -501,7 +502,8 @@ assert on it.
 ### What is the difference between Verify, VerifyAll, and Verifiable?
 
 `mock.Verify(expression)` checks one call. `Verifiable()` marks a setup, and `mock.Verify()` with no arguments checks
-the marked setups. `mock.VerifyAll()` checks every setup.
+the marked setups. `mock.VerifyAll()` checks every setup, but it does not report a later `InSequence` step that
+never ran.
 
 ### How do I verify an async method was called?
 
