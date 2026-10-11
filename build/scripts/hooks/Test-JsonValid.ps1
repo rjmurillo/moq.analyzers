@@ -31,7 +31,7 @@ foreach ($f in $Files) {
     if ($f -match '\.verified\.json$') {
         continue
     }
-    if (-not (Test-Path $f)) {
+    if (-not (Test-Path -LiteralPath $f)) {
         continue
     }
     & $pythonCmd -m json.tool "$f" | Out-Null
