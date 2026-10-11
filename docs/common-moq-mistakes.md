@@ -68,7 +68,7 @@ The [rule index](rules/README.md) lists the same rules with their implementation
 
 Moq cannot mock a sealed class. Moq builds a mock by generating a subclass, and a sealed class cannot have one.
 [Moq1000](rules/Moq1000.md) flags `new Mock<T>()` and `Mock.Of<T>()` on a sealed class. It does not flag
-`MockRepository.Create<T>()`, which fails the same way at run time.
+`MockRepository.Create<T>()` or `MockRepository.OneOf<T>()`, which fail the same way at run time.
 
 ```csharp
 public sealed class MyClass { }
