@@ -4,7 +4,7 @@ Use `SetupGet` (or `Setup`) to return a fixed value from a property getter. Use 
 should remember values your code assigns. Use `SetupSet` to match assignments and `VerifySet` to verify them.
 `SetupGet`, `SetupSet`, and `SetupProperty` only work on properties.
 [Moq.Analyzers](https://www.nuget.org/packages/Moq.Analyzers) rule [Moq1101](rules/Moq1101.md) flags them on methods.
-Version 0.4.2 misses the generic `SetupSet<string>` form. See
+Version 0.4.2 does not flag the generic `SetupSet<TProperty>` overload. See
 [Property setups on a method (Moq1101)](#property-setups-on-a-method-moq1101).
 
 | You want to | Use | Example |
@@ -201,9 +201,9 @@ On a strict mock, the assignment throws `MockException` unless you set the prope
 `SetupProperty`. `VerifySet` itself needs no setup.
 `VerifyGet(x => x.Name, Times.Once())` checks reads.
 
-### Is SetupSet obsolete?
+### Obsolete SetupSet overloads
 
-No. Only the old overloads that take a getter expression are. All of this holds on Moq 4.18.4 and 4.20.72.
+Only the old overloads that take a getter expression are obsolete. All of this holds on Moq 4.18.4 and 4.20.72.
 
 - `SetupSet(x => x.Name)` is marked `[Obsolete]`. The compiler warns with CS0618 and the text
   `Replaced by SetupSet(Action)`.
@@ -384,7 +384,7 @@ You called `SetupGet`, `SetupSet`, or `SetupProperty` on a method. Use `Setup` i
 ### Is SetupSet obsolete?
 
 No. Only the old overloads that take a getter expression, such as `SetupSet(x => x.Name)`, are obsolete. Write the
-assignment in the lambda: `SetupSet(x => x.Name = "Grace")`. See [Is SetupSet obsolete?](#is-setupset-obsolete).
+assignment in the lambda: `SetupSet(x => x.Name = "Grace")`. See [Obsolete SetupSet overloads](#obsolete-setupset-overloads).
 
 ### Why does my mocked property return null after I assign it?
 
