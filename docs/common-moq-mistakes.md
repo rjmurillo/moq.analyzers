@@ -590,6 +590,8 @@ public void TestMethod()
 `repository.Verify()` checks only the setups marked `Verifiable()`. `repository.VerifyAll()` checks every setup, but
 Moq1500 looks for `Verify()` only and still reports a repository that calls only `VerifyAll()`.
 
+For `Times`, argument checks, and how to read a Verify failure, see [Verify calls in Moq](moq-verify.md).
+
 ## Protected setups without ItExpr
 
 The string-based `Protected().Setup(...)` and `Protected().Verify(...)` overloads need `ItExpr` matchers.
