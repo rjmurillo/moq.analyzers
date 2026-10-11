@@ -6,6 +6,12 @@ on:
       - opened
       - edited
       - synchronize
+  # "Validate PR title" is a required check, so it must report on merge
+  # queue groups. A merge group has no pull request title to read. The
+  # queue only accepts a pull request whose own title check passed, and
+  # editing the title reruns that check.
+  merge_group:
+    types: [checks_requested]
 
 permissions: {}
 
@@ -17,5 +23,10 @@ jobs:
       pull-requests: read
     steps:
       - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6
+        if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Accept title checked on the pull request
+        if: github.event_name == 'merge_group'
+        run: echo "Merge group entry; the title passed this check on its pull request."

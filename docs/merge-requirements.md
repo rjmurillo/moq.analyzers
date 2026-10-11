@@ -9,9 +9,23 @@ A repository ruleset protects the `main` branch. The repository does not use cla
 - The approver must not be the last person who pushed. A bot account with write access, such as `rjmurillo-bot`, counts.
 - A new push dismisses earlier approvals.
 - All review threads must be resolved.
-- All required status checks must pass on a branch that is up to date with `main`.
+- All required status checks must pass on the pull request.
 - CodeQL must report no high or critical security alerts and no errors.
 - Squash merge is the only merge method.
+
+## Merge queue
+
+Pull requests merge through a merge queue. The branch does not need to be up to date with `main`.
+
+- When the pull request gate passes, select **Merge when ready**. This adds the pull request to the queue.
+- The queue builds a temporary branch named `gh-readonly-queue/main/...`. It holds `main` plus the queued pull requests.
+- Every required check runs again on that branch. The `merge_group` event triggers the GitHub Actions checks.
+- The queue squash merges a group only when all its required checks pass.
+- A failed check removes the pull request from the queue. Fix it, then queue it again.
+- A merge group runs the full pipeline. The docs-only skip applies to pull requests only.
+- `Validate PR title` passes on a merge group without reading a title. The title was checked on the pull request.
+- Codacy and CLA Assistant report their checks on merge groups on their own.
+- The CodeQL code scanning rule applies to pull requests, not to merge groups.
 
 ## Contributor License Agreement
 
