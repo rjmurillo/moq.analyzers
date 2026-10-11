@@ -66,16 +66,19 @@ The [rule index](rules/README.md) lists the same rules with their implementation
 
 ## Mocking a sealed class
 
-Moq cannot mock a sealed class, and [Moq1000](rules/Moq1000.md) flags the attempt. Moq builds a mock by generating a
-subclass. A sealed class cannot have one.
+Moq cannot mock a sealed class. Moq builds a mock by generating a subclass, and a sealed class cannot have one.
+[Moq1000](rules/Moq1000.md) flags `new Mock<T>()` and `Mock.Of<T>()` on a sealed class. It does not flag
+`MockRepository.Create<T>()`, which fails the same way at run time.
 
 ```csharp
 public sealed class MyClass { }
 
-var mock = new Mock<MyClass>(); // Moq1000: Sealed classes cannot be mocked
+var mock = new Mock<MyClass>(); // Moq1000: Sealed class 'MyClass' cannot be mocked
 ```
 
-You have three fixes: introduce an interface and mock that, use the real class, or unseal the class.
+You have four fixes: mock an interface the class implements, wrap the class behind your own interface, use the real
+object, or unseal the class. The [Moq1000 page](rules/Moq1000.md#how-to-fix) shows code for each. This is the last
+one:
 
 ```csharp
 public class MyClass { }
@@ -83,13 +86,14 @@ public class MyClass { }
 var mock = new Mock<MyClass>();
 ```
 
-Without the analyzer, Moq 4.18.4 throws `NotSupportedException` at run time with this message:
+Without the analyzer, Moq throws `NotSupportedException` at run time. Moq 4.16.0 through 4.20.72 use this message:
 
 ```text
 Type to mock ({0}) must be an interface, a delegate, or a non-sealed, non-static class.
 ```
 
-Moq replaces `{0}` with the type name. See [Moq1000](rules/Moq1000.md).
+Moq replaces `{0}` with the type name. Moq 4.15.2 and older word the message differently. See
+[Runtime error this rule prevents](rules/Moq1000.md#runtime-error-this-rule-prevents) for each version.
 
 ## Setting up or verifying a non-virtual member
 
@@ -637,7 +641,8 @@ compile time. Newer Moq versions word the error differently. See
 
 ### Can Moq mock a sealed class?
 
-No. Moq generates a subclass, and a sealed class cannot be subclassed. [Moq1000](rules/Moq1000.md) flags it.
+No. Moq generates a subclass, and a sealed class cannot be subclassed. [Moq1000](rules/Moq1000.md) flags it and
+shows four ways to fix it.
 
 ### Should I use Returns or ReturnsAsync for async methods?
 
