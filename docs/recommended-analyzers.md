@@ -19,7 +19,7 @@ documentation. They do not rank the packages.
 - [Add the analyzer for your mocking library](#add-the-analyzer-for-your-mocking-library)
 - [General analyzers this repository runs on its tests](#general-analyzers-this-repository-runs-on-its-tests)
 - [Install the set in every test project](#install-the-set-in-every-test-project)
-- [Roll out new rules without a wall of warnings](#roll-out-new-rules-without-a-wall-of-warnings)
+- [Roll out new rules in stages](#roll-out-new-rules-in-stages)
 - [FAQ](#faq)
 - [Sources](#sources)
 
@@ -30,15 +30,17 @@ stable release on that date.
 
 | Package | Use it when your test project | Do you add a package reference? | Version | Total downloads |
 | ------- | ----------------------------- | ------------------------------- | ------- | --------------- |
-| [Microsoft.CodeAnalysis.NetAnalyzers](https://www.nuget.org/packages/Microsoft.CodeAnalysis.NetAnalyzers) | Targets any .NET version | No. The .NET SDK includes it | 10.0.401 | 90,262,497 |
-| [xunit.analyzers](https://www.nuget.org/packages/xunit.analyzers) | Uses xUnit.net | No. `xunit` and `xunit.v3` depend on it | 2.2.0 | 1,059,435,869 |
-| [NUnit.Analyzers](https://www.nuget.org/packages/NUnit.Analyzers) | Uses NUnit | Yes | 4.15.0 | 169,936,438 |
+| [Microsoft.CodeAnalysis.NetAnalyzers](https://www.nuget.org/packages/Microsoft.CodeAnalysis.NetAnalyzers) | Uses an SDK-style project | No. The .NET SDK includes it. On by default for .NET 5 or later | 10.0.401 | 90,262,497 |
+| [xunit.analyzers](https://www.nuget.org/packages/xunit.analyzers) | Uses xUnit.net | No. `xunit` depends on it. `xunit.v3` brings it in through `xunit.v3.mtp-v2` | 2.2.0 | 1,059,435,869 |
+| [NUnit.Analyzers](https://www.nuget.org/packages/NUnit.Analyzers) | Uses NUnit | Yes, unless your project file already has it | 4.15.0 | 169,936,438 |
 | [MSTest.Analyzers](https://www.nuget.org/packages/MSTest.Analyzers) | Uses MSTest | No. `MSTest.TestFramework` 3.7 and later depends on it | 4.5.1 | 74,123,972 |
 | [Moq.Analyzers](https://www.nuget.org/packages/Moq.Analyzers) | Uses Moq | Yes | 0.4.2 | 3,834,656 |
 | [NSubstitute.Analyzers.CSharp](https://www.nuget.org/packages/NSubstitute.Analyzers.CSharp) | Uses NSubstitute | Yes | 1.0.17 | 36,355,189 |
 
-Download totals are not a quality ranking. A package that another package depends on collects a download each time the
-parent restores. That is why `xunit.analyzers` (1,059,435,869) sits within 1% of `xunit` (1,063,596,523).
+For Microsoft.CodeAnalysis.NetAnalyzers, the version is the NuGet package. The copy in the SDK matches your SDK.
+
+Download totals are not a quality ranking. NuGet downloads a dependency along with its parent. `xunit` depends on
+`xunit.analyzers`, and their totals differ by less than 1%: 1,063,596,523 and 1,059,435,869.
 
 ## Start with the .NET SDK analyzers
 
@@ -70,7 +72,7 @@ the version named.
 | --------- | ---------------- | --------------------------- |
 | xUnit.net v2 | `xunit.analyzers` | `xunit` 2.9.3 depends on `xunit.analyzers` 1.18.0 or later |
 | xUnit.net v3 | `xunit.analyzers` | `xunit.v3` 4.0.2 depends on it through `xunit.v3.mtp-v2`, at 2.2.0 or later |
-| NUnit | `NUnit.Analyzers` | `NUnit` 5.0.0 does not depend on it. Add the package yourself |
+| NUnit | `NUnit.Analyzers` | `NUnit` 5.0.0 does not depend on it. The `dotnet new nunit` template adds the reference |
 | MSTest | `MSTest.Analyzers` | `MSTest.TestFramework` 4.5.1 depends on it. The `MSTest` package depends on `MSTest.TestFramework` |
 
 Rule lists:
@@ -79,6 +81,9 @@ Rule lists:
 - [NUnit.Analyzers documentation](https://github.com/nunit/nunit.analyzers/tree/master/documentation)
 - [MSTest code analysis](https://learn.microsoft.com/en-us/dotnet/core/testing/mstest-analyzers/overview) on Microsoft
   Learn
+
+A project that you created with `dotnet new nunit` already references `NUnit.Analyzers`. Check your project file
+before you add the package.
 
 ### xUnit.net v2 restores an older analyzer
 
@@ -95,8 +100,8 @@ Replace `x.y.z` with the version you want from [NuGet](https://www.nuget.org/pac
 
 ## Add the analyzer for your mocking library
 
-A mocking library builds its setups from lambdas and expression trees. Many mistakes compile and fail only when the
-test runs. A mocking analyzer reports those mistakes when you build.
+A mocking library builds its setups from lambdas and expression trees. A mistake in a setup compiles. It fails only
+when the test runs. A mocking analyzer reports the mistake when you build.
 
 | Mocking library | Analyzer package | Does the library depend on it? |
 | --------------- | ---------------- | ------------------------------ |
@@ -105,10 +110,13 @@ test runs. A mocking analyzer reports those mistakes when you build.
 
 Use the analyzer that matches the library your tests call. An analyzer for a library you do not use reports nothing.
 
-Moq.Analyzers has 25 rules. For example, it reports a `Setup` on a non-virtual member
-([Moq1200](rules/Moq1200.md)), a mock of a sealed class ([Moq1000](rules/Moq1000.md)), and a `Callback` whose
-parameters do not match the method ([Moq1100](rules/Moq1100.md)). To see every rule with an example and a fix, see
-[Common Moq mistakes](common-moq-mistakes.md).
+Moq.Analyzers has 25 rules. Three examples:
+
+- [Moq1200](rules/Moq1200.md) reports a `Setup` on a non-virtual member.
+- [Moq1000](rules/Moq1000.md) reports a mock of a sealed class.
+- [Moq1100](rules/Moq1100.md) reports a `Callback` whose parameters do not match the method.
+
+To see every rule with an example and a fix, see [Common Moq mistakes](common-moq-mistakes.md).
 
 For NSubstitute rules, see the
 [NSubstitute.Analyzers rule pages](https://github.com/nsubstitute/NSubstitute.Analyzers/tree/master/documentation/rules).
@@ -117,7 +125,7 @@ For NSubstitute rules, see the
 
 General code quality analyzers also run in test projects. This repository references the packages below from
 [`build/targets/codeanalysis/CodeAnalysis.props`](../build/targets/codeanalysis/CodeAnalysis.props). The root
-`Directory.Build.props` imports that file, so every project gets them, test projects included.
+`Directory.Build.props` imports that file for every project. The list is not specific to tests.
 
 - [Meziantou.Analyzer](https://www.nuget.org/packages/Meziantou.Analyzer)
 - [Roslynator.Analyzers](https://www.nuget.org/packages/Roslynator.Analyzers)
@@ -131,15 +139,15 @@ General code quality analyzers also run in test projects. This repository refere
 - [Microsoft.CodeAnalysis.Analyzers](https://www.nuget.org/packages/Microsoft.CodeAnalysis.Analyzers), which checks
   code that implements Roslyn analyzers
 
-The list shows what one repository uses. It is not a required set. The maintainer of Moq.Analyzers also maintains
-EffectiveCSharp.Analyzers.
+The list shows what one repository uses. It is not a required set. Richard Murillo, a Moq.Analyzers maintainer, also
+maintains EffectiveCSharp.Analyzers.
 
 The test projects in this repository use xUnit.net v2, so they also get `xunit.analyzers`.
 
 ## Install the set in every test project
 
-Put the references you add yourself in a `Directory.Build.props` file in the folder that holds your test projects.
-This example covers a folder of NUnit test projects that use Moq:
+Create a `Directory.Build.props` file in the folder that holds your test projects. Put the references you add
+yourself there. This example covers a folder of NUnit test projects that use Moq:
 
 ```xml
 <Project>
@@ -153,25 +161,34 @@ This example covers a folder of NUnit test projects that use Moq:
 Replace each `x.y.z` with the current version on NuGet. With xUnit.net or MSTest, drop the `NUnit.Analyzers` line. With
 NSubstitute, replace `Moq.Analyzers` with `NSubstitute.Analyzers.CSharp`.
 
+If a project file already references one of these packages, remove that reference. NuGet reports `NU1504` for a
+duplicate.
+
 `PrivateAssets="all"` keeps the analyzer out of projects that reference yours.
 
 With central package management, omit `Version` here and set it in `Directory.Packages.props`.
 
-MSBuild stops at the first `Directory.Build.props` it finds. If a parent folder has one too, import it from the new
-file. See [Customize the build by folder](https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory).
+MSBuild stops at the first `Directory.Build.props` it finds. If a parent folder has one too, add this line as the
+first child of `<Project>` in the new file:
 
-## Roll out new rules without a wall of warnings
+```xml
+<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+```
 
-A new analyzer can report hundreds of diagnostics on an existing test suite. Set severity per rule in `.editorconfig`,
-then raise it as you fix the code:
+See [Customize the build by folder](https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory).
+
+## Roll out new rules in stages
+
+A new analyzer reports every existing violation on its first build. Set severity per rule in `.editorconfig`, then
+raise it as you fix the code:
 
 ```ini
 [*.cs]
-# Show in the IDE only. A command-line build does not report it.
+# Lower from warning. Show in the IDE only. A command-line build does not report it.
 dotnet_diagnostic.Moq1400.severity = suggestion
 
-# Fail the build.
-dotnet_diagnostic.Moq1200.severity = error
+# Raise from warning. Fail the build.
+dotnet_diagnostic.Moq1100.severity = error
 
 # Turn a rule off.
 dotnet_diagnostic.xUnit2000.severity = none
@@ -185,8 +202,8 @@ To see what each analyzer costs, build with `ReportAnalyzer` and detailed verbos
 dotnet build --no-incremental -p:ReportAnalyzer=true -v:detailed
 ```
 
-The log then has a `Total analyzer execution time` line, followed by the time for each analyzer assembly and each
-rule. See [ReportAnalyzer](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#reportanalyzer)
+The log then has a `Total analyzer execution time` line. Below it, the log lists the time for each analyzer assembly
+and each analyzer class, with its rule IDs. See [ReportAnalyzer](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#reportanalyzer)
 on Microsoft Learn.
 
 ## FAQ
@@ -209,13 +226,13 @@ the SDK copy where you can use it.
 
 ### Does xUnit.net need a separate analyzer package?
 
-No. The `xunit` and `xunit.v3` packages depend on `xunit.analyzers`. Reference `xunit.analyzers` yourself only to get
-a newer version than the one your xUnit.net package restores.
+No. `xunit` depends on `xunit.analyzers`. `xunit.v3` brings it in through `xunit.v3.mtp-v2`. Reference
+`xunit.analyzers` yourself only to get a newer version than the one your xUnit.net package restores.
 
 ### Does NUnit include its analyzers?
 
-No. `NUnit` 5.0.0 has no dependency on `NUnit.Analyzers`. Add the `NUnit.Analyzers` package to each NUnit test
-project.
+No. `NUnit` 5.0.0 has no dependency on `NUnit.Analyzers`. The `dotnet new nunit` template adds the reference for you.
+If your project file does not have it, add the `NUnit.Analyzers` package.
 
 ### Can I use Moq.Analyzers with NUnit or MSTest?
 
@@ -224,7 +241,7 @@ Yes. Moq.Analyzers checks Moq calls. It does not depend on a test framework.
 ### Do analyzers slow the build?
 
 Each analyzer adds work to the compiler. Measure it with `ReportAnalyzer`, as shown in
-[Roll out new rules without a wall of warnings](#roll-out-new-rules-without-a-wall-of-warnings).
+[Roll out new rules in stages](#roll-out-new-rules-in-stages).
 
 ## Sources
 
