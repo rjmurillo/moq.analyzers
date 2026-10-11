@@ -64,6 +64,7 @@ Describe 'Warm-up and phase order (#1382)' {
         # Stub for RunPerfTests.ps1. It logs one line per call and writes a fake report.
         # STUB_FAIL_PHASE makes that phase exit 1. STUB_NOREPORT_PHASE skips its report.
         # STUB_STARONLY_PHASE writes that phase's report only when the filter is '*'.
+        # STUB_NODIR_PHASE skips creating that phase's results folder.
         $script:RunStub = Join-Path $script:ScratchRoot 'RunPerfTestsStub.ps1'
         Set-Content -Path $script:RunStub -Value @'
 param(
@@ -78,8 +79,10 @@ $phase = Split-Path $output -Leaf
 Add-Content -Path $env:STUB_LOG -Value "$phase|$perftestRootFolder|$projects|$filter|$etl|$ci"
 if ($env:STUB_ROLLFORWARD_LOG) { Add-Content -Path $env:STUB_ROLLFORWARD_LOG -Value "$phase|$env:DOTNET_ROLL_FORWARD" }
 $skipReport = ($env:STUB_NOREPORT_PHASE -eq $phase) -or ($env:STUB_STARONLY_PHASE -eq $phase -and $filter -ne '*')
-New-Item -ItemType Directory -Force -Path $output | Out-Null
-if (-not $skipReport) {
+if ($env:STUB_NODIR_PHASE -ne $phase) {
+    New-Item -ItemType Directory -Force -Path $output | Out-Null
+}
+if (-not $skipReport -and $env:STUB_NODIR_PHASE -ne $phase) {
     New-Item -ItemType File -Force -Path (Join-Path $output "$phase-report-full-compressed.json") | Out-Null
 }
 # A trailing '*' (for example 'baseline*') fails only that phase's run with filter '*'.
@@ -106,6 +109,7 @@ exit 0
         $env:STUB_FAIL_PHASE = ''
         $env:STUB_NOREPORT_PHASE = ''
         $env:STUB_STARONLY_PHASE = ''
+        $env:STUB_NODIR_PHASE = ''
         $env:STUB_COMPARE_FAIL = ''
         $env:STUB_ROLLFORWARD_LOG = ''
         $script:SavedRollForward = $env:DOTNET_ROLL_FORWARD
@@ -119,7 +123,7 @@ exit 0
 
     AfterEach {
         Pop-Location
-        Remove-Item Env:STUB_LOG, Env:STUB_FAIL_PHASE, Env:STUB_NOREPORT_PHASE, Env:STUB_STARONLY_PHASE, Env:STUB_COMPARE_FAIL, Env:STUB_ROLLFORWARD_LOG -ErrorAction SilentlyContinue
+        Remove-Item Env:STUB_LOG, Env:STUB_FAIL_PHASE, Env:STUB_NOREPORT_PHASE, Env:STUB_STARONLY_PHASE, Env:STUB_NODIR_PHASE, Env:STUB_COMPARE_FAIL, Env:STUB_ROLLFORWARD_LOG -ErrorAction SilentlyContinue
         $env:DOTNET_ROLL_FORWARD = $script:SavedRollForward
     }
 
@@ -293,6 +297,17 @@ exit 0
             Should -Throw $Message
     }
 
+    It 'throws when the baseline run leaves no results folder (#1431)' {
+        $env:STUB_NODIR_PHASE = 'baseline'
+
+        { Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub } |
+            Should -Throw "*Baseline results directory '$(Join-Path $script:Output 'baseline')' does not exist*"
+
+        $phases = Get-Content $env:STUB_LOG | ForEach-Object { ($_ -split '\|')[0] }
+        $phases | Should -Be @('warmup', 'baseline')
+    }
+
     It 'stops when the comparison fails' {
         $env:STUB_COMPARE_FAIL = '1'
 
@@ -316,5 +331,28 @@ exit 0
 
         { Invoke-PerfWarmup -RepoRoot $script:CaseRoot -Output $script:Output -RunPerfTestsPath $script:RunStub } |
             Should -Throw '*Warm-up perf run produced no benchmark report*'
+    }
+}
+
+Describe 'DiffPerfToBaseline.ps1 exit code (#1431)' {
+    It 'exits <ExitCode> when the comparison <Case>' -ForEach @(
+        @{ Case = 'throws'; Body = "throw 'stub comparison failure'"; ExitCode = 1 }
+        @{ Case = 'succeeds'; Body = "Write-Output 'stub comparison done'"; ExitCode = 0 }
+    ) {
+        # Run a copy of the real entry point next to a stub module in a child process.
+        # The child's exit code is what CI sees.
+        $entryRoot = Join-Path $script:ScratchRoot "entry-$([guid]::NewGuid())"
+        New-Item -ItemType Directory -Force -Path $entryRoot | Out-Null
+        Copy-Item -Path (Join-Path $script:PerfRoot 'DiffPerfToBaseline.ps1') -Destination $entryRoot
+        Set-Content -Path (Join-Path $entryRoot 'PerfBaselineManager.psm1') -Value @"
+function Invoke-PerfBaselineComparison { $Body }
+Export-ModuleMember -Function Invoke-PerfBaselineComparison
+"@
+        $pwsh = (Get-Process -Id $PID).Path
+
+        $childOutput = & $pwsh -NoProfile -NonInteractive -File (Join-Path $entryRoot 'DiffPerfToBaseline.ps1') -baselineSHA 'abc' 2>&1
+
+        $LASTEXITCODE | Should -Be $ExitCode
+        ($childOutput | Out-String) | Should -BeLike "*stub comparison*"
     }
 }
