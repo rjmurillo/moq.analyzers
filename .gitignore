@@ -872,3 +872,7 @@ Temporary Items
 # End of https://www.toptal.com/developers/gitignore/api/csharp,aspnetcore,batch,macos,visualstudio,visualstudiocode,jetbrains
 
 temp/perfBaseline
+
+# Local Claude Code link to .agents/skills. See .claude/CLAUDE.md.
+# No trailing slash: git sees a symlink as a file, not a folder.
+/.claude/skills
