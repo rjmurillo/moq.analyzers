@@ -17,9 +17,9 @@ interface. [Moq.Analyzers](https://www.nuget.org/packages/Moq.Analyzers) reports
 | Every setup was used, with [one limit](#verify-call-order) | `mock.VerifyAll()` | `This mock failed verification due to the following` |
 
 The samples on this page use these types. Each sample was built with Moq 4.20.72 and .NET SDK 10.0.401 and run with
-xUnit. Blocks without `var mock` or `var strict` continue the block above. The failure text was captured from those runs on Moq 4.18.4
-and 4.20.72, with the same text on both, unless a section says otherwise. Older versions, such as Moq 4.10.1, word
-these messages differently. The text was checked through Moq 4.20.72.
+xUnit. Blocks without `var mock` or `var strict` continue the block above. Matching tests on Moq 4.18.4 produced the
+same failure text, unless a section says otherwise. Older versions, such as Moq 4.10.1, word these messages
+differently.
 
 ```csharp
 public interface IOrderService
@@ -358,7 +358,8 @@ mock.Verify();
 ```
 
 For a `MockRepository`, the same split holds: `repository.Verify()` checks the `Verifiable()` setups of every mock it
-created. With two mocks, an unmatched `Verifiable()` setup on the second one fails `repository.Verify()`. [Moq1500](rules/Moq1500.md) reports a repository that never calls `Verify()`. See
+created. With two mocks, an unmatched `Verifiable()` setup on the second one fails `repository.Verify()`.
+[Moq1500](rules/Moq1500.md) reports a repository that never calls `Verify()`. See
 [Verification hygiene](common-moq-mistakes.md#verification-hygiene).
 
 ## Verify call order
@@ -441,7 +442,8 @@ Read it line by line:
 5. One line per call, with its arguments. A record prints its properties, which shows what was passed. With no
    calls, the list says `No invocations performed.`
 
-Compare the arguments in the list with the Verify expression. Most failures are a wrong argument, not a missing call.
+Compare the arguments in the list with the Verify expression. If the call you expected is in the list, the mismatch
+is in an argument.
 
 ## Things Verify cannot check
 
@@ -476,12 +478,12 @@ Unsupported expression: x => x.SubmitAll(It.IsAny<IEnumerable<Order>>())
 Extension methods (here: OrderServiceExtensions.SubmitAll) may not be used in setup / verification expressions.
 ```
 
-Builds of the analyzer from `main` report this as Moq1210. Moq.Analyzers 0.4.2 does not.
+Moq.Analyzers releases after 0.4.2 report this as Moq1210. Moq.Analyzers 0.4.2 does not.
 
 **ILogger extension methods.** `LogInformation` and the other `Log*` methods are extension methods. Use `FakeLogger`
 instead of a mock. See [Tests that verify logging: FakeLogger](rules/Moq1004.md#tests-that-verify-logging-fakelogger)
-and [Mocking ILogger](common-moq-mistakes.md#mocking-ilogger). Rule [Moq1004](rules/Moq1004.md) ships after
-Moq.Analyzers 0.4.2.
+and [Mocking ILogger](common-moq-mistakes.md#mocking-ilogger). Rule [Moq1004](rules/Moq1004.md) ships in
+Moq.Analyzers releases after 0.4.2.
 
 ## FAQ
 
@@ -512,9 +514,10 @@ put `await` in the expression.
 
 ### Why does Verify fail with "Invalid verify on a non-virtual member"?
 
-The member is not virtual, abstract, or on an interface, so Moq cannot intercept it. Moq 4.2 through 4.10.1 use
-that text. Moq 4.18.4 and 4.20.72 throw `Non-overridable members (here: ...) may not be used in setup / verification
-expressions.` [Moq1210](rules/Moq1210.md) reports it at build time.
+The member is not virtual, abstract, or on an interface, so Moq cannot intercept it. Moq 4.10.1 and earlier throw
+`Invalid verify on a non-virtual (overridable in VB) member: {0}`. Moq 4.18.4 and 4.20.72 throw
+`Non-overridable members (here: ...) may not be used in setup / verification expressions.`
+[Moq1210](rules/Moq1210.md) reports it at build time.
 
 ### Is `Times.AtLeastOnce()` needed?
 
