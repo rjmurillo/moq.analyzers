@@ -250,9 +250,11 @@ patterns.
 
 ## Constructor argument mistakes
 
-Arguments you pass to `new Mock<T>(...)` go to the constructor of `T`. Two rules check them:
-[Moq1001](rules/Moq1001.md) flags any argument on an interface mock, and [Moq1002](rules/Moq1002.md) flags arguments
-that match no constructor.
+Arguments you pass to `new Mock<T>(...)`, after an optional `MockBehavior`, go to the constructor of `T`. Two rules
+check them: [Moq1001](rules/Moq1001.md) flags any argument on an interface mock, and [Moq1002](rules/Moq1002.md) flags
+arguments that match no constructor.
+To pass constructor arguments the right way, and to fix "Could not find a parameterless constructor", see
+[Mocking a class with constructor parameters in Moq](moq-constructor-arguments.md).
 
 ```csharp
 public interface IMyService
@@ -265,8 +267,15 @@ public class MyClass
     public MyClass(string s) { }
 }
 
-var mock1 = new Mock<IMyService>("123"); // Moq1001: Mocked interfaces cannot have constructor parameters
-var mock2 = new Mock<MyClass>(3);        // Moq1002: Parameters provided into mock do not match any existing constructors
+var mock1 = new Mock<IMyService>("123"); // Moq1001
+var mock2 = new Mock<MyClass>(3);        // Moq1002
+```
+
+The build reports:
+
+```text
+warning Moq1001: Mocked interface 'IMyService' cannot have constructor parameters ("123")
+warning Moq1002: Could not find a matching constructor for type 'MyClass' with arguments (3)
 ```
 
 ```csharp
@@ -274,11 +283,20 @@ var mock1 = new Mock<IMyService>();
 var mock2 = new Mock<MyClass>("three");
 ```
 
-Without the analyzer, Moq 4.18.4 reports these messages at run time:
+Without the analyzer, the interface mock throws `ArgumentException` on the line that creates it. Checked at
+Moq 4.18.4 and 4.20.72:
 
 ```text
 Constructor arguments cannot be passed for interface mocks.
-A matching constructor for the given arguments was not found on the mocked type.
+```
+
+The class mock throws `ArgumentException` later, when you read `mock2.Object`:
+
+```text
+Can not instantiate proxy of class: MyClass.
+Could not find a constructor that would match given arguments:
+System.Int32
+ (Parameter 'constructorArguments')
 ```
 
 ## Mocking internal types without InternalsVisibleTo
