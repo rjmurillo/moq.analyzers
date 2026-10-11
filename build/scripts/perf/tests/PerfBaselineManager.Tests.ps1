@@ -335,6 +335,19 @@ exit 0
         $calls[2][3] | Should -Be '*'
     }
 
+    It 'ignores a stale baseline report when the new baseline run writes none (#1461)' {
+        $stale = Join-Path $script:Output 'baseline'
+        New-Item -ItemType Directory -Force -Path $stale | Out-Null
+        New-Item -ItemType File -Force -Path (Join-Path $stale 'old-report-full-compressed.json') | Out-Null
+        $env:STUB_NOREPORT_PHASE = 'baseline'
+
+        { Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub } |
+            Should -Throw "*Baseline perf run produced no benchmark report in '$stale'*"
+
+        Join-Path $stale 'old-report-full-compressed.json' | Should -Not -Exist
+    }
+
     It 'continues to the comparison when the baseline <Case> writes a report (#1461)' -ForEach @(
         @{ Case = 'run'; Filter = "'*'"; StarOnly = ''; Phases = @('warmup', 'baseline', 'perfTest', 'compare') }
         @{ Case = 'rerun'; Filter = 'Moq*'; StarOnly = 'baseline'; Phases = @('warmup', 'baseline', 'baseline', 'perfTest', 'compare') }

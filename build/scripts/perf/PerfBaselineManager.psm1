@@ -143,6 +143,10 @@ function Invoke-PerfBaselineComparison {
         if ($useCachedBaseline -and (Test-PerfResults $resultsOutput)) {
             Write-Warning "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
         } else {
+            # Clear old reports so only this run's report can pass the check below.
+            if (Test-Path $resultsOutput) {
+                Remove-Item -Path $resultsOutput -Recurse -Force
+            }
             Ensure-Folder $resultsOutput | Out-Null
 
             # Checkout SHA
