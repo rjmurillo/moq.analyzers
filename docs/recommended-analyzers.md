@@ -18,7 +18,7 @@ documentation. They do not rank the packages.
 - [Add the analyzer for your test framework](#add-the-analyzer-for-your-test-framework)
 - [Add the analyzer for your mocking library](#add-the-analyzer-for-your-mocking-library)
 - [General analyzers this repository runs on its tests](#general-analyzers-this-repository-runs-on-its-tests)
-- [Install the set in every test project](#install-the-set-in-every-test-project)
+- [Reference both analyzers from one props file](#reference-both-analyzers-from-one-props-file)
 - [Roll out new rules in stages](#roll-out-new-rules-in-stages)
 - [FAQ](#faq)
 - [Sources](#sources)
@@ -145,7 +145,7 @@ maintains EffectiveCSharp.Analyzers.
 
 The test projects in this repository use xUnit.net v2, so they also get `xunit.analyzers`.
 
-## Install the set in every test project
+## Reference both analyzers from one props file
 
 Create a `Directory.Build.props` file in the folder that holds your test projects. Put the references you add
 yourself there. This example covers a folder of NUnit test projects that use Moq:
@@ -165,18 +165,8 @@ NSubstitute, replace `Moq.Analyzers` with `NSubstitute.Analyzers.CSharp`.
 If a project file already references one of these packages, remove that reference. NuGet reports `NU1504` for a
 duplicate.
 
-`PrivateAssets="all"` keeps the analyzer out of projects that reference yours.
-
-With central package management, omit `Version` here and set it in `Directory.Packages.props`.
-
-MSBuild stops at the first `Directory.Build.props` it finds. If a parent folder has one too, add this line as the
-first child of `<Project>` in the new file:
-
-```xml
-<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
-```
-
-See [Customize the build by folder](https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory).
+For `PrivateAssets`, central package management, nested `Directory.Build.props` files, and how to check the install,
+see [Install Moq.Analyzers in every test project](install.md).
 
 ## Roll out new rules in stages
 
