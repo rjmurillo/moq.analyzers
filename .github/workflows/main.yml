@@ -120,8 +120,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # On a docs-only run, fetch only the classifier so its tests still run
-      # and a broken tier list fails this required check.
+      # On a docs-only run, fetch only the CI scripts so their tests still
+      # run and a broken tier list fails this required check.
       - name: Check out path classifier
         if: needs.check-paths.outputs.run-build != 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -131,6 +131,9 @@ jobs:
 
       - name: Test path classifier
         run: bash build/scripts/ci/classify-changed-paths.test.sh
+
+      - name: Test base coverage download
+        run: bash build/scripts/ci/download-base-coverage.test.sh
 
       - name: Setup, Restore, and Build Solution
         if: needs.check-paths.outputs.run-build == 'true'
@@ -235,7 +238,8 @@ jobs:
   # is generated with correct local paths.
   test:
     needs: [check-paths]
-    # Tiers that skip tests may wait up to 45 minutes for base coverage.
+    # Tiers that skip tests may wait up to 40 minutes for base coverage
+    # (45 minute step cap).
     timeout-minutes: ${{ needs.check-paths.outputs.run-tests == 'true' && 30 || 50 }}
     strategy:
       fail-fast: false
@@ -331,9 +335,20 @@ jobs:
       # Moq.CodeFixes.dll, and PerfDiff.dll, and neither tier changes their
       # inputs, so the base commit's coverage is this PR's coverage. Reuse
       # it from the main push run, which always runs the full pipeline.
-      # If the base commit's run is still queued or running (a PR opened
-      # right after a merge), wait for it instead of failing at once.
-      # Fail if missing; never post coverage that was not measured.
+      # If that run is still queued or running (a PR opened right after a
+      # merge), wait for it. Fail if missing; never post coverage that was
+      # not measured. See build/scripts/ci/download-base-coverage.sh.
+      - name: Check out base coverage script
+        if: >-
+          needs.check-paths.outputs.run-tests != 'true'
+          && github.event_name == 'pull_request'
+          && runner.os == 'Linux'
+          && env.IS_CODACY_COVERAGE_ALLOWED == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: build/scripts/ci
+          persist-credentials: false
+
       - name: Download base branch coverage for Codacy
         id: base-coverage
         if: >-
@@ -352,56 +367,7 @@ jobs:
           # Main CI takes about 20 to 25 minutes. Keep the step timeout above.
           WAIT_TIMEOUT_SECONDS: 2400
           POLL_INTERVAL_SECONDS: 60
-        run: |
-          runs_api="repos/$GH_REPO/actions/workflows/main.yml/runs?event=push&branch=main&head_sha=$BASE_SHA&per_page=1"
-          # Only the base commit's own run measured this PR's code. Never fall
-          # back to another commit's coverage.
-          run_id="$(gh api "$runs_api&status=success" --jq '.workflow_runs[0].id // empty')"
-          if [[ -z "$run_id" ]]; then
-            # The newest run for this exact commit, if it has not finished.
-            run_id="$(gh api "$runs_api" --jq '.workflow_runs[0] // empty | select(.status != "completed") | .id')"
-            if [[ -z "$run_id" ]]; then
-              echo "::error::No successful, queued, or in-progress main.yml push run for base $BASE_SHA. Run main CI on that commit, then re-run this job."
-              exit 1
-            fi
-
-            deadline=$((SECONDS + WAIT_TIMEOUT_SECONDS))
-            while true; do
-              if ! state="$(gh api "repos/$GH_REPO/actions/runs/$run_id" --jq '"\(.status) \(.conclusion // "none")"')"; then
-                echo "::warning::Could not read the state of run $run_id. Trying again."
-                state="unknown none"
-              fi
-              read -r status conclusion <<< "$state"
-              if [[ "$status" == "completed" ]]; then
-                break
-              fi
-              if (( SECONDS >= deadline )); then
-                echo "::error::Main CI run $run_id for base $BASE_SHA did not finish within $WAIT_TIMEOUT_SECONDS seconds. Re-run this job after it passes."
-                exit 1
-              fi
-              echo "Main CI run $run_id for base $BASE_SHA is $status. Checking again in $POLL_INTERVAL_SECONDS seconds."
-              sleep "$POLL_INTERVAL_SECONDS"
-            done
-
-            if [[ "$conclusion" != "success" ]]; then
-              echo "::error::Main CI run $run_id for base $BASE_SHA finished as '$conclusion'. Fix main CI on that commit, then re-run this job."
-              exit 1
-            fi
-          fi
-
-          run_sha="$(gh api "repos/$GH_REPO/actions/runs/$run_id" --jq '.head_sha')"
-          echo "Using coverage from run $run_id (main at $run_sha)"
-          if ! gh run download "$run_id" --name "$ARTIFACT_NAME" --dir "$DOWNLOAD_DIR"; then
-            echo "::error::Could not download '$ARTIFACT_NAME' from run $run_id. It may have expired. Re-run main.yml on main, then re-run this job."
-            exit 1
-          fi
-
-          report="$DOWNLOAD_DIR/Cobertura.xml"
-          if [[ ! -s "$report" ]]; then
-            echo "::error::'$ARTIFACT_NAME' from run $run_id has no Cobertura.xml."
-            exit 1
-          fi
-          echo "report=$report" >> "$GITHUB_OUTPUT"
+        run: bash build/scripts/ci/download-base-coverage.sh
 
       # The action reads the PR head SHA from the event payload, so this
       # coverage is recorded against the PR head commit.
