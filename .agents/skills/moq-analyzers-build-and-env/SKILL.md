@@ -29,7 +29,7 @@ need to understand those to get a green build; they are covered by
 | Format check | `dotnet format --verify-no-changes` |
 | Restore pinned local tools | `dotnet tool restore` |
 | Attach git hooks manually | `dotnet husky install` (after `dotnet tool restore`) |
-| Check SDK visible | `dotnet --list-sdks` (need 10.0.3xx) |
+| Check SDK visible | `dotnet --version` in the repo root (must match `global.json`; 10.0.401 on 2026-10-11) |
 | Check runtimes visible | `dotnet --list-runtimes` (need Microsoft.NETCore.App 10.0.x) |
 | Fix MSB4018 GetBuildVersion | `git fetch --unshallow` |
 
@@ -38,10 +38,11 @@ need to understand those to get a green build; they are covered by
 You need exactly three things before the first build:
 
 1. **git** with **full history** (not a shallow clone — see section 2).
-2. **.NET SDK 10.0.301** (or a later 10.0.3xx patch). Pinned by `global.json`
-   (`"version": "10.0.301", "rollForward": "latestPatch"` — a newer patch in the same
-   feature band satisfies it; SDK 10.0.4xx or 11.x does not, `latestPatch` stays within
-   10.0.3xx).
+2. **The .NET SDK that `global.json` pins.** `global.json` is the source of truth;
+   read it with `cat global.json`. As of 2026-10-11 it holds
+   `"version": "10.0.401", "rollForward": "latestPatch"`. A newer patch in the same
+   feature band (10.0.4xx) satisfies it. SDK 10.0.5xx or 11.x does not, because
+   `latestPatch` stays within the pinned feature band.
 3. No extra runtime. The shipped analyzer targets netstandard2.0. The test projects
    (`tests/Moq.Analyzers.Test`, `tests/PerfDiff.Tests`) and the PerfDiff tool target
    **net10.0**, and the SDK 10 install includes the 10.0 runtime they run on.
@@ -51,7 +52,7 @@ You need exactly three things before the first build:
 ```bash
 curl -sSL -o dotnet-install.sh https://dot.net/v1/dotnet-install.sh
 chmod +x dotnet-install.sh
-./dotnet-install.sh --version 10.0.301          # SDK, installs to $HOME/.dotnet
+./dotnet-install.sh --jsonfile global.json      # run from the repo root; SDK from global.json, installs to $HOME/.dotnet
 export DOTNET_ROOT="$HOME/.dotnet"
 export PATH="$HOME/.dotnet:$PATH"               # add to your shell profile
 ```
@@ -60,7 +61,7 @@ export PATH="$HOME/.dotnet:$PATH"               # add to your shell profile
 
 ```powershell
 Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
-./dotnet-install.ps1 -Version 10.0.301
+./dotnet-install.ps1 -JSonFile global.json     # run from the repo root; SDK from global.json
 # Installs to %LOCALAPPDATA%\Microsoft\dotnet by default; put that on PATH,
 # or use the official SDK installer from https://dotnet.microsoft.com/download
 ```
@@ -68,12 +69,14 @@ Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-ins
 ### Verify
 
 ```bash
-dotnet --list-sdks       # expect: 10.0.301 (or newer 10.0.3xx)
+dotnet --version         # run in the repo root; expect the global.json version (or a newer patch in its band)
+dotnet --list-sdks       # expect that SDK in the list
 dotnet --list-runtimes   # expect a line: Microsoft.NETCore.App 10.0.x
 ```
 
-Verified in this environment 2026-07-02: SDK `10.0.301`, runtimes
-`Microsoft.NETCore.App 8.0.28` and `10.0.9`.
+Verified in this environment 2026-10-11: `dotnet --version` in the repo root prints
+`10.0.401`, and `./dotnet-install.sh --jsonfile global.json --dry-run` resolves
+`--version "10.0.401"`.
 
 ### Optional but required-for-hooks tools
 
@@ -330,20 +333,21 @@ NBGV; check it with `dotnet nbgv get-version`.
 
 ## 10. Verified end-to-end sequence (copy-paste)
 
-The full path from bare Linux machine to green, verified 2026-07-02:
+The full path from bare Linux machine to green, verified 2026-07-02. The SDK step was
+changed on 2026-10-11 to read `global.json`; that step was checked with `--dry-run`.
 
 ```bash
-# 1. SDK (includes the 10.0 runtime)
-curl -sSL -o dotnet-install.sh https://dot.net/v1/dotnet-install.sh
-chmod +x dotnet-install.sh
-./dotnet-install.sh --version 10.0.301
-export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$PATH"
-dotnet --list-sdks && dotnet --list-runtimes
-
-# 2. Clone with full history
+# 1. Clone with full history
 git clone https://github.com/rjmurillo/moq.analyzers.git
 cd moq.analyzers
 git fetch --unshallow || true
+
+# 2. SDK pinned by global.json (includes the 10.0 runtime)
+curl -sSL -o "$HOME/dotnet-install.sh" https://dot.net/v1/dotnet-install.sh
+chmod +x "$HOME/dotnet-install.sh"
+"$HOME/dotnet-install.sh" --jsonfile global.json
+export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$PATH"
+dotnet --version && dotnet --list-runtimes
 
 # 3. Tools + hooks
 dotnet tool restore
@@ -381,7 +385,7 @@ dotnet test --settings ./build/targets/tests/test.runsettings
 
 Re-verify each volatile claim with one command before trusting it after 2026-07-02:
 
-- SDK pin: `cat global.json` (10.0.301, rollForward latestPatch)
+- SDK pin: `cat global.json` (source of truth; 10.0.401, rollForward latestPatch on 2026-10-11)
 - Tool list + versions: `cat .config/dotnet-tools.json`
 - SquiggleCop still unwired: `grep -rn -i squigglecop --include='*.yml' --include='*.targets' --include='*.props' --include='*.ps1' .` (empty = still unwired)
 - Hook tasks: `cat .husky/task-runner.json`
