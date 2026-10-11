@@ -57,6 +57,11 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-26.04-arm
     if: github.actor == 'renovate[bot]'
+    # Renovate adds several labels in one call, and each one fires a labeled
+    # event. Keep only the newest run per PR to avoid duplicate approvals.
+    concurrency:
+      group: renovate-approve-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       # Renovate handles auto-merge decisions via platformAutomerge and
       # per-package automerge rules in renovate.json. This workflow only
@@ -82,10 +87,12 @@ jobs:
         run: |
           labels="$(gh pr view "$PR_URL" --json labels --jq '.labels[].name')"
           if grep -qxF 'renovate' <<< "$labels" && ! grep -qxF 'major-update' <<< "$labels"; then
-            echo "approve=true" >> "$GITHUB_OUTPUT"
+            approve=true
           else
-            echo "approve=false" >> "$GITHUB_OUTPUT"
+            approve=false
           fi
+          echo "Labels: $(paste -sd, <<< "$labels"); approve=$approve"
+          echo "approve=$approve" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ github.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
