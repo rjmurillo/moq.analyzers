@@ -1,9 +1,9 @@
 # Mocking properties in Moq: SetupGet, SetupSet, SetupProperty, and Setup
 
 Use `SetupGet` (or `Setup`) to return a fixed value from a property getter. Use `SetupProperty` when the property
-should remember values your code assigns. Use `SetupSet` to match assignments and `VerifySet` to verify them. These
-methods only work on properties. [Moq.Analyzers](https://www.nuget.org/packages/Moq.Analyzers) rule
-[Moq1101](rules/Moq1101.md) flags them on methods.
+should remember values your code assigns. Use `SetupSet` to match assignments and `VerifySet` to verify them.
+`SetupGet`, `SetupSet`, and `SetupProperty` only work on properties.
+[Moq.Analyzers](https://www.nuget.org/packages/Moq.Analyzers) rule [Moq1101](rules/Moq1101.md) flags them on methods.
 
 | You want to | Use | Example |
 | ----------- | --- | ------- |
@@ -93,7 +93,7 @@ int id = mock.Object.Id; // 2
 
 ## Make a property remember assignments: SetupProperty and SetupAllProperties
 
-`SetupProperty` turns a property into a real one. It stores what your code assigns and returns it on the next read.
+`SetupProperty` makes the property store its value. It keeps what your code assigns and returns it on the next read.
 The second argument is the starting value.
 
 ```csharp
@@ -123,8 +123,8 @@ The last setup wins.
 
 ### SetupAllProperties
 
-`SetupAllProperties` makes every property on the mock remember assignments. Each property starts at its default
-value.
+`SetupAllProperties` makes every property on the mock remember assignments. With the default mock settings, each
+property starts at its default value, such as `null` for a `string` or `0` for an `int`.
 
 ```csharp
 var mock = new Mock<ICustomer>(MockBehavior.Strict);
@@ -189,7 +189,7 @@ mock.Object.Name = "Grace";
 mock.VerifySet(x => x.Name = "Grace", Times.Once());
 ```
 
-If your code assigned a different value, `VerifySet` throws `MockException`. The message starts with this line:
+If your code assigned a different value, `VerifySet` throws `MockException`. The first line of text is:
 
 ```text
 Expected invocation on the mock once, but was 0 times: x => x.Name = "Grace"
@@ -200,14 +200,19 @@ On a strict mock, set the property up first with `SetupSet` or `SetupProperty`. 
 
 ### Is SetupSet obsolete?
 
-Only one old overload is. `SetupSet(x => x.Name)`, which takes a getter expression, is marked `[Obsolete]` in Moq
-4.18.4 and 4.20.72. The compiler reports CS0618 with the text `Replaced by SetupSet(Action)`. The matching
-`VerifySet(x => x.Name)` overloads are obsolete too. The assignment forms on this page are current.
+No. Only the old overloads that take a getter expression are. All of this holds on Moq 4.18.4 and 4.20.72.
+
+- `SetupSet(x => x.Name)` is marked `[Obsolete]`. The compiler warns with CS0618 and the text
+  `Replaced by SetupSet(Action)`.
+- `SetupSet(x => x.Name, "Grace")` is obsolete as an error. It does not compile (CS0619).
+- The matching `VerifySet(x => x.Name)` overloads are obsolete too.
+
+The assignment forms on this page are current.
 
 ## Read-only properties and properties without a setter
 
-`Id` has a getter and no setter. What works depends on the method. Moq1101 does not report any of these cases. The
-compiler or Moq does.
+`Id` has a getter and no setter. What works depends on the method. Moq1101 does not report any of these cases. Where
+a call fails, the compiler or Moq reports it.
 
 | Call on a get-only property | Result on Moq 4.18.4 and 4.20.72 |
 | --------------------------- | -------------------------------- |
@@ -297,8 +302,8 @@ string theme = mock.Object["theme"]; // "light"
 
 ## Property setups on a method (Moq1101)
 
-`SetupGet`, `SetupSet`, and `SetupProperty` take a property. Passing a method call compiles, and
-[Moq1101](rules/Moq1101.md) flags it.
+`SetupGet`, `SetupSet`, and `SetupProperty` take a property. Passing a call to a method that returns a value
+compiles, and [Moq1101](rules/Moq1101.md) flags it.
 
 ```csharp
 var mock = new Mock<ICustomer>(MockBehavior.Strict);
@@ -371,8 +376,8 @@ You called `SetupGet`, `SetupSet`, or `SetupProperty` on a method. Use `Setup` i
 
 ### Is SetupSet obsolete?
 
-No. Only the old overload that takes a getter expression, `SetupSet(x => x.Name)`, is obsolete. Write the assignment
-in the lambda: `SetupSet(x => x.Name = "Grace")`. See [Is SetupSet obsolete?](#is-setupset-obsolete).
+No. Only the old overloads that take a getter expression, such as `SetupSet(x => x.Name)`, are obsolete. Write the
+assignment in the lambda: `SetupSet(x => x.Name = "Grace")`. See [Is SetupSet obsolete?](#is-setupset-obsolete).
 
 ### Why does my mocked property return null after I assign it?
 
