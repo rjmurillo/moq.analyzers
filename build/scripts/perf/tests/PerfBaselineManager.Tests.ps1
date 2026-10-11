@@ -171,6 +171,7 @@ exit 0
     It 'runs the warm-up before the head phase when the baseline is cached (AC4)' {
         $cached = Join-Path $script:Output 'baseline'
         New-Item -ItemType Directory -Force -Path $cached | Out-Null
+        New-Item -ItemType File -Force -Path (Join-Path $cached 'cached-report-full-compressed.json') | Out-Null
 
         Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" -useCachedBaseline $true `
             -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
@@ -358,6 +359,17 @@ exit 0
         $result | Should -BeNullOrEmpty
         Join-Path $script:Output 'perfTest' | Should -Exist
         Join-Path $script:CaseRoot 'Join-Path' | Should -Not -Exist
+    }
+
+    It 'runs the baseline when the cached baseline folder has no report (#1383)' {
+        $cached = Join-Path $script:Output 'baseline'
+        New-Item -ItemType Directory -Force -Path $cached | Out-Null
+
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" -useCachedBaseline $true `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        $phases = Get-Content $env:STUB_LOG | ForEach-Object { ($_ -split '\|')[0] }
+        $phases | Should -Be @('warmup', 'baseline', 'perfTest', 'compare')
     }
 
     It 'runs the baseline when the cached baseline folder does not exist (#1383)' {

@@ -139,10 +139,10 @@ function Invoke-PerfBaselineComparison {
 
         $resultsOutput = Join-Path $output "baseline"
 
-        if ($useCachedBaseline -and (Test-Path $resultsOutput)) {
+        # A cached baseline counts only when it holds a benchmark report (#1383).
+        if ($useCachedBaseline -and (Test-PerfResults $resultsOutput)) {
             Write-Warning "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
         } else {
-            # Create the folder only after the cache check, so an empty folder is not taken as a cache (#1383).
             Ensure-Folder $resultsOutput | Out-Null
 
             # Checkout SHA
