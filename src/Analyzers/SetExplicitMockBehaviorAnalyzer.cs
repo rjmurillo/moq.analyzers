@@ -31,7 +31,6 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
     /// <inheritdoc />
     private protected override void AnalyzeMockBehaviorArgument(
         OperationAnalysisContext context,
-        IMethodSymbol target,
         IParameterSymbol mockParameter,
         IArgumentOperation? mockArgument,
         MoqKnownSymbols knownSymbols)
@@ -42,7 +41,7 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
         if (mockArgument?.ArgumentKind == ArgumentKind.DefaultValue
             && MockBehaviorConstantValues.ConstantValueEquals(mockArgument.Value.WalkDownConversion().ConstantValue, knownSymbols.MockBehaviorDefault))
         {
-            TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Insert, target);
+            TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Insert);
             return;
         }
 
@@ -53,7 +52,7 @@ public class SetExplicitMockBehaviorAnalyzer : MockBehaviorDiagnosticAnalyzerBas
         if (mockArgument is not null
             && ContainsFieldReference(mockArgument, knownSymbols.MockBehaviorDefault))
         {
-            TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Replace, target);
+            TryReportMockBehaviorDiagnostic(context, mockParameter, Rule, DiagnosticEditProperties.EditType.Replace);
         }
     }
 }

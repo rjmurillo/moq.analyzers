@@ -15,51 +15,19 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
     private protected abstract DiagnosticDescriptor DiagnosticRule { get; }
 
     /// <summary>
-    /// Extracts the mocked type name from the operation for use in diagnostic messages.
-    /// </summary>
-    /// <param name="operation">The operation being analyzed.</param>
-    /// <param name="target">The target method symbol.</param>
-    /// <returns>The display name of the mocked type.</returns>
-    internal virtual string GetMockedTypeName(IOperation operation, IMethodSymbol target)
-    {
-        // For object creation (new Mock<T>), get the type argument from the Mock<T> type
-        if (operation is IObjectCreationOperation objectCreation
-            && objectCreation.Type is INamedTypeSymbol namedType
-            && namedType.TypeArguments.Length > 0)
-        {
-            return namedType.TypeArguments[0].ToDisplayString();
-        }
-
-        // For method invocation (Mock.Of<T>), get the type argument from the method
-        if (operation is IInvocationOperation invocation && invocation.TargetMethod.TypeArguments.Length > 0)
-        {
-            return invocation.TargetMethod.TypeArguments[0].ToDisplayString();
-        }
-
-        // Try the containing type's type arguments (e.g. Mock<T>.ctor)
-        if (target.ContainingType?.TypeArguments.Length > 0)
-        {
-            return target.ContainingType.TypeArguments[0].ToDisplayString();
-        }
-
-        return "T";
-    }
-
-    /// <summary>
-    /// Attempts to report a diagnostic for a MockBehavior parameter issue, with the mocked type name.
+    /// Attempts to report a diagnostic for a MockBehavior parameter issue. The message names the mocked type,
+    /// or the repository type for <c>new MockRepository(...)</c>.
     /// </summary>
     /// <param name="context">The operation analysis context.</param>
     /// <param name="parameterMatch">The MockBehavior parameter to edit.</param>
     /// <param name="rule">The diagnostic rule to report.</param>
     /// <param name="editType">The type of edit for the code fix.</param>
-    /// <param name="mockedTypeNameSource">The method whose type arguments name the mocked type.</param>
     /// <returns>True if a diagnostic was reported; otherwise, false.</returns>
     internal bool TryReportMockBehaviorDiagnostic(
         OperationAnalysisContext context,
         IParameterSymbol parameterMatch,
         DiagnosticDescriptor rule,
-        DiagnosticEditProperties.EditType editType,
-        IMethodSymbol mockedTypeNameSource)
+        DiagnosticEditProperties.EditType editType)
     {
         ImmutableDictionary<string, string?> properties = new DiagnosticEditProperties
         {
@@ -67,27 +35,24 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
             EditPosition = parameterMatch.Ordinal,
         }.ToImmutableDictionary();
 
-        string mockedTypeName = GetMockedTypeName(context.Operation, mockedTypeNameSource);
-        context.ReportDiagnostic(context.Operation.CreateDiagnostic(rule, properties, mockedTypeName));
+        string subjectName = GetDiagnosticSubjectName(context.Operation);
+        context.ReportDiagnostic(context.Operation.CreateDiagnostic(rule, properties, subjectName));
         return true;
     }
 
     /// <summary>
-    /// Attempts to handle missing MockBehavior parameter by checking for overloads that accept it,
-    /// with the mocked type name.
+    /// Attempts to handle missing MockBehavior parameter by checking for overloads that accept it.
     /// </summary>
     /// <param name="context">The operation analysis context.</param>
     /// <param name="target">The target method to check for overloads.</param>
     /// <param name="knownSymbols">The known Moq symbols.</param>
     /// <param name="rule">The diagnostic rule to report.</param>
-    /// <param name="mockedTypeNameSource">The method whose type arguments name the mocked type.</param>
     /// <returns>True if a diagnostic was reported; otherwise, false.</returns>
     internal bool TryHandleMissingMockBehaviorParameter(
         OperationAnalysisContext context,
         IMethodSymbol target,
         MoqKnownSymbols knownSymbols,
-        DiagnosticDescriptor rule,
-        IMethodSymbol mockedTypeNameSource)
+        DiagnosticDescriptor rule)
     {
         INamedTypeSymbol? mockBehavior = knownSymbols.MockBehavior;
         if (mockBehavior is null)
@@ -97,12 +62,11 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
         }
 
         return target.TryGetOverloadWithParameterOfType(mockBehavior, out _, out IParameterSymbol? parameterMatch, cancellationToken: context.CancellationToken)
-            && TryReportMockBehaviorDiagnostic(context, parameterMatch, rule, DiagnosticEditProperties.EditType.Insert, mockedTypeNameSource);
+            && TryReportMockBehaviorDiagnostic(context, parameterMatch, rule, DiagnosticEditProperties.EditType.Insert);
     }
 
     private protected abstract void AnalyzeMockBehaviorArgument(
         OperationAnalysisContext context,
-        IMethodSymbol target,
         IParameterSymbol mockParameter,
         IArgumentOperation? mockArgument,
         MoqKnownSymbols knownSymbols);
@@ -137,6 +101,32 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
         context.RegisterOperationAction(context => AnalyzeObjectCreation(context, knownSymbols), OperationKind.ObjectCreation);
 
         context.RegisterOperationAction(context => AnalyzeInvocation(context, knownSymbols), OperationKind.Invocation);
+    }
+
+    /// <summary>
+    /// Gets the name the diagnostic message reports: the mocked type, or the repository type when
+    /// the operation creates a <c>MockRepository</c>.
+    /// </summary>
+    /// <param name="operation">The object creation or invocation the diagnostic is reported on.</param>
+    /// <returns>The display name for the message argument.</returns>
+    private static string GetDiagnosticSubjectName(IOperation operation)
+    {
+        // new Mock<T>(...): name the mocked type T.
+        if (operation is IObjectCreationOperation { Type: INamedTypeSymbol { TypeArguments.Length: > 0 } mockType })
+        {
+            return mockType.TypeArguments[0].ToDisplayString();
+        }
+
+        // Mock.Of<T>(...): the invocation holds the constructed method. Its type argument is the mocked
+        // type. The method definition would yield the type parameter name "T".
+        if (operation is IInvocationOperation { TargetMethod.TypeArguments.Length: > 0 } invocation)
+        {
+            return invocation.TargetMethod.TypeArguments[0].ToDisplayString();
+        }
+
+        // new MockRepository(...): a repository has no mocked type, so name the created type. The short
+        // name is intentional: the rule docs quote "MockRepository", not "Moq.MockRepository".
+        return operation.Type?.Name ?? "mock";
     }
 
     private void AnalyzeObjectCreation(OperationAnalysisContext context, MoqKnownSymbols knownSymbols)
@@ -185,12 +175,12 @@ public abstract class MockBehaviorDiagnosticAnalyzerBase : MoqDiagnosticAnalyzer
 
         if (mockParameter is null)
         {
-            TryHandleMissingMockBehaviorParameter(context, target, knownSymbols, DiagnosticRule, target);
+            TryHandleMissingMockBehaviorParameter(context, target, knownSymbols, DiagnosticRule);
             return;
         }
 
         IArgumentOperation? mockArgument = arguments.DefaultIfNotSingle(argument => argument.Parameter.IsInstanceOf(mockParameter));
 
-        AnalyzeMockBehaviorArgument(context, target, mockParameter, mockArgument, knownSymbols);
+        AnalyzeMockBehaviorArgument(context, mockParameter, mockArgument, knownSymbols);
     }
 }
