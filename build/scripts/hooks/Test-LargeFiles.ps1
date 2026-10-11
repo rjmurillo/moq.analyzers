@@ -41,7 +41,8 @@ foreach ($file in $stagedFiles) {
         continue
     }
 
-    $fileInfo = Get-Item -LiteralPath $fullPath
+    # -Force: Get-Item skips dot files such as .gitignore on Linux and macOS.
+    $fileInfo = Get-Item -Force -LiteralPath $fullPath
     if ($fileInfo.Length -gt $maxBytes) {
         $sizeKB = [math]::Round($fileInfo.Length / 1024, 1)
         $violations += "  $file ($($sizeKB) KB exceeds $($MaxFileSizeKB) KB limit)"
