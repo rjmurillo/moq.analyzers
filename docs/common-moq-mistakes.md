@@ -249,8 +249,9 @@ Without the analyzer, Moq 4.18.4 throws `ArgumentException` at run time with thi
 Invalid callback. Setup on method with parameters ({0}) cannot invoke callback with parameters ({1}).
 ```
 
-A callback for a `ref` or `out` parameter needs a custom delegate type. See [Moq1100](rules/Moq1100.md) for those
-patterns.
+A callback for a `ref` or `out` parameter needs a custom delegate type. On C# 10 or later, a typed lambda with a
+block body also works. For those patterns, and for `Returns`, `Callback<T>`, and async methods, see
+[How to use Callback in Moq](moq-callback.md).
 
 ## Constructor argument mistakes
 
@@ -517,7 +518,8 @@ var good = Mock.Of<IService>(s => s.Name == "test");
 
 A mock uses `MockBehavior.Loose` unless you say otherwise. A loose mock returns default values for calls you never set
 up, which can hide a missing setup. [Moq1400](rules/Moq1400.md) asks you to choose a behavior on purpose.
-[Moq1410](rules/Moq1410.md) asks for `MockBehavior.Strict`.
+[Moq1410](rules/Moq1410.md) asks for `MockBehavior.Strict`. To see what each behavior does on a call without a setup,
+read [MockBehavior.Strict vs MockBehavior.Loose](rules/Moq1400.md#mockbehaviorstrict-vs-mockbehaviorloose).
 
 ```csharp
 public interface ISample
@@ -683,7 +685,7 @@ check log output, see [Tests that verify logging](rules/Moq1004.md#tests-that-ve
 ### Why does my Moq Callback throw?
 
 The `Callback` parameters must match the signature of the method in `Setup`. [Moq1100](rules/Moq1100.md) flags a
-mismatch and offers a code fix.
+mismatch and offers a code fix. See [How to use Callback in Moq](moq-callback.md).
 
 ### How do I install Moq.Analyzers?
 
