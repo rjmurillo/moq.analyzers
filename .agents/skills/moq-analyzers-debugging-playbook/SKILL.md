@@ -95,8 +95,7 @@ Span policy varies per rule and is pinned by that rule's tests. Do not move
 markup to match your code; changing a shipped rule's span policy is a behavior
 change (see moq-analyzers-change-control).
 
-**Run just the failing test** (repo root; needs .NET SDK per `global.json`
-plus the .NET 8 runtime for the net8.0 test project):
+**Run just the failing test** (repo root; needs the .NET SDK per `global.json`):
 
 ```bash
 dotnet test --settings ./build/targets/tests/test.runsettings \

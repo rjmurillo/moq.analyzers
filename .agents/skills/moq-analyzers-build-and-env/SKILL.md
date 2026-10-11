@@ -30,7 +30,7 @@ need to understand those to get a green build; they are covered by
 | Restore pinned local tools | `dotnet tool restore` |
 | Attach git hooks manually | `dotnet husky install` (after `dotnet tool restore`) |
 | Check SDK visible | `dotnet --list-sdks` (need 10.0.3xx) |
-| Check runtimes visible | `dotnet --list-runtimes` (need Microsoft.NETCore.App 8.0.x) |
+| Check runtimes visible | `dotnet --list-runtimes` (need Microsoft.NETCore.App 10.0.x) |
 | Fix MSB4018 GetBuildVersion | `git fetch --unshallow` |
 
 ## 1. Prerequisites
@@ -42,11 +42,9 @@ You need exactly three things before the first build:
    (`"version": "10.0.301", "rollForward": "latestPatch"` — a newer patch in the same
    feature band satisfies it; SDK 10.0.4xx or 11.x does not, `latestPatch` stays within
    10.0.3xx).
-3. **.NET 8 runtime** in the same dotnet root. The shipped analyzer targets
-   netstandard2.0, but the test projects (`tests/Moq.Analyzers.Test`,
-   `tests/PerfDiff.Tests`) and the PerfDiff tool target **net8.0**. The SDK 10 install
-   does NOT include an 8.0 runtime; without it, `dotnet test` fails with
-   "The framework 'Microsoft.NETCore.App', version '8.0.0' ... was not found".
+3. No extra runtime. The shipped analyzer targets netstandard2.0. The test projects
+   (`tests/Moq.Analyzers.Test`, `tests/PerfDiff.Tests`) and the PerfDiff tool target
+   **net10.0**, and the SDK 10 install includes the 10.0 runtime they run on.
 
 ### Install on Linux / macOS
 
@@ -54,7 +52,6 @@ You need exactly three things before the first build:
 curl -sSL -o dotnet-install.sh https://dot.net/v1/dotnet-install.sh
 chmod +x dotnet-install.sh
 ./dotnet-install.sh --version 10.0.301          # SDK, installs to $HOME/.dotnet
-./dotnet-install.sh --runtime dotnet --channel 8.0   # .NET 8 runtime, same root
 export DOTNET_ROOT="$HOME/.dotnet"
 export PATH="$HOME/.dotnet:$PATH"               # add to your shell profile
 ```
@@ -64,7 +61,6 @@ export PATH="$HOME/.dotnet:$PATH"               # add to your shell profile
 ```powershell
 Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
 ./dotnet-install.ps1 -Version 10.0.301
-./dotnet-install.ps1 -Runtime dotnet -Channel 8.0
 # Installs to %LOCALAPPDATA%\Microsoft\dotnet by default; put that on PATH,
 # or use the official SDK installer from https://dotnet.microsoft.com/download
 ```
@@ -73,17 +69,11 @@ Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-ins
 
 ```bash
 dotnet --list-sdks       # expect: 10.0.301 (or newer 10.0.3xx)
-dotnet --list-runtimes   # expect a line: Microsoft.NETCore.App 8.0.x
+dotnet --list-runtimes   # expect a line: Microsoft.NETCore.App 10.0.x
 ```
 
 Verified in this environment 2026-07-02: SDK `10.0.301`, runtimes
 `Microsoft.NETCore.App 8.0.28` and `10.0.9`.
-
-**Escape hatch if you cannot install the 8.0 runtime:** `DOTNET_ROLL_FORWARD=LatestMajor`
-lets net8.0 test hosts run on the 10.x runtime. The pre-push hook
-(`build/scripts/hooks/Invoke-PrePushBuild.ps1`) sets this itself. Prefer installing the
-real 8.0 runtime: CI runs tests on an actual 8.0 runtime, and running on 10.x is not
-what ships.
 
 ### Optional but required-for-hooks tools
 
@@ -296,7 +286,7 @@ artifacts/
 ├── obj/<Project>/                    # intermediate objects, restore caches
 ├── package/debug|release/            # Moq.Analyzers.<version>.nupkg + .symbols.nupkg (pack runs on every build)
 ├── TestResults/
-│   ├── net8.0/                       # TRX logs + raw .cobertura.xml per run
+│   ├── net10.0/                      # TRX logs + raw .cobertura.xml per run
 │   ├── coverage/                     # generated report: SummaryGithub.md, Cobertura.xml, index.html
 │   └── coveragehistory/              # ReportGenerator history (CI restores this across runs)
 └── logs/release/build.release.binlog # MSBuild binary log (CI builds only; pass /bl:... to get one locally)
@@ -328,7 +318,6 @@ NBGV; check it with `dotnet nbgv get-version`.
 | Trap | Symptom | Cause / rule | Fix |
 | --- | --- | --- | --- |
 | Shallow clone | `MSB4018 ... GetBuildVersion task failed` | NBGV needs full commit history to compute version height | `git fetch --unshallow` |
-| Missing .NET 8 runtime | `dotnet test`: "framework 'Microsoft.NETCore.App', version '8.0.0' was not found" | Tests target net8.0; SDK 10 ships no 8.0 runtime | `./dotnet-install.sh --runtime dotnet --channel 8.0` (or `DOTNET_ROLL_FORWARD=LatestMajor` as a stopgap) |
 | Warnings pass locally, fail CI | Green local build, red CI build job | `PedanticMode` defaults off locally, on in CI (`TreatWarningsAsErrors`) | Always run `dotnet build /p:PedanticMode=true` before pushing; pre-push hook does this for you |
 | CRLF PowerShell scripts | Pre-push hook dies with a PowerShell **parse error** (block comment `<# #>` unterminated) | ADR-010 (`docs/architecture/ADR-010-eol-lf-for-powershell-files.md`, incident #1081): `*.ps1/psm1/psd1` MUST be LF; enforced via `.gitattributes` | Never override to CRLF; if a checkout predates the rule: `git rm --cached -r . && git reset --hard` re-normalizes |
 | `*.received.*` files staged | Verify failure artifacts show up in `git status` | Not git-ignored by design (CI uploads them on failure) | Delete before commit; only commit `*.verified.*` when a snapshot change is intentional and reviewed |
@@ -344,11 +333,10 @@ NBGV; check it with `dotnet nbgv get-version`.
 The full path from bare Linux machine to green, verified 2026-07-02:
 
 ```bash
-# 1. SDK + runtime
+# 1. SDK (includes the 10.0 runtime)
 curl -sSL -o dotnet-install.sh https://dot.net/v1/dotnet-install.sh
 chmod +x dotnet-install.sh
 ./dotnet-install.sh --version 10.0.301
-./dotnet-install.sh --runtime dotnet --channel 8.0
 export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$PATH"
 dotnet --list-sdks && dotnet --list-runtimes
 

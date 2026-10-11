@@ -56,3 +56,7 @@ To find the rule behind a mistake or a runtime error, see [Common Moq mistakes](
 - For an overview of the project, see the root [README](../../README.md).
 - CI keeps workflow artifacts for seven days. For details, see the
   [CI workflow requirements](../../CONTRIBUTING.md#ci-workflow-requirements).
+- A pull request that changes pages in this folder or `README.md`, and no code, runs a short CI pass. It builds the
+  package and runs `DiagnosticDescriptorMetadataTests` and `PackageTests`, which read these pages and the README.
+  The tier rules live in
+  [`classify-changed-paths.sh`](../../build/scripts/ci/classify-changed-paths.sh).

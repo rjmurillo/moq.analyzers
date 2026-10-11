@@ -37,7 +37,7 @@ Run one test class:
 dotnet test --settings ./build/targets/tests/test.runsettings --filter "FullyQualifiedName~MethodSetupShouldSpecifyReturnValue"
 ```
 
-Read the current suite size from the full command output. Tests target net8.0
+Read the current suite size from the full command output. Tests target net10.0
 and run against a pinned Roslyn 4.8 test compiler, so test code parses as C# 12.
 C# 13 features such as `params` collections are not parseable inside test
 sources.
