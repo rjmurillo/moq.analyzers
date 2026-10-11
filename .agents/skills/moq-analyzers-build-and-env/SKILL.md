@@ -29,7 +29,7 @@ need to understand those to get a green build; they are covered by
 | Format check | `dotnet format --verify-no-changes` |
 | Restore pinned local tools | `dotnet tool restore` |
 | Attach git hooks manually | `dotnet husky install` (after `dotnet tool restore`) |
-| Check SDK visible | `dotnet --version` in the repo root (must match `global.json`; 10.0.401 on 2026-10-11) |
+| Check SDK visible | `dotnet --version` in the repo root (must satisfy `global.json`: 10.0.401 or a newer 10.0.4xx patch on 2026-10-11) |
 | Check runtimes visible | `dotnet --list-runtimes` (need Microsoft.NETCore.App 10.0.x) |
 | Fix MSB4018 GetBuildVersion | `git fetch --unshallow` |
 
@@ -37,7 +37,7 @@ need to understand those to get a green build; they are covered by
 
 You need exactly three things before the first build:
 
-1. **git** with **full history** (not a shallow clone — see section 2).
+1. **git** with **full history** (not a shallow clone; see section 2).
 2. **The .NET SDK that `global.json` pins.** `global.json` is the source of truth;
    read it with `cat global.json`. As of 2026-10-11 it holds
    `"version": "10.0.401", "rollForward": "latestPatch"`. A newer patch in the same
@@ -50,9 +50,9 @@ You need exactly three things before the first build:
 ### Install on Linux / macOS
 
 ```bash
-curl -sSL -o dotnet-install.sh https://dot.net/v1/dotnet-install.sh
-chmod +x dotnet-install.sh
-./dotnet-install.sh --jsonfile global.json      # run from the repo root; SDK from global.json, installs to $HOME/.dotnet
+curl -sSL -o "$HOME/dotnet-install.sh" https://dot.net/v1/dotnet-install.sh
+chmod +x "$HOME/dotnet-install.sh"
+"$HOME/dotnet-install.sh" --jsonfile global.json   # run from the repo root; SDK from global.json, installs to $HOME/.dotnet
 export DOTNET_ROOT="$HOME/.dotnet"
 export PATH="$HOME/.dotnet:$PATH"               # add to your shell profile
 ```
@@ -60,8 +60,9 @@ export PATH="$HOME/.dotnet:$PATH"               # add to your shell profile
 ### Install on Windows (PowerShell)
 
 ```powershell
-Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
-./dotnet-install.ps1 -JSonFile global.json     # run from the repo root; SDK from global.json
+$installer = Join-Path $env:TEMP 'dotnet-install.ps1'   # keep the script out of the repo
+Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile $installer
+& $installer -JSonFile global.json              # run from the repo root; SDK from global.json
 # Installs to %LOCALAPPDATA%\Microsoft\dotnet by default; put that on PATH,
 # or use the official SDK installer from https://dotnet.microsoft.com/download
 ```
@@ -383,7 +384,8 @@ dotnet test --settings ./build/targets/tests/test.runsettings
 
 ## Provenance and maintenance
 
-Re-verify each volatile claim with one command before trusting it after 2026-07-02:
+Re-verify each volatile claim with one command before trusting it. The list was last
+checked in full on 2026-07-02; the SDK pin bullet was rechecked on 2026-10-11:
 
 - SDK pin: `cat global.json` (source of truth; 10.0.401, rollForward latestPatch on 2026-10-11)
 - Tool list + versions: `cat .config/dotnet-tools.json`
