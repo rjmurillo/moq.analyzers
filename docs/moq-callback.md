@@ -13,7 +13,7 @@ time.
 | Set an `out` or `ref` argument | A custom delegate type and `It.Ref<T>.IsAny` |
 | Run code on a method that returns `Task` | `Callback(...).Returns(Task.CompletedTask)` |
 
-The samples on this page use this interface. They were compiled and run against Moq 4.20.72.
+The samples on this page use this interface. Each one compiles and runs against Moq 4.20.72.
 
 ```csharp
 public interface IOrderService
@@ -54,8 +54,8 @@ mock.Setup(x => x.Place(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(
 mock.Object.Place(4, "A1", DateTime.UtcNow); // placed now holds 4
 ```
 
-Write the parameter types. An untyped lambda, `Callback((id, sku, at) => { })`, does not compile. The compiler
-reports CS1660.
+Write the parameter types. An untyped lambda, `Callback((id, sku, at) => { })`, does not compile. With Moq 4.20.72
+the compiler reports CS1660.
 
 A callback with no parameters is always valid. Use it when you do not need the arguments.
 
@@ -156,9 +156,9 @@ mock.Object.Place(4, "A1", DateTime.UtcNow); // log holds before, returns, after
 | Purpose | Side effects: capture, count, log | The result of the call |
 | Lambda return type | `void` | The method's return type |
 | Lambda with no parameters | Valid | Valid |
-| Lambda with parameters | Must match the method | Must match the method |
+| Lambda with parameters | Match the method | Match the method |
 
-A `Returns` lambda with parameters follows the same rule as a callback, and Moq1100 checks it too.
+Give a `Returns` lambda the same parameters as the method. Moq1100 checks it the same way it checks a callback.
 
 ```csharp
 mock.Setup(x => x.Place(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>()))
@@ -170,8 +170,8 @@ mock.Setup(x => x.Place(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(
     .Returns((int id, string sku, DateTime at) => id);
 ```
 
-A setup on a method that returns a value needs `Returns`. `Callback` alone does not set one, and
-[Moq1203](rules/Moq1203.md) flags it.
+`Callback` alone does not set a return value. Without `Returns`, a loose mock returns the default value, and
+[Moq1203](rules/Moq1203.md) flags the setup.
 
 ## Out and ref parameters
 
@@ -226,7 +226,7 @@ mock.Setup(x => x.TryGet(It.IsAny<int>(), out It.Ref<string>.IsAny))
 Two mistakes to avoid:
 
 - A plain lambda without the `out` modifier, `Callback((int id, string sku) => { })`, raises Moq1100 and throws at
-  run time.
+  run time. Use the delegate pattern above.
 - A delegate that returns a value, such as `TryGetReturns`, works with `Returns` and throws when passed to
   `Callback`. `Callback` accepts `void` delegates only. Moq1100 does not report this case
   ([#1434](https://github.com/rjmurillo/moq.analyzers/issues/1434)).
@@ -290,7 +290,7 @@ throws when the mocked method is called:
 Object of type 'System.Int32' cannot be converted to type 'System.String'.
 ```
 
-Moq 4.10.1 prints CLR type names in the first message, as in `(Int32,String,DateTime)`.
+Older versions, such as Moq 4.10.1, print CLR type names in the first message, as in `(Int32,String,DateTime)`.
 
 Moq1100 reports the first, second, and fourth case at build time:
 
@@ -299,13 +299,15 @@ warning Moq1100: Callback signature for 'Place' must match the signature of the 
 ```
 
 The message says "Callback" for a `Returns` lambda as well. To fix it, make the lambda parameters match the mocked
-method. A code fix does this for a lambda passed to `Callback`.
+method. A code fix does this for a lambda passed to `Callback` or `Returns`. See
+[How to fix](rules/Moq1100.md#how-to-fix) for its limits.
 
-Moq1100 does not report two mismatches that Moq rejects. Both are tracked in
+Moq1100 does not report these mismatches. Moq rejects them. They are tracked in
 [#1434](https://github.com/rjmurillo/moq.analyzers/issues/1434).
 
-- A wider numeric type, such as `long id` for an `int` parameter. Moq throws the first message above. An `object`
-  parameter in the same position works.
+- A callback parameter of a different type that C# can convert. Examples: `long` or `short` for an `int` parameter,
+  or `string` for an `object` parameter. Moq throws the first message above. A base type works, such as `object` for
+  an `int` parameter.
 - A delegate with a return value passed to `Callback`.
 
 ## FAQ
