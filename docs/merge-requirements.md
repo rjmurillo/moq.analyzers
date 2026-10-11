@@ -13,19 +13,11 @@ A repository ruleset protects the `main` branch. The repository does not use cla
 - CodeQL must report no high or critical security alerts and no errors.
 - Squash merge is the only merge method.
 
-## Merge queue
+## Branch freshness
 
-Pull requests merge through a merge queue. The branch does not need to be up to date with `main`.
+A pull request does not need to be up to date with `main` before it merges. Required checks run on the pull request merge commit at the time of each push.
 
-- When the pull request gate passes, select **Merge when ready**. This adds the pull request to the queue.
-- The queue builds a temporary branch named `gh-readonly-queue/main/...`. It holds `main` plus the queued pull requests.
-- Every required check runs again on that branch. The `merge_group` event triggers the GitHub Actions checks.
-- The queue squash merges a group only when all its required checks pass.
-- A failed check removes the pull request from the queue. Fix it, then queue it again.
-- A merge group runs the full pipeline. The docs-only skip applies to pull requests only.
-- `Validate PR title` passes on a merge group without reading a title. The title was checked on the pull request.
-- Codacy and CLA Assistant report their checks on merge groups on their own.
-- The CodeQL code scanning rule applies to pull requests, not to merge groups.
+GitHub merge queues are not available for repositories owned by a personal account. The workflows that report required checks still trigger on `merge_group`, so a queue can be added if the repository moves to an organization.
 
 ## Contributor License Agreement
 
