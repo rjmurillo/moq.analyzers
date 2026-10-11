@@ -175,6 +175,8 @@ new Mock<IService>().Setup(x => x.Save()); // Moq1200
 
 Use `ReturnsAsync` to set up an async method. Three rules flag the common wrong patterns:
 [Moq1201](rules/Moq1201.md), [Moq1206](rules/Moq1206.md), and [Moq1208](rules/Moq1208.md).
+For more async setups with code, including `null` results, parameters, and methods that return `Task`, see
+[How to set up async methods in Moq](moq-returnsasync.md).
 
 | Wrong pattern | Rule |
 | ------------- | ---- |
@@ -209,6 +211,8 @@ mock.Setup(x => x.GetValueAsync()).ReturnsAsync(42);
 ```
 
 You can also keep `Returns` and wrap the value yourself: `Returns(() => Task.FromResult(42))`.
+
+Moq1208 is not in Moq.Analyzers 0.4.2. It ships in the next release.
 
 Moq1208 has a code fix that rewrites `Returns` to `ReturnsAsync`. The Moq1208 pattern compiles. Without the analyzer,
 Moq 4.18.4 then throws `ArgumentException` at run time with this message:
@@ -677,8 +681,10 @@ shows four ways to fix it.
 
 ### Should I use Returns or ReturnsAsync for async methods?
 
-Use `ReturnsAsync`. [Moq1201](rules/Moq1201.md), [Moq1206](rules/Moq1206.md), and [Moq1208](rules/Moq1208.md) flag the
-common wrong patterns. Moq1201 applies only to Moq versions older than 4.16.0.
+Use `ReturnsAsync` for a method that returns `Task<T>` or `ValueTask<T>`. Use `Returns(Task.CompletedTask)` for a
+method that returns `Task`. [Moq1201](rules/Moq1201.md), [Moq1206](rules/Moq1206.md), and
+[Moq1208](rules/Moq1208.md) flag the common wrong patterns. Moq1201 applies only to Moq versions older than 4.16.0.
+See [How to set up async methods in Moq](moq-returnsasync.md).
 
 ### Should I mock ILogger with Moq?
 

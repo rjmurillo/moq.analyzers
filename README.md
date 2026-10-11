@@ -43,6 +43,7 @@ something is wrong with your Moq configuration.
 
 For details on each rule, see the [rule reference](docs/rules/README.md).
 To find the rule behind a mistake, with examples and fixes, see [Common Moq mistakes](docs/common-moq-mistakes.md).
+To set up async methods with `ReturnsAsync`, see [How to set up async methods in Moq](docs/moq-returnsasync.md).
 To pass constructor arguments to a mock, see [Mocking a class with constructor parameters in Moq](docs/moq-constructor-arguments.md).
 To capture arguments or set `out` values with `Callback`, see [How to use Callback in Moq](docs/moq-callback.md).
 To choose between `SetupGet`, `SetupProperty`, and `Setup` for a property, see [Mocking properties in Moq](docs/moq-property-setup.md).
