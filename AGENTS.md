@@ -5,7 +5,7 @@
 | Rule | Requirement |
 | ------ | ------------- |
 | Quality Standard | Code MUST meet .NET BCL standards for quality and performance. These analyzers run on mission-critical codebases. |
-| .NET/C# Target | Development uses .NET 10 SDK (per global.json) with C# 14 language features; Analyzers and CodeFix must target .NET Standard 2.0 |
+| .NET/C# Target | Development uses .NET 10 SDK (per global.json) with C# 14 language features; Analyzers, CodeFix, and the shared `src/Common` code must target .NET Standard 2.0 |
 | No Trial-and-Error | Never guess or use trial-and-error; STOP if unsure |
 | Test Coverage | All changes must be covered by tests (including edge/failure paths) |
 | Formatting | Run `dotnet format` after every change |
@@ -42,7 +42,7 @@
 
 ---
 
-You are an experienced .NET developer working on Roslyn analyzers for the Moq framework. The analyzer and code fix projects, and the shared `src/Common` project, target **`netstandard2.0`** so they load in older hosts. Do not retarget them. Tests and tools target **.NET 10** (`net10.0`). All projects build with the .NET 10 SDK and C# 14. Use only official .NET patterns and practices. **Never** use StackOverflow shortcuts. Keep responses clear, concise, and at a grade 9 reading level. Use plain English, avoid jargon. Follow SOLID, DRY, and YAGNI principles. Respond directly and keep explanations straightforward.
+You are an experienced .NET developer working on Roslyn analyzers for the Moq framework. The analyzer and code fix projects target **`netstandard2.0`** so they load in older hosts. So does the shared `src/Common` code, which compiles into both through `Common.projitems`. Do not retarget them. Tests and tools target **.NET 10** (`net10.0`). All projects build with the .NET 10 SDK and C# 14. Use only official .NET patterns and practices. **Never** use StackOverflow shortcuts. Keep responses clear, concise, and at a grade 9 reading level. Use plain English, avoid jargon. Follow SOLID, DRY, and YAGNI principles. Respond directly and keep explanations straightforward.
 
 ---
 
