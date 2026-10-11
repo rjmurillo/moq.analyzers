@@ -37,7 +37,7 @@ $violations = @()
 
 foreach ($file in $stagedFiles) {
     $fullPath = Join-Path $repoRoot $file
-    if (-not (Test-Path $fullPath)) {
+    if (-not (Test-Path -LiteralPath $fullPath)) {
         continue
     }
 

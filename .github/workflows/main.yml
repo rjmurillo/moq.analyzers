@@ -108,6 +108,12 @@ jobs:
           $result = Invoke-Pester -Path build/scripts/perf/tests -Output Detailed -PassThru
           if ($result.FailedCount -gt 0) { exit 1 }
 
+      - name: Run hook script Pester tests
+        shell: pwsh
+        run: |
+          $result = Invoke-Pester -Path build/scripts/hooks/tests -Output Detailed -PassThru
+          if ($result.FailedCount -gt 0) { exit 1 }
+
   # Build, validate, and package. Fast gate (~5 min).
   # Tests, analyzer-load-test, and perf run as separate downstream jobs.
   build:

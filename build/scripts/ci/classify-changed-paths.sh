@@ -21,6 +21,8 @@
 #   README.md        Moq.Analyzers.csproj packs it. PackageTests checks it.
 #   Benchmarks       Moq.Analyzers.Benchmarks references src/Analyzers and
 #                    the helpers in tests/Moq.Analyzers.Test.
+#   build/scripts/hooks  The powershell-perf-tests job runs their Pester
+#                        tests, and that job is skipped below the full tier.
 
 set -euo pipefail
 
