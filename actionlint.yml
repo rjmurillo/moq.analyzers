@@ -1,3 +1,0 @@
-self-hosted-runner:
-  labels:
-    - windows-2025-vs2026
