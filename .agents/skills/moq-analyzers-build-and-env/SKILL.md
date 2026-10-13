@@ -133,7 +133,6 @@ CLI tools scoped to this repo (invoked as `dotnet <command>`). Contents as of 20
 | `husky` | 0.9.1 | `dotnet husky` | Husky.NET — installs/runs the git hooks defined in `.husky/task-runner.json` |
 | `nbgv` | 3.10.85 | `dotnet nbgv` | Nerdbank.GitVersioning CLI — inspect/compute the version (`dotnet nbgv get-version`) |
 | `verify.tool` | 0.7.0 | `dotnet dotnet-verify` | Reviews/accepts Verify snapshot files (`*.verified.*` vs `*.received.*`) used by PackageTests |
-| `squigglecop.tool` | 1.0.26 | `dotnet dotnet-squigglecop` | SARIF diagnostic-baseline tool. **Pinned but NOT wired into any build step or CI job** (no baseline file, no invocation anywhere in the repo as of 2026-07-02) — do not expect it to run |
 | `dotnet-reportgenerator-globaltool` | 5.5.10 | `dotnet reportgenerator` | Converts Cobertura coverage to HTML/Markdown; also invoked automatically by MSBuild after every `dotnet test` (`build/targets/tests/Tests.targets`, target `GenerateCoverageReport`) |
 | `snitch` | 2.0.0 | `dotnet snitch` | Detects redundant transitive package references; CI runs `dotnet snitch --strict` in the build job |
 
@@ -389,7 +388,6 @@ checked in full on 2026-07-02; the SDK pin bullet was rechecked on 2026-10-11:
 
 - SDK pin: `cat global.json` (source of truth; 10.0.401, rollForward latestPatch on 2026-10-11)
 - Tool list + versions: `cat .config/dotnet-tools.json`
-- SquiggleCop still unwired: `grep -rn -i squigglecop --include='*.yml' --include='*.targets' --include='*.props' --include='*.ps1' .` (empty = still unwired)
 - Hook tasks: `cat .husky/task-runner.json`
 - Pre-push flags: `cat build/scripts/hooks/Invoke-PrePushBuild.ps1`
 - Large-file limits: `head -25 build/scripts/hooks/Test-LargeFiles.ps1`

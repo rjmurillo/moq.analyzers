@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,7 +20,6 @@ internal static class CompilationCreator
 
     public static async Task<(Project Project, AnalyzerOptions Options)> CreateProjectAsync(
         (string, string)[] sourceFiles,
-        (string, string)[]? globalOptions,
         string name,
         string language,
         string defaultPrefix,
@@ -39,14 +37,6 @@ internal static class CompilationCreator
         EvaluatedProjectState evaluatedProj = new(projectState, referenceAssemblies);
 
         Project project = await CreateProjectAsync(evaluatedProj, compilationOptions, parseOptions).ConfigureAwait(false);
-
-        if (globalOptions is not null)
-        {
-            OptionsProvider optionsProvider = new(globalOptions);
-            AnalyzerOptions options = new(ImmutableArray<AdditionalText>.Empty, optionsProvider);
-
-            return (project, options);
-        }
 
         return (project, project.AnalyzerOptions);
     }
@@ -125,38 +115,5 @@ internal static class CompilationCreator
 #pragma warning restore ECS0900 // Minimize boxing and unboxing
 
         return solution;
-    }
-
-    /// <summary>
-    /// This class just passes argument through to the projects options provider and it used to provider custom global options.
-    /// </summary>
-    private sealed class OptionsProvider : AnalyzerConfigOptionsProvider
-    {
-        public OptionsProvider((string, string)[] globalOptions)
-        {
-            GlobalOptions = new ConfigOptions(globalOptions);
-        }
-
-        public override AnalyzerConfigOptions GlobalOptions { get; }
-
-        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-            => GlobalOptions;
-
-        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
-            => GlobalOptions;
-    }
-
-    /// <summary>
-    /// Allows adding additional global options.
-    /// </summary>
-    private sealed class ConfigOptions : AnalyzerConfigOptions
-    {
-        private readonly Dictionary<string, string> _globalOptions;
-
-        public ConfigOptions((string, string)[] globalOptions)
-            => _globalOptions = globalOptions.ToDictionary(kvp => kvp.Item1, kvp => kvp.Item2, StringComparer.OrdinalIgnoreCase);
-
-        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            => _globalOptions.TryGetValue(key, out value);
     }
 }

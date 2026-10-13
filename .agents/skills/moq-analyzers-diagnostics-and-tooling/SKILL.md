@@ -301,11 +301,9 @@ State of the repo (verified 2026-07-02): `main.yml` has an "Upload SARIF files" 
 with path `./artifacts/obj/**/*.sarif`, **but nothing in the repo sets the compiler's
 `ErrorLog` property, so no SARIF files exist and the artifact is never produced** — a
 live 2026-07-02 CI run uploads `performance`, coverage/test reports, `artifacts`,
-`packages`, and `binlogs`, and no SARIF artifact. Related unwired tool: SquiggleCop
-(`dotnet-squigglecop` 1.0.26 is pinned in `.config/dotnet-tools.json` but has no
-baseline file and no invocation anywhere). Treat both as dormant infrastructure, not as
-a source of truth. (Candidate improvement, not current behavior: wiring `ErrorLog` +
-SquiggleCop baselines would make analyzer-noise drift visible.)
+`packages`, and `binlogs`, and no SARIF artifact. Treat SARIF upload as dormant
+infrastructure, not as a source of truth. (Candidate improvement, not current
+behavior: wiring `ErrorLog` would make analyzer-noise drift visible.)
 
 Producing SARIF yourself (verified 2026-07-02; the `%2C` is an escaped comma so MSBuild
 doesn't split the property value):
@@ -407,8 +405,8 @@ teaches the tool.
 - PR fast-path filter unchanged: `grep -n "FileCount: 1" .github/workflows/main.yml`
 - Binlog path in CI: `grep -n "/bl:" .github/actions/setup-restore-build/action.yml`
 - Coverage report types/paths: `grep -n "ReportTypes\|coverage" build/targets/tests/Tests.targets`
-- SARIF still unwired (delete §5 gap paragraph if this starts matching): `grep -rn "ErrorLog" --include="*.props" --include="*.targets" --include="*.csproj" .` (no hits as of 2026-07-02); SquiggleCop still unwired: `grep -rln -i squigglecop --exclude-dir=.git --exclude-dir=artifacts .` (only `.config/dotnet-tools.json`)
-- Tool pins: `cat .config/dotnet-tools.json` (snitch 2.0.0, squigglecop 1.0.26, reportgenerator 5.5.10 as of 2026-07-02); `dotnet-inspect --version` (0.16.0)
+- SARIF still unwired (delete §5 gap paragraph if this starts matching): `grep -rn "ErrorLog" --include="*.props" --include="*.targets" --include="*.csproj" .` (no hits as of 2026-07-02)
+- Tool pins: `cat .config/dotnet-tools.json` (snitch 2.0.0, reportgenerator 5.5.10 as of 2026-07-02); `dotnet-inspect --version` (0.16.0)
 - Latest Moq on nuget.org drifts: re-run `dotnet-inspect member "IReturns<TMock,TResult>" --package Moq --all` (intentionally UNPINNED here — this line tracks the newest release; pin `@4.8.2`/`@4.18.4` when verifying the supported test matrix) and update the "latest = 4.20.72" note
 - Benchmark file convention: `ls tests/Moq.Analyzers.Benchmarks/Moq1*Benchmarks.cs`
 
