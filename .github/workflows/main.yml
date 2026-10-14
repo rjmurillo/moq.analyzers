@@ -585,7 +585,7 @@ jobs:
   # helpers, so the full-no-perf tier skips the steps here.
   perf:
     needs: [check-paths, build, test]
-    timeout-minutes: 60
+    timeout-minutes: 90
     runs-on: ubuntu-26.04-arm
 
     env:
