@@ -196,11 +196,7 @@ is a rule-lifecycle event (release-notes impact via
 - Who may change severity files: owner-reviewed PR. Loosening a severity
   (warning → suggestion/none) needs written justification in the PR body.
 - Guard: PedanticMode CI build catches *tightening* mistakes instantly
-  (new errors). Nothing but review catches *loosening* — the repo pins a
-  local tool for severity-baseline drift (SquiggleCop 1.0.26 in
-  `.config/dotnet-tools.json`) but it is **not wired to any build step or CI
-  job** (verified 2026-07-02) — drift detection is an open gap, not a working
-  guard. Do not claim SquiggleCop protection in PRs.
+  (new errors). Nothing but review catches *loosening*.
 
 ---
 
@@ -404,7 +400,6 @@ Restored by `dotnet tool restore` (CI composite action retries it 3×; the
 |------|---------|---------|
 | `nbgv` | 3.10.85 | Versioning (Axis 8) |
 | `verify.tool` | 0.7.0 | Reviewing/accepting Verify snapshot files (`dotnet dotnet-verify`) |
-| `squigglecop.tool` | 1.0.26 | **TRAP: pinned but NOT wired anywhere** — no baseline YAML, no invocation in any target/workflow (verified 2026-07-02). Intended for analyzer-severity-baseline drift; currently inert |
 | `dotnet-reportgenerator-globaltool` | 5.5.10 | Coverage report CLI (the MSBuild ReportGenerator package is pinned to the same 5.5.10 in `build/targets/tests/Packages.props`) |
 | `snitch` | 2.0.0 | `dotnet snitch --strict` in the CI build job (`main.yml:102`) — fails on redundant transitive PackageReferences |
 | `husky` | 0.9.1 | Git hook runner (pre-commit/pre-push groups in `.husky/task-runner.json`) |
@@ -496,7 +491,7 @@ Re-verify each axis with one command before trusting this document:
 - Host-compat guard: `grep -n "ValidateAnalyzerHostCompatibility\|_MaxSystem" build/targets/packaging/Packaging.targets`
 - Perf baseline: `cat build/perf/baseline.json && git log --oneline -3 -- build/perf/baseline.json`
 - Version stem: `cat version.json global.json`
-- Pinned tools (and whether SquiggleCop got wired): `cat .config/dotnet-tools.json && grep -rn squigglecop .github build Directory.Build.targets --include="*.yml" --include="*.targets" --include="*.ps1"`
+- Pinned tools: `cat .config/dotnet-tools.json`
 - Hook tasks: `cat .husky/task-runner.json`
 
 Last verified: 2026-07-02 against commit 05135b2.

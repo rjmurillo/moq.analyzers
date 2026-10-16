@@ -16,13 +16,6 @@
       ],
       "rollForward": false
     },
-    "squigglecop.tool": {
-      "version": "1.0.26",
-      "commands": [
-        "dotnet-squigglecop"
-      ],
-      "rollForward": false
-    },
     "dotnet-reportgenerator-globaltool": {
       "version": "5.5.11",
       "commands": [
