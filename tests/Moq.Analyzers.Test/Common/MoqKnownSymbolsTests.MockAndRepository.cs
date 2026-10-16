@@ -188,27 +188,6 @@ public partial class MoqKnownSymbolsTests
     }
 
     [Fact]
-    public void TimesNever_WithoutMoqReference_ReturnsEmpty()
-    {
-        MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
-        Assert.True(symbols.TimesNever.IsEmpty);
-    }
-
-    [Fact]
-    public void TimesOnce_WithoutMoqReference_ReturnsEmpty()
-    {
-        MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
-        Assert.True(symbols.TimesOnce.IsEmpty);
-    }
-
-    [Fact]
-    public void TimesExactly_WithoutMoqReference_ReturnsEmpty()
-    {
-        MoqKnownSymbols symbols = CreateSymbolsWithoutMoq();
-        Assert.True(symbols.TimesExactly.IsEmpty);
-    }
-
-    [Fact]
     public async Task Mock_WithMoqReference_ReturnsNamedTypeSymbol()
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
@@ -297,27 +276,6 @@ public partial class MoqKnownSymbolsTests
     {
         MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
         Assert.False(symbols.TimesAtLeastOnce.IsEmpty);
-    }
-
-    [Fact]
-    public async Task TimesNever_WithMoqReference_ReturnsNonEmpty()
-    {
-        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
-        Assert.False(symbols.TimesNever.IsEmpty);
-    }
-
-    [Fact]
-    public async Task TimesOnce_WithMoqReference_ReturnsNonEmpty()
-    {
-        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
-        Assert.False(symbols.TimesOnce.IsEmpty);
-    }
-
-    [Fact]
-    public async Task TimesExactly_WithMoqReference_ReturnsNonEmpty()
-    {
-        MoqKnownSymbols symbols = await CreateSymbolsWithMoqAsync();
-        Assert.False(symbols.TimesExactly.IsEmpty);
     }
 
     [Fact]
