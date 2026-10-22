@@ -51,6 +51,10 @@ if (-not $Path) {
     }
 }
 
+# .NET APIs resolve relative paths against the process CWD, which pwsh does not
+# sync on Set-Location. Resolve against the PowerShell location instead.
+$Path = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($Path)
+
 # Markers to scan for (case-insensitive)
 $markers = @('TODO', 'FIXME', 'HACK', 'UNDONE')
 
