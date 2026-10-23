@@ -12,25 +12,36 @@ internal static class PerfDiff
 {
 #pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates
 #pragma warning disable CA2254 // The logging message template should not vary between calls
-    internal static async Task<int> CompareAsync(
-        string baselineFolder, string resultsFolder, bool failOnRegression, ILogger logger, CancellationToken token)
-        => await CompareAsync(
-            baselineFolder,
-            resultsFolder,
-            failOnRegression,
+    /// <summary>
+    /// Compares two result folders with the BenchmarkDotNet regression gates.
+    /// </summary>
+    /// <param name="request">The folders and options of this run.</param>
+    /// <param name="logger">Logger for diagnostics.</param>
+    /// <param name="token">Token to observe for cancellation requests.</param>
+    /// <returns>0 for pass, <see cref="Program.UnhandledExceptionExitCode"/> for an error, <see cref="Program.RegressionExitCode"/> for a regression.</returns>
+    internal static async Task<int> CompareAsync(PerfDiffRequest request, ILogger logger, CancellationToken token)
+    {
+        IReadOnlySet<string>? confirmOnlyIds = null;
+        if (request.ConfirmOnlyPath is not null && !RegressedIdsFile.TryRead(request.ConfirmOnlyPath, logger, out confirmOnlyIds))
+        {
+            return Program.UnhandledExceptionExitCode;
+        }
+
+        return await CompareAsync(
+            request,
             logger,
             token,
-            BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync,
+            (baselinePath, resultsPath, compareLogger, compareToken)
+                => new BenchmarkComparisonService(compareLogger).CompareAsync(baselinePath, resultsPath, compareToken, confirmOnlyIds),
             static (resultsEtlPath, baselineEtlPath) =>
             {
                 bool succeeded = EtlDiffer.TryCompareETL(resultsEtlPath, baselineEtlPath, out bool regressionDetected);
                 return (succeeded, regressionDetected);
             }).ConfigureAwait(false);
+    }
 
     internal static async Task<int> CompareAsync(
-        string baselineFolder,
-        string resultsFolder,
-        bool failOnRegression,
+        PerfDiffRequest request,
         ILogger logger,
         CancellationToken token,
         Func<string, string, ILogger, CancellationToken, Task<BenchmarkComparisonResult>> compareBenchmarksAsync,
@@ -38,12 +49,18 @@ internal static class PerfDiff
     {
         token.ThrowIfCancellationRequested();
 
-        (bool compareSucceeded, bool regressionDetected) = await compareBenchmarksAsync(baselineFolder, resultsFolder, logger, token).ConfigureAwait(false);
+        BenchmarkComparisonResult benchmarkComparison = await compareBenchmarksAsync(request.BaselineFolder, request.ResultsFolder, logger, token).ConfigureAwait(false);
+        (bool compareSucceeded, bool regressionDetected) = benchmarkComparison;
 
         if (!compareSucceeded)
         {
             logger.LogError("Failed to compare the performance results see log.");
-            return 1;
+            return Program.UnhandledExceptionExitCode;
+        }
+
+        if (request.RegressedOutputPath is not null && !TryWriteRegressedIds(request.RegressedOutputPath, benchmarkComparison.RegressedIds, logger))
+        {
+            return Program.UnhandledExceptionExitCode;
         }
 
         if (!regressionDetected)
@@ -52,21 +69,44 @@ internal static class PerfDiff
             return 0;
         }
 
-        (bool etlCompareSucceeded, bool etlRegressionDetected) = CheckEltTraces(baselineFolder, resultsFolder, logger, compareEtl);
+        return ResolveBdnRegressionExitCode(request, logger, compareEtl);
+    }
+
+    private static int ResolveBdnRegressionExitCode(
+        PerfDiffRequest request,
+        ILogger logger,
+        Func<string, string, (bool CompareSucceeded, bool RegressionDetected)> compareEtl)
+    {
+        (bool etlCompareSucceeded, bool etlRegressionDetected) = CheckEltTraces(request.BaselineFolder, request.ResultsFolder, logger, compareEtl);
         if (!etlCompareSucceeded)
         {
             logger.LogWarning("We detected a regression in BenchmarkDotNet and there is no ETL info.");
-            return failOnRegression ? 1 : 0;
+            return request.FailOnRegression ? Program.RegressionExitCode : 0;
         }
 
         if (etlRegressionDetected)
         {
             logger.LogWarning("We detected a regression in BenchmarkDotNet and there _is_ ETL info which agrees there was a regression.");
-            return failOnRegression ? 1 : 0;
+            return request.FailOnRegression ? Program.RegressionExitCode : 0;
         }
 
         logger.LogTrace("We detected a regression in BenchmarkDotNet but examining the ETL trace determined that it was noise.");
         return 0;
+    }
+
+    private static bool TryWriteRegressedIds(string path, IReadOnlyList<string> ids, ILogger logger)
+    {
+        try
+        {
+            RegressedIdsFile.Write(path, ids);
+            logger.LogInformation("Wrote {Count} regressed benchmark ids to '{Path}'.", ids.Count, path);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            logger.LogError("Cannot write the regressed benchmark ids to '{Path}': {Reason}", path, ex.Message);
+            return false;
+        }
     }
 #pragma warning restore CA2254
 #pragma warning restore CA1848

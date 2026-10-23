@@ -5,6 +5,11 @@ Import-Module (Join-Path $PSScriptRoot 'PerfConfig.psm1') -Force -DisableNameChe
 # One short discarded run keeps both measured phases out of that first slot.
 $script:PerfWarmupFilter = '*Moq1000SealedClassBenchmarks*'
 
+# PerfDiff exits with this code when a regression gate trips with --failOnRegression.
+# Any other nonzero code means the comparison itself failed, which a rerun cannot fix.
+# Same value as Program.RegressionExitCode in src/tools/PerfDiff/Program.cs.
+$script:PerfRegressionExitCode = 3
+
 function Test-PerfResults {
     param(
         [String] $ResultsOutput
@@ -39,7 +44,7 @@ function New-PerfRunArguments {
         [Parameter(Mandatory=$true)]
         [String] $Output,
 
-        [string] $Filter,
+        [string[]] $Filter,
 
         [bool] $Etl = $false,
 
@@ -110,6 +115,185 @@ function Invoke-PerfWarmup {
     }
 }
 
+function ConvertTo-PerfBenchmarkFilter {
+    <#
+    .SYNOPSIS
+    Turns benchmark ids into BenchmarkDotNet glob filters that each match exactly one benchmark.
+
+    .DESCRIPTION
+    A benchmark id is its full name, for example
+    'Moq.Analyzers.Benchmarks.Moq1200Benchmarks.Moq1200WithDiagnostics(FileCount: 1)'.
+    BenchmarkDotNet matches a filter against that full name, parameters included, and treats only
+    '*' and '?' as wildcards. Neither can be escaped, so each is replaced with '?', which matches
+    that character and no other. A double quote is replaced the same way because the argument
+    quoting in Format-PerfCommandArguments cannot carry one.
+
+    .PARAMETER Ids
+    Benchmark ids from the first comparison round.
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [AllowEmptyCollection()]
+        [string[]] $Ids
+    )
+
+    @($Ids | ForEach-Object { $_ -replace '[*?"]', '?' } | Select-Object -Unique)
+}
+
+function Read-PerfRegressedIds {
+    <#
+    .SYNOPSIS
+    Reads the JSON array of benchmark ids that PerfDiff writes with --regressedOutput.
+
+    .PARAMETER Path
+    File written by PerfDiff. A missing or malformed file throws.
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [String] $Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        throw "Flagged benchmark ids file not found: '$Path'"
+    }
+
+    $raw = Get-Content -Raw -LiteralPath $Path
+    if ([string]::IsNullOrWhiteSpace($raw) -or -not $raw.TrimStart().StartsWith('[')) {
+        throw "Flagged benchmark ids file '$Path' must be a JSON array of non-empty strings."
+    }
+
+    # No -NoEnumerate: Windows PowerShell 5.1 lacks it. The array-ness is decided from the raw text above.
+    # ForEach-Object unrolls the result on 5.1 (which emits the array as one object) and on 7+ (which already unrolls),
+    # and [] yields no elements on both.
+    try {
+        $items = @(ConvertFrom-Json -InputObject $raw | ForEach-Object { $_ })
+    } catch {
+        throw "Flagged benchmark ids file '$Path' is not valid JSON: $($_.Exception.Message)"
+    }
+
+    if (@($items | Where-Object { $_ -isnot [string] -or [string]::IsNullOrEmpty($_) }).Count -gt 0) {
+        throw "Flagged benchmark ids file '$Path' must be a JSON array of non-empty strings."
+    }
+
+    $items
+}
+
+function Invoke-PerfConfirmation {
+    <#
+    .SYNOPSIS
+    Reruns only the benchmarks flagged in round 1, current first and baseline second, and compares them.
+
+    .DESCRIPTION
+    Runner noise does not repeat, a real regression does. Round 1 runs the whole baseline and then the
+    whole current branch, so slow drift lands on one side. This rerun covers the few flagged benchmarks,
+    in the opposite order, and fails only on benchmarks flagged in both rounds. Throws when the
+    regression is confirmed or when any step fails. Returns normally when round 2 does not confirm.
+
+    .PARAMETER BaselineWorktree
+    Worktree that round 1 created for the baseline SHA. Pass $null when round 1 used a cached baseline;
+    this function then creates it.
+
+    .PARAMETER RegressedIdsPath
+    JSON array of ids that PerfDiff wrote in round 1.
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [String] $RepoRoot,
+
+        [Parameter(Mandatory=$true)]
+        [String] $Output,
+
+        [Parameter(Mandatory=$true)]
+        [String] $BaselineSHA,
+
+        [String] $BaselineWorktree,
+
+        [String] $Projects,
+
+        [Parameter(Mandatory=$true)]
+        [String] $RegressedIdsPath,
+
+        [bool] $Etl = $false,
+
+        [bool] $Ci = $false,
+
+        [Parameter(Mandatory=$true)]
+        [String] $RunPerfTestsPath,
+
+        [Parameter(Mandatory=$true)]
+        [String] $ComparePerfResultsPath
+    )
+
+    $flaggedIds = @(Read-PerfRegressedIds -Path $RegressedIdsPath)
+    if ($flaggedIds.Count -eq 0) {
+        throw "Performance comparison failed with exit code $script:PerfRegressionExitCode. PerfDiff flagged no benchmark ids in '$RegressedIdsPath', so there is nothing to rerun."
+    }
+
+    Write-PerfLog -Message "Round 1 flagged $($flaggedIds.Count) benchmark(s). Rerunning only those, current first, then baseline."
+    $flaggedIds | ForEach-Object { Write-PerfLog -Message "  flagged: $_" }
+    $filters = ConvertTo-PerfBenchmarkFilter -Ids $flaggedIds
+
+    $confirmRoot = Join-Path $Output "confirm"
+    if (Test-Path $confirmRoot) {
+        Remove-Item -Path $confirmRoot -Recurse -Force
+    }
+    $currentOutput = Join-Path $confirmRoot "perfTest"
+    $baselineOutput = Join-Path $confirmRoot "baseline"
+    Ensure-Folder $currentOutput | Out-Null
+    Ensure-Folder $baselineOutput | Out-Null
+
+    # Current first, baseline second: the reverse of round 1, so drift lands on the other side.
+    $currentArgs = New-PerfRunArguments -PerfTestRootFolder $RepoRoot -Projects $Projects -Output $currentOutput -Filter $filters -Etl $Etl -Ci $Ci
+    Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $currentArgs
+    & $RunPerfTestsPath @currentArgs
+    if ($LASTEXITCODE -ne 0) { throw "Confirmation run of the current branch failed with exit code $LASTEXITCODE." }
+    if (-not (Test-PerfResults $currentOutput)) {
+        throw "Confirmation run of the current branch produced no benchmark report in '$currentOutput'. Check that the flagged ids still match a benchmark."
+    }
+
+    if (-not $BaselineWorktree) {
+        $BaselineWorktree = Join-Path (Join-Path $RepoRoot "artifacts") "perfBaseline"
+        & git worktree add $BaselineWorktree $BaselineSHA -f
+        if ($LASTEXITCODE -ne 0) { throw "git worktree add failed with exit code $LASTEXITCODE" }
+    }
+
+    $baselineArgs = New-PerfRunArguments -PerfTestRootFolder $BaselineWorktree -Projects $Projects -Output $baselineOutput -Filter $filters -Etl $Etl -Ci $Ci
+    Show-Invocation -ScriptPath $RunPerfTestsPath -Arguments $baselineArgs
+    & $RunPerfTestsPath @baselineArgs
+    if ($LASTEXITCODE -ne 0) { throw "Confirmation run of the baseline failed with exit code $LASTEXITCODE." }
+    if (-not (Test-PerfResults $baselineOutput)) {
+        throw "Confirmation run of the baseline produced no benchmark report in '$baselineOutput'. Check that the flagged ids exist at baseline SHA '$BaselineSHA'."
+    }
+
+    $confirmedIdsPath = Join-Path $confirmRoot "regressed-ids.json"
+    $compareArgs = @{
+        baseline = $baselineOutput
+        results = $currentOutput
+        regressedOutput = $confirmedIdsPath
+        confirmOnly = $RegressedIdsPath
+    }
+    if ($Ci) { $compareArgs.ci = $True }
+
+    Show-Invocation -ScriptPath $ComparePerfResultsPath -Arguments $compareArgs
+    & $ComparePerfResultsPath @compareArgs
+    $confirmExit = $LASTEXITCODE
+
+    $confirmedCount = 0
+    if (Test-Path -LiteralPath $confirmedIdsPath) {
+        $confirmedCount = @(Read-PerfRegressedIds -Path $confirmedIdsPath).Count
+    }
+    Write-PerfLog -Message "Round 1 flagged $($flaggedIds.Count), confirmed $confirmedCount."
+
+    if ($confirmExit -eq 0) {
+        Write-PerfLog -Message "Regression not confirmed by the rerun. Treating the round 1 result as runner noise."
+        return
+    }
+    if ($confirmExit -eq $script:PerfRegressionExitCode) {
+        throw "Performance regression confirmed by the rerun (exit code $confirmExit): $confirmedCount of $($flaggedIds.Count) flagged benchmark(s) regressed in both rounds."
+    }
+    throw "Performance confirmation comparison failed with exit code $confirmExit."
+}
+
 function Invoke-PerfBaselineComparison {
     param(
         [String] $baselineSHA,
@@ -138,6 +322,7 @@ function Invoke-PerfBaselineComparison {
         Write-Host "Running Baseline Tests"
 
         $resultsOutput = Join-Path $output "baseline"
+        $baselineFolder = $null
 
         # A cached baseline counts only when it holds a benchmark report (#1383).
         if ($useCachedBaseline -and (Test-PerfResults $resultsOutput)) {
@@ -196,18 +381,32 @@ function Invoke-PerfBaselineComparison {
         Write-Host "Done with performance run"
 
         # Diff perf results
+        $regressedIdsPath = Join-Path $output "regressed-ids.json"
+        if (Test-Path -LiteralPath $regressedIdsPath) {
+            Remove-Item -LiteralPath $regressedIdsPath -Force
+        }
+
         $ComparePerfResultsArgs = @{
                 baseline = $resultsOutput
                 results = $testOutput
+                regressedOutput = $regressedIdsPath
         }
         if ($ci) { $ComparePerfResultsArgs.ci = $True }
 
         Show-Invocation -ScriptPath $ComparePerfResultsPath -Arguments $ComparePerfResultsArgs
         & $ComparePerfResultsPath @ComparePerfResultsArgs
-        if ($LASTEXITCODE -ne 0) { throw "Performance comparison failed with exit code $LASTEXITCODE." }
+        $compareExit = $LASTEXITCODE
+        if ($compareExit -eq 0) { return }
+
+        # Only a tripped gate is worth a rerun. A comparison error would fail the same way again.
+        if ($compareExit -ne $script:PerfRegressionExitCode) { throw "Performance comparison failed with exit code $compareExit." }
+
+        Invoke-PerfConfirmation -RepoRoot $RepoRoot -Output $output -BaselineSHA $baselineSHA -BaselineWorktree $baselineFolder `
+            -Projects $projects -RegressedIdsPath $regressedIdsPath -Etl $etl -Ci $ci `
+            -RunPerfTestsPath $RunPerfTestsPath -ComparePerfResultsPath $ComparePerfResultsPath
     } finally {
         $env:DOTNET_ROLL_FORWARD = $previousRollForward
     }
 }
 
-Export-ModuleMember -Function Test-PerfResults, New-PerfRunArguments, Invoke-PerfWarmup, Invoke-PerfBaselineComparison
+Export-ModuleMember -Function Test-PerfResults, New-PerfRunArguments, Invoke-PerfWarmup, ConvertTo-PerfBenchmarkFilter, Read-PerfRegressedIds, Invoke-PerfConfirmation, Invoke-PerfBaselineComparison

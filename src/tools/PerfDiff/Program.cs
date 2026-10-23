@@ -16,37 +16,40 @@ internal sealed class Program
     internal const int UnhandledExceptionExitCode = 1;
     internal const int CancelledExitCode = 2;
 
-    private static async Task<int> Main(string[] args)
+    /// <summary>
+    /// Exit code for a detected regression when <c>--failOnRegression</c> is set. It differs from
+    /// <see cref="UnhandledExceptionExitCode"/> so a caller can tell "the gate tripped" from "the comparison
+    /// could not run". build/scripts/perf/PerfBaselineManager.psm1 holds the same value as <c>$script:PerfRegressionExitCode</c>.
+    /// </summary>
+    internal const int RegressionExitCode = 3;
+
+    internal static async Task<int> Main(string[] args)
     {
         RootCommand rootCommand = DiffCommand.CreateCommandLineOptions();
         rootCommand.SetAction(static async (parseResult, cancellationToken) =>
         {
-            string baseline = parseResult.GetValue(DiffCommand.BaselineOption)!;
-            string results = parseResult.GetValue(DiffCommand.ResultsOption)!;
+            PerfDiffRequest request = new(
+                parseResult.GetValue(DiffCommand.BaselineOption)!,
+                parseResult.GetValue(DiffCommand.ResultsOption)!,
+                parseResult.GetValue(DiffCommand.FailOnRegressionOption),
+                parseResult.GetValue(DiffCommand.RegressedOutputOption),
+                parseResult.GetValue(DiffCommand.ConfirmOnlyOption));
             string? verbosity = parseResult.GetValue(DiffCommand.VerbosityOption);
-            bool failOnRegression = parseResult.GetValue(DiffCommand.FailOnRegressionOption);
 
-            return await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken).ConfigureAwait(false);
+            return await RunAsync(request, verbosity, cancellationToken).ConfigureAwait(false);
         });
 
         return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
     }
 
-    internal static async Task<int> RunAsync(
-        string baseline,
-        string results,
-        string? verbosity,
-        bool failOnRegression,
-        CancellationToken cancellationToken)
-        => await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken, PerfDiff.CompareAsync).ConfigureAwait(false);
+    internal static async Task<int> RunAsync(PerfDiffRequest request, string? verbosity, CancellationToken cancellationToken)
+        => await RunAsync(request, verbosity, cancellationToken, PerfDiff.CompareAsync).ConfigureAwait(false);
 
     internal static async Task<int> RunAsync(
-        string baseline,
-        string results,
+        PerfDiffRequest request,
         string? verbosity,
-        bool failOnRegression,
         CancellationToken cancellationToken,
-        Func<string, string, bool, ILogger, CancellationToken, Task<int>> compareAsync)
+        Func<PerfDiffRequest, ILogger, CancellationToken, Task<int>> compareAsync)
     {
         // Setup logging.
         LogLevel logLevel = DiffCommand.GetLogLevel(verbosity);
@@ -58,7 +61,7 @@ internal sealed class Program
 
             try
             {
-                return await compareAsync(baseline, results, failOnRegression, logger, cancellationToken).ConfigureAwait(false);
+                return await compareAsync(request, logger, cancellationToken).ConfigureAwait(false);
             }
             catch (FileNotFoundException fex)
             {

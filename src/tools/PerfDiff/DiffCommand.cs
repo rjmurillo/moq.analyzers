@@ -51,6 +51,27 @@ internal static class DiffCommand
         Description = "Should return non-zero exit code if regression detected",
     };
 
+    /// <summary>
+    /// Gets the regressed-output option.
+    /// </summary>
+    internal static Option<string> RegressedOutputOption { get; } = CreateOptionalFilePathOption(
+        "--regressedOutput",
+        "file to write the ids of the benchmarks that tripped a regression gate to, as a JSON array of strings");
+
+    /// <summary>
+    /// Gets the confirm-only option.
+    /// </summary>
+    internal static Option<string> ConfirmOnlyOption { get; } = CreateOptionalFilePathOption(
+        "--confirmOnly",
+        "file written by --regressedOutput in a first round; only the benchmarks it lists are gated");
+
+    private static Option<string> CreateOptionalFilePathOption(string name, string description)
+    {
+        Option<string> option = new(name) { Description = description };
+        option.AcceptLegalFilePathsOnly();
+        return option;
+    }
+
     private static Option<string> CreateFilePathOption(string name, string description)
     {
         Option<string> option = new(name) { Description = description, Required = true };
@@ -88,6 +109,8 @@ internal static class DiffCommand
             ResultsOption,
             VerbosityOption,
             FailOnRegressionOption,
+            RegressedOutputOption,
+            ConfirmOnlyOption,
         };
 
         return rootCommand;

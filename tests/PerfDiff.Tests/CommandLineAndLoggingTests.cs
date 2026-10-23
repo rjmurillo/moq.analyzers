@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.Reflection;
 using Microsoft.Extensions.Logging;
 using PerfDiff.Logging;
 using Xunit;
@@ -55,14 +54,12 @@ public sealed class CommandLineAndLoggingTests
         (string Baseline, string Results, bool FailOnRegression, CancellationToken Token) observed = default;
 
         int exitCode = await Program.RunAsync(
-            "before",
-            "after",
+            new PerfDiffRequest("before", "after", FailOnRegression: true),
             "quiet",
-            failOnRegression: true,
             source.Token,
-            (baseline, results, failOnRegression, _, token) =>
+            (request, _, token) =>
             {
-                observed = (baseline, results, failOnRegression, token);
+                observed = (request.BaselineFolder, request.ResultsFolder, request.FailOnRegression, token);
                 return Task.FromResult(123);
             });
 
@@ -77,12 +74,10 @@ public sealed class CommandLineAndLoggingTests
     public async Task ProgramRunAsync_WhenCompareThrowsFileNotFound_ReturnsUnhandledExitCode()
     {
         int exitCode = await Program.RunAsync(
-            "before",
-            "after",
+            new PerfDiffRequest("before", "after", FailOnRegression: false),
             "normal",
-            failOnRegression: false,
             CancellationToken.None,
-            static (_, _, _, _, _) => throw new FileNotFoundException("missing", "missing.full-compressed.json"));
+            static (_, _, _) => throw new FileNotFoundException("missing", "missing.full-compressed.json"));
 
         Assert.Equal(Program.UnhandledExceptionExitCode, exitCode);
     }
@@ -91,12 +86,10 @@ public sealed class CommandLineAndLoggingTests
     public async Task ProgramRunAsync_WhenCompareIsCancelled_ReturnsCancelledExitCode()
     {
         int exitCode = await Program.RunAsync(
-            "before",
-            "after",
+            new PerfDiffRequest("before", "after", FailOnRegression: false),
             "normal",
-            failOnRegression: false,
             CancellationToken.None,
-            static (_, _, _, _, _) => throw new OperationCanceledException());
+            static (_, _, _) => throw new OperationCanceledException());
 
         Assert.Equal(Program.CancelledExitCode, exitCode);
     }
@@ -107,9 +100,7 @@ public sealed class CommandLineAndLoggingTests
         using BenchmarkTestData.ResultDirectory baseline = BenchmarkTestData.CreateResultDirectory(BenchmarkTestData.CreateBenchmark("Benchmark.A"));
         using BenchmarkTestData.ResultDirectory results = BenchmarkTestData.CreateResultDirectory(BenchmarkTestData.CreateBenchmark("Benchmark.A"));
 
-        MethodInfo main = typeof(Program).GetMethod("Main", BindingFlags.NonPublic | BindingFlags.Static)!;
-        Task<int> exitTask = (Task<int>)main.Invoke(null, [new[] { "--baseline", baseline.Path, "--results", results.Path, "--verbosity", "quiet" }])!;
-        int exitCode = await exitTask;
+        int exitCode = await Program.Main(["--baseline", baseline.Path, "--results", results.Path, "--verbosity", "quiet"]);
 
         Assert.Equal(0, exitCode);
     }

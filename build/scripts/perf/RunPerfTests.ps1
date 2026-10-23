@@ -1,7 +1,7 @@
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [string] $projects,           # semicolon separated list of relative paths to benchmark projects to run
-    [string] $filter,             # filter for tests to run (supports wildcards)
+    [string[]] $filter,           # filter(s) for tests to run (supports wildcards, several values are ORed)
     [String] $perftestRootFolder, # root folder all of the  benchmark projects share
     [String] $output,             # folder to write the benchmark results to
     [bool]   $etl=$false,         # capture etl traces for performance tests

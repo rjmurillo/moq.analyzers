@@ -93,9 +93,67 @@ Describe 'Invoke-PerfResultsComparison exit-code contract' {
         @($result).Count | Should -Be 1
     }
 
+    It 'returns the PerfDiff regression exit code unchanged' {
+        $script:dotnetCallCount = 0
+        Mock dotnet {
+            $script:dotnetCallCount++
+            $global:LASTEXITCODE = if ($script:dotnetCallCount -eq 1) { 0 } else { 3 }
+        } -ModuleName PerfResultsAnalyzer
+
+        $result = Invoke-PerfResultsComparison -baseline $script:comparisonBaseline -results $script:comparisonResults
+
+        $result | Should -Be 3
+        @($result).Count | Should -Be 1
+    }
+
+    It 'passes neither confirmation option to PerfDiff by default' {
+        $script:perfDiffArgs = @()
+        Mock dotnet {
+            if ($args[0] -eq 'run') { $script:perfDiffArgs = $args }
+            $global:LASTEXITCODE = 0
+        } -ModuleName PerfResultsAnalyzer
+
+        Invoke-PerfResultsComparison -baseline $script:comparisonBaseline -results $script:comparisonResults | Out-Null
+
+        $script:perfDiffArgs | Should -Contain '--failOnRegression'
+        $script:perfDiffArgs | Should -Not -Contain '--regressedOutput'
+        $script:perfDiffArgs | Should -Not -Contain '--confirmOnly'
+    }
+
+    It 'passes -regressedOutput and -confirmOnly to PerfDiff as their own options' {
+        $script:perfDiffArgs = @()
+        Mock dotnet {
+            if ($args[0] -eq 'run') { $script:perfDiffArgs = $args }
+            $global:LASTEXITCODE = 0
+        } -ModuleName PerfResultsAnalyzer
+
+        Invoke-PerfResultsComparison -baseline $script:comparisonBaseline -results $script:comparisonResults `
+            -regressedOutput '/out/ids with space.json' -confirmOnly '/in/round1.json' | Out-Null
+
+        $outIndex = [array]::IndexOf($script:perfDiffArgs, '--regressedOutput')
+        $inIndex = [array]::IndexOf($script:perfDiffArgs, '--confirmOnly')
+        $outIndex | Should -BeGreaterThan 0
+        $script:perfDiffArgs[$outIndex + 1] | Should -Be '/out/ids with space.json'
+        $inIndex | Should -BeGreaterThan 0
+        $script:perfDiffArgs[$inIndex + 1] | Should -Be '/in/round1.json'
+    }
+
     It 'throws when the PerfDiff build fails' {
         Mock dotnet { $global:LASTEXITCODE = 2 } -ModuleName PerfResultsAnalyzer
 
         { Invoke-PerfResultsComparison -baseline $script:comparisonBaseline -results $script:comparisonResults } | Should -Throw '*dotnet build failed*'
+    }
+}
+
+Describe 'ComparePerfResults.ps1 parameters' {
+    It 'declares the confirmation parameters that Invoke-PerfResultsComparison accepts' {
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $script:PerfRoot 'ComparePerfResults.ps1'), [ref]$null, [ref]$null)
+        $names = $ast.ParamBlock.Parameters | ForEach-Object { $_.Name.VariablePath.UserPath }
+
+        $names | Should -Contain 'regressedOutput'
+        $names | Should -Contain 'confirmOnly'
+        $accepted = (Get-Command Invoke-PerfResultsComparison).Parameters.Keys
+        $accepted | Should -Contain 'regressedOutput'
+        $accepted | Should -Contain 'confirmOnly'
     }
 }

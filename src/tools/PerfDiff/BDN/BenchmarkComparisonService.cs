@@ -19,13 +19,31 @@ public class BenchmarkComparisonService(ILogger logger)
     ];
 
     /// <summary>
-    /// Compares two sets of benchmark results and detects regressions.
+    /// Compares two sets of benchmark results and detects regressions, gating every benchmark.
     /// </summary>
     /// <param name="baselineFolder">The folder containing baseline results.</param>
     /// <param name="resultsFolder">The folder containing new results.</param>
     /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
     /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating comparison success and regression detection.</returns>
-    public async Task<BenchmarkComparisonResult> CompareAsync(string baselineFolder, string resultsFolder, CancellationToken cancellationToken)
+    public Task<BenchmarkComparisonResult> CompareAsync(string baselineFolder, string resultsFolder, CancellationToken cancellationToken)
+        => CompareAsync(baselineFolder, resultsFolder, cancellationToken, confirmOnlyIds: null);
+
+    /// <summary>
+    /// Compares two sets of benchmark results and detects regressions.
+    /// </summary>
+    /// <param name="baselineFolder">The folder containing baseline results.</param>
+    /// <param name="resultsFolder">The folder containing new results.</param>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
+    /// <param name="confirmOnlyIds">
+    /// When not <see langword="null"/>, only benchmarks with these ids are gated. Used by the confirmation rerun:
+    /// a strategy trips only when it trips on the benchmarks that were also flagged in the first round.
+    /// </param>
+    /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating comparison success and regression detection.</returns>
+    public async Task<BenchmarkComparisonResult> CompareAsync(
+        string baselineFolder,
+        string resultsFolder,
+        CancellationToken cancellationToken,
+        IReadOnlySet<string>? confirmOnlyIds)
     {
         BdnComparisonResult[]? comparison = await BenchmarkDotNetDiffer.TryGetBdnResultsAsync(baselineFolder, resultsFolder, logger, cancellationToken).ConfigureAwait(false);
         if (comparison is null)
@@ -33,7 +51,13 @@ public class BenchmarkComparisonService(ILogger logger)
             return new BenchmarkComparisonResult(CompareSucceeded: false, RegressionDetected: false);
         }
 
+        if (confirmOnlyIds is not null)
+        {
+            comparison = RestrictToConfirmedIds(comparison, confirmOnlyIds);
+        }
+
         bool regressionDetected = false;
+        SortedSet<string> regressedIds = new(StringComparer.Ordinal);
         foreach (IBenchmarkRegressionStrategy strategy in _strategies)
         {
             if (!strategy.HasRegression(comparison, logger, out RegressionDetectionResult details))
@@ -42,6 +66,7 @@ public class BenchmarkComparisonService(ILogger logger)
             }
 
             regressionDetected = true;
+            regressedIds.UnionWith(details.RegressedIds);
             logger.LogError("========== {MetricName} regression detected (threshold: {PercentThreshold}) -- {StrategyName} ==========", details.MetricName, details.Threshold, strategy.GetType().Name);
         }
 
@@ -50,6 +75,13 @@ public class BenchmarkComparisonService(ILogger logger)
             logger.LogInformation("========== No regressions detected. ==========");
         }
 
-        return new BenchmarkComparisonResult(CompareSucceeded: true, regressionDetected);
+        return new BenchmarkComparisonResult(CompareSucceeded: true, regressionDetected) { RegressedIds = regressedIds.ToArray() };
+    }
+
+    private BdnComparisonResult[] RestrictToConfirmedIds(BdnComparisonResult[] comparison, IReadOnlySet<string> confirmOnlyIds)
+    {
+        BdnComparisonResult[] restricted = comparison.Where(result => confirmOnlyIds.Contains(result.Id)).ToArray();
+        logger.LogInformation("Confirmation round: gating {Kept} of {Total} benchmarks that were also flagged in the first round.", restricted.Length, comparison.Length);
+        return restricted;
     }
 }

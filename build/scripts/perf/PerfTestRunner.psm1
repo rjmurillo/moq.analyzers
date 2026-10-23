@@ -28,7 +28,7 @@ function New-PerfBenchmarkArguments {
         [Parameter(Mandatory=$true)]
         [string]$Output,
 
-        [string]$Filter,
+        [string[]]$Filter,
 
         [bool]$Ci = $false,
 
@@ -43,7 +43,8 @@ function New-PerfBenchmarkArguments {
         $commandArguments += @("--profiler", "ETW")
     }
 
-    $commandArguments += @("--filter", $Filter)
+    # BenchmarkDotNet reads every value after one --filter flag as a separate glob and ORs them.
+    $commandArguments += @("--filter") + $Filter
     return $commandArguments
 }
 
@@ -61,7 +62,7 @@ function Format-PerfCommandArguments {
 function Invoke-PerfTests {
     param(
         [string] $projects,
-        [string] $filter,
+        [string[]] $filter,
         [String] $perftestRootFolder,
         [String] $output,
         [bool]   $etl=$false,
