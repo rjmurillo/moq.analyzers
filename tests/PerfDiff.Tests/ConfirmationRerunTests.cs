@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.Reflection;
 using PerfDiff.BDN;
 using PerfDiff.BDN.DataContracts;
 using Xunit;
@@ -23,7 +22,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory baseline = Results(("Zeta", UnderBudgetNs), ("Alpha", UnderBudgetNs), ("Quiet", UnderBudgetNs));
         using BenchmarkTestData.ResultDirectory results = Results(("Zeta", OverBudgetNs), ("Alpha", OverBudgetNs), ("Quiet", UnderBudgetNs));
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: true, new PerfDiffTestLogger(), CancellationToken.None, regressedOutputPath: output);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: true, RegressedOutputPath: output), new PerfDiffTestLogger(), CancellationToken.None);
 
         Assert.Equal(Program.RegressionExitCode, exitCode);
         Assert.Equal("""["Alpha","Zeta"]""", await File.ReadAllTextAsync(output).ConfigureAwait(true));
@@ -38,7 +37,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory baseline = Results(("Alpha", UnderBudgetNs));
         using BenchmarkTestData.ResultDirectory results = Results(("Alpha", UnderBudgetNs));
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: true, new PerfDiffTestLogger(), CancellationToken.None, regressedOutputPath: output).ConfigureAwait(true);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: true, RegressedOutputPath: output), new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
 
         Assert.Equal(0, exitCode);
         Assert.Equal("[]", await File.ReadAllTextAsync(output).ConfigureAwait(true));
@@ -52,7 +51,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory baseline = Results(("Alpha", UnderBudgetNs));
         using BenchmarkTestData.ResultDirectory results = Results(("Alpha", OverBudgetNs));
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: false, new PerfDiffTestLogger(), CancellationToken.None, regressedOutputPath: output);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: false, RegressedOutputPath: output), new PerfDiffTestLogger(), CancellationToken.None);
 
         Assert.Equal(0, exitCode);
         Assert.Equal("""["Alpha"]""", await File.ReadAllTextAsync(output).ConfigureAwait(true));
@@ -66,7 +65,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory baseline = new();
         using BenchmarkTestData.ResultDirectory results = new();
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: true, new PerfDiffTestLogger(), CancellationToken.None, regressedOutputPath: output);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: true, RegressedOutputPath: output), new PerfDiffTestLogger(), CancellationToken.None);
 
         Assert.Equal(Program.UnhandledExceptionExitCode, exitCode);
         Assert.False(File.Exists(output));
@@ -81,7 +80,7 @@ public sealed class ConfirmationRerunTests
         PerfDiffTestLogger logger = new();
 
         // The destination is an existing folder, so the write fails.
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: true, logger, CancellationToken.None, regressedOutputPath: folder.Path);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: true, RegressedOutputPath: folder.Path), logger, CancellationToken.None);
 
         Assert.Equal(Program.UnhandledExceptionExitCode, exitCode);
         Assert.Contains(logger.Messages, message => message.Contains("Cannot write the regressed benchmark ids", StringComparison.Ordinal));
@@ -95,7 +94,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory results = Results(("Alpha", OverBudgetNs), ("Beta", OverBudgetNs));
         string output = Path.Combine(fixture.Folder, "round2.json");
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: true, new PerfDiffTestLogger(), CancellationToken.None, output, fixture.ConfirmFile);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: true, RegressedOutputPath: output, ConfirmOnlyPath: fixture.ConfirmFile), new PerfDiffTestLogger(), CancellationToken.None);
 
         Assert.Equal(Program.RegressionExitCode, exitCode);
         Assert.Equal("""["Alpha"]""", await File.ReadAllTextAsync(output).ConfigureAwait(true));
@@ -108,7 +107,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory baseline = Results(("Alpha", UnderBudgetNs));
         using BenchmarkTestData.ResultDirectory results = Results(("Alpha", UnderBudgetNs));
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: true, new PerfDiffTestLogger(), CancellationToken.None, confirmOnlyPath: fixture.ConfirmFile);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: true, ConfirmOnlyPath: fixture.ConfirmFile), new PerfDiffTestLogger(), CancellationToken.None);
 
         Assert.Equal(0, exitCode);
     }
@@ -121,7 +120,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory results = Results(("Alpha", UnderBudgetNs), ("Beta", OverBudgetNs));
         string output = Path.Combine(fixture.Folder, "round2.json");
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: true, new PerfDiffTestLogger(), CancellationToken.None, output, fixture.ConfirmFile);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: true, RegressedOutputPath: output, ConfirmOnlyPath: fixture.ConfirmFile), new PerfDiffTestLogger(), CancellationToken.None);
 
         Assert.Equal(0, exitCode);
         Assert.Equal("[]", await File.ReadAllTextAsync(output).ConfigureAwait(true));
@@ -134,7 +133,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory baseline = Results(("Alpha", UnderBudgetNs));
         using BenchmarkTestData.ResultDirectory results = Results(("Alpha", OverBudgetNs));
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: true, new PerfDiffTestLogger(), CancellationToken.None, confirmOnlyPath: fixture.ConfirmFile);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: true, ConfirmOnlyPath: fixture.ConfirmFile), new PerfDiffTestLogger(), CancellationToken.None);
 
         Assert.Equal(0, exitCode);
     }
@@ -146,7 +145,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory baseline = Results(("Alpha", UnderBudgetNs));
         using BenchmarkTestData.ResultDirectory results = Results(("Alpha", OverBudgetNs));
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: false, new PerfDiffTestLogger(), CancellationToken.None, confirmOnlyPath: fixture.ConfirmFile);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: false, ConfirmOnlyPath: fixture.ConfirmFile), new PerfDiffTestLogger(), CancellationToken.None);
 
         Assert.Equal(0, exitCode);
     }
@@ -158,7 +157,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory baseline = Results(("Alpha", UnderBudgetNs));
         using BenchmarkTestData.ResultDirectory results = Results(("Alpha", UnderBudgetNs));
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: true, new PerfDiffTestLogger(), CancellationToken.None, confirmOnlyPath: Path.Combine(folder.Path, "missing.json"));
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: true, ConfirmOnlyPath: Path.Combine(folder.Path, "missing.json")), new PerfDiffTestLogger(), CancellationToken.None);
 
         Assert.Equal(Program.UnhandledExceptionExitCode, exitCode);
     }
@@ -173,7 +172,7 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory baseline = Results(("Alpha", UnderBudgetNs));
         using BenchmarkTestData.ResultDirectory results = Results(("Alpha", OverBudgetNs));
 
-        int exitCode = await PerfDiff.CompareAsync(baseline.Path, results.Path, failOnRegression: true, new PerfDiffTestLogger(), CancellationToken.None, confirmOnlyPath: fixture.ConfirmFile);
+        int exitCode = await PerfDiff.CompareAsync(new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: true, ConfirmOnlyPath: fixture.ConfirmFile), new PerfDiffTestLogger(), CancellationToken.None);
 
         Assert.Equal(Program.UnhandledExceptionExitCode, exitCode);
     }
@@ -224,9 +223,8 @@ public sealed class ConfirmationRerunTests
         using BenchmarkTestData.ResultDirectory results = Results(("Alpha", OverBudgetNs));
         string output = Path.Combine(fixture.Folder, "round2.json");
 
-        MethodInfo main = typeof(Program).GetMethod("Main", BindingFlags.NonPublic | BindingFlags.Static)!;
         string[] args = ["--baseline", baseline.Path, "--results", results.Path, "--verbosity", "quiet", "--failOnRegression", "--regressedOutput", output, "--confirmOnly", fixture.ConfirmFile];
-        int exitCode = await (Task<int>)main.Invoke(null, [args])!;
+        int exitCode = await Program.Main(args);
 
         Assert.Equal(Program.RegressionExitCode, exitCode);
         Assert.Equal("""["Alpha"]""", await File.ReadAllTextAsync(output).ConfigureAwait(true));
@@ -235,7 +233,8 @@ public sealed class ConfirmationRerunTests
     [Fact]
     public void RegressionExitCode_DiffersFromOtherExitCodes()
     {
-        Assert.Equal(3, Program.RegressionExitCode);
+        const int expectedRegressionExitCode = 3;
+        Assert.Equal(expectedRegressionExitCode, Program.RegressionExitCode);
         Assert.NotEqual(Program.UnhandledExceptionExitCode, Program.RegressionExitCode);
         Assert.NotEqual(Program.CancelledExitCode, Program.RegressionExitCode);
     }

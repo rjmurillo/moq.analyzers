@@ -9,6 +9,11 @@ namespace PerfDiff.Tests;
 /// </summary>
 public sealed class AbsoluteGateHysteresisTests
 {
+    private static readonly double ClearlyOverLimitFactor = 1.1D;
+    private static readonly double WellOverLimitFactor = 1.2D;
+    private static readonly int ImprovedBenchmarkCount = 2;
+    private static readonly double P95ThresholdMs = 250D;
+    private static readonly double MeanThresholdMs = 100D;
     private static readonly string BetterLogFragment = "at or under the threshold";
     private static readonly string WorseLogFragment = "over the effective limit";
 
@@ -17,7 +22,8 @@ public sealed class AbsoluteGateHysteresisTests
     [Fact]
     public void AbsoluteGateHysteresisMultiplier_IsFivePercent()
     {
-        Assert.Equal(1.05D, RegressionStrategyHelper.AbsoluteGateHysteresisMultiplier);
+        const double expectedMultiplier = 1.05D;
+        Assert.Equal(expectedMultiplier, RegressionStrategyHelper.AbsoluteGateHysteresisMultiplier);
     }
 
     [Theory]
@@ -86,7 +92,7 @@ public sealed class AbsoluteGateHysteresisTests
     {
         Gate gate = Gate.For(useP95);
 
-        bool hasRegression = gate.HasRegression(gate.ThresholdNs, gate.EffectiveLimitNs * 1.1D, new PerfDiffTestLogger(), out _);
+        bool hasRegression = gate.HasRegression(gate.ThresholdNs, gate.EffectiveLimitNs * ClearlyOverLimitFactor, new PerfDiffTestLogger(), out _);
 
         Assert.True(hasRegression);
     }
@@ -98,7 +104,7 @@ public sealed class AbsoluteGateHysteresisTests
         Gate gate = Gate.For(useP95);
         PerfDiffTestLogger logger = new();
 
-        gate.HasRegression(gate.ThresholdNs, gate.EffectiveLimitNs * 1.1D, logger, out _);
+        gate.HasRegression(gate.ThresholdNs, gate.EffectiveLimitNs * ClearlyOverLimitFactor, logger, out _);
 
         string expectedLimit = (gate.EffectiveLimitNs / TimeUnitConstants.NanoSecondsToMilliseconds).ToString("F3", System.Globalization.CultureInfo.CurrentCulture);
         Assert.Contains(logger.Messages, message => message.Contains(WorseLogFragment, StringComparison.Ordinal) && message.Contains(expectedLimit, StringComparison.Ordinal));
@@ -138,7 +144,7 @@ public sealed class AbsoluteGateHysteresisTests
         Gate gate = Gate.For(useP95);
         PerfDiffTestLogger logger = new();
 
-        gate.HasRegression(gate.EffectiveLimitNs * 1.2D, Math.BitIncrement(gate.ThresholdNs), logger, out _);
+        gate.HasRegression(gate.EffectiveLimitNs * WellOverLimitFactor, Math.BitIncrement(gate.ThresholdNs), logger, out _);
 
         Assert.DoesNotContain(logger.Messages, message => message.Contains(BetterLogFragment, StringComparison.Ordinal));
     }
@@ -147,8 +153,8 @@ public sealed class AbsoluteGateHysteresisTests
     public void HasRegression_WhenSeveralBenchmarksImprove_LogsThemInIdOrderWithoutRegression()
     {
         PercentileRegressionStrategy strategy = new();
-        double thresholdNs = 250D * TimeUnitConstants.NanoSecondsToMilliseconds;
-        double overNs = thresholdNs * 1.2D;
+        double thresholdNs = P95ThresholdMs * TimeUnitConstants.NanoSecondsToMilliseconds;
+        double overNs = thresholdNs * WellOverLimitFactor;
         BdnComparisonResult[] comparison =
         [
             new("Zeta", BenchmarkTestData.CreateBenchmark("Zeta", p95Ns: overNs), BenchmarkTestData.CreateBenchmark("Zeta", p95Ns: thresholdNs)),
@@ -160,7 +166,7 @@ public sealed class AbsoluteGateHysteresisTests
 
         Assert.False(hasRegression);
         string[] betterMessages = logger.Messages.Where(message => message.Contains(BetterLogFragment, StringComparison.Ordinal)).ToArray();
-        Assert.Equal(2, betterMessages.Length);
+        Assert.Equal(ImprovedBenchmarkCount, betterMessages.Length);
         Assert.Contains("'Alpha'", betterMessages[0], StringComparison.Ordinal);
         Assert.Contains("'Zeta'", betterMessages[1], StringComparison.Ordinal);
     }
@@ -179,7 +185,7 @@ public sealed class AbsoluteGateHysteresisTests
 
         public double EffectiveLimitNs => ThresholdNs * RegressionStrategyHelper.AbsoluteGateHysteresisMultiplier;
 
-        public static Gate For(bool useP95) => new(useP95, useP95 ? 250D : 100D);
+        public static Gate For(bool useP95) => new(useP95, useP95 ? P95ThresholdMs : MeanThresholdMs);
 
         public bool HasRegression(double baselineNs, double currentNs, PerfDiffTestLogger logger, out RegressionDetectionResult details)
         {

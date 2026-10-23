@@ -11,11 +11,9 @@ Import-Module (Join-Path $PSScriptRoot 'PerfResultsAnalyzer.psm1') -Force -Disab
 
 try {
     $exitCode = Invoke-PerfResultsComparison @PSBoundParameters
-    $host.SetShouldExit([int]$exitCode)
-    exit
+    exit [int]$exitCode
 }
 catch {
     Write-Error "$_`n$($_.Exception)`n$($_.ScriptStackTrace)"
-    $host.SetShouldExit(1)
     exit 1
 }

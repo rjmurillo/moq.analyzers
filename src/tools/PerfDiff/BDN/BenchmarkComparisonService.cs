@@ -19,6 +19,16 @@ public class BenchmarkComparisonService(ILogger logger)
     ];
 
     /// <summary>
+    /// Compares two sets of benchmark results and detects regressions, gating every benchmark.
+    /// </summary>
+    /// <param name="baselineFolder">The folder containing baseline results.</param>
+    /// <param name="resultsFolder">The folder containing new results.</param>
+    /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
+    /// <returns>A <see cref="BenchmarkComparisonResult"/> indicating comparison success and regression detection.</returns>
+    public Task<BenchmarkComparisonResult> CompareAsync(string baselineFolder, string resultsFolder, CancellationToken cancellationToken)
+        => CompareAsync(baselineFolder, resultsFolder, cancellationToken, confirmOnlyIds: null);
+
+    /// <summary>
     /// Compares two sets of benchmark results and detects regressions.
     /// </summary>
     /// <param name="baselineFolder">The folder containing baseline results.</param>
@@ -33,7 +43,7 @@ public class BenchmarkComparisonService(ILogger logger)
         string baselineFolder,
         string resultsFolder,
         CancellationToken cancellationToken,
-        IReadOnlySet<string>? confirmOnlyIds = null)
+        IReadOnlySet<string>? confirmOnlyIds)
     {
         BdnComparisonResult[]? comparison = await BenchmarkDotNetDiffer.TryGetBdnResultsAsync(baselineFolder, resultsFolder, logger, cancellationToken).ConfigureAwait(false);
         if (comparison is null)

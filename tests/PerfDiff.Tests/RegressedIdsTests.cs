@@ -184,7 +184,8 @@ public sealed class RegressedIdsTests
 
         Assert.True(read);
         Assert.NotNull(ids);
-        Assert.Equal(2, ids.Count);
+        const int expectedIdCount = 2;
+        Assert.Equal(expectedIdCount, ids.Count);
         Assert.Contains("Moq1200.Run(FileCount: 1)", ids);
     }
 

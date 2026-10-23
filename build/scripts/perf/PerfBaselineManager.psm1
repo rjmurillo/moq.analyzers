@@ -157,17 +157,25 @@ function Read-PerfRegressedIds {
         throw "Flagged benchmark ids file not found: '$Path'"
     }
 
+    $raw = Get-Content -Raw -LiteralPath $Path
+    if ([string]::IsNullOrWhiteSpace($raw) -or -not $raw.TrimStart().StartsWith('[')) {
+        throw "Flagged benchmark ids file '$Path' must be a JSON array of non-empty strings."
+    }
+
+    # No -NoEnumerate: Windows PowerShell 5.1 lacks it. The array-ness is decided from the raw text above.
+    # ForEach-Object unrolls the result on 5.1 (which emits the array as one object) and on 7+ (which already unrolls),
+    # and [] yields no elements on both.
     try {
-        $parsed = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json -NoEnumerate
+        $items = @(ConvertFrom-Json -InputObject $raw | ForEach-Object { $_ })
     } catch {
         throw "Flagged benchmark ids file '$Path' is not valid JSON: $($_.Exception.Message)"
     }
 
-    if ($parsed -isnot [System.Array] -or @($parsed | Where-Object { $_ -isnot [string] -or [string]::IsNullOrEmpty($_) }).Count -gt 0) {
+    if (@($items | Where-Object { $_ -isnot [string] -or [string]::IsNullOrEmpty($_) }).Count -gt 0) {
         throw "Flagged benchmark ids file '$Path' must be a JSON array of non-empty strings."
     }
 
-    @($parsed)
+    $items
 }
 
 function Invoke-PerfConfirmation {
