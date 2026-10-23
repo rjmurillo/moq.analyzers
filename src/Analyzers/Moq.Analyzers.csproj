@@ -34,9 +34,6 @@
   </ItemGroup>
   <Import Project="$(RepoRoot)/src/Common/Common.projitems" Label="Shared" />
   <ItemGroup>
-    <EmbeddedResource Update="Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="$(RepoRoot)\README.md" Pack="true" PackagePath="/" />
     <None Include="$(RepoRoot)\THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="/" />
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />

@@ -60,9 +60,6 @@ internal class MoqKnownSymbols : KnownSymbols
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iRaise1Raises;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _iRaise1RaisesAsync;
     private readonly Lazy<ImmutableArray<IMethodSymbol>> _timesAtLeastOnce;
-    private readonly Lazy<ImmutableArray<IMethodSymbol>> _timesNever;
-    private readonly Lazy<ImmutableArray<IMethodSymbol>> _timesOnce;
-    private readonly Lazy<ImmutableArray<IMethodSymbol>> _timesExactly;
 
 #pragma warning disable MA0051 // Constructor length is proportional to the number of Moq symbols cached; each line is a single-field assignment.
     internal MoqKnownSymbols(WellKnownTypeProvider typeProvider)
@@ -141,9 +138,6 @@ internal class MoqKnownSymbols : KnownSymbols
 
         // Times members
         _timesAtLeastOnce = CreateLazyMethods(Times, "AtLeastOnce");
-        _timesNever = CreateLazyMethods(Times, "Never");
-        _timesOnce = CreateLazyMethods(Times, "Once");
-        _timesExactly = CreateLazyMethods(Times, "Exactly");
     }
 #pragma warning restore MA0051
 
@@ -590,21 +584,6 @@ internal class MoqKnownSymbols : KnownSymbols
     /// Gets the methods for <c>Moq.Times.AtLeastOnce</c>.
     /// </summary>
     internal ImmutableArray<IMethodSymbol> TimesAtLeastOnce => _timesAtLeastOnce.Value;
-
-    /// <summary>
-    /// Gets the methods for <c>Moq.Times.Never</c>.
-    /// </summary>
-    internal ImmutableArray<IMethodSymbol> TimesNever => _timesNever.Value;
-
-    /// <summary>
-    /// Gets the methods for <c>Moq.Times.Once</c>.
-    /// </summary>
-    internal ImmutableArray<IMethodSymbol> TimesOnce => _timesOnce.Value;
-
-    /// <summary>
-    /// Gets the methods for <c>Moq.Times.Exactly</c>.
-    /// </summary>
-    internal ImmutableArray<IMethodSymbol> TimesExactly => _timesExactly.Value;
 
     /// <summary>
     /// Gets the interface <c>Microsoft.Extensions.Logging.ILogger</c>.

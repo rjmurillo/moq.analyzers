@@ -18,7 +18,6 @@
     <Compile Include="$(RepoRoot)/src/Analyzers/**/*.cs" />
     <Compile Include="$(RepoRoot)/src/CodeFixes/**/*.cs" />
     <Compile Include="$(RepoRoot)/src/Common/**/*.cs" />
-    <EmbeddedResource Include="$(RepoRoot)/src/Analyzers/Resources.resx" />
     <AdditionalFiles Include="$(RepoRoot)/src/Analyzers/AnalyzerReleases.Shipped.md" />
     <AdditionalFiles Include="$(RepoRoot)/src/Analyzers/AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
