@@ -51,6 +51,10 @@ if (-not $Path) {
     }
 }
 
+# .NET APIs resolve relative paths against the process CWD, which pwsh does not
+# sync on Set-Location. Resolve against the PowerShell location instead.
+$Path = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($Path)
+
 # Markers to scan for (case-insensitive)
 $markers = @('TODO', 'FIXME', 'HACK', 'UNDONE')
 
@@ -64,10 +68,13 @@ if ($LASTEXITCODE -ne 0) {
     $files = Get-ChildItem -Path $Path -Recurse -Include $Extensions -File
 }
 else {
+    # Use FileInfo instead of Get-Item: Get-Item fails on some root-level
+    # dotfiles (e.g. .yamllint.yml) under pwsh with ErrorActionPreference Stop,
+    # even when Test-Path is true. File.Exists / FileInfo do not.
     $files = $gitFiles | ForEach-Object {
         $fullPath = Join-Path $Path $_
-        if (Test-Path -LiteralPath $fullPath) {
-            Get-Item -LiteralPath $fullPath
+        if ([System.IO.File]::Exists($fullPath)) {
+            [System.IO.FileInfo]::new($fullPath)
         }
     }
 }
