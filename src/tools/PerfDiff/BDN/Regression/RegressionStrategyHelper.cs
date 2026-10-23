@@ -33,6 +33,15 @@ public static class RegressionStrategyHelper
     /// </summary>
     internal const double NoiseBandStandardDeviationMultiplier = 2D;
 
+    /// <summary>
+    /// Hysteresis multiplier for the absolute budget gates (P95 and mean wall clock).
+    /// A benchmark counts as newly over budget only when the run under test exceeds the threshold times this
+    /// value while the baseline is at or under the threshold. It counts as newly under budget only when the run
+    /// under test is at or under the threshold while the baseline exceeds the threshold times this value.
+    /// A benchmark that sits on the threshold therefore cannot flip the gate on a sub-5% wobble.
+    /// </summary>
+    internal const double AbsoluteGateHysteresisMultiplier = 1.05D;
+
     private const double PercentScale = 100D;
 
     public static bool HasRegression(
@@ -41,6 +50,8 @@ public static class RegressionStrategyHelper
         RegressionMetricConfig config,
         out RegressionDetectionResult details)
     {
+        double effectiveLimitNs = config.ThresholdValueNs * AbsoluteGateHysteresisMultiplier;
+        double effectiveLimitMs = effectiveLimitNs / TimeUnitConstants.NanoSecondsToMilliseconds;
         RegressionResult[] notSame = FindRegressions(comparison, config.ThresholdValueNs, config.MetricSelector);
         List<RegressionResult> better = notSame.Where(result => result.Conclusion == ComparisonResult.Greater).OrderBy(k => k.Id).ToList();
         List<RegressionResult> worse = notSame.Where(result => result.Conclusion == ComparisonResult.Lesser).OrderBy(k => k.Id).ToList();
@@ -52,7 +63,7 @@ public static class RegressionStrategyHelper
             foreach (RegressionResult betterResult in better)
             {
                 double value = config.DisplayValueSelector(betterResult);
-                logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; better than the threshold {Threshold}", betterResult.Id, config.MetricName, value, config.DisplayThreshold);
+                logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; at or under the threshold {Threshold}, baseline was over the effective limit {EffectiveLimit:F3} ms", betterResult.Id, config.MetricName, value, config.DisplayThreshold, effectiveLimitMs);
             }
 
             double betterGeoMean = GetGeometricMeanOrNaN(better, MedianRatioSelector);
@@ -67,7 +78,7 @@ public static class RegressionStrategyHelper
             foreach (RegressionResult worseResult in worse)
             {
                 double value = config.DisplayValueSelector(worseResult);
-                logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; worse than the threshold {Threshold}", worseResult.Id, config.MetricName, value, config.DisplayThreshold);
+                logger.LogInformation("test: '{TestId}' {MetricName} took {MetricValue:F3} ms; over the effective limit {EffectiveLimit:F3} ms (threshold {Threshold} plus 5% margin), baseline was at or under the threshold", worseResult.Id, config.MetricName, value, effectiveLimitMs, config.DisplayThreshold);
             }
 
             double worseGeoMean = GetGeometricMeanOrNaN(worse, MedianRatioSelector);
@@ -77,7 +88,7 @@ public static class RegressionStrategyHelper
             }
         }
 
-        details = new RegressionDetectionResult(config.MetricName, config.DisplayThreshold);
+        details = new RegressionDetectionResult(config.MetricName, config.DisplayThreshold, GetIds(worse));
         return worseCount > 0;
     }
 
@@ -109,7 +120,7 @@ public static class RegressionStrategyHelper
         LogRatioResults(worse, logger, config, "more");
 
         bool aggregateRegression = IsAggregateRatioRegression(worse, config.RatioSelector, config.AggregateThreshold, out _);
-        details = new RegressionDetectionResult(config.MetricName, relativeThreshold);
+        details = new RegressionDetectionResult(config.MetricName, relativeThreshold, aggregateRegression ? GetIds(worse) : null);
         return aggregateRegression;
     }
 
@@ -118,6 +129,7 @@ public static class RegressionStrategyHelper
         double thresholdValueNs,
         Func<Benchmark, double?> metricSelector)
     {
+        double effectiveLimitNs = thresholdValueNs * AbsoluteGateHysteresisMultiplier;
         List<RegressionResult> results = [];
         foreach (BdnComparisonResult result in comparison
             .Where(result => metricSelector(result.BaseResult) != null && metricSelector(result.DiffResult) != null))
@@ -126,11 +138,11 @@ public static class RegressionStrategyHelper
             double metric = metricSelector(result.DiffResult)!.Value;
 
             ComparisonResult conclusion;
-            if (metric > thresholdValueNs && baselineMetric <= thresholdValueNs)
+            if (metric > effectiveLimitNs && baselineMetric <= thresholdValueNs)
             {
                 conclusion = ComparisonResult.Lesser;
             }
-            else if (metric <= thresholdValueNs && baselineMetric > thresholdValueNs)
+            else if (metric <= thresholdValueNs && baselineMetric > effectiveLimitNs)
             {
                 conclusion = ComparisonResult.Greater;
             }
@@ -147,6 +159,9 @@ public static class RegressionStrategyHelper
 
         return results.ToArray();
     }
+
+    private static string[] GetIds(IEnumerable<RegressionResult> results)
+        => results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
 
     internal static bool TryGetGeometricMean(IEnumerable<RegressionResult> results, Func<RegressionResult, double> ratioSelector, out double geometricMean)
     {

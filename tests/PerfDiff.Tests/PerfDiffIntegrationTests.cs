@@ -60,8 +60,8 @@ public sealed class PerfDiffIntegrationTests
         => await AssertEtlConfirmsRegressionAsync(failOnRegression: false, expectedExitCode: 0).ConfigureAwait(true);
 
     [Fact]
-    public async Task PerfDiffCompareAsync_WhenEtlConfirmsRegressionAndFailOnRegressionIsTrue_ReturnsOne()
-        => await AssertEtlConfirmsRegressionAsync(failOnRegression: true, expectedExitCode: 1).ConfigureAwait(true);
+    public async Task PerfDiffCompareAsync_WhenEtlConfirmsRegressionAndFailOnRegressionIsTrue_ReturnsRegressionExitCode()
+        => await AssertEtlConfirmsRegressionAsync(failOnRegression: true, expectedExitCode: Program.RegressionExitCode).ConfigureAwait(true);
 
     [Fact]
     public async Task PerfDiffCompareAsync_WhenEtlRejectsRegression_ReturnsZero()
@@ -126,8 +126,8 @@ public sealed class PerfDiffIntegrationTests
         => await AssertBdnRegressionHasNoUsableEtlAsync(failOnRegression: false, expectedExitCode: 0).ConfigureAwait(true);
 
     [Fact]
-    public async Task PerfDiffCompareAsync_WhenBdnRegressionHasNoUsableEtlAndFailOnRegressionIsTrue_ReturnsOne()
-        => await AssertBdnRegressionHasNoUsableEtlAsync(failOnRegression: true, expectedExitCode: 1).ConfigureAwait(true);
+    public async Task PerfDiffCompareAsync_WhenBdnRegressionHasNoUsableEtlAndFailOnRegressionIsTrue_ReturnsRegressionExitCode()
+        => await AssertBdnRegressionHasNoUsableEtlAsync(failOnRegression: true, expectedExitCode: Program.RegressionExitCode).ConfigureAwait(true);
 
     [Fact]
     public void TryGetETLPaths_AcceptsSingleEtlZipFilePath()

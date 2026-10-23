@@ -16,6 +16,13 @@ internal sealed class Program
     internal const int UnhandledExceptionExitCode = 1;
     internal const int CancelledExitCode = 2;
 
+    /// <summary>
+    /// Exit code for a detected regression when <c>--failOnRegression</c> is set. It differs from
+    /// <see cref="UnhandledExceptionExitCode"/> so a caller can tell "the gate tripped" from "the comparison
+    /// could not run". build/scripts/perf/PerfBaselineManager.psm1 holds the same value as <c>$script:PerfRegressionExitCode</c>.
+    /// </summary>
+    internal const int RegressionExitCode = 3;
+
     private static async Task<int> Main(string[] args)
     {
         RootCommand rootCommand = DiffCommand.CreateCommandLineOptions();
@@ -26,7 +33,10 @@ internal sealed class Program
             string? verbosity = parseResult.GetValue(DiffCommand.VerbosityOption);
             bool failOnRegression = parseResult.GetValue(DiffCommand.FailOnRegressionOption);
 
-            return await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken).ConfigureAwait(false);
+            string? regressedOutput = parseResult.GetValue(DiffCommand.RegressedOutputOption);
+            string? confirmOnly = parseResult.GetValue(DiffCommand.ConfirmOnlyOption);
+
+            return await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken, regressedOutput, confirmOnly).ConfigureAwait(false);
         });
 
         return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
@@ -37,8 +47,17 @@ internal sealed class Program
         string results,
         string? verbosity,
         bool failOnRegression,
-        CancellationToken cancellationToken)
-        => await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken, PerfDiff.CompareAsync).ConfigureAwait(false);
+        CancellationToken cancellationToken,
+        string? regressedOutputPath = null,
+        string? confirmOnlyPath = null)
+        => await RunAsync(
+            baseline,
+            results,
+            verbosity,
+            failOnRegression,
+            cancellationToken,
+            (baselineFolder, resultsFolder, failOnRegressionFlag, logger, token)
+                => PerfDiff.CompareAsync(baselineFolder, resultsFolder, failOnRegressionFlag, logger, token, regressedOutputPath, confirmOnlyPath)).ConfigureAwait(false);
 
     internal static async Task<int> RunAsync(
         string baseline,

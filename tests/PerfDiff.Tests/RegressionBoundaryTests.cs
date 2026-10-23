@@ -233,7 +233,7 @@ public sealed class RegressionBoundaryTests
     public void PercentileRegressionStrategy_WhenWorseGeomeanIsUndefined_StillReportsRegression()
     {
         PercentileRegressionStrategy strategy = new();
-        BdnComparisonResult comparison = CreateAbsoluteThresholdComparison(baseMedianNs: 0, diffMedianNs: 0, baseP95Ns: 100, diffP95Ns: 260_000_000);
+        BdnComparisonResult comparison = CreateAbsoluteThresholdComparison(baseMedianNs: 0, diffMedianNs: 0, baseP95Ns: 100, diffP95Ns: 270_000_000);
 
         bool hasRegression = strategy.HasRegression([comparison], new PerfDiffTestLogger(), out RegressionDetectionResult details);
 

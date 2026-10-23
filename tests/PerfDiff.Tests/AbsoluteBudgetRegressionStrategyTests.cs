@@ -25,7 +25,7 @@ public sealed class AbsoluteBudgetRegressionStrategyTests
         PercentileRegressionStrategy strategy = new();
 
         bool hasRegression = strategy.HasRegression(
-            [CreateComparison(baseP95Ns: Milliseconds(100), diffP95Ns: Milliseconds(260))],
+            [CreateComparison(baseP95Ns: Milliseconds(100), diffP95Ns: Milliseconds(270))],
             new PerfDiffTestLogger(),
             out _);
 
