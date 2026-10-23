@@ -83,37 +83,11 @@ public sealed class PerfDiffIntegrationTests
 
     [Fact]
     public async Task PerfDiffCompareAsync_WhenResultsEtlIsMissing_ReturnsNonFailingRegression()
-    {
-        using BenchmarkTestData.ResultDirectory baseline = BenchmarkTestData.CreateResultDirectory(BenchmarkTestData.CreateBenchmark("Benchmark.A"));
-        using BenchmarkTestData.ResultDirectory results = BenchmarkTestData.CreateResultDirectory(BenchmarkTestData.CreateBenchmark("Benchmark.A"));
-        await File.WriteAllTextAsync(Path.Combine(baseline.Path, "trace.etl.zip"), "baseline").ConfigureAwait(true);
-
-        int exitCode = await PerfDiff.CompareAsync(
-            new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: false),
-            new PerfDiffTestLogger(),
-            CancellationToken.None,
-            static (_, _, _, _) => Task.FromResult(new BenchmarkComparisonResult(CompareSucceeded: true, RegressionDetected: true)),
-            static (_, _) => (CompareSucceeded: true, RegressionDetected: true)).ConfigureAwait(true);
-
-        Assert.Equal(0, exitCode);
-    }
+        => await AssertOneSideEtlIsMissingReturnsZeroAsync(etlInBaselineOnly: true).ConfigureAwait(true);
 
     [Fact]
     public async Task PerfDiffCompareAsync_WhenBaselineEtlIsMissing_ReturnsNonFailingRegression()
-    {
-        using BenchmarkTestData.ResultDirectory baseline = BenchmarkTestData.CreateResultDirectory(BenchmarkTestData.CreateBenchmark("Benchmark.A"));
-        using BenchmarkTestData.ResultDirectory results = BenchmarkTestData.CreateResultDirectory(BenchmarkTestData.CreateBenchmark("Benchmark.A"));
-        await File.WriteAllTextAsync(Path.Combine(results.Path, "trace.etl.zip"), "results").ConfigureAwait(true);
-
-        int exitCode = await PerfDiff.CompareAsync(
-            new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: false),
-            new PerfDiffTestLogger(),
-            CancellationToken.None,
-            static (_, _, _, _) => Task.FromResult(new BenchmarkComparisonResult(CompareSucceeded: true, RegressionDetected: true)),
-            static (_, _) => (CompareSucceeded: true, RegressionDetected: true)).ConfigureAwait(true);
-
-        Assert.Equal(0, exitCode);
-    }
+        => await AssertOneSideEtlIsMissingReturnsZeroAsync(etlInBaselineOnly: false).ConfigureAwait(true);
 
     [Fact]
     public async Task PerfDiffCompareAsync_WhenBdnRegressionHasNoUsableEtlAndFailOnRegressionIsFalse_ReturnsZero()
@@ -244,6 +218,23 @@ public sealed class PerfDiffIntegrationTests
             static (_, _) => (CompareSucceeded: true, RegressionDetected: true)).ConfigureAwait(true);
 
         Assert.Equal(expectedExitCode, exitCode);
+    }
+
+    private static async Task AssertOneSideEtlIsMissingReturnsZeroAsync(bool etlInBaselineOnly)
+    {
+        using BenchmarkTestData.ResultDirectory baseline = BenchmarkTestData.CreateResultDirectory(BenchmarkTestData.CreateBenchmark("Benchmark.A"));
+        using BenchmarkTestData.ResultDirectory results = BenchmarkTestData.CreateResultDirectory(BenchmarkTestData.CreateBenchmark("Benchmark.A"));
+        string etlFolder = etlInBaselineOnly ? baseline.Path : results.Path;
+        await File.WriteAllTextAsync(Path.Combine(etlFolder, "trace.etl.zip"), "trace").ConfigureAwait(true);
+
+        int exitCode = await PerfDiff.CompareAsync(
+            new PerfDiffRequest(baseline.Path, results.Path, FailOnRegression: false),
+            new PerfDiffTestLogger(),
+            CancellationToken.None,
+            static (_, _, _, _) => Task.FromResult(new BenchmarkComparisonResult(CompareSucceeded: true, RegressionDetected: true)),
+            static (_, _) => (CompareSucceeded: true, RegressionDetected: true)).ConfigureAwait(true);
+
+        Assert.Equal(0, exitCode);
     }
 
     private static async Task AssertBdnRegressionHasNoUsableEtlAsync(bool failOnRegression, int expectedExitCode)
