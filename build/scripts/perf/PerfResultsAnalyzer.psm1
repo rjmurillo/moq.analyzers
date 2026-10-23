@@ -38,7 +38,9 @@ function Invoke-PerfResultsComparison {
     param(
         [String] $baseline,
         [String] $results,
-        [switch] $ci
+        [switch] $ci,
+        [String] $regressedOutput,
+        [String] $confirmOnly
     )
 
     $currentLocation = Get-Location
@@ -55,7 +57,10 @@ function Invoke-PerfResultsComparison {
         $perfDiff = Get-PerfDiffProjectPath -RepoRoot $RepoRoot
         & dotnet build $perfDiff -c Release | Out-Host
         if ($LASTEXITCODE -ne 0) { throw "dotnet build failed with exit code $LASTEXITCODE" }
-        & dotnet run -c Release --project $perfDiff -- --baseline $baselineFolder --results $resultsFolder --failOnRegression | Out-Host
+        $perfDiffArgs = @('--baseline', $baselineFolder, '--results', $resultsFolder, '--failOnRegression')
+        if ($regressedOutput) { $perfDiffArgs += @('--regressedOutput', $regressedOutput) }
+        if ($confirmOnly) { $perfDiffArgs += @('--confirmOnly', $confirmOnly) }
+        & dotnet run -c Release --project $perfDiff -- @perfDiffArgs | Out-Host
         return [int]$LASTEXITCODE
     }
     finally {

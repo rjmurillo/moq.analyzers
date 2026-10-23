@@ -98,3 +98,45 @@ This is similar to what is run in the [main action](../../../.github/workflows/m
 > NOTE: If you _always_ want to run the baseline, you can set the environment variable `FORCE_PERF_BASELINE=true`
 
 A cached baseline is reused only when it holds a benchmark report. A new baseline run first deletes the old baseline results. If a baseline run with a narrower filter writes no report, the script retries once with filter `*`. If there is still no report, the run stops with an error that names the baseline folder.
+
+## Confirmation Rerun
+
+Runner noise does not repeat. A real regression does. Round 1 runs the whole baseline, then the whole current branch, on one shared runner, so slow drift lands on one side. Before the nightly goes red, `PerfCore.ps1 -diff` therefore repeats only the flagged benchmarks.
+
+1. The round 1 comparison runs with `--regressedOutput`. PerfDiff writes the ids of the benchmarks behind each tripped gate to `artifacts/performance/perfResults/regressed-ids.json`. The file is a JSON array of strings, sorted ordinally, without duplicates. It is `[]` when no gate tripped.
+1. If round 1 exits with the regression code (3) and the file lists at least one id, the script reruns only those benchmarks, in the reverse order of round 1: current first into `perfResults/confirm/perfTest`, then baseline into `perfResults/confirm/baseline`. The baseline worktree from round 1 (`artifacts/perfBaseline`) is reused. If round 1 used a cached baseline, the script creates the worktree first.
+1. The rerun comparison runs with `--confirmOnly` pointing at the round 1 file. A gate trips only on benchmarks that were flagged in round 1 too. Only then does the job fail.
+
+The log ends with `Round 1 flagged N, confirmed M.` M counts the benchmarks flagged again in round 2 that were also flagged in round 1.
+
+The rerun filter holds one exact glob per flagged id. BenchmarkDotNet matches a filter against the full benchmark name, parameters included, for example `Moq.Analyzers.Benchmarks.Moq1200Benchmarks.Moq1200WithDiagnostics(FileCount: 1)`. Only `*` and `?` are wildcards and neither can be escaped, so `ConvertTo-PerfBenchmarkFilter` replaces them (and double quotes) with `?`, which matches that one character. Several globs go after a single `--filter` flag and are ORed.
+
+No rerun happens when:
+
+- round 1 passes (exit 0), or
+- round 1 fails for any other reason (exit 1 comparison error, 2 cancelled, a build or run failure). A rerun would fail the same way, so the job fails as before, or
+- the regression code comes with an empty or missing ids file. The job fails with that explanation.
+
+The rerun also uses the warm-up and `DOTNET_ROLL_FORWARD=LatestMajor` setup from round 1. It runs `dotnet restore` and `dotnet build --no-incremental` once per side, which is acceptable for a short filtered run.
+
+### PerfDiff exit codes
+
+| Code | Meaning |
+| ---- | ------- |
+| 0 | No regression, regression without `--failOnRegression`, or a rerun that did not confirm |
+| 1 | The comparison could not run (missing results, mismatched benchmark sets, unreadable or malformed `--confirmOnly` file, unwritable `--regressedOutput` path) |
+| 2 | Cancelled |
+| 3 | A regression gate tripped and `--failOnRegression` was set |
+
+`PerfBaselineManager.psm1` holds the same value as `$script:PerfRegressionExitCode`. A Pester test compares it with `Program.RegressionExitCode` in `src/tools/PerfDiff/Program.cs`.
+
+A missing or malformed `--confirmOnly` file is an error, never a silent pass. An empty array (`[]`) is valid and confirms nothing.
+
+## Hysteresis on Absolute Gates
+
+The absolute gates (P95 over 250 ms, mean over 100 ms) used to fail on any crossing of the line. A nightly failed with the baseline under 250 ms and the current run at 250.055 ms. The gates now use a 5% margin (`RegressionStrategyHelper.AbsoluteGateHysteresisMultiplier`):
+
+- Worse: the run under test is above `threshold * 1.05` and the baseline is at or under `threshold`. For P95 that is above 262.5 ms; for mean it is above 105 ms.
+- Better: the run under test is at or under `threshold` and the baseline is above `threshold * 1.05`.
+
+A benchmark sitting on the line cannot flip the gate on a sub-5% wobble. The log lines state the effective limit. The ratio gates (5% geomean, 35% median) are unchanged.

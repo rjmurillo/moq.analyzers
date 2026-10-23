@@ -37,6 +37,21 @@ Describe 'New-PerfBenchmarkArguments' {
         $args | Should -Be @('run', '-c', 'Release', '--no-build', '--project', '/repo/tests/a.csproj', '--', '--outliers', 'DontRemove', '--memory', '--threading', '--exceptions', '--exporters', 'JSON', '--artifacts', '/repo/out', '--filter', "'*'")
     }
 
+    It 'passes several filters as separate values after one --filter flag' {
+        $args = New-PerfBenchmarkArguments -ProjectFullPath '/repo/tests/a.csproj' -Output '/repo/out' -Filter @('A.Run(FileCount: 1)', 'B.Run(FileCount: 1000)')
+        $filterIndex = [array]::IndexOf($args, '--filter')
+
+        $filterIndex | Should -BeGreaterThan 0
+        $args[$filterIndex..($args.Count - 1)] | Should -Be @('--filter', 'A.Run(FileCount: 1)', 'B.Run(FileCount: 1000)')
+        @($args | Where-Object { $_ -eq '--filter' }).Count | Should -Be 1
+    }
+
+    It 'quotes each filter that contains spaces on its own' {
+        $args = New-PerfBenchmarkArguments -ProjectFullPath '/repo/tests/a.csproj' -Output '/repo/out' -Filter @('A.Run(FileCount: 1)', 'B.Run')
+
+        (Format-PerfCommandArguments -Arguments $args) | Should -BeLike '*--filter "A.Run(FileCount: 1)" B.Run'
+    }
+
     It 'adds CI arguments before the filter' {
         $args = New-PerfBenchmarkArguments -ProjectFullPath '/repo/tests/a.csproj' -Output '/repo/out' -Filter 'abc' -Ci $true
         $args | Should -Contain '--stopOnFirstError'
@@ -61,5 +76,15 @@ Describe 'Format-PerfCommandArguments' {
 
     It 'preserves wildcard arguments without adding quotes' {
         Format-PerfCommandArguments -Arguments @('--filter', '*') | Should -Be '--filter *'
+    }
+}
+
+Describe 'RunPerfTests.ps1 filter parameter' {
+    It 'accepts several filters' {
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $script:PerfRoot 'RunPerfTests.ps1'), [ref]$null, [ref]$null)
+        $filter = $ast.ParamBlock.Parameters | Where-Object { $_.Name.VariablePath.UserPath -eq 'filter' }
+
+        $filter.StaticType.FullName | Should -Be 'System.String[]'
+        (Get-Command Invoke-PerfTests).Parameters['filter'].ParameterType.FullName | Should -Be 'System.String[]'
     }
 }

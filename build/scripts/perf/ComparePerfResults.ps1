@@ -2,7 +2,9 @@
 Param(
     [String] $baseline, # folder that contains the baseline results
     [String] $results,   # folder that contains the performance results
-    [switch] $ci        # the scripts is running on a CI server
+    [switch] $ci,       # the scripts is running on a CI server
+    [String] $regressedOutput, # file to write the ids of the benchmarks that tripped a gate to (JSON array)
+    [String] $confirmOnly      # file of ids from a first round; only those benchmarks are gated
   )
 
 Import-Module (Join-Path $PSScriptRoot 'PerfResultsAnalyzer.psm1') -Force -DisableNameChecking
