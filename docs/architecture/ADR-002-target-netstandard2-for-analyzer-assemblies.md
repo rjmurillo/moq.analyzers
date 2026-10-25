@@ -20,6 +20,8 @@ If an analyzer targets a higher target framework moniker (TFM) than the host sup
 
 .NET Standard 2.0 is the lowest common denominator for all current Roslyn host environments. It guarantees the analyzer loads in any host that ships with Visual Studio 2022 or any .NET SDK from .NET Core 3.1 onward.
 
+> Note: The TFM is not the only floor. [ADR-011](ADR-011-raise-minimum-host-to-dotnet-10-sdk.md) compiles the analyzer against Roslyn 5.0, so the minimum host is now the .NET 10 SDK or Visual Studio 2026.
+
 ## Decision
 
 Analyzer projects (`src/Analyzers/`) and code fix projects (`src/CodeFixes/`) target `netstandard2.0`. No analyzer or code fix assembly targets a framework-specific TFM such as `net8.0`, `net9.0`, or `net10.0`.
