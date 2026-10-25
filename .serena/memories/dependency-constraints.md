@@ -2,25 +2,28 @@
 
 ## Critical Rule
 
-Packages that ship inside the analyzer NuGet run in the **user's** compiler host, not our build environment. Versions must not exceed what the minimum supported SDK host provides (currently **.NET 8 SDK, assembly version 8.0.0.0**). This is the runtime host version in user IDEs, not the build SDK version (which is .NET 10).
+Packages that ship inside the analyzer NuGet run in the **user's** compiler host, not our build environment. Versions must not exceed what the minimum supported SDK host provides (currently **.NET 10 SDK with Roslyn 5.0, which guarantees assembly version 9.0.0.0** for System.Collections.Immutable and System.Reflection.Metadata; see ADR-011). This is the runtime host version in user IDEs, not the build SDK version (which is .NET 10).
 
 ## Enforcement
 
-Build target `ValidateAnalyzerHostCompatibility` checks pinned package versions against .NET 8 SDK assembly versions. Builds fail if any pin exceeds host capabilities.
+Build target `ValidateAnalyzerHostCompatibility` checks that System.Collections.Immutable and System.Reflection.Metadata do not resolve above major version 9. Builds fail if any pin exceeds host capabilities.
 
-## Key Version Constraints (as of 2026-03-15)
+## Key Version Constraints (as of 2026-10-25, ADR-011)
 
 | Package | Pinned Version | Reason |
 |---------|---------------|--------|
-| Microsoft.CodeAnalysis.CSharp | 4.8 | VS 2022 17.8+ support; newer = narrower VS compatibility |
-| Microsoft.CodeAnalysis.CSharp.Workspaces | 4.8 | Matches above |
-| Microsoft.CodeAnalysis.AnalyzerUtilities | 3.3.4 | **CAPPED** — 4.14.0+ refs System.Collections.Immutable 9.0.0 which fails to load in .NET 8 SDK hosts (CS8032). See issue #850. |
+| Microsoft.CodeAnalysis.CSharp | 5.0.0 | Ships in the .NET 10.0.100 SDK. The .NET 10 SDK needs MSBuild 18 (VS 2026). |
+| Microsoft.CodeAnalysis.CSharp.Workspaces | 5.0.0 | Matches above |
+| Microsoft.CodeAnalysis.AnalyzerUtilities | 5.0.0 | Renovate caps it below 5.6.0. Version 5.6.0 pulls Microsoft.Bcl.AsyncInterfaces 10.0.1. See issue #850. |
+| System.Collections.Immutable | 9.0.0 | Roslyn 5.0.0 depends on 9.0.0, so every Roslyn 5.0 host has it. |
+
+Before ADR-011, the pins were Roslyn 4.8, AnalyzerUtilities 3.3.4, and SCI 8.0.0 for .NET 8 SDK hosts.
 
 ## Transitive Pins
 
 `CentralPackageTransitivePinningEnabled=true` in Directory.Packages.props ensures transitive pins propagate throughout the dependency graph.
 
-Transitive pins are declared in `Directory.Packages.props` under the `Label="Transitive pins"` item group. Adding new entries here must be reviewed against .NET 8 SDK assembly versions.
+Transitive pins are declared in `Directory.Packages.props` under the `Label="Transitive pins"` item group. Adding new entries here must be reviewed against the minimum host assembly versions (ADR-011).
 
 ## Common Pitfall
 

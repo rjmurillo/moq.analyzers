@@ -10,11 +10,11 @@
 #
 # Environment overrides:
 #   MOQ_ANALYZERS_CONFIG   debug (default) or release — which artifacts/bin/Moq.Analyzers/<config>/ to load.
-#   SNIPPET_TFM            Target framework of the harness project. Default: net8.0.
+#   SNIPPET_TFM            Target framework of the harness project. Default: net10.0.
 #   SNIPPET_LANGVERSION    C# language version for the snippet. Default: latest (the host SDK's newest
 #                          stable C#, so modern-host repros such as C# 13 `params` collections parse).
-#                          Set to 12 to mirror the pinned Roslyn 4.8 test compiler; use preview for
-#                          preview-only syntax.
+#                          Set an older version (for example 12) to reproduce a language-version
+#                          bug; use preview for preview-only syntax.
 #   SNIPPET_OUTPUTTYPE     MSBuild OutputType of the harness project. Default: unset (SDK default =
 #                          a class library), correct for the usual analyzer repro of type/member
 #                          declarations with no entry point. Set to Exe for a snippet written as
@@ -26,7 +26,7 @@
 # What it does:
 #   1. Locates the repo root from this script's location (works from any cwd).
 #   2. Verifies the analyzer DLLs exist (tells you to `dotnet build` if not).
-#   3. Generates a throwaway net8.0 class-library project OUTSIDE the repo tree
+#   3. Generates a throwaway net10.0 class-library project OUTSIDE the repo tree
 #      (so the repo's Directory.Build.props / CPM / PedanticMode do not interfere), with:
 #        - <PackageReference Include="Moq" Version="..."/> (a REAL Moq reference, so
 #          IsMockReferenced() early-exits do not silently disable every analyzer), and
@@ -58,7 +58,7 @@ fi
 SNIPPET="$1"
 MOQ_VERSION="${2:-4.18.4}"
 CONFIG="${MOQ_ANALYZERS_CONFIG:-debug}"
-TFM="${SNIPPET_TFM:-net8.0}"
+TFM="${SNIPPET_TFM:-net10.0}"
 LANGVERSION="${SNIPPET_LANGVERSION:-latest}"
 # Empty default = SDK default (a class library). A snippet that is only type/member
 # declarations (the usual analyzer repro) compiles fine as a library. A snippet using

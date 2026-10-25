@@ -84,7 +84,7 @@ internal static class CompilationHelper
     /// <returns>An array of <see cref="MetadataReference"/> including Moq and its dependencies.</returns>
     internal static async Task<MetadataReference[]> GetMoqReferencesAsync()
     {
-        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net80WithNewMoq];
+        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net100WithNewMoq];
         ImmutableArray<MetadataReference> resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None).ConfigureAwait(false);
         return [.. resolved];
     }

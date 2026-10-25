@@ -155,11 +155,11 @@ jobs:
         shell: pwsh
         run: |
           # Verify shipped analyzer DLLs don't reference assembly versions
-          # exceeding what the minimum supported SDK host (.NET 8) provides.
+          # exceeding what the minimum supported SDK host (.NET 10, Roslyn 5.0) provides.
           # See: https://github.com/rjmurillo/moq.analyzers/issues/850
           $maxVersions = @{
-            'System.Collections.Immutable' = [Version]'8.0.0.0'
-            'System.Reflection.Metadata'   = [Version]'8.0.0.0'
+            'System.Collections.Immutable' = [Version]'9.0.0.0'
+            'System.Reflection.Metadata'   = [Version]'9.0.0.0'
           }
           $shippedDlls = @(
             'artifacts/bin/Moq.Analyzers/release/Moq.Analyzers.dll',
@@ -404,8 +404,11 @@ jobs:
   # This is the end-to-end integration test for issue #850.
   #
   # The analyzer targets netstandard2.0 because it must load in two hosts:
-  #   1. dotnet CLI  - csc runs on .NET (8/9/10), tested on Linux ARM
-  #   2. msbuild.exe - csc runs on .NET Framework (VS), tested on Windows x64
+  #   1. dotnet CLI  - csc runs on .NET 10, tested on Linux ARM
+  #   2. msbuild.exe - csc runs on .NET Framework (VS 2026), tested on Windows x64
+  #
+  # The minimum supported host is the .NET 10 SDK (Roslyn 5.0). That SDK needs
+  # MSBuild 18, so VS 2022 (MSBuild 17) is not a supported host.
   analyzer-load-test:
     needs: [check-paths, build]
     timeout-minutes: 20
@@ -415,41 +418,20 @@ jobs:
       matrix:
         include:
           # dotnet CLI compiler host (modern .NET runtime)
-          - dotnet-version: '8.0.x'
-            tfm: net8.0
-            runs-on: ubuntu-24.04-arm
-            build-engine: dotnet
-          - dotnet-version: '9.0.x'
-            tfm: net9.0
-            runs-on: ubuntu-24.04-arm
-            build-engine: dotnet
           - dotnet-version: '10.0.x'
             tfm: net10.0
             runs-on: ubuntu-24.04-arm
             build-engine: dotnet
-          # MSBuild/.NET Framework compiler host - VS 2022 (GA)
-          - dotnet-version: '8.0.x'
-            tfm: net472
-            runs-on: windows-2022
-            build-engine: msbuild
-          - dotnet-version: '8.0.x'
-            tfm: net48
-            runs-on: windows-2022
-            build-engine: msbuild
-          - dotnet-version: '8.0.x'
-            tfm: net481
-            runs-on: windows-2022
-            build-engine: msbuild
-          # MSBuild/.NET Framework compiler host - VS 2026 (beta)
-          - dotnet-version: '8.0.x'
+          # MSBuild/.NET Framework compiler host - VS 2026
+          - dotnet-version: '10.0.x'
             tfm: net472
             runs-on: windows-2025-vs2026
             build-engine: msbuild
-          - dotnet-version: '8.0.x'
+          - dotnet-version: '10.0.x'
             tfm: net48
             runs-on: windows-2025-vs2026
             build-engine: msbuild
-          - dotnet-version: '8.0.x'
+          - dotnet-version: '10.0.x'
             tfm: net481
             runs-on: windows-2025-vs2026
             build-engine: msbuild

@@ -1,6 +1,6 @@
 ---
 name: roslyn-analyzer-reference
-description: Teaches Roslyn analyzer fundamentals as they apply to this repo — load this when you know C# but not Roslyn and are about to read or write any file in src/Analyzers, src/CodeFixes, or src/Common; when you see unfamiliar terms like DiagnosticAnalyzer, ISymbol, IOperation, SyntaxNode, SemanticModel, CompilationStartAnalysisContext, AD0001, RS2000, CandidateSymbols, or equivalence key; or when you need to decide between syntax/symbol/operation APIs, understand diagnostic spans and {|MoqXXXX:...|} markup, or reason about host Roslyn versions vs the pinned 4.8 API. Do NOT load for Moq API semantics (moq-api-reference), the step-by-step new-rule process (moq-analyzers-rule-lifecycle), build/CI setup (moq-analyzers-build-and-env), or crash triage on a live failure (moq-analyzers-debugging-playbook).
+description: Teaches Roslyn analyzer fundamentals as they apply to this repo — load this when you know C# but not Roslyn and are about to read or write any file in src/Analyzers, src/CodeFixes, or src/Common; when you see unfamiliar terms like DiagnosticAnalyzer, ISymbol, IOperation, SyntaxNode, SemanticModel, CompilationStartAnalysisContext, AD0001, RS2000, CandidateSymbols, or equivalence key; or when you need to decide between syntax/symbol/operation APIs, understand diagnostic spans and {|MoqXXXX:...|} markup, or reason about host Roslyn versions vs the pinned 5.0 API. Do NOT load for Moq API semantics (moq-api-reference), the step-by-step new-rule process (moq-analyzers-rule-lifecycle), build/CI setup (moq-analyzers-build-and-env), or crash triage on a live failure (moq-analyzers-debugging-playbook).
 ---
 
 # Roslyn Analyzer Reference (as applied in moq.analyzers)
@@ -41,7 +41,7 @@ Consequences you must internalize:
 | Loaded by reflection, zero direct callers | Analyzer/fixer classes are **never dead code**. Do not delete or rename one because "nothing references it". Public entry points are the attribute + overrides. |
 | Runs inside the consumer's compiler/IDE process | An unhandled exception surfaces as compiler warning **AD0001** ("analyzer threw an exception") and Roslyn disables that analyzer for the rest of the session. Priority #1 of this project: no crashes. There are deliberately **zero catch blocks** in `src/Analyzers`, `src/CodeFixes`, `src/Common` — crashes must be prevented, not swallowed (audit-verified 2026-07-02). |
 | Test discovery is namespace-sensitive | `tests/Moq.Analyzers.Test/Helpers/AllAnalyzersVerifier.cs` reflection-discovers every `[DiagnosticAnalyzer]` in namespace **exactly `Moq.Analyzers`**. An analyzer in the wrong namespace silently drops out of the "no diagnostics on clean code" suites. |
-| Ships as netstandard2.0 compiled against Roslyn 4.8 | See section 6 — the *host* Roslyn is usually newer than the API you compiled against. |
+| Ships as netstandard2.0 compiled against Roslyn 5.0 | See section 6 — the *host* Roslyn is usually newer than the API you compiled against. |
 
 ### Execution model
 
@@ -382,22 +382,25 @@ Checklist before you ship any analyzer/fixer change:
 
 ---
 
-## 6. Host-version matrix: compiled against Roslyn 4.8, runs in newer hosts
+## 6. Host-version matrix: compiled against Roslyn 5.0, runs in newer hosts
 
-ADR-003 pins `Microsoft.CodeAnalysis.CSharp` to **4.8** and ADR-002 targets
-**netstandard2.0** so the shipped DLL loads in VS 2022 17.8+ and .NET 8 SDK hosts
-(violating this caused CS8032 "analyzer failed to load" — incident #850, now
-triple-enforced in CI). But 4.8 is only the *API view you compile against*. At
+ADR-011 pins `Microsoft.CodeAnalysis.CSharp` to **5.0.0** and ADR-002 targets
+**netstandard2.0** so the shipped DLL loads in .NET 10 SDK hosts, including the
+VS 2026 .NET Framework host. .NET 8 and .NET 9 are deprecated; VS 2022 and
+.NET 8/9 SDK users get CS9057 and the analyzer does not run. A dependency above
+the host ceiling causes CS8032 "analyzer failed to load" (incident #850, now
+enforced in CI). But 5.0 is only the *API view you compile against*. At
 runtime the host supplies **its** Roslyn — often years newer — and newer C# code
 flows through your old-API view.
 
 | | Version | Implication |
 |---|---|---|
-| Compile-time API | Roslyn 4.8 (C# 12 era) | You cannot *name* newer APIs (`IsParamsCollection` doesn't exist in 4.8) |
-| Runtime host | Whatever the consumer runs (VS 17.12+, .NET 9/10 SDK…) | Symbols describing C# 13/14 constructs reach your code through 4.8-shaped interfaces |
-| Test compiler | Pinned Roslyn 4.8 → parses up to C# 12 (2026-07-02) | You **cannot write C# 13+ constructs in test sources**; newer-language behavior is untestable in-suite and must be reasoned about (or tested out-of-band) |
+| Compile-time API | Roslyn 5.0 (C# 14 era) | You cannot *name* APIs added after 5.0. Roslyn 5.0 aliases `OperationKind.MethodBody`/`MethodBodyOperation` (88) and `ConstructorBody`/`ConstructorBodyOperation` (89); `ToString()` can return the `*Operation` name |
+| Runtime host | Whatever the consumer runs (.NET 10 SDK and newer, VS 2026) | Symbols describing constructs newer than 5.0 reach your code through 5.0-shaped interfaces |
+| Test compiler | Pinned Roslyn 5.0 at default C# 14 (`Moq.Analyzers.CSharp14.Test` verifier sets `LanguageVersion.Preview`) | C# 13 and C# 14 constructs can be written in test sources; behavior of language versions newer than the pin is untestable in-suite and must be reasoned about (or tested out-of-band) |
 
-The cautionary example (audit finding A-1, Critical, issue #1241): C# 13 *params
+The cautionary example (audit finding A-1, Critical, issue #1241, from the Roslyn 4.8
+pin era): C# 13 *params
 collections* (`params ReadOnlySpan<T>`, `params IEnumerable<T>`) report
 `IParameterSymbol.IsParams == true` on modern hosts — same as classic params
 arrays — but their `Type` is **not** `IArrayTypeSymbol`. So this 4.8-era line
@@ -538,7 +541,7 @@ moq-analyzers-research-frontier, moq-analyzers-research-methodology.
 - Unguarded `Arguments[0]` still at `SemanticModelExtensions.cs:60`? `grep -n 'Arguments\[0\]' src/Common/SemanticModelExtensions.cs`
 - Moq1300 error-type guard still missing? `grep -n 'TypeKind' src/Analyzers/AsShouldBeUsedOnlyForInterfaceAnalyzer.cs`
 - All analyzers still compliant with the Initialize trio? `grep -L 'EnableConcurrentExecution' src/Analyzers/*Analyzer*.cs` — expected output today is exactly `SetExplicitMockBehaviorAnalyzer.cs` and `SetStrictMockBehaviorAnalyzer.cs`, which inherit the trio from `MockBehaviorDiagnosticAnalyzerBase`; anything else is a violation.
-- Test-compiler C# ceiling (currently C# 12 via Roslyn 4.8) and current test count: re-run `dotnet test --settings ./build/targets/tests/test.runsettings` and check LangVersion behavior notes in moq-analyzers-build-and-env.
+- Test-compiler C# version (currently C# 14 via Roslyn 5.0) and current test count: re-run `dotnet test --settings ./build/targets/tests/test.runsettings` and check LangVersion behavior notes in moq-analyzers-build-and-env.
 - AnalyzerReleases auto-include mechanism: `grep -n 'AnalyzerReleases' ~/.nuget/packages/microsoft.codeanalysis.analyzers/*/buildTransitive/*.targets`
 - Rule count/ID table: `cat src/Common/DiagnosticIds.cs` (25 rules, Moq1000-Moq1600, Moq1209 reserved).
 

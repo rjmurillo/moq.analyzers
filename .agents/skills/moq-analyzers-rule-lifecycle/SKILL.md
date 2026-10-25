@@ -114,7 +114,7 @@ The full test-quality bar lives in `moq-analyzers-validation-and-qa`; the lifecy
 - `[Theory]` + `[MemberData]` + `public static IEnumerable<object[]> ...Data()` returning `new object[][] { ... }` chained with `.WithNamespaces().WithMoqReferenceAssemblyGroups()` (fans each case across namespace styles × Moq 4.8.2 and 4.18.4). This is a MANDATORY pattern per `CONTRIBUTING.md:444` for code fixes and the de facto pattern for analyzer tests.
 - Diagnostic assertions use markup: `{|Moq1600:It.IsAny<string>()|}` — asserts ID **and exact span**. Unmarked source in a test is a genuine no-diagnostic assertion.
 - If a scenario only exists in newer Moq, split it into a separate data source chained with `.WithNewMoqReferenceAssemblyGroups()` (see `NewMoqOnlyDiagnosticData` in the Moq1600 tests).
-- A `ShouldNotTriggerWhenMoqNotReferenced` fact using `ReferenceAssemblyCatalog.Net80` (no Moq reference → analyzer must early-exit).
+- A `ShouldNotTriggerWhenMoqNotReferenced` fact using `ReferenceAssemblyCatalog.Net100` (no Moq reference → analyzer must early-exit).
 - A **Doppelganger test**: a user-defined type that mimics the Moq API shape (e.g., a class with its own `Setup(string, object)` method, or a hand-rolled `Mock<T>`/`MockBehavior`) must NOT trigger. Use `DoppelgangerTestHelper` (tests/Moq.Analyzers.Test/Helpers/DoppelgangerTestHelper.cs) for Mock&lt;T&gt; look-alikes, or an inline doppelganger like `ShouldNotDiagnoseUserDefinedProtectedClassWithSetup` in the Moq1600 tests. This pins ADR-001 (symbol-based detection, never name matching).
 - Test code must be valid, compiling C# — never write setups for static/const/sealed members that would not compile (`CONTRIBUTING.md:580`).
 
@@ -240,7 +240,7 @@ Throughout, `{X}.{Y}.{Z}` is the FULL target version: for a major/minor release 
 
 `release.yml` triggers `on: release: types: [published]` (plus manual `workflow_dispatch`) and runs two jobs:
 
-1. `build`: `uses: ./.github/workflows/main.yml` — the FULL CI pipeline (build with PedanticMode, 3,300+ tests, 9-way analyzer-load-test matrix, perf gate) reruns on the release commit. A red main.yml means no publish.
+1. `build`: `uses: ./.github/workflows/main.yml` — the FULL CI pipeline (build with PedanticMode, 3,300+ tests, 4-leg analyzer-load-test matrix, perf gate) reruns on the release commit. A red main.yml means no publish.
 2. `publish` (needs `build`): downloads the `packages` artifact (uploaded by main.yml from `./artifacts/package`), then:
    - **Version-verify gate** — `if: github.event_name == 'release'`: strips `v` from the tag, parses the version out of each non-symbols `.nupkg` filename, and hard-fails on mismatch: `Write-Error "Package version '$nupkgVersion' does not match release tag '$tag'"`. This is what catches a tag created against the wrong branch or a stale `version.json`.
    - **Push** — `dotnet nuget push $file --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate`, retried up to 3 times with backoff.

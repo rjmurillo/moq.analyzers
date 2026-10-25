@@ -22,7 +22,7 @@ NuGet's Central Package Management (CPM) feature consolidates all version declar
 
 ## Decision
 
-All NuGet package versions are declared in `Directory.Packages.props`. `CentralPackageTransitivePinningEnabled` is set to `true`. Individual `.csproj` files reference packages by name only, without version attributes. A `ValidateAnalyzerHostCompatibility` MSBuild target audits pinned versions against .NET 8 SDK assembly versions at build time.
+All NuGet package versions are declared in `Directory.Packages.props`. `CentralPackageTransitivePinningEnabled` is set to `true`. Individual `.csproj` files reference packages by name only, without version attributes. A `ValidateAnalyzerHostCompatibility` MSBuild target audits pinned versions against the minimum supported host (.NET 10 SDK, Roslyn 5.0; see ADR-011) at build time.
 
 ## Consequences
 
@@ -54,13 +54,13 @@ All NuGet package versions are declared in `Directory.Packages.props`. `CentralP
 ## Implementation Notes
 
 - **IMP-001**: `Directory.Packages.props` is located at the solution root. It sets `<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>` and `<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>`.
-- **IMP-002**: The `ValidateAnalyzerHostCompatibility` MSBuild target is defined in `build/targets/codeanalysis/ValidateHostCompatibility.targets`. It runs during the `Build` target and compares pinned assembly versions against a known-good .NET 8 SDK assembly manifest (`build/targets/codeanalysis/net8-sdk-assemblies.json`). If any pinned version exceeds what the .NET 8 SDK provides, the build fails with error MSB3XXX listing the incompatible packages.
+- **IMP-002**: The `ValidateAnalyzerHostCompatibility` MSBuild target is defined in `build/targets/packaging/Packaging.targets`. It runs after `ResolvePackageAssets` for shipped analyzer projects. It fails the build if `System.Collections.Immutable` or `System.Reflection.Metadata` resolves above the major version the minimum host provides (9, per ADR-011).
 - **IMP-003**: When proposing a new dependency, open `Directory.Packages.props`, add the pin, verify host compatibility, and reference the ADR in the PR description.
 
 ## References
 
-- **REF-001**: ADR-003 -- Pin Roslyn SDK to Microsoft.CodeAnalysis 4.8
-- **REF-002**: ADR-004 -- Cap Microsoft.CodeAnalysis.AnalyzerUtilities at 3.3.4
+- **REF-001**: ADR-003 -- Pin Roslyn SDK to Microsoft.CodeAnalysis 4.8 (superseded by ADR-011)
+- **REF-002**: ADR-004 -- Cap Microsoft.CodeAnalysis.AnalyzerUtilities at 3.3.4 (superseded by ADR-011)
 - **REF-003**: NuGet Central Package Management documentation: <https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management>
 - **REF-004**: `Directory.Packages.props` -- authoritative version declarations
 - **REF-005**: `docs/dependency-management.md` -- dependency version policy

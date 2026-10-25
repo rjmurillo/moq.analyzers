@@ -40,7 +40,7 @@ reference?", use the harness script shipped in this skill:
 
 What it does (details in the script header):
 
-1. Builds a throwaway `net8.0` class-library project **outside the repo tree** so the
+1. Builds a throwaway `net10.0` class-library project **outside the repo tree** so the
    repo's `Directory.Build.props`, Central Package Management, and PedanticMode cannot
    interfere with the snippet.
 2. References the **real Moq package** (default 4.18.4; pass `4.8.2` for the old-Moq
@@ -61,9 +61,9 @@ What it does (details in the script header):
    "snippet didn't compile".
 
 Environment knobs: `MOQ_ANALYZERS_CONFIG=release` (default `debug`),
-`SNIPPET_TFM=<tfm>` (default `net8.0`), `SNIPPET_LANGVERSION=<ver>` (default `latest` — the
+`SNIPPET_TFM=<tfm>` (default `net10.0`), `SNIPPET_LANGVERSION=<ver>` (default `latest` — the
 host SDK's newest stable C#, so modern-host repros such as the C# 13 `params`-collection
-crash of #1241 actually parse; set `12` to mirror the pinned Roslyn 4.8 test compiler),
+crash of #1241 actually parse; set an older version to reproduce a language-version bug),
 `SNIPPET_OUTPUTTYPE=Exe` (default unset = class library, correct for declaration-only
 repros; set `Exe` when the snippet is top-level statements, else the SDK rejects it with
 CS8805 and the harness exits 2 before analyzers can be trusted — but do not set it for a
@@ -87,7 +87,7 @@ where `Foo` only has a `(string)` constructor. Running:
 produced (paths shortened; ~7 s wall clock including NuGet restore):
 
 ```text
---- Moq.Analyzers diagnostics (config=debug, Moq 4.18.4, net8.0, C# latest) ---
+--- Moq.Analyzers diagnostics (config=debug, Moq 4.18.4, net10.0, C# latest) ---
 Snippet.cs(30,20): warning Moq1400: Explicitly choose a mocking behavior for SnippetSample.Foo instead of relying on the default (Loose) behavior (https://github.com/rjmurillo/moq.analyzers/blob/05135b2.../docs/rules/Moq1400.md)
 Snippet.cs(30,20): warning Moq1410: Explicitly set the Strict mocking behavior for 'SnippetSample.Foo' (https://github.com/rjmurillo/moq.analyzers/blob/05135b2.../docs/rules/Moq1410.md)
 Snippet.cs(30,33): warning Moq1002: Could not find a matching constructor for type 'SnippetSample.Foo' with arguments (1, true) (https://github.com/rjmurillo/moq.analyzers/blob/05135b2.../docs/rules/Moq1002.md)
@@ -110,8 +110,8 @@ it is the case a naive grep for `MoqXXXX` would silently miss.
 |---|---|
 | Severities are forced to `warning` | Do not read severity off the output; check the descriptor or `docs/rules/MoqXXXX.md` for the shipped default |
 | Code fixes are not exercised | Fixer behavior/crashes need the code-fix test infra (see moq-analyzers-validation-and-qa) |
-| Compiles with the host SDK's current Roslyn (SDK 10.x) | Good for "modern host" behavior; the test suite pins Roslyn 4.8 (ADR-003), so parse-level differences (e.g. C# 13 params collections) can differ between harness and suite. Set `SNIPPET_LANGVERSION=12` to approximate the pinned test compiler |
-| One file, `net8.0`, LangVersion `latest` by default | Multi-file/multi-TFM repros belong in the test suite; override the language version with `SNIPPET_LANGVERSION` |
+| Compiles with the host SDK's current Roslyn (SDK 10.x) | Good for "modern host" behavior; the test suite pins Roslyn 5.0 (ADR-011) at default C# 14, so parse-level differences can appear when the host SDK's Roslyn is newer than the pin. Set `SNIPPET_LANGVERSION` to an older version to reproduce a language-version bug |
+| One file, `net10.0`, LangVersion `latest` by default | Multi-file/multi-TFM repros belong in the test suite; override the language version with `SNIPPET_LANGVERSION` |
 | A result here is evidence, not a regression test | Every FP/FN fix still ships with an issue-linked test (repo rule) |
 
 ---
@@ -205,7 +205,7 @@ Skeleton contract:
   `BenchmarkCSharpCompilationFactory.CreateAsync<TAnalyzer>(sources, referenceAssemblies)`
   (helpers in `tests/Moq.Analyzers.Benchmarks/Helpers/`), getting back a
   `(BaselineCompilation, TestCompilation)` pair — baseline has no analyzer attached.
-  Reference assemblies come from `CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq")`
+  Reference assemblies come from `CompilationCreator.GetReferenceAssemblies("Net100WithOldMoq")`
   (same string keys as the test suite's `ReferenceAssemblyCatalog`).
 - Two `[Benchmark]` methods: the analyzer one **throws if the diagnostic count ≠
   `FileCount`** (so a silently-broken analyzer fails the benchmark instead of measuring

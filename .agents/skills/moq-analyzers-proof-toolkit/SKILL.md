@@ -25,7 +25,7 @@ Verified 2026-07-02 against commit `05135b2`.
 | 2 | "This code does / does not trigger MoqXXXX" | Run the BUILT DLLs on a snippet |
 | 3 | "This KnownSymbols entry resolves in real compilations" | Resolves-non-null test pair |
 | 4 | "The diagnostic span lands on this token" | Markup pin + observed span + STOP protocol |
-| 5 | "Roslyn API X behaves like Y" | Scratch probe pinned to Roslyn 4.8 |
+| 5 | "Roslyn API X behaves like Y" | Scratch probe pinned to Roslyn 5.0.0 |
 | 6 | "My change is performance-neutral / faster" | Hypothesis-first BDN + PerfDiff |
 | 7 | "The shipped DLL loads in every supported host" | Referenced-assembly check + load-test matrix |
 | 8 | "My fix regresses nothing else" | Full-matrix run + span-pin inviolability |
@@ -64,7 +64,7 @@ near-misses — memory is not evidence.
    mkdir -p /tmp/moq-probe && cd /tmp/moq-probe
    cat > probe.csproj <<'EOF'
    <Project Sdk="Microsoft.NET.Sdk">
-     <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework></PropertyGroup>
+     <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework></PropertyGroup>
    </Project>
    EOF
    cat > Program.cs <<'EOF'
@@ -160,8 +160,8 @@ commented known-FN rows instead of shipping rows that assert a diagnostic the an
 never produces (which would have "passed" only after someone silently weakened them).
 
 **Pitfalls:** harness severities are forced to `warning` (don't read severity off it);
-harness compiles with the host SDK's Roslyn while the test suite pins Roslyn 4.8 —
-parse-level differences (C# 13 constructs) can differ; a harness result is evidence,
+harness compiles with the host SDK's Roslyn while the test suite pins Roslyn 5.0 —
+parse-level differences can appear when the host SDK's Roslyn is newer; a harness result is evidence,
 not a regression test — every FP/FN fix still ships with an issue-linked test.
 
 ---
@@ -267,8 +267,8 @@ moving a span silently breaks neighbors (Recipe 8).
 **When to use:** any time analyzer logic depends on a Roslyn behavior you cannot quote
 from the API docs with certainty — operation-tree shapes, `SymbolInfo` candidate
 semantics, syntax-token layouts, enum member availability in the pinned version. The
-shipped analyzers compile against Microsoft.CodeAnalysis **4.8** (ADR-003,
-`Directory.Packages.props:21-22`), so the probe must pin 4.8.0 too — behavior and API
+shipped analyzers compile against Microsoft.CodeAnalysis **5.0.0** (ADR-011,
+`Directory.Packages.props:21-22`), so the probe must pin 5.0.0 too — behavior and API
 availability on your workstation's newer Roslyn prove nothing about the shipped floor.
 
 **Steps:** scratch project OUTSIDE the repo tree (so `Directory.Build.props`/CPM don't
@@ -278,8 +278,8 @@ interfere), pinned package, print the fact. This exact probe was run 2026-07-02:
 mkdir -p /tmp/roslyn-probe && cd /tmp/roslyn-probe
 cat > probe.csproj <<'EOF'
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><Nullable>enable</Nullable></PropertyGroup>
-  <ItemGroup><PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" /></ItemGroup>
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup><PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" /></ItemGroup>
 </Project>
 EOF
 cat > Program.cs <<'EOF'
@@ -318,6 +318,11 @@ declarator 'x': root operation kind = ConstructorBody
 declarator 'y': root operation kind = MethodBody
 ```
 
+Note: this output was observed against Microsoft.CodeAnalysis 4.8.0 and predates
+ADR-011. Roslyn 5.0 aliases `OperationKind.MethodBody`/`MethodBodyOperation` (both
+88) and `ConstructorBody`/`ConstructorBodyOperation` (both 89), so `ToString()` can
+print the `*Operation` name. Compare enum values, not printed names.
+
 **Worked examples (settled — do not re-probe, reuse the findings):**
 
 - **Issue #1253 (Moq1500):** `GetContainingMember` walked ancestors looking for
@@ -335,14 +340,14 @@ declarator 'y': root operation kind = MethodBody
   fix) into "delete the syntax derivation, compare symbol RefKinds" (the correct one).
   Probing settled both the bug and the fix shape.
 
-**Pitfalls:** probing against the SDK's bundled Roslyn instead of the 4.8.0 package
+**Pitfalls:** probing against the SDK's bundled Roslyn instead of the 5.0.0 package
 (you'll conclude an API exists that the shipped floor lacks); forgetting that the test
-suite ALSO compiles test sources with Roslyn 4.8 — default LangVersion is C# 12 there,
-so C# 13 syntax (params collections) is unparseable in-suite even though consumers'
-newer hosts will feed it to your analyzer (that asymmetry is the root of the open
-params-collection crash, issue #1241, 2026-07-02 — whose fix is explicitly
-scenario-untestable under the pinned test compiler and relies on a code-comment-
-documented conservative guard instead).
+suite ALSO compiles test sources with Roslyn 5.0 at default C# 14, so syntax newer
+than that pin cannot be written in-suite even though consumers' newer hosts will feed
+it to your analyzer. History: under the old 4.8 pin the test compiler stopped at
+C# 12, and that asymmetry is the root of the params-collection crash, issue #1241
+(2026-07-02), whose fix was scenario-untestable under that pinned test compiler and
+relied on a code-comment-documented conservative guard instead.
 
 ---
 
@@ -400,8 +405,8 @@ referenced `System.Collections.Immutable` 9.x, which a .NET 8 host (VS 2022 17.8
 cannot supply.
 
 **The claim to prove:** every shipped DLL's referenced-assembly versions are ≤ what the
-minimum host provides (`System.Collections.Immutable` ≤ 8.0.0.0,
-`System.Reflection.Metadata` ≤ 8.0.0.0, `Microsoft.CodeAnalysis` == 4.8.0.0 per ADR-003).
+minimum host provides (`System.Collections.Immutable` ≤ 9.0.0.0,
+`System.Reflection.Metadata` ≤ 9.0.0.0, `Microsoft.CodeAnalysis` 5.0 per ADR-011).
 
 **Steps — local referenced-assembly check** (bash variant verified 2026-07-02; CI's
 pwsh equivalent lives inline in `.github/workflows/main.yml` "Validate analyzer host
@@ -411,7 +416,7 @@ compatibility"):
 mkdir -p /tmp/refcheck && cd /tmp/refcheck
 cat > refcheck.csproj <<'EOF'
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework></PropertyGroup>
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework></PropertyGroup>
 </Project>
 EOF
 cat > Program.cs <<'EOF'
@@ -438,19 +443,23 @@ dotnet run --project . -- \
 `System.Collections.Immutable 8.0.0.0` for the two Moq.* DLLs (AnalyzerUtilities shows
 older 3.3/1.x refs — lower is fine; HIGHER than 8.0.0.0 is the failure).
 
-**The triple enforcement (know it before trusting a green build):**
+Note: this observed output predates ADR-011 (Roslyn 4.8 pin, 8.0.0.0 ceiling). The
+ceiling is now 9.0.0.0 for System.Collections.Immutable and System.Reflection.Metadata;
+any reference higher than 9.0.0.0 is the failure.
+
+**The enforcement layers (know them before trusting a green build):**
 
 | Layer | Where | What it proves |
 |---|---|---|
 | `ValidateAnalyzerHostCompatibility` MSBuild target | `build/targets/packaging/Packaging.targets:20` | Resolved package versions ≤ max majors, at build/pack time |
 | Inline CI DLL check | `main.yml` "Validate analyzer host compatibility" | The three shipped RELEASE DLLs' actual assembly references |
-| `analyzer-load-test` CI job | `main.yml` (9-leg matrix, 2026-07-02: net8/9/10 dotnet-CLI on Linux ARM + net472/48/481 MSBuild on windows-2022 AND windows-2025-vs2026) | The packed nupkg actually loads — build output grepped for CS8032 per leg |
+| `analyzer-load-test` CI job | `main.yml` (4-leg matrix after ADR-011: net10.0 dotnet-CLI on Linux ARM + net472/48/481 MSBuild on windows-2025-vs2026, all dotnet-version 10.0.x) | The packed nupkg actually loads — build output grepped for CS8032 per leg |
 
 **Pitfalls:** a passing LOCAL build proves nothing — your dev SDK is .NET 10 and
-happily provides 9.x/10.x assemblies the VS 2022 host lacks; only the matrix proves
-loading. Transitive bumps count: the #850 break came in through a dependency update,
+happily provides 10.x assemblies the VS 2026 .NET Framework host may lack (it only
+guarantees 9.0.0.0); only the matrix proves loading. Transitive bumps count: the #850 break came in through a dependency update,
 not a direct reference (which is why Renovate ignores Microsoft.CodeAnalysis.* and
-AnalyzerUtilities is capped — ADR-004). Never "fix" CS8032 by bumping the Roslyn pin;
+AnalyzerUtilities is capped below 5.6.0 — ADR-011). Never "fix" CS8032 by bumping the Roslyn pin;
 that trades old-host compatibility away silently (change-control territory).
 
 ---
@@ -531,11 +540,11 @@ own issue and review, not a test edit in passing.
 - Issue states (all open as of 2026-07-02): #1243, #1253, #1262, #1265–#1269, #1270 — check <https://github.com/rjmurillo/moq.analyzers/issues/1243> etc.; rewrite worked examples in past tense as they close
 - Void-Setup FN still live: rerun the Recipe 2 snippet — Moq1200 on `GetValue()` only; if `DoVoid()` starts reporting, #1270's pinned-FN rows have been superseded. Gate source: `grep -n "IsGenericMethod" src/Common/ISymbolExtensions.Moq.cs` (lines 42, 62 as of 2026-07-02)
 - Harness path unchanged: `ls .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh`
-- Roslyn pin: `grep -n "Microsoft.CodeAnalysis.CSharp\"" Directory.Packages.props` (4.8 as of 2026-07-02); Recipe 5 probes must track it
+- Roslyn pin: `grep -n "Microsoft.CodeAnalysis.CSharp\"" Directory.Packages.props` (5.0.0 after ADR-011); Recipe 5 probes must track it
 - KnownSymbols test template: `ls tests/Moq.Analyzers.Test/Common/MoqKnownSymbolsTests.*.cs`
 - STOP protocol wording: `grep -n "even once" AGENTS.md CONTRIBUTING.md`
-- Host-compat maxima: `grep -n "_MaxSystemCollectionsImmutable\|8.0.0.0" build/targets/packaging/Packaging.targets .github/workflows/main.yml | head`
-- Load-test matrix legs: count `tfm:` entries under `analyzer-load-test:` in `.github/workflows/main.yml` (9 as of 2026-07-02)
+- Host-compat maxima: `grep -n "_MaxSystemCollectionsImmutable\|9.0.0.0" build/targets/packaging/Packaging.targets .github/workflows/main.yml | head`
+- Load-test matrix legs: count `tfm:` entries under `analyzer-load-test:` in `.github/workflows/main.yml` (4 after ADR-011)
 - PerfDiff thresholds: `grep -rn "Threshold.Parse" src/tools/PerfDiff/BDN/Regression/` (35%; 5%+0.5ms ×2; 250ms; 100ms as of 2026-07-02)
 - Test count: `dotnet test --settings ./build/targets/tests/test.runsettings` summary; PackageTests sandbox caveat holds only where the git remote is not a github.com URL
 - Moq overload counts (20 vs 19 Returns; the 4.18.4-only addition is `Returns(InvocationFunc)` — `Returns(Delegate)` exists in both): `dotnet-inspect member "IReturns<TMock, TResult>" --package Moq@4.18.4 --all` and `@4.8.2`

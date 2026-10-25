@@ -51,7 +51,7 @@ public class ConstructorArgumentsShouldMatchAnalyzerCSharp13Tests
         {
             TestCode = source,
             FixedCode = source,
-            ReferenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net90WithNewMoq],
+            ReferenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net100WithNewMoq],
         };
 
         await test.RunAsync().ConfigureAwait(false);

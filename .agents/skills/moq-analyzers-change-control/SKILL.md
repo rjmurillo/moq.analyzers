@@ -82,7 +82,7 @@ rjmurillo/moq.analyzers. (Incident details verified 2026-07-02.)
 |---|---|---|---|
 | 1 | **Symbol-based detection only** (ADR-001). Never decide semantics from a string name; `ISymbol` + `SymbolEqualityComparer` + `MoqKnownSymbols` always. A name check is allowed ONLY as a cheap pre-filter before an authoritative symbol check. Removing an existing string fallback requires proof the symbol path covers every case. | String matching breaks on aliases, renames, and user types named like Moq types (`DoppelgangerTestHelper` tests pin this); a wrong fallback silently changes rule behavior across all consumers. | Migration campaign #245→#1030 (final commit `a974999`). A fallback-removal attempt FAILED and was documented instead (`5172cf3`, #768); it succeeded only after full symbol coverage incl. ``IRaise`1`` was added (`35d363d`, #770). `src/BannedSymbols.txt` bans `Compilation.GetTypeByMetadataName` (use KnownSymbols) and raw `Diagnostic.Create` (use `DiagnosticExtensions.CreateDiagnostic`). |
 | 2 | **`AnalyzerReleases.Shipped.md` is immutable** outside release promotion. New rules and any ID/category/severity **metadata** change to an already-shipped rule go in `Unshipped.md`; a pure behavior/logic/FP fix changes none of the tracked fields, so it has NO AnalyzerReleases entry (see the change-class table above and moq-analyzers-rule-lifecycle Part 3). | Shipped is the historical record consumed by Roslyn's release-tracking analyzer; rewriting it lies about what past package versions contained. | `AGENTS.md` section "General Coding and Workflow Rules": "Do not modify AnalyzerReleases.Shipped.md. This file is an immutable record of past releases." Prior mix-up: swapped file names, issue #983. |
-| 3 | **Dependency ceilings for shipped DLLs**: System.Collections.Immutable ≤ 8.0.0, System.Reflection.Metadata ≤ 8.0.0, AnalyzerUtilities < 4.14.0, Roslyn pinned 4.8 (ADR-003/ADR-004). | Bundled assemblies must load inside a .NET 8 SDK / VS 2022 17.8 host. Exceeding host versions = CS8032, analyzers silently dead for every consumer on that SDK. | Incident #850: v0.4.0 transitively pushed SCI to 10.0.0.0 → CS8032 for all .NET 8 SDK users; fixed `38943ac` (#888); release v0.4.1 existed for this. Now triple-enforced: `ValidateAnalyzerHostCompatibility` MSBuild target (`build/targets/packaging/Packaging.targets`), inline DLL-reference check in `main.yml` build job (~line 104), and the 9-way `analyzer-load-test` CI matrix (net8/9/10 CLI + net472/48/481 MSBuild). |
+| 3 | **Dependency ceilings for shipped DLLs**: System.Collections.Immutable and System.Reflection.Metadata max 9.0.0.0, AnalyzerUtilities < 5.6.0, Roslyn pinned 5.0.0 (ADR-011, which supersedes ADR-003/ADR-004). | Bundled assemblies must load inside a .NET 10 SDK / VS 2026 host. Exceeding host versions = CS8032, analyzers silently dead for every consumer on that SDK. | Incident #850: v0.4.0 transitively pushed SCI to 10.0.0.0 → CS8032 for all .NET 8 SDK users; fixed `38943ac` (#888); release v0.4.1 existed for this. Now enforced by the `ValidateAnalyzerHostCompatibility` MSBuild target (`build/targets/packaging/Packaging.targets`), the inline DLL-reference check in the `main.yml` build job (~line 153), `AnalyzerAssemblyCompatibilityTests`, and the 4-leg `analyzer-load-test` CI matrix (net10.0 CLI + net472/48/481 MSBuild on VS 2026). |
 | 4 | **Never raise S1135 (TODO tracking) above `suggestion`.** TODO discipline is enforced by the todo-scanner instead: every `TODO`/`FIXME`/`HACK`/`UNDONE` must be issue-linked as `TODO(#123)`. | Under PedanticMode all warnings are errors; making TODO a warning turns every tracked TODO into a CI build failure — the repo locked itself out of CI. | Commit `3d4f7ff` (2026-03-06) raised it; reverted the next day by `b1439ab`; the build error was the codebase's own issue-linked `TODO(#1012)` comment (#1012 itself tracks an unrelated callback-validation enhancement, not this incident) — per moq-analyzers-failure-archaeology §4. Current setting: `.editorconfig:420` `dotnet_diagnostic.S1135.severity = suggestion`. Scanner: `build/scripts/todo-scanner/Scan-TodoComments.ps1`, run in pre-push and `tech-debt-tracker.yml`. |
 | 5 | **PowerShell files are LF** (`*.ps1`, `*.psm1`, `*.psd1` have `text eol=lf` in `.gitattributes`), per ADR-010. Never override with CRLF. | CRLF makes `#>` block-comment terminators end in `\r`, which PowerShell cannot parse when hooks run from Git Bash / Unix shells — every push was blocked. | Issue #1081 (pre-push hook parse error in `Scan-TodoComments.ps1`); ADR-010 documents root cause and rejects the CRLF alternative explicitly. |
 | 6 | **Diagnostic spans are character-precise and pinned by tests.** Test markup `{\|Moq1002:...\|}` asserts ID + exact span. A span test failure means your syntax-tree navigation is wrong, STOP after the first failure, re-derive the logic; escalate to a human after the second. Never "fix" the test to match your output. | The span is the user-visible squiggle; an off-by-one span on millions of consumer builds is a shipped bug. Historically, models that adjusted spans to make tests pass produced plausible-but-wrong analyzers. | `AGENTS.md` section "Step 3: Guiding Principles & CRITICAL Directives": spans MUST be character-precise; a span test failure is a CRITICAL FAILURE; stop-and-escalate protocol verbatim there. |
@@ -186,7 +186,7 @@ Category policies (all verified against `renovate.json`, 2026-07-02):
 
 | Category | Packages (examples) | Policy |
 |---|---|---|
-| Shipped in the nupkg — EXTREME CAUTION | Microsoft.CodeAnalysis.CSharp(+Workspaces) 4.8, AnalyzerUtilities 3.3.4, System.Collections.Immutable 8.0.0, System.Reflection.Metadata, System.Formats.Asn1 | Roslyn packages are in Renovate `ignoreDeps` — **the bot never proposes them; a human may change the Roslyn pin only by superseding ADR-003 (and AnalyzerUtilities per ADR-004); there is no routine path to bump it.** SCI/SRM capped `<=8.0.0`, AnalyzerUtilities `<4.14.0`, all with `automerge: false` + `analyzer-compat` label → manual review mandatory |
+| Shipped in the nupkg — EXTREME CAUTION | Microsoft.CodeAnalysis.CSharp(+Workspaces) 5.0.0, AnalyzerUtilities 5.0.0, System.Collections.Immutable 9.0.0, System.Reflection.Metadata, System.Formats.Asn1 | Roslyn packages are in Renovate `ignoreDeps` — **the bot never proposes them; a human may change the Roslyn pin only by superseding ADR-011; there is no routine path to bump it.** SCI/SRM capped `<10.0.0`, AnalyzerUtilities `<5.6.0` (5.6.0 pulls Microsoft.Bcl.AsyncInterfaces 10.0.1), all with `automerge: false` + `analyzer-compat` label → manual review mandatory |
 | Build-time analyzers — safe | StyleCop, SonarAnalyzer, Meziantou, Roslynator (`build/targets/codeanalysis/Packages.props`) | Automerge minor/patch; review majors (new rules can break the warnings-as-errors build) |
 | Test framework — safe | xunit, Verify.Xunit, Microsoft.NET.Test.Sdk (`build/targets/tests/Packages.props`) | Automerge minor/patch |
 | Benchmark tooling — coordinated | BenchmarkDotNet (`automerge: false`, `benchmark-tooling` label); Perfolizer **disabled** in Renovate (BDN requires exactly `[0.6.1]`) | Update Perfolizer only when BenchmarkDotNet bumps its constraint; otherwise NU1608 + runtime risk |
@@ -203,7 +203,7 @@ Additional hard rules for any dependency PR:
    Full research procedure: CONTRIBUTING.md §"Third-Party License Attribution".
 2. **Host-compat is checked three ways** — do not weaken any of them:
    `ValidateAnalyzerHostCompatibility` target, the inline PowerShell DLL-reference
-   check in the `main.yml` build job (max SCI/SRM = 8.0.0.0), and the
+   check in the `main.yml` build job (max SCI/SRM = 9.0.0.0), and the
    `analyzer-load-test` matrix. `AnalyzerAssemblyCompatibilityTests` pins the
    same bound at test level.
 3. **VersionOverride pattern**: non-shipped projects (benchmarks, PerfDiff) may
@@ -225,30 +225,31 @@ Additional hard rules for any dependency PR:
 
 ## When an ADR is required
 
-An ADR is the unit of change for architecture. Ten accepted ADRs exist
-(2026-07-02) in `docs/architecture/`:
+An ADR is the unit of change for architecture. Eleven ADRs exist in
+`docs/architecture/`. ADR-003 and ADR-004 are Superseded by ADR-011:
 
 | ADR | Locks in |
 |---|---|
 | 001 | Symbol-based detection over string matching |
 | 002 | netstandard2.0 target for shipped assemblies |
-| 003 | Roslyn (Microsoft.CodeAnalysis) pinned to 4.8 |
-| 004 | AnalyzerUtilities capped at 3.3.4 |
+| 003 | Superseded by ADR-011 (was: Roslyn pinned to 4.8) |
+| 004 | Superseded by ADR-011 (was: AnalyzerUtilities capped at 3.3.4) |
 | 005 | Central Package Management with transitive pinning |
 | 006 | MoqKnownSymbols/WellKnown-types pattern, once per compilation |
 | 007 | Prefer RegisterOperationAction over RegisterSyntaxNodeAction |
 | 008 | BenchmarkDotNet + PerfDiff as the perf regression gate |
 | 009 | xunit + Roslyn test infrastructure |
 | 010 | eol=lf for PowerShell files |
+| 011 | Minimum host is the .NET 10 SDK: Roslyn and AnalyzerUtilities pinned to 5.0.0, SCI/SRM max 9.0.0.0 |
 
 Rules:
 
 - **Contradicting an accepted ADR requires a new ADR that supersedes it**
   (the front matter has `supersedes`/`superseded_by` fields for exactly this).
-  Example: raising the Roslyn pin from 4.8 means superseding ADR-003 — ADR-003
-  itself documents the required steps (update `Directory.Packages.props`, full
-  test suite, benchmark verification, docs) and the user-impact assessment
-  (excludes consumers on VS < 17.8).
+  Example: ADR-011 superseded ADR-003 and ADR-004 to raise the Roslyn pin from
+  4.8 to 5.0.0. Its user-impact assessment: consumers on VS 2022 or .NET 8/9
+  SDKs get CS9057 and the analyzer does not run. Raising the pin again means
+  superseding ADR-011.
 - **A new decision of the same weight** (a version pin, a mandatory pattern
   across all analyzers, a CI gate, a target-framework choice) should get its
   own ADR before implementation. (Convention inferred from the existing corpus
@@ -316,7 +317,7 @@ Re-verify before trusting volatile facts (all verified 2026-07-02):
 - S1135 still `suggestion`: `grep -n "S1135" .editorconfig`
 - Hook task list: `cat .husky/task-runner.json`
 - Renovate pins/caps/ignores: `cat renovate.json` (ignoreDeps = 4 Microsoft.CodeAnalysis.* packages; caps on SCI/SRM/AnalyzerUtilities; Perfolizer + System.CommandLine disabled)
-- Roslyn pin still 4.8 / AnalyzerUtilities 3.3.4: `grep -n "Microsoft.CodeAnalysis.CSharp\"\|AnalyzerUtilities" Directory.Packages.props`
+- Roslyn pin still 5.0.0 / AnalyzerUtilities 5.0.0: `grep -n "Microsoft.CodeAnalysis.CSharp\"\|AnalyzerUtilities" Directory.Packages.props`
 - Shipped-file immutability rule text: `grep -n "AnalyzerReleases.Shipped" AGENTS.md`
 - Unshipped current layout (New Rules + Changed Rules divergence note): `cat src/Analyzers/AnalyzerReleases.Unshipped.md`
 - Promotion procedure unchanged: CONTRIBUTING.md §"Creating a Major or Minor Release" steps 3–4

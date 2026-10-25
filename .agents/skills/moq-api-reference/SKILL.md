@@ -1,6 +1,6 @@
 ---
 name: moq-api-reference
-description: "Provides the verified Moq API surface map that moq.analyzers detection logic must match — load it when writing or reviewing anything that touches MoqKnownSymbols, `src/Common/ISymbolExtensions.Moq.cs`, or a rule that inspects Setup/Returns/Throws/Raises/Verify/Protected/It call chains. Triggers: \"what does Setup() return\", \"which interface declares Raises\", \"is this overload in Moq 4.8.2\", \"why does this KnownSymbols property resolve null\" (phantom symbols), \"T1..T16 in Returns\", \"It vs ItExpr\", \"ReturnsAsync not matching\" (GeneratedReturnsExtensions), \"Raise with EventArgs.Empty\", Net80WithOldMoq/Net80WithNewMoq test rows, or verifying any Moq API claim with dotnet-inspect. Do NOT load for general \"how do I use Moq in my tests\" questions (this is for analyzer authors, not Moq users), Roslyn API semantics (roslyn-analyzer-reference), rule-authoring steps (moq-analyzers-rule-lifecycle), or build/test mechanics (moq-analyzers-build-and-env)."
+description: "Provides the verified Moq API surface map that moq.analyzers detection logic must match — load it when writing or reviewing anything that touches MoqKnownSymbols, `src/Common/ISymbolExtensions.Moq.cs`, or a rule that inspects Setup/Returns/Throws/Raises/Verify/Protected/It call chains. Triggers: \"what does Setup() return\", \"which interface declares Raises\", \"is this overload in Moq 4.8.2\", \"why does this KnownSymbols property resolve null\" (phantom symbols), \"T1..T16 in Returns\", \"It vs ItExpr\", \"ReturnsAsync not matching\" (GeneratedReturnsExtensions), \"Raise with EventArgs.Empty\", Net100WithOldMoq/Net100WithNewMoq test rows, or verifying any Moq API claim with dotnet-inspect. Do NOT load for general \"how do I use Moq in my tests\" questions (this is for analyzer authors, not Moq users), Roslyn API semantics (roslyn-analyzer-reference), rule-authoring steps (moq-analyzers-rule-lifecycle), or build/test mechanics (moq-analyzers-build-and-env)."
 ---
 
 # Moq API reference for analyzer authors
@@ -34,10 +34,10 @@ reference-assembly groups; `TestDataExtensions` fans each data row across them:
 
 | Catalog key | Contents | Why this version |
 |---|---|---|
-| `Net80` | .NET 8, **no Moq** | Analyzers must early-exit via `IsMockReferenced()` (`src/Common/WellKnown/MoqKnownSymbolExtensions.cs`) |
-| `Net80WithOldMoq` | Moq **4.8.2** | Early popular version; deliberately older than 4.13.1, which changed `.As<T>()` internals (comment in the catalog file) |
-| `Net80WithNewMoq` | Moq **4.18.4** | Most-downloaded version; ≥ 4.12.0 required for `Mock.Of<T>(MockBehavior)` (comment in the catalog file) |
-| `Net80WithNewMoqAndLogging` | 4.18.4 + Microsoft.Extensions.Logging.Abstractions 8.0.0 | ILogger rules (Moq1004) |
+| `Net100` | .NET 10 (Microsoft.NETCore.App.Ref 10.0.0), **no Moq** | Analyzers must early-exit via `IsMockReferenced()` (`src/Common/WellKnown/MoqKnownSymbolExtensions.cs`) |
+| `Net100WithOldMoq` | Moq **4.8.2** | Early popular version; deliberately older than 4.13.1, which changed `.As<T>()` internals (comment in the catalog file) |
+| `Net100WithNewMoq` | Moq **4.18.4** | Most-downloaded version; ≥ 4.12.0 required for `Mock.Of<T>(MockBehavior)` (comment in the catalog file) |
+| `Net100WithNewMoqAndLogging` | 4.18.4 + Microsoft.Extensions.Logging.Abstractions 8.0.0 | ILogger rules (Moq1004) |
 
 `WithMoqReferenceAssemblyGroups()` = both Moq versions; `WithOldMoqReferenceAssemblyGroups()` /
 `WithNewMoqReferenceAssemblyGroups()` = one. **Any detection change must state which

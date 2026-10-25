@@ -90,7 +90,7 @@ public class SetExplicitMockBehaviorAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     /// <summary>
@@ -100,8 +100,8 @@ public class SetExplicitMockBehaviorAnalyzerTests
     /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
     /// <returns>A task representing the asynchronous unit test.</returns>
     [Theory]
-    [InlineData("Net80WithOldMoq")]
-    [InlineData("Net80WithNewMoq")]
+    [InlineData("Net100WithOldMoq")]
+    [InlineData("Net100WithNewMoq")]
     public async Task ShouldNotCrashOnIncompleteMockCreation(string referenceAssemblyGroup)
     {
         const string source = """
@@ -156,7 +156,7 @@ public class SetExplicitMockBehaviorAnalyzerTests
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80);
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net100);
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public class SetExplicitMockBehaviorAnalyzerTests
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80);
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net100);
     }
 
     [Fact]

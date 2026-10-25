@@ -8,14 +8,15 @@ Location: `docs/architecture/ADR-NNN-subject-in-kebab-case.md`
 |----|-------|--------|
 | ADR-001 | Symbol-Based Detection Over String Matching | Accepted |
 | ADR-002 | Target netstandard2.0 for Analyzer Assemblies | Accepted |
-| ADR-003 | Pin Roslyn SDK to Microsoft.CodeAnalysis 4.8 | Accepted |
-| ADR-004 | Cap Microsoft.CodeAnalysis.AnalyzerUtilities at 3.3.4 | Accepted |
+| ADR-003 | Pin Roslyn SDK to Microsoft.CodeAnalysis 4.8 | Superseded by ADR-011 |
+| ADR-004 | Cap Microsoft.CodeAnalysis.AnalyzerUtilities at 3.3.4 | Superseded by ADR-011 |
 | ADR-005 | Central Package Management with Transitive Pinning | Accepted |
 | ADR-006 | WellKnown Types Pattern for Moq Symbol Resolution | Accepted |
 | ADR-007 | Prefer RegisterOperationAction Over RegisterSyntaxNodeAction | Accepted |
 | ADR-008 | BenchmarkDotNet and PerfDiff for Performance Regression Detection | Accepted |
 | ADR-009 | xUnit with Roslyn Test Infrastructure | Accepted |
 | ADR-010 | Use eol=lf for PowerShell Files in .gitattributes | Accepted |
+| ADR-011 | Raise the Minimum Supported Host to the .NET 10 SDK (Roslyn 5.0) | Accepted |
 
 ## ADR Format
 

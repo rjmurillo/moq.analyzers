@@ -157,8 +157,9 @@ Template rules:
 ADR = Architecture Decision Record: a short document that captures one
 irreversible-ish technical decision so nobody relitigates it from scratch.
 Extracted from `docs/architecture/ADR-001-symbol-based-detection-over-string-matching.md`;
-all 10 ADRs share this structure including the tagged-ID convention (verified
-2026-07-02). File name: `docs/architecture/ADR-0NN-kebab-case-title.md`.
+ADR-001 through ADR-010 share this structure including the tagged-ID convention
+(verified 2026-07-02). ADR-011 uses the same front matter and tagged IDs, but has
+a Reversibility section in place of Alternatives Considered and Implementation Notes. File name: `docs/architecture/ADR-0NN-kebab-case-title.md`.
 
 ```markdown
 ---
@@ -347,10 +348,10 @@ product claim on nuget.org. Discipline:
 - 25 analyzer rules, Moq1000–Moq1600 (both README tables list all 25).
 - License BSD-3-Clause; package id `Moq.Analyzers`; development-dependency
   package (no runtime footprint in consumers' apps).
-- Analyzer assemblies target netstandard2.0 and load in .NET 8 analyzer hosts
-  (VS 2022 17.8+) — this is triple-enforced in CI (host-compat MSBuild target,
-  DLL reference check, 9-way analyzer-load-test matrix; see
-  moq-analyzers-build-and-env).
+- Analyzer assemblies target netstandard2.0 and load in .NET 10 SDK analyzer
+  hosts (Roslyn 5.0, VS 2026); .NET 8 and .NET 9 are deprecated (ADR-011). This
+  is enforced in CI (host-compat MSBuild target, DLL reference check, 4-leg
+  analyzer-load-test matrix; see moq-analyzers-build-and-env).
 - Tested against Moq 4.8.2 and 4.18.4 (every test row fans across both).
 - Current package `<Description>` (owner: `Directory.Build.props`): "Roslyn
   analyzer that helps to write unit tests using Moq mocking library by
@@ -372,7 +373,7 @@ product claim on nuget.org. Discipline:
 
 Ecosystem context (label as positioning, not a verified metric): this is the
 community-maintained Moq analyzer package (Moq itself does not ship one); its
-reach argument is the netstandard2.0 target plus the .NET 8-host compatibility
+reach argument is the netstandard2.0 target plus the .NET 10 SDK host compatibility
 guarantee. Do not quote download counts or "the most popular" without pulling
 live numbers from nuget.org at writing time.
 

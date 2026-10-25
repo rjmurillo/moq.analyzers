@@ -524,7 +524,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -550,7 +550,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
                 }
             }
             """,
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -574,7 +574,7 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
                 }
             }
             """,
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -603,6 +603,6 @@ public class RaisesEventArgumentsShouldMatchEventSignatureAnalyzerTests
                 }
             }
             """,
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 }

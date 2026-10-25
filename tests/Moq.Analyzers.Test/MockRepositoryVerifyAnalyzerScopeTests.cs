@@ -274,7 +274,8 @@ public class MockRepositoryVerifyAnalyzerScopeTests
         IOperation? operation = model.GetOperation(declaratorSyntax);
         IVariableDeclaratorOperation declaratorOperation = Assert.IsAssignableFrom<IVariableDeclaratorOperation>(operation);
 
-        Assert.Equal(expectedRootKind, GetRootOperation(declaratorOperation).Kind.ToString());
+        // Compare values, not names: Roslyn 5.0 aliases MethodBody to MethodBodyOperation, so ToString() can return either name.
+        Assert.Equal(Enum.Parse<OperationKind>(expectedRootKind), GetRootOperation(declaratorOperation).Kind);
         Assert.False(string.IsNullOrWhiteSpace(scenario));
     }
 

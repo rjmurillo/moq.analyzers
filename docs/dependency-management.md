@@ -12,20 +12,20 @@ These packages are bundled in the analyzer NuGet package and run inside the **us
 
 | Package                                  | Central Pin                  | Constraint                                                        |
 | ---------------------------------------- | ---------------------------- | ----------------------------------------------------------------- |
-| Microsoft.CodeAnalysis.CSharp            | 4.8                          | Minimum supported VS/SDK version                                  |
-| Microsoft.CodeAnalysis.CSharp.Workspaces | 4.8                          | Same as above                                                     |
-| Microsoft.CodeAnalysis.AnalyzerUtilities | 3.3.4                        | Must reference System.Collections.Immutable (SCI) <= 8.0.0.0                                     |
-| System.Collections.Immutable             | 8.0.0                        | Must not exceed .NET 8 SDK host assembly version                  |
+| Microsoft.CodeAnalysis.CSharp            | 5.0.0                        | Minimum supported SDK/VS version (.NET 10 SDK, VS 2026)           |
+| Microsoft.CodeAnalysis.CSharp.Workspaces | 5.0.0                        | Same as above                                                     |
+| Microsoft.CodeAnalysis.AnalyzerUtilities | 5.0.0                        | Must not reference assemblies newer than a Roslyn 5.0 host has    |
+| System.Collections.Immutable             | 9.0.0                        | Must not exceed the Roslyn 5.0 host assembly version (9.0.0.0)    |
 | System.Formats.Asn1                      | 10.0.0                       | Transitive pin in shipped section; flagged for host compat review |
-| System.Reflection.Metadata               | (transitive, no central pin) | Must not exceed .NET 8 SDK host assembly version                  |
+| System.Reflection.Metadata               | (transitive, no central pin) | Must not exceed the Roslyn 5.0 host assembly version (9.0.0.0)    |
 
 **Why this matters:** In v0.4.0, a transitive dependency bump pushed SCI to 10.0.0.0, causing CS8032 assembly load failures for every user on .NET 8 SDK. See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
 
 **Upgrade policy:**
 
-- `Microsoft.CodeAnalysis.*` core packages are **ignored** in the Renovate config (`ignoreDeps`). Renovate does not manage these packages. Update manually when raising the minimum supported SDK version.
-- Renovate caps `System.Collections.Immutable` and `System.Reflection.Metadata` at `<=8.0.0` via `allowedVersions`. `AnalyzerAssemblyCompatibilityTests` enforces the same bound (`MaxImmutableVersion = 8.0.0.0`). Renovate will not propose versions above this cap.
-- Renovate caps `AnalyzerUtilities` at `<4.14.0`. Version 4.14.0+ pulls `System.Collections.Immutable` 9.0.0.0 transitively.
+- `Microsoft.CodeAnalysis.*` core packages are **ignored** in the Renovate config (`ignoreDeps`). Renovate does not manage these packages. Update manually when raising the minimum supported SDK version. See [ADR-011](architecture/ADR-011-raise-minimum-host-to-dotnet-10-sdk.md).
+- Renovate caps `System.Collections.Immutable` and `System.Reflection.Metadata` at `<10.0.0` via `allowedVersions`. `AnalyzerAssemblyCompatibilityTests` enforces the same bound (`MaxImmutableVersion = 9.0.0.0`). Renovate will not propose versions above this cap.
+- Renovate caps `AnalyzerUtilities` at `<5.6.0`. Version 5.6.0 pulls `Microsoft.Bcl.AsyncInterfaces` 10.0.1, which is newer than Roslyn 5.0 brings.
 - `System.Formats.Asn1` has `automerge: false` and the `analyzer-compat` label for manual review.
 - The `ValidateAnalyzerHostCompatibility` MSBuild target blocks the build if shipped assemblies exceed host bounds. `AnalyzerAssemblyCompatibilityTests` provides test-level verification.
 

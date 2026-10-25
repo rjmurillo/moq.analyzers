@@ -206,7 +206,7 @@ then lists the exact new positive rows. If you cannot write that table, you do n
 know your mechanism (section 1).
 
 Issue #1264 shows the same discipline for empirical inputs: a "Verified facts" table of
-Roslyn symbol flags (obtained by compiling probe code against the pinned Roslyn 4.8)
+Roslyn symbol flags (obtained by compiling probe code against the Roslyn 4.8 pin of the time)
 and Moq runtime behavior (Moq 4.18.4 + Castle 5.1.1 actually executed), recorded
 BEFORE proposing the fix. Copy that shape: claims about Roslyn or Moq behavior are
 measured, dated, and version-pinned, never recalled from memory.

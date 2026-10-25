@@ -41,7 +41,7 @@ internal static class CSharp14AnalyzerVerifier<TAnalyzer>
         {
             TestCode = source,
             FixedCode = source,
-            ReferenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net90WithNewMoq],
+            ReferenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net100WithNewMoq],
         };
 
         test.TestState.Sources.Add(globalUsings);

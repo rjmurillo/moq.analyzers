@@ -12,11 +12,11 @@ public class AnalyzerAssemblyCompatibilityTests
     // Bundled third-party assemblies included in the package
     private static readonly string BundledAnalyzerUtilities = "Microsoft.CodeAnalysis.AnalyzerUtilities";
 
-    // Maximum assembly versions that the minimum supported SDK host (.NET 8) provides.
+    // Maximum assembly versions that the minimum supported SDK host (.NET 10, Roslyn 5.0) provides.
     // The analyzer must not reference anything higher, or it will fail to load with CS8032.
     // See: https://github.com/rjmurillo/moq.analyzers/issues/850
-    private static readonly Version MaxImmutableVersion = new(8, 0, 0, 0);
-    private static readonly Version MaxMetadataVersion = new(8, 0, 0, 0);
+    private static readonly Version MaxImmutableVersion = new(9, 0, 0, 0);
+    private static readonly Version MaxMetadataVersion = new(9, 0, 0, 0);
 
     public static TheoryData<string> ShippedAssemblies =>
         new()

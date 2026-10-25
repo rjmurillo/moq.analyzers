@@ -5,9 +5,9 @@ namespace Moq.Analyzers.Test.Helpers;
 public class ReferenceAssemblyCatalogTests
 {
     [Fact]
-    public async Task Net90WithNewMoq_CompilesMoqSnippet()
+    public async Task Net100WithNewMoq_CompilesMoqSnippet()
     {
-        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net90WithNewMoq];
+        ReferenceAssemblies referenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net100WithNewMoq];
         ImmutableArray<MetadataReference> references = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
         MetadataReference[] metadataReferences = [.. references];
         SyntaxTree tree = CSharpSyntaxTree.ParseText(
@@ -20,7 +20,7 @@ public class ReferenceAssemblyCatalogTests
             }
             """);
         CSharpCompilation compilation = CSharpCompilation.Create(
-            "Net90WithNewMoqSmokeTest",
+            "Net100WithNewMoqSmokeTest",
             [tree],
             metadataReferences,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

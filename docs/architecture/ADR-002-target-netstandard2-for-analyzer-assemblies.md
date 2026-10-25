@@ -22,7 +22,7 @@ If an analyzer targets a higher target framework moniker (TFM) than the host sup
 
 ## Decision
 
-Analyzer projects (`src/Analyzers/`) and code fix projects (`src/CodeFixes/`) target `netstandard2.0`. No analyzer or code fix assembly targets a framework-specific TFM such as `net8.0` or `net9.0`.
+Analyzer projects (`src/Analyzers/`) and code fix projects (`src/CodeFixes/`) target `netstandard2.0`. No analyzer or code fix assembly targets a framework-specific TFM such as `net8.0`, `net9.0`, or `net10.0`.
 
 ## Consequences
 
@@ -59,5 +59,5 @@ Analyzer projects (`src/Analyzers/`) and code fix projects (`src/CodeFixes/`) ta
 ## References
 
 - **REF-001**: Microsoft documentation: "How analyzers run in the compiler pipeline"
-- **REF-002**: ADR-003 -- Pin Roslyn SDK to Microsoft.CodeAnalysis 4.8
-- **REF-003**: ADR-004 -- Cap Microsoft.CodeAnalysis.AnalyzerUtilities at 3.3.4
+- **REF-002**: ADR-003 -- Pin Roslyn SDK to Microsoft.CodeAnalysis 4.8 (superseded by ADR-011)
+- **REF-003**: ADR-004 -- Cap Microsoft.CodeAnalysis.AnalyzerUtilities at 3.3.4 (superseded by ADR-011)

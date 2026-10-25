@@ -563,7 +563,7 @@ await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(sourceCode, referenceAssembly
 
 ### New Language Crash-Safety Tests
 
-Per-version projects named `Moq.Analyzers.CSharpNN.Test` run the analyzer suite with a newer isolated Roslyn test compiler. They protect the shipped netstandard2.0 analyzers from crashing on new C# syntax without raising the shipping Roslyn 4.8 API ceiling. Adding the next leg, such as C# 15, should copy the latest per-version test project and update only the isolated test compiler version and covered constructs.
+Per-version projects named `Moq.Analyzers.CSharpNN.Test` hold the crash-safety tests for one C# version. They protect the shipped netstandard2.0 analyzers from crashing on new C# syntax. They use the central Roslyn 5.0 pin. Adding the next leg, such as C# 15, should copy the latest per-version test project. If that C# version needs a newer compiler than the shipping pin, set a `VersionOverride` on the test project only, and update the covered constructs.
 
 ### Moq-Specific Testing Guidelines
 
@@ -728,102 +728,7 @@ Check the dry-run output for failures. All jobs must show `Job succeeded`. No `J
 
 ### Running Workflows Locally with `gh act`
 
-[`gh act`](https://github.com/nektos/gh-act) runs GitHub Actions workflows locally using Docker.
-This is useful for verifying CI changes before pushing.
-
-**Install:**
-
-```bash
-gh extension install nektos/gh-act
-```
-
-**List available jobs:**
-
-```bash
-gh act -l                           # list jobs triggered by push
-gh act -l pull_request              # list jobs triggered by pull_request
-```
-
-**Run a specific job:**
-
-```bash
-gh act -j build                     # run the build job
-gh act -j analyzer-load-test        # run the analyzer load test
-```
-
-**Run a specific workflow file:**
-
-```bash
-gh act -W .github/workflows/main.yml
-```
-
-**Filter matrix entries:**
-
-```bash
-gh act -j analyzer-load-test --matrix tfm:net8.0
-gh act -j analyzer-load-test --matrix build-engine:msbuild
-gh act -j build --matrix os:ubuntu-24.04-arm
-```
-
-**Enable artifact passing between jobs:**
-
-Jobs that depend on artifacts from earlier jobs (like `analyzer-load-test` downloading
-the nupkg from `build`) require a local artifact server:
-
-```bash
-gh act -W .github/workflows/main.yml --artifact-server-path /tmp/artifacts
-```
-
-**Handle secrets:**
-
-The workflow references optional secrets (`CODACY_PROJECT_TOKEN`, `QLTY_COVERAGE_TOKEN`).
-These can be skipped locally, but if needed:
-
-```bash
-gh act -s GITHUB_TOKEN="$(gh auth token)"    # pass GitHub token
-gh act --secret-file .secrets                # load from file (one KEY=VALUE per line)
-```
-
-**Simulate `workflow_dispatch` with inputs:**
-
-```bash
-gh act workflow_dispatch --input run_performance=true --input force_baseline=false
-```
-
-**Container architecture:**
-
-The project uses ARM runners (`ubuntu-24.04-arm`, `windows-11-arm`). Docker defaults to the
-host architecture. To force a specific architecture:
-
-```bash
-gh act --container-architecture linux/amd64
-```
-
-**Create an `.actrc` file** in the repo root to set default flags (one per line):
-
-```text
---artifact-server-path=/tmp/artifacts
---container-architecture=linux/amd64
-```
-
-**Skip steps that only make sense in CI:**
-
-`act` sets the `ACT` environment variable automatically. Steps can check for it:
-
-```yaml
-if: ${{ !env.ACT }}
-```
-
-**Limitations:**
-
-- Windows-based jobs (`windows-latest`, `windows-11-arm`) do not run in `act`. Test those
-  through GitHub Actions directly.
-- ARM runner images may not match GitHub-hosted runners exactly.
-- The `microsoft/setup-msbuild` action requires Windows and will not work in `act`.
-- Composite actions (like `setup-restore-build`) work, but may need the action source
-  checked out locally.
-
-For full documentation, see [nektosact.com](https://nektosact.com/usage/).
+See [Running Workflows Locally with `gh act`](docs/running-workflows-locally.md).
 
 ### Performance Testing Guidelines
 
@@ -865,7 +770,7 @@ This project uses Renovate for automated dependency updates. For detailed packag
 
 #### Version Constraints
 
-- `System.Collections.Immutable` and `System.Reflection.Metadata` must not exceed .NET 8 SDK host assembly versions. Renovate caps these at `<=8.0.0`. `ValidateAnalyzerHostCompatibility` and `AnalyzerAssemblyCompatibilityTests` enforce this. See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
+- `System.Collections.Immutable` and `System.Reflection.Metadata` must not exceed the assembly versions a Roslyn 5.0 host (.NET 10 SDK, VS 2026) provides: 9.0.0.0. Renovate caps these at `<10.0.0`. `ValidateAnalyzerHostCompatibility` and `AnalyzerAssemblyCompatibilityTests` enforce this. See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
 - Renovate disables `Perfolizer`. BenchmarkDotNet declares an exact version constraint (`[0.6.1]`). Update Perfolizer only when BenchmarkDotNet targets a newer version.
 - Renovate disables `System.CommandLine`. Updates require PerfDiff code changes.
 - Renovate ignores `Microsoft.CodeAnalysis.CSharp` core packages. Update manually when raising the minimum supported SDK.

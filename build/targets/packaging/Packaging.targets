@@ -12,9 +12,9 @@
     See: https://github.com/rjmurillo/moq.analyzers/issues/850
   -->
   <PropertyGroup>
-    <!-- Maximum assembly versions the minimum supported host (.NET 8 SDK) provides -->
-    <_MaxSystemCollectionsImmutableMajor>8</_MaxSystemCollectionsImmutableMajor>
-    <_MaxSystemReflectionMetadataMajor>8</_MaxSystemReflectionMetadataMajor>
+    <!-- Maximum assembly versions the minimum supported host (.NET 10 SDK, Roslyn 5.0) provides -->
+    <_MaxSystemCollectionsImmutableMajor>9</_MaxSystemCollectionsImmutableMajor>
+    <_MaxSystemReflectionMetadataMajor>9</_MaxSystemReflectionMetadataMajor>
   </PropertyGroup>
 
   <Target Name="ValidateAnalyzerHostCompatibility"
