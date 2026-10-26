@@ -222,7 +222,7 @@ target — if your very first build used CI flags, attach hooks manually (sectio
 
 The build also runs `ValidateAnalyzerHostCompatibility`
 (`build/targets/packaging/Packaging.targets`), which fails the pack if any bundled
-dependency needs assemblies newer than a .NET 8 SDK host provides (the CS8032 incident,
+dependency needs assemblies newer than a .NET 10 SDK host provides (the CS8032 incident,
 issue #850). If you hit it, you touched dependency pins — stop and read
 `moq-analyzers-architecture-contract` and `docs/dependency-management.md`.
 
@@ -300,18 +300,18 @@ NBGV; check it with `dotnet nbgv get-version`.
 
 ## 8. IDE notes
 
-- Solution file: `Moq.Analyzers.sln` (repo root). Works in VS 2022+, Rider, VS Code with
+- Solution file: `Moq.Analyzers.sln` (repo root). Works in VS 2026+ (the .NET 10 SDK needs MSBuild 18), Rider, VS Code with
   C# Dev Kit. `Moq.Analyzers.lutconfig` configures VS Live Unit Testing.
 - **Two different C# language versions are in play — do not confuse them:**
   1. *Repo source code* compiles with `<LangVersion>default</LangVersion>`
      (`build/targets/compiler/Compiler.props`) — i.e. the newest C# of SDK 10 — even in
      the netstandard2.0 analyzer projects (the Polyfill package backfills missing BCL APIs).
   2. *Test-case code* — the C# source **strings inside tests** — is compiled by the
-     test harness using the pinned **Roslyn 4.8** compiler
-     (`Microsoft.CodeAnalysis.CSharp 4.8` in `Directory.Packages.props`, per ADR-003).
-     Roslyn 4.8 tops out at **C# 12**. C# 13+ syntax (e.g. `params ReadOnlySpan<T>`
-     params collections) in a test snippet will not parse, no matter what the SDK
-     supports. Plan test fixtures accordingly.
+     test harness using the pinned **Roslyn 5.0** compiler
+     (`Microsoft.CodeAnalysis.CSharp 5.0.0` in `Directory.Packages.props`, per ADR-011)
+     at its default language version, **C# 14**. C# 13 syntax such as
+     `params ReadOnlySpan<T>` parses in test snippets. Constructs past C# 14 need
+     `Moq.Analyzers.CSharp14.Test`, whose verifier sets `LanguageVersion.Preview`.
 - First IDE open triggers a restore, which triggers Husky hook install (section 4).
 - Line endings are governed by `.gitattributes` — do not fight it from the IDE
   (see traps table).
@@ -326,7 +326,7 @@ NBGV; check it with `dotnet nbgv get-version`.
 | `*.received.*` files staged | Verify failure artifacts show up in `git status` | Not git-ignored by design (CI uploads them on failure) | Delete before commit; only commit `*.verified.*` when a snapshot change is intentional and reviewed |
 | Large file / long file rejected | pre-commit fails on `large-file-detection` | Limits: 500 KB per file, 1000 lines per source file (`Test-LargeFiles.ps1` defaults) | Split the file; do not raise the limits to sneak a commit through |
 | Adding a NuGet feed / package restore fails with NU1100-style "not found" | Restore can't find a package you added | `nuget.config` uses `<clear />` + **strict packageSourceMapping**: nuget.org gets `*`; two Azure DevOps feeds (`dotnet5`, `dotnet-tools`) are mapped ONLY to `System.CommandLine.Rendering` and the `Microsoft.CodeAnalysis.*.Testing*` packages | New packages must come from nuget.org, or you must extend the mapping explicitly (dependency change = change control; see `moq-analyzers-change-control`) |
-| Bumping Roslyn/AnalyzerUtilities/Immutable pins | `ValidateAnalyzerHostCompatibility` build failure, or CS8032 for consumers | ADR-003/ADR-004 pins; comments in `Directory.Packages.props` explain the .NET 8 host ceiling | Don't. Read `moq-analyzers-architecture-contract` first |
+| Bumping Roslyn/AnalyzerUtilities/Immutable pins | `ValidateAnalyzerHostCompatibility` build failure, or CS8032 for consumers | ADR-011 pins; comments in `Directory.Packages.props` explain the .NET 10 host ceiling | Don't. Read `moq-analyzers-architecture-contract` first |
 | Hooks never attached | `git config core.hooksPath` empty; commits skip all checks | First build ran with `ContinuousIntegrationBuild=true`, or `HUSKY=0` | `dotnet tool restore && dotnet husky install` |
 | Offline / proxied network | `dotnet restore` or `dotnet tool restore` hangs or 403s | Feeds are nuget.org + pkgs.dev.azure.com (both HTTPS); corporate proxies must allow both hosts and any proxy CA must be trusted by the machine | Configure `HTTPS_PROXY`/CA per your environment; do NOT add mirror feeds to `nuget.config` to work around it |
 | Stale coverage numbers | `artifacts/TestResults/coverage` looks wrong | Each test run deletes and regenerates the report (`CleanCoverageReport` target) — a **filtered** run reports coverage for that filter only | Re-run the full suite before quoting coverage |

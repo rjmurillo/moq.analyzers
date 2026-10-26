@@ -437,7 +437,7 @@ public class CallbackSignatureShouldMatchMockedMethodCodeFixTests
     {
         await AnalyzerVerifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]

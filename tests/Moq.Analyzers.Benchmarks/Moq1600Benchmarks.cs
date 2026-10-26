@@ -50,7 +50,7 @@ internal class {name}
 ");
         }
 
-        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithNewMoq");
+        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net100WithNewMoq");
         (BaselineCompilation, TestCompilation) =
             BenchmarkCSharpCompilationFactory.CreateAsync<ProtectedSetupShouldUseItExprAnalyzer>(sources, referenceAssemblies)
             .GetAwaiter()

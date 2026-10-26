@@ -178,7 +178,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -225,13 +225,13 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
     public async Task ShouldNotAnalyzeWhenMoqNotReferenced()
     {
-        // Use Net80 (no Moq) so IsMockReferenced() returns false and the analyzer
+        // Use Net100 (no Moq) so IsMockReferenced() returns false and the analyzer
         // bails out early. CompilerDiagnostics.None suppresses errors caused by the
         // global "using Moq;" that the test harness injects.
         await Verifier.VerifyAnalyzerAsync(
@@ -249,7 +249,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80,
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100,
                 CompilerDiagnostics.None);
     }
 
@@ -270,7 +270,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -294,7 +294,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -317,7 +317,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -343,6 +343,6 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 }

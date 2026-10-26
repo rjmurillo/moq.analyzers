@@ -220,7 +220,7 @@ public class ReturnsDelegateShouldReturnTaskAnalyzerTests(ITestOutputHelper outp
     {
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     private async Task VerifyAsync(string referenceAssemblyGroup, string @namespace, string mock, CompilerDiagnostics? compilerDiagnostics = null)

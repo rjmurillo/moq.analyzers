@@ -72,7 +72,7 @@ public class SetStrictMockBehaviorAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -108,6 +108,6 @@ public class SetStrictMockBehaviorAnalyzerTests
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80);
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net100);
     }
 }

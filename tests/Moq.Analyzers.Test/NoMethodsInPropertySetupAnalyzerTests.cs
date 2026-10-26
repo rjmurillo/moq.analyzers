@@ -63,7 +63,7 @@ public class NoMethodsInPropertySetupAnalyzerTests
     {
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class NoMethodsInPropertySetupAnalyzerTests
                 }
             }
             """,
-            ReferenceAssemblyCatalog.Net80,
+            ReferenceAssemblyCatalog.Net100,
             CompilerDiagnostics.None);
     }
 
@@ -115,6 +115,6 @@ public class NoMethodsInPropertySetupAnalyzerTests
                 }
             }
             """,
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 }

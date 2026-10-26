@@ -17,7 +17,7 @@ internal static class TestDataExtensions
     }
 
     /// <summary>
-    /// Adds the reference assembly group for .NET 8.0 with an older version of Moq (4.8.2) and a newer version of Moq (4.18.4) to each test case.
+    /// Adds the reference assembly group for .NET 10.0 with an older version of Moq (4.8.2) and a newer version of Moq (4.18.4) to each test case.
     /// </summary>
     /// <param name="data">The test data to extend.</param>
     /// <returns>The test data with the old and new Moq reference assembly groups added to each test case.</returns>
@@ -25,13 +25,13 @@ internal static class TestDataExtensions
     {
         foreach (object[] item in data)
         {
-            yield return item.Prepend(ReferenceAssemblyCatalog.Net80WithOldMoq).ToArray();
-            yield return item.Prepend(ReferenceAssemblyCatalog.Net80WithNewMoq).ToArray();
+            yield return item.Prepend(ReferenceAssemblyCatalog.Net100WithOldMoq).ToArray();
+            yield return item.Prepend(ReferenceAssemblyCatalog.Net100WithNewMoq).ToArray();
         }
     }
 
     /// <summary>
-    /// Adds the reference assembly group for .NET 8.0 with an older version of Moq (4.8.2) to each test case.
+    /// Adds the reference assembly group for .NET 10.0 with an older version of Moq (4.8.2) to each test case.
     /// </summary>
     /// <param name="data">The test data to extend.</param>
     /// <returns>The test data with the old Moq reference assembly group added to each test case.</returns>
@@ -39,12 +39,12 @@ internal static class TestDataExtensions
     {
         foreach (object[] item in data)
         {
-            yield return item.Prepend(ReferenceAssemblyCatalog.Net80WithOldMoq).ToArray();
+            yield return item.Prepend(ReferenceAssemblyCatalog.Net100WithOldMoq).ToArray();
         }
     }
 
     /// <summary>
-    /// Adds the reference assembly group for .NET 8.0 with a newer version of Moq (4.18.4) to each test case.
+    /// Adds the reference assembly group for .NET 10.0 with a newer version of Moq (4.18.4) to each test case.
     /// </summary>
     /// <param name="data">The test data to extend.</param>
     /// <returns>The test data with the old Moq reference assembly group added to each test case.</returns>
@@ -52,7 +52,7 @@ internal static class TestDataExtensions
     {
         foreach (object[] item in data)
         {
-            yield return item.Prepend(ReferenceAssemblyCatalog.Net80WithNewMoq).ToArray();
+            yield return item.Prepend(ReferenceAssemblyCatalog.Net100WithNewMoq).ToArray();
         }
     }
 }

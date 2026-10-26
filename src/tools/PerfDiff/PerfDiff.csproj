@@ -10,8 +10,7 @@
   <ItemGroup>
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
-    <!-- PerfDiff is not shipped. Allow higher versions for BenchmarkDotNet/TraceEvent dependencies. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="BenchmarkDotNet" />

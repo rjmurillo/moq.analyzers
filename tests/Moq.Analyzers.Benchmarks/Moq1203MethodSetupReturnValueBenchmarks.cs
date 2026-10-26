@@ -16,8 +16,8 @@ public class Moq1203MethodSetupReturnValueBenchmarks
 #pragma warning restore ECS0900
     public int FileCount { get; set; }
 
-    [Params("Net80WithOldMoq", "Net80WithNewMoq")]
-    public string MoqKey { get; set; } = "Net80WithOldMoq";
+    [Params("Net100WithOldMoq", "Net100WithNewMoq")]
+    public string MoqKey { get; set; } = "Net100WithOldMoq";
 
     private CompilationWithAnalyzers? BaselineCompilation { get; set; }
 

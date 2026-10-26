@@ -18,7 +18,7 @@ Index of session-derived learnings stored in Serena memories.
 ## Project Reference
 
 - `project-overview` — Purpose, tech stack, counts (23 analyzers, 5 fixers), solution structure, extension method list
-- `dependency-constraints` — AnalyzerUtilities cap at 3.3.4, ValidateAnalyzerHostCompatibility, transitive pinning rules
+- `dependency-constraints` — AnalyzerUtilities pin 5.0.0 (cap <5.6.0), ValidateAnalyzerHostCompatibility, transitive pinning rules
 
 ## Tooling
 

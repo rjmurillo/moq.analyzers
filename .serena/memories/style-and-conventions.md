@@ -52,4 +52,4 @@
 
 - `PedanticMode=true` enables strict warnings-as-errors
 - Central Package Management in `Directory.Packages.props`
-- Transitive pins constrained by analyzer host compatibility (.NET 8 SDK)
+- Transitive pins constrained by analyzer host compatibility (.NET 10 SDK, Roslyn 5.0)

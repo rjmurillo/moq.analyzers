@@ -37,7 +37,7 @@ Terms used throughout:
 |---|---|---|---|---|---|
 | 1 | Test fails: `Expected diagnostic to start on line/column ... was actually ...` (doctrine shorthand: "Expected span ... but got ...") | Is the *test markup* or the *analyzer* wrong? Markup is the pinned contract | Wrong syntax-node navigation in the analyzer | **STOP protocol** (section 1) — never nudge-and-rerun | Repo doctrine, `AGENTS.md` |
 | 2 | Build output shows AD0001; analyzer silently stops reporting | Get the exception stack from a binlog (`dotnet build -bl:msbuild.binlog`) | Unguarded cast/index/LINQ `Single` on mid-edit or exotic code | Fix root cause + regression test; never add catch blocks | Audit 2026-07-02: crash surfaces in section 2 |
-| 3 | CS8032 "analyzer could not be loaded" in a consumer project | Which host? Which dependency version does the shipped DLL reference? | Host-provided dependency (e.g. System.Collections.Immutable) bumped past the .NET 8 host ceiling | Respect version ceilings; see section 3 | Incident #850 (v0.4.0), fixed #888, release v0.4.1 |
+| 3 | CS8032 "analyzer could not be loaded" in a consumer project | Which host? Which dependency version does the shipped DLL reference? | Host-provided dependency (e.g. System.Collections.Immutable) bumped past the .NET 10 SDK host ceiling (9.0.0.0) | Respect version ceilings; see section 3 | Incident #850 (v0.4.0), fixed #888, release v0.4.1 |
 | 4 | User reports a diagnostic on correct code (FP) | Reproduce as a failing in-repo test FIRST, then against the built package | Missing syntactic-wrapper handling, or semantic check done by string name | Section 4; classification tree in moq-analyzers-fp-convergence-campaign | Moq1203 saga: 5 patches (section 4) |
 | 5 | User reports a missed diagnostic (FN) | Does the pattern even reach the analyzer? (Moq version, generic vs non-generic Setup, target-typed `new`) | Known analysis-scope gap or unresolved symbol | Section 5; never fix with string-name matching (ADR-001) | Known FN inventory in section 5 |
 | 6 | `PackageTests.Baseline` fails; `*.received.*` files appear | `git remote get-url origin` — is it a `https://github.com/...` URL? | Sandbox remote URL defeats the nuspec scrubber, OR a real packaging change | Section 6 | 2 sandbox-only failures observed 2026-07-02 |
@@ -161,18 +161,19 @@ and a bundled AnalyzerUtilities 4.14 referencing SCI 9.0. .NET 8 SDK hosts
 .NET 8. Fixed by commit `38943ac` (PR #888); release v0.4.1 existed solely to
 ship the fix.
 
-**Enforcement now (triple-layered, all must stay in place):**
+**Enforcement now (all layers must stay in place):**
 
 1. MSBuild gate `ValidateAnalyzerHostCompatibility` in
    `build/targets/packaging/Packaging.targets` — build **errors** if
    System.Collections.Immutable or System.Reflection.Metadata resolve above
-   major version 8 for shipped projects.
-2. An inline DLL-reference check in the CI `build` job.
-3. The `analyzer-load-test` CI job (`.github/workflows/main.yml`): a 9-way
+   major version 9 for shipped projects.
+2. An inline DLL-reference check in the CI `build` job (max 9.0.0.0), plus
+   `AnalyzerAssemblyCompatibilityTests` at test level.
+3. The `analyzer-load-test` CI job (`.github/workflows/main.yml`): a 4-leg
    matrix that installs the freshly packed nupkg into a scratch project and
-   compiles — dotnet CLI hosts net8.0/net9.0/net10.0 on ubuntu-24.04-arm, and
-   MSBuild/.NET Framework hosts net472/net48/net481 on both windows-2022
-   (VS 2022) and windows-2025-vs2026 (matrix as of 2026-07-02).
+   compiles. The dotnet CLI host is net10.0 on ubuntu-24.04-arm. The
+   MSBuild/.NET Framework hosts are net472/net48/net481 on windows-2025-vs2026.
+   All legs use dotnet-version 10.0.x.
 
 **Triage a CS8032 report:**
 
@@ -183,10 +184,14 @@ ls artifacts/package/debug/Moq.Analyzers.*.nupkg
 ```
 
 Check the referenced versions of System.Collections.Immutable /
-System.Reflection.Metadata against the host's. Roslyn is pinned to 4.8
-(ADR-003), AnalyzerUtilities to 3.3.4 (ADR-004), and Renovate ignores
+System.Reflection.Metadata against the host's. Roslyn and AnalyzerUtilities
+are pinned to 5.0.0 (ADR-011), and Renovate ignores
 `Microsoft.CodeAnalysis.*` — if a dependency PR touches any of these, that is
 a change-control question (moq-analyzers-change-control), not a debugging one.
+
+A consumer on VS 2022 or a .NET 8/9 SDK sees CS9057, not CS8032. Their
+compiler is older than Roslyn 5.0, so the analyzer does not run. That host is
+no longer supported (ADR-011); it is not a load bug.
 
 ## 4. False-positive report triage
 
@@ -234,7 +239,7 @@ in order:
 
 1. **Does Moq resolve at all?** Every analyzer early-exits via
    `IsMockReferenced()` (`src/Common/WellKnown/MoqKnownSymbolExtensions.cs`)
-   when the compilation doesn't reference Moq. In tests, the `Net80` reference
+   when the compilation doesn't reference Moq. In tests, the `Net100` reference
    group has no Moq — analyzers are silent by design there.
 2. **Which Moq version?** 4.8.2 lacks `SetupAdd`/`SetupRemove` and most
    `IThrows` overloads; an FN on 4.8.2 may be "API doesn't exist there". But do
@@ -417,14 +422,14 @@ Not a bug. `tests/Moq.Analyzers.Test/Helpers/TestDataExtensions.cs` multiplies
 every `[MemberData]` row:
 
 - `.WithNamespaces()` — x2: bare code and `namespace MyNamespace;`
-- `.WithMoqReferenceAssemblyGroups()` — x2: Moq 4.8.2 (`Net80WithOldMoq`) and
-  Moq 4.18.4 (`Net80WithNewMoq`)
+- `.WithMoqReferenceAssemblyGroups()` — x2: Moq 4.8.2 (`Net100WithOldMoq`) and
+  Moq 4.18.4 (`Net100WithNewMoq`)
 
 So one authored row = 4 executed rows (2,000 authored rows ≈ 8,000 executed).
 Read the current suite total from the full `dotnet test` output.
 
 Debugging value: the group name is the **first** test argument. If only
-`Net80WithOldMoq` rows fail, the behavior is Moq-4.8.2-specific (API missing
+`Net100WithOldMoq` rows fail, the behavior is Moq-4.8.2-specific (API missing
 or shaped differently there — see section 5). Single-version data uses
 `.WithOldMoqReferenceAssemblyGroups()` / `.WithNewMoqReferenceAssemblyGroups()`
 deliberately; don't "upgrade" it to both without checking the API exists in
@@ -481,7 +486,7 @@ Re-verify before trusting anything volatile:
 - Span failure message templates: pinned by `Microsoft.CodeAnalysis.CSharp.CodeFix.Testing` version in `build/targets/tests/Packages.props` (1.1.2-beta1.24314.1 on 2026-07-02)
 - Crash-surface line numbers: `sed -n 383p src/Analyzers/ConstructorArgumentsShouldMatchAnalyzer.cs`, `sed -n 60p src/Common/SemanticModelExtensions.cs`, `sed -n 643p src/Common/WellKnown/MoqKnownSymbols.cs` — drift when files are edited; the fixes are tracked in issues #1241–#1264
 - Host-compat ceilings: `grep -n "MaxSystem" build/targets/packaging/Packaging.targets`
-- Load-test matrix shape: `grep -n "tfm:" .github/workflows/main.yml` (9 entries on 2026-07-02)
+- Load-test matrix shape: `grep -n "tfm:" .github/workflows/main.yml` (4 entries after ADR-011)
 - PedanticMode default: `sed -n 3,5p build/targets/codeanalysis/CodeAnalysis.targets`
 - Perf thresholds: `grep -rn "Threshold.Parse" src/tools/PerfDiff/BDN/Regression/`
 - Perf filter fast path: `grep -n "FileCount" .github/workflows/main.yml`

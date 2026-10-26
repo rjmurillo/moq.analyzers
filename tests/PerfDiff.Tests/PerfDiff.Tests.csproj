@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Version overrides required: PerfDiff has higher transitive versions than the central pin -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <!-- Version override required: PerfDiff has a higher transitive version than the central pin -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Update="Polyfill" ExcludeAssets="compile" />

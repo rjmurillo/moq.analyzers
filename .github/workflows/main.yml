@@ -154,12 +154,20 @@ jobs:
         if: needs.check-paths.outputs.run-build == 'true'
         shell: pwsh
         run: |
+          # Keep this list in sync with AnalyzerAssemblyCompatibilityTests (ADR-011 IMP-003).
           # Verify shipped analyzer DLLs don't reference assembly versions
-          # exceeding what the minimum supported SDK host (.NET 8) provides.
+          # exceeding what the minimum supported SDK host (.NET 10, Roslyn 5.0) provides.
           # See: https://github.com/rjmurillo/moq.analyzers/issues/850
           $maxVersions = @{
-            'System.Collections.Immutable' = [Version]'8.0.0.0'
-            'System.Reflection.Metadata'   = [Version]'8.0.0.0'
+            'System.Collections.Immutable'            = [Version]'9.0.0.0'
+            'System.Reflection.Metadata'              = [Version]'9.0.0.0'
+            'Microsoft.Bcl.AsyncInterfaces'           = [Version]'9.0.0.0'
+            'System.Threading.Channels'               = [Version]'8.0.0.0'
+            # Roslyn in the .NET 10.0.100 SDK. A newer reference gives CS9057 there.
+            'Microsoft.CodeAnalysis'                  = [Version]'5.0.0.0'
+            'Microsoft.CodeAnalysis.CSharp'           = [Version]'5.0.0.0'
+            'Microsoft.CodeAnalysis.Workspaces'       = [Version]'5.0.0.0'
+            'Microsoft.CodeAnalysis.CSharp.Workspaces' = [Version]'5.0.0.0'
           }
           $shippedDlls = @(
             'artifacts/bin/Moq.Analyzers/release/Moq.Analyzers.dll',
@@ -404,8 +412,11 @@ jobs:
   # This is the end-to-end integration test for issue #850.
   #
   # The analyzer targets netstandard2.0 because it must load in two hosts:
-  #   1. dotnet CLI  - csc runs on .NET (8/9/10), tested on Linux ARM
-  #   2. msbuild.exe - csc runs on .NET Framework (VS), tested on Windows x64
+  #   1. dotnet CLI  - csc runs on .NET 10, tested on Linux ARM
+  #   2. msbuild.exe - csc runs on .NET Framework (VS 2026), tested on Windows x64
+  #
+  # The minimum supported host is the .NET 10 SDK (Roslyn 5.0). That SDK needs
+  # MSBuild 18, so VS 2022 (MSBuild 17) is not a supported host.
   analyzer-load-test:
     needs: [check-paths, build]
     timeout-minutes: 20
@@ -414,42 +425,23 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # dotnet CLI compiler host (modern .NET runtime)
-          - dotnet-version: '8.0.x'
-            tfm: net8.0
-            runs-on: ubuntu-24.04-arm
-            build-engine: dotnet
-          - dotnet-version: '9.0.x'
-            tfm: net9.0
-            runs-on: ubuntu-24.04-arm
-            build-engine: dotnet
-          - dotnet-version: '10.0.x'
+          # dotnet CLI compiler host (modern .NET runtime). Pinned to the
+          # minimum supported SDK, so a Roslyn pin above its compiler fails here.
+          - dotnet-version: '10.0.100'
+            sdk-pin: '10.0.100'
             tfm: net10.0
             runs-on: ubuntu-24.04-arm
             build-engine: dotnet
-          # MSBuild/.NET Framework compiler host - VS 2022 (GA)
-          - dotnet-version: '8.0.x'
-            tfm: net472
-            runs-on: windows-2022
-            build-engine: msbuild
-          - dotnet-version: '8.0.x'
-            tfm: net48
-            runs-on: windows-2022
-            build-engine: msbuild
-          - dotnet-version: '8.0.x'
-            tfm: net481
-            runs-on: windows-2022
-            build-engine: msbuild
           # MSBuild/.NET Framework compiler host - VS 2026 (beta)
-          - dotnet-version: '8.0.x'
+          - dotnet-version: '10.0.x'
             tfm: net472
             runs-on: windows-2025-vs2026
             build-engine: msbuild
-          - dotnet-version: '8.0.x'
+          - dotnet-version: '10.0.x'
             tfm: net48
             runs-on: windows-2025-vs2026
             build-engine: msbuild
-          - dotnet-version: '8.0.x'
+          - dotnet-version: '10.0.x'
             tfm: net481
             runs-on: windows-2025-vs2026
             build-engine: msbuild
@@ -511,15 +503,25 @@ jobs:
             </PropertyGroup>
             <ItemGroup>
               <PackageReference Include="Moq.Analyzers" Version="$version" />
+              <PackageReference Include="Moq" Version="4.18.4" />
               <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
             </ItemGroup>
           </Project>
           "@ | Set-Content test-project/TestAnalyzerLoad.csproj
 
+          # Moq1000 must fire. That proves the analyzers ran, not just loaded.
           @"
           namespace TestAnalyzerLoad;
-          public class Placeholder { }
+          public sealed class SealedService { }
+          public class Placeholder
+          {
+              public void Use() => _ = new Moq.Mock<SealedService>();
+          }
           "@ | Set-Content test-project/Placeholder.cs
+
+          if ('${{ matrix.sdk-pin }}' -ne '') {
+            '{ "sdk": { "version": "${{ matrix.sdk-pin }}", "rollForward": "disable" } }' | Set-Content test-project/global.json
+          }
 
       - name: Build with dotnet CLI
         if: needs.check-paths.outputs.run-tests == 'true' && matrix.build-engine == 'dotnet'
@@ -543,9 +545,21 @@ jobs:
             Write-Host "::error::Assembly binding failure (dotnet / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
             exit 1
           }
+          if ($output -match 'CS9057') {
+            Write-Host "::error::CS9057: the host compiler is older than the Roslyn version the analyzer needs (dotnet / ${{ matrix.tfm }}). See docs/architecture/ADR-011-raise-minimum-host-to-dotnet-10-sdk.md"
+            exit 1
+          }
+          if ($output -match 'AD0001') {
+            Write-Host "::error::AD0001: an analyzer threw an exception (dotnet / ${{ matrix.tfm }})"
+            exit 1
+          }
+          if ($output -notmatch 'warning Moq1000') {
+            Write-Host "::error::Moq1000 was not reported, so the analyzers did not run (dotnet / ${{ matrix.tfm }})"
+            exit 1
+          }
 
           Write-Host ""
-          Write-Host "Analyzer loaded successfully (dotnet / ${{ matrix.tfm }})"
+          Write-Host "Analyzer loaded and reported Moq1000 (dotnet / ${{ matrix.tfm }})"
 
       - name: Build with MSBuild
         if: needs.check-paths.outputs.run-tests == 'true' && matrix.build-engine == 'msbuild'
@@ -569,9 +583,21 @@ jobs:
             Write-Host "::error::Assembly binding failure (msbuild / ${{ matrix.tfm }}). See https://github.com/rjmurillo/moq.analyzers/issues/850"
             exit 1
           }
+          if ($output -match 'CS9057') {
+            Write-Host "::error::CS9057: the host compiler is older than the Roslyn version the analyzer needs (msbuild / ${{ matrix.tfm }}). See docs/architecture/ADR-011-raise-minimum-host-to-dotnet-10-sdk.md"
+            exit 1
+          }
+          if ($output -match 'AD0001') {
+            Write-Host "::error::AD0001: an analyzer threw an exception (msbuild / ${{ matrix.tfm }})"
+            exit 1
+          }
+          if ($output -notmatch 'warning Moq1000') {
+            Write-Host "::error::Moq1000 was not reported, so the analyzers did not run (msbuild / ${{ matrix.tfm }})"
+            exit 1
+          }
 
           Write-Host ""
-          Write-Host "Analyzer loaded successfully (msbuild / ${{ matrix.tfm }})"
+          Write-Host "Analyzer loaded and reported Moq1000 (msbuild / ${{ matrix.tfm }})"
 
       - name: Skip notice
         if: needs.check-paths.outputs.run-tests != 'true'

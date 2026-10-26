@@ -84,7 +84,7 @@ which the pre-push git hook runs for you.)
 | `ContinuousIntegrationBuild` / `Deterministic` | not set in repo files; passed as `/p:` by CI composite action and pre-push hook | `.github/actions/setup-restore-build/action.yml`, `build/scripts/hooks/Invoke-PrePushBuild.ps1` | Reproducible builds (DotNet.ReproducibleBuilds 2.0.5, `build/targets/reproducible/`) |
 | `ArtifactsPath` | `$(RepoRoot)/artifacts` | `build/targets/artifacts/Artifacts.props` | All bin/obj/test/package output lands under `artifacts/` |
 | `ArtifactsTestResultsPath` | `$(ArtifactsPath)/TestResults` | same file | TRX + coverage output root |
-| `LangVersion` | `default` | `build/targets/compiler/Compiler.props` | Deliberately floats with the SDK pinned in `global.json`. Do NOT hard-pin a C# version; the shipped assembly still compiles against Roslyn 4.8 (ADR-003) |
+| `LangVersion` | `default` | `build/targets/compiler/Compiler.props` | Deliberately floats with the SDK pinned in `global.json`. Do NOT hard-pin a C# version; the shipped assembly still compiles against Roslyn 5.0 (ADR-011) |
 | `Nullable` | `enable` | same file | Repo-wide nullable reference types |
 | `ImplicitUsings` | `enable` | same file | Global usings on |
 | `EnableNETAnalyzers` | `true` | `build/targets/codeanalysis/CodeAnalysis.props` | Built-in CA rules on |
@@ -286,13 +286,13 @@ Renovate is the automated dependency updater (`enabledManagers`:
 `nuget`, `github-actions`). Several rules exist because violating them ships
 a broken analyzer (CS8032 = "analyzer cannot be loaded" in the consumer's
 compiler — incident #850, hotfix release v0.4.1). Verbatim highlights,
-2026-07-02:
+re-verified 2026-10-25 after ADR-011:
 
 | Rule | Setting | Reason |
 |------|---------|--------|
-| `ignoreDeps` | `Microsoft.CodeAnalysis.CSharp`, `.CSharp.Workspaces`, `.Common`, `.Workspaces.Common` | Roslyn is pinned to **4.8** (ADR-003: minimum supported host is VS 2022 17.8 / .NET 8 SDK). Renovate must never bump it; raising it is a support-matrix decision |
-| `System.Collections.Immutable`, `System.Reflection.Metadata` | `allowedVersions: "<=8.0.0"`, `automerge: false`, label `analyzer-compat` | The shipped DLL must bind against what a .NET 8 host provides (issue #850) |
-| `Microsoft.CodeAnalysis.AnalyzerUtilities` | `allowedVersions: "<4.14.0"`, `automerge: false`, label `analyzer-compat` | 4.14.0+ pulls System.Collections.Immutable 9.0.0.0 → CS8032 in .NET 8 hosts (ADR-004) |
+| `ignoreDeps` | `Microsoft.CodeAnalysis.CSharp`, `.CSharp.Workspaces`, `.Common`, `.Workspaces.Common` | Roslyn is pinned to **5.0.0** (ADR-011: minimum supported host is the .NET 10 SDK, 10.0.100). Renovate must never bump it; raising it is a support-matrix decision |
+| `System.Collections.Immutable`, `System.Reflection.Metadata` | `allowedVersions: "<10.0.0"`, `automerge: false`, label `analyzer-compat` | The shipped DLL must bind against what a .NET 10 SDK host provides. Roslyn 5.0 depends on 9.0.0, so every Roslyn 5.0 host has 9.0.0.0 (issue #850) |
+| `Microsoft.CodeAnalysis.AnalyzerUtilities` | `allowedVersions: "<5.6.0"`, `automerge: false`, label `analyzer-compat` | 5.6.0+ pulls Microsoft.Bcl.AsyncInterfaces 10.0.1, newer than a Roslyn 5.0 host provides (ADR-011) |
 | `System.Formats.Asn1` | `automerge: false`, label `analyzer-compat` | Transitive pin for the shipped analyzer; manual review |
 | `Perfolizer` | `enabled: false` | BenchmarkDotNet declares the **exact** constraint `[0.6.1]`; independent bumps cause NU1608. Update only when BenchmarkDotNet moves (PR #968) |
 | `BenchmarkDotNet` | `automerge: false`, label `benchmark-tooling` | Must be reviewed together with the Perfolizer pin |
@@ -308,12 +308,13 @@ in the NuGet package.
   compatibility review.
 - Guards (triple-layered, all verified):
   1. `ValidateAnalyzerHostCompatibility` MSBuild target
-     (`build/targets/packaging/Packaging.targets:20`) — build **error** if
+     (`build/targets/packaging/Packaging.targets:23`) — build **error** if
      System.Collections.Immutable or System.Reflection.Metadata resolve above
-     major version 8 for a shipped project.
-  2. `tests/Moq.Analyzers.Test/AnalyzerAssemblyCompatibilityTests.cs`.
-  3. The 9-way `analyzer-load-test` CI matrix in `main.yml` (net8/9/10 CLI +
-     net472/48/481 MSBuild) which greps output for CS8032 / binding failures.
+     major version 9 for a shipped project.
+  2. `tests/Moq.Analyzers.Test/AnalyzerAssemblyCompatibilityTests.cs`
+     (`MaxImmutableVersion`/`MaxMetadataVersion` = 9.0.0.0).
+  3. The 4-leg `analyzer-load-test` CI matrix in `main.yml` (net10.0 CLI +
+     net472/48/481 MSBuild on VS 2026) which greps output for CS8032 / binding failures.
 - Validation for renovate.json edits:
   `npx --package renovate -- renovate-config-validator` (documented in #1271).
 
@@ -487,7 +488,7 @@ Re-verify each axis with one command before trusting this document:
 - CI env vars: `grep -n "RUN_FULL_PERF\|FORCE_PERF_BASELINE\|IS_CODACY\|IS_QLTY" .github/workflows/main.yml`
 - Renovate pins: `grep -n "allowedVersions\|enabled\|automerge\|ignoreDeps" renovate.json`
 - Automerge policy issue still open? `gh issue view 1271 --repo rjmurillo/moq.analyzers --json state`
-- Central pins (Roslyn 4.8, AnalyzerUtilities 3.3.4, Perfolizer 0.6.1, System.CommandLine 2.0.3): `grep -n "CodeAnalysis.CSharp\"\|AnalyzerUtilities\|Perfolizer\|System.CommandLine\"" Directory.Packages.props`
+- Central pins (Roslyn 5.0.0, AnalyzerUtilities 5.0.0, Perfolizer 0.6.1, System.CommandLine 2.0.3): `grep -n "CodeAnalysis.CSharp\"\|AnalyzerUtilities\|Perfolizer\|System.CommandLine\"" Directory.Packages.props`
 - Host-compat guard: `grep -n "ValidateAnalyzerHostCompatibility\|_MaxSystem" build/targets/packaging/Packaging.targets`
 - Perf baseline: `cat build/perf/baseline.json && git log --oneline -3 -- build/perf/baseline.json`
 - Version stem: `cat version.json global.json`

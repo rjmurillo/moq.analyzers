@@ -1,4 +1,4 @@
-// Known-positive sample for run-analyzer-on-snippet.sh.
+// Known-positive sample for Invoke-AnalyzerOnSnippet.ps1.
 // Expected: Moq1002 (constructor arguments do not match any constructor of the mocked class)
 // on the argument list `(1, true)` — Foo has only a (string) constructor.
 // Also expected: Moq1400 and Moq1410 (explicit/strict MockBehavior) on `new Mock<Foo>`,
