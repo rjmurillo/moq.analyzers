@@ -244,6 +244,8 @@ canonical invocation (CI and pre-push both use it). Knobs inside
 | `SkipAutoProps` | `true` | auto-properties don't count against coverage |
 | `Functions/Exclude` | `^get_.*`, `^set_.*`, `^.*Test.*`, `^Microsoft\.Testing.*`, `^System\.Diagnostics.*` | property accessors and test-infra functions excluded |
 
+Outside the runsettings, `WindowsWorkspaceConcurrencyGate` (`tests/Moq.Analyzers.Test/Helpers/`) allows at most 8 verifier runs at once on Windows. Each Roslyn workspace there holds 8 MB of memory mapped storage. Without the gate, the parallel test framework ran out of commit memory and crashed the test host. Added 2026-10-26.
+
 Post-processing: `build/targets/tests/Tests.targets` writes TRX logs to
 `artifacts/TestResults/<tfm>/` and runs ReportGenerator
 (`MarkdownSummaryGithub;Cobertura;HtmlInline`) into
