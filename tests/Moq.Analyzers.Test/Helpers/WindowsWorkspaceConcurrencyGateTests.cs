@@ -87,21 +87,49 @@ public class WindowsWorkspaceConcurrencyGateTests
         // No permit is free, so the run waits on the gate until the token cancels the wait.
         using SemaphoreSlim gate = new(0);
         using CancellationTokenSource cancellation = new();
-        await cancellation.CancelAsync();
         bool ran = false;
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => WindowsWorkspaceConcurrencyGate.RunAsync(
-                () =>
-                {
-                    ran = true;
-                    return Task.CompletedTask;
-                },
-                gate,
-                cancellation.Token));
+        Task queued = WindowsWorkspaceConcurrencyGate.RunAsync(
+            () =>
+            {
+                ran = true;
+                return Task.CompletedTask;
+            },
+            gate,
+            cancellation.Token);
 
+        Assert.False(queued.IsCompleted);
+        await cancellation.CancelAsync();
+
+        OperationCanceledException? canceled = null;
+        try
+        {
+            await queued;
+        }
+        catch (OperationCanceledException exception)
+        {
+            canceled = exception;
+        }
+
+        Assert.NotNull(canceled);
         Assert.False(ran);
         Assert.Equal(0, gate.CurrentCount);
+    }
+
+    [Fact]
+    public void SelectGate_OnWindows_ReturnsSharedGate()
+    {
+        SemaphoreSlim? first = WindowsWorkspaceConcurrencyGate.SelectGate(isWindows: true);
+        SemaphoreSlim? second = WindowsWorkspaceConcurrencyGate.SelectGate(isWindows: true);
+
+        Assert.NotNull(first);
+        Assert.Same(first, second);
+    }
+
+    [Fact]
+    public void SelectGate_OffWindows_ReturnsNoGate()
+    {
+        Assert.Null(WindowsWorkspaceConcurrencyGate.SelectGate(isWindows: false));
     }
 
     private static void InterlockedMax(ref int target, int value)

@@ -30,7 +30,7 @@ internal static class WindowsWorkspaceConcurrencyGate
     /// <param name="cancellationToken">The token that cancels the wait.</param>
     /// <returns>A task that completes when <paramref name="run"/> completes.</returns>
     internal static Task RunAsync(Func<Task> run, CancellationToken cancellationToken)
-        => RunAsync(run, OperatingSystem.IsWindows() ? Gate : null, cancellationToken);
+        => RunAsync(run, SelectGate(OperatingSystem.IsWindows()), cancellationToken);
 
     /// <summary>
     /// Runs <paramref name="run"/> while it holds one permit of <paramref name="gate"/>.
@@ -57,4 +57,11 @@ internal static class WindowsWorkspaceConcurrencyGate
             gate.Release();
         }
     }
+
+    /// <summary>
+    /// Gets the gate that applies on a platform.
+    /// </summary>
+    /// <param name="isWindows"><see langword="true"/> when the tests run on Windows.</param>
+    /// <returns>The shared gate on Windows; otherwise, <see langword="null"/>, which means no limit.</returns>
+    internal static SemaphoreSlim? SelectGate(bool isWindows) => isWindows ? Gate : null;
 }
