@@ -15,6 +15,7 @@
     <!-- Maximum assembly versions the minimum supported host (.NET 10 SDK, Roslyn 5.0) provides -->
     <_MaxSystemCollectionsImmutableMajor>9</_MaxSystemCollectionsImmutableMajor>
     <_MaxSystemReflectionMetadataMajor>9</_MaxSystemReflectionMetadataMajor>
+    <_MaxMicrosoftBclAsyncInterfacesMajor>9</_MaxMicrosoftBclAsyncInterfacesMajor>
   </PropertyGroup>
 
   <Target Name="ValidateAnalyzerHostCompatibility"
@@ -26,6 +27,8 @@
                Condition="'%(NuGetPackageId)' == 'System.Collections.Immutable'" />
       <_SrmRef Include="@(ResolvedCompileFileDefinitions)"
                Condition="'%(NuGetPackageId)' == 'System.Reflection.Metadata'" />
+      <_BclAsyncRef Include="@(ResolvedCompileFileDefinitions)"
+                    Condition="'%(NuGetPackageId)' == 'Microsoft.Bcl.AsyncInterfaces'" />
     </ItemGroup>
 
     <Error Condition="'@(_SciRef)' != '' AND
@@ -35,6 +38,10 @@
     <Error Condition="'@(_SrmRef)' != '' AND
                       $([System.Version]::Parse('%(_SrmRef.NuGetPackageVersion)').Major) &gt; $(_MaxSystemReflectionMetadataMajor)"
            Text="BUILD BLOCKED: System.Reflection.Metadata resolved to %(_SrmRef.NuGetPackageVersion) for shipped analyzer project '$(MSBuildProjectName)'. Maximum allowed major version is $(_MaxSystemReflectionMetadataMajor).x. The analyzer runs in the user's compiler host which may only have version $(_MaxSystemReflectionMetadataMajor).0.0.0. See: https://github.com/rjmurillo/moq.analyzers/issues/850" />
+
+    <Error Condition="'@(_BclAsyncRef)' != '' AND
+                      $([System.Version]::Parse('%(_BclAsyncRef.NuGetPackageVersion)').Major) &gt; $(_MaxMicrosoftBclAsyncInterfacesMajor)"
+           Text="BUILD BLOCKED: Microsoft.Bcl.AsyncInterfaces resolved to %(_BclAsyncRef.NuGetPackageVersion) for shipped analyzer project '$(MSBuildProjectName)'. Maximum allowed major version is $(_MaxMicrosoftBclAsyncInterfacesMajor).x. The analyzer runs in the user's compiler host which may only have version $(_MaxMicrosoftBclAsyncInterfacesMajor).0.0.0. See: https://github.com/rjmurillo/moq.analyzers/issues/850" />
 
   </Target>
 </Project>

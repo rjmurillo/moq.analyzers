@@ -67,6 +67,7 @@ public static class ReferenceAssemblyCatalog
     };
 
     // Microsoft.CodeAnalysis.Analyzer.Testing 1.1.2-beta1 has no ReferenceAssemblies.Net.Net100, so build it from the ref pack.
+    // Replace this with ReferenceAssemblies.Net.Net100 when the testing package ships it.
     private static ReferenceAssemblies CreateNet100()
     {
         return new ReferenceAssemblies(

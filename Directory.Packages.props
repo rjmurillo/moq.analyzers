@@ -26,7 +26,10 @@
       AnalyzerUtilities is bundled in the shipped analyzer nupkg.
       Its references must not exceed what the minimum supported host
       (.NET 10 SDK, Roslyn 5.0) provides, or the analyzer fails with CS8032.
-      Version 5.0.0 depends on Microsoft.CodeAnalysis.Common 4.12.0.
+      Version 5.0.0 references Microsoft.CodeAnalysis 4.12.0.0, SCI and SRM
+      8.0.0.0, and Microsoft.Bcl.AsyncInterfaces 9.0.0.0. All are within the
+      Roslyn 5.0 host. Renovate caps it below 5.6.0, which needs
+      Microsoft.Bcl.AsyncInterfaces 10.0.1.
       See: https://github.com/rjmurillo/moq.analyzers/issues/850
     -->
     <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.0.0" />

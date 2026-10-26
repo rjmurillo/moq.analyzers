@@ -55,7 +55,8 @@ For analyzers that cover the rest of a test project, see [Analyzers that pair we
 
 Before you install, make sure your build uses the .NET 10 SDK (10.0.100 or later) or Visual Studio 2026.
 Moq.Analyzers needs Roslyn 5.0. Older compilers, such as the .NET 8 or .NET 9 SDK or Visual Studio 2022,
-report warning CS9057 and do not run the analyzers.
+report warning CS9057 and do not run the analyzers. If you must stay on one of those hosts, keep Moq.Analyzers 0.4.2,
+the last release built for Roslyn 4.8.
 
 To install Moq.Analyzers from NuGet, run this command in each test project:
 

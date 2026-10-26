@@ -31,7 +31,9 @@ xUnit test project that references Moq and one class library that does not.
 
 ## Prerequisites
 
-- A [supported version of the .NET SDK](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core).
+- The .NET 10 SDK (10.0.100 or later) or Visual Studio 2026. Moq.Analyzers needs Roslyn 5.0. Older compilers,
+  such as the .NET 8 or .NET 9 SDK or Visual Studio 2022, report warning CS9057 and do not run the analyzers.
+  On those hosts, keep Moq.Analyzers 0.4.2.
 - A project that references [Moq](https://www.nuget.org/packages/Moq). Moq.Analyzers reports nothing in a project
   that does not use Moq.
 

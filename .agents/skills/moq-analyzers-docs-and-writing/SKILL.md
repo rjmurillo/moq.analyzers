@@ -157,9 +157,8 @@ Template rules:
 ADR = Architecture Decision Record: a short document that captures one
 irreversible-ish technical decision so nobody relitigates it from scratch.
 Extracted from `docs/architecture/ADR-001-symbol-based-detection-over-string-matching.md`;
-ADR-001 through ADR-010 share this structure including the tagged-ID convention
-(verified 2026-07-02). ADR-011 uses the same front matter and tagged IDs, but has
-a Reversibility section in place of Alternatives Considered and Implementation Notes. File name: `docs/architecture/ADR-0NN-kebab-case-title.md`.
+ADR-001 through ADR-011 share this structure including the tagged-ID convention
+(verified 2026-07-02; ADR-011 checked 2026-10-25). File name: `docs/architecture/ADR-0NN-kebab-case-title.md`.
 
 ```markdown
 ---

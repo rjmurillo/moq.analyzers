@@ -17,6 +17,11 @@ public class AnalyzerAssemblyCompatibilityTests
     // See: https://github.com/rjmurillo/moq.analyzers/issues/850
     private static readonly Version MaxImmutableVersion = new(9, 0, 0, 0);
     private static readonly Version MaxMetadataVersion = new(9, 0, 0, 0);
+    private static readonly Version MaxAsyncInterfacesVersion = new(9, 0, 0, 0);
+    private static readonly Version MaxChannelsVersion = new(8, 0, 0, 0);
+
+    // The compiler in the .NET 10.0.100 SDK is Roslyn 5.0.0.0. A newer reference gives CS9057 on that SDK.
+    private static readonly Version MaxCompilerVersion = new(5, 0, 0, 0);
 
     public static TheoryData<string> ShippedAssemblies =>
         new()
@@ -52,6 +57,12 @@ public class AnalyzerAssemblyCompatibilityTests
 
             AssertVersionNotExceeded(assemblyName, references, "System.Collections.Immutable", MaxImmutableVersion);
             AssertVersionNotExceeded(assemblyName, references, "System.Reflection.Metadata", MaxMetadataVersion);
+            AssertVersionNotExceeded(assemblyName, references, "Microsoft.Bcl.AsyncInterfaces", MaxAsyncInterfacesVersion);
+            AssertVersionNotExceeded(assemblyName, references, "System.Threading.Channels", MaxChannelsVersion);
+            AssertVersionNotExceeded(assemblyName, references, "Microsoft.CodeAnalysis", MaxCompilerVersion);
+            AssertVersionNotExceeded(assemblyName, references, "Microsoft.CodeAnalysis.CSharp", MaxCompilerVersion);
+            AssertVersionNotExceeded(assemblyName, references, "Microsoft.CodeAnalysis.Workspaces", MaxCompilerVersion);
+            AssertVersionNotExceeded(assemblyName, references, "Microsoft.CodeAnalysis.CSharp.Workspaces", MaxCompilerVersion);
         }
         finally
         {
