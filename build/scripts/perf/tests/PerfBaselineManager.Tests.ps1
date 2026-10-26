@@ -172,6 +172,7 @@ exit 0
         $cached = Join-Path $script:Output 'baseline'
         New-Item -ItemType Directory -Force -Path $cached | Out-Null
         New-Item -ItemType File -Force -Path (Join-Path $cached 'cached-report-full-compressed.json') | Out-Null
+        Set-Content -Path (Join-Path $cached 'baseline-sha.txt') -Value 'abc' -NoNewline
 
         Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" -useCachedBaseline $true `
             -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
@@ -372,6 +373,39 @@ exit 0
         $result | Should -BeNullOrEmpty
         Join-Path $script:Output 'perfTest' | Should -Exist
         Join-Path $script:CaseRoot 'Join-Path' | Should -Not -Exist
+    }
+
+    It 'runs the baseline when the cached reports come from another SHA' {
+        $cached = Join-Path $script:Output 'baseline'
+        New-Item -ItemType Directory -Force -Path $cached | Out-Null
+        New-Item -ItemType File -Force -Path (Join-Path $cached 'cached-report-full-compressed.json') | Out-Null
+        Set-Content -Path (Join-Path $cached 'baseline-sha.txt') -Value 'old' -NoNewline
+
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" -useCachedBaseline $true `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        $phases = Get-Content $env:STUB_LOG | ForEach-Object { ($_ -split '\|')[0] }
+        $phases | Should -Be @('warmup', 'baseline', 'perfTest', 'compare')
+        Get-Content -Raw (Join-Path $cached 'baseline-sha.txt') | Should -Be 'abc'
+    }
+
+    It 'runs the baseline when the cached reports have no SHA record' {
+        $cached = Join-Path $script:Output 'baseline'
+        New-Item -ItemType Directory -Force -Path $cached | Out-Null
+        New-Item -ItemType File -Force -Path (Join-Path $cached 'cached-report-full-compressed.json') | Out-Null
+
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" -useCachedBaseline $true `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        $phases = Get-Content $env:STUB_LOG | ForEach-Object { ($_ -split '\|')[0] }
+        $phases | Should -Be @('warmup', 'baseline', 'perfTest', 'compare')
+    }
+
+    It 'records the baseline SHA after a fresh baseline run' {
+        Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" `
+            -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
+
+        Get-Content -Raw (Join-Path $script:Output 'baseline\baseline-sha.txt') | Should -Be 'abc'
     }
 
     It 'runs the baseline when the cached baseline folder has no report (#1383)' {
