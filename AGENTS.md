@@ -70,7 +70,7 @@ If any of these are missing, the PR will not be reviewed.
 
 **Before writing any code, you MUST:**
 
-- **Demonstrate actual domain knowledge** through specific technical questions
+- **Demonstrate actual domain knowledge** by answering specific technical questions
 - **Validate understanding** of critical concepts before proceeding
 - **Prove comprehension** through concrete examples, not mere declarations
 - **Stop immediately** if you cannot demonstrate required expertise
