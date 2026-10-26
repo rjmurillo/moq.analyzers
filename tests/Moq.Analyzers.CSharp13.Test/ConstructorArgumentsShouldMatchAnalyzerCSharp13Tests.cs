@@ -1,4 +1,6 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Moq.Analyzers;
@@ -53,6 +55,15 @@ public class ConstructorArgumentsShouldMatchAnalyzerCSharp13Tests
             FixedCode = source,
             ReferenceAssemblies = ReferenceAssemblyCatalog.Catalog[ReferenceAssemblyCatalog.Net100WithNewMoq],
         };
+
+        // Pin C# 13. The default on Roslyn 5.0 is C# 14, which would not prove C# 13 behavior.
+        test.SolutionTransforms.Add((solution, projectId) =>
+        {
+            Project project = solution.GetProject(projectId) ?? throw new InvalidOperationException("The C# 13 test project was not found.");
+            CSharpParseOptions parseOptions = project.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
+
+            return solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion.CSharp13));
+        });
 
         await test.RunAsync().ConfigureAwait(false);
     }

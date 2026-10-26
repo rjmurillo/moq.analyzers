@@ -20,7 +20,7 @@ gh act -l pull_request              # list jobs triggered by pull_request
 
 ```bash
 gh act -j build                     # run the build job
-gh act -j analyzer-load-test        # run the analyzer load test
+gh act -j analyzer-load-test --matrix tfm:net10.0   # run the Linux leg of the analyzer load test
 ```
 
 **Run a specific workflow file:**
@@ -33,7 +33,7 @@ gh act -W .github/workflows/main.yml
 
 ```bash
 gh act -j analyzer-load-test --matrix tfm:net10.0
-gh act -j analyzer-load-test --matrix build-engine:msbuild
+gh act -j analyzer-load-test --matrix build-engine:dotnet
 gh act -j build --matrix os:ubuntu-24.04-arm
 ```
 
@@ -64,7 +64,7 @@ gh act workflow_dispatch --input run_performance=true --input force_baseline=fal
 
 **Container architecture:**
 
-The project uses ARM runners (`ubuntu-24.04-arm`, `windows-11-arm`). Docker defaults to the
+The project uses ARM runners (`ubuntu-24.04-arm`, `ubuntu-26.04-arm`). Docker defaults to the
 host architecture. To force a specific architecture:
 
 ```bash
@@ -88,7 +88,8 @@ if: ${{ !env.ACT }}
 
 **Limitations:**
 
-- Windows-based jobs (`windows-latest`, `windows-11-arm`) do not run in `act`. Test those
+- Windows-based jobs (`windows-latest` for `test`, `windows-2025-vs2026` for the `analyzer-load-test`
+  MSBuild legs) do not run in `act`. Test those
   through GitHub Actions directly.
 - ARM runner images may not match GitHub-hosted runners exactly.
 - The `microsoft/setup-msbuild` action requires Windows and will not work in `act`.

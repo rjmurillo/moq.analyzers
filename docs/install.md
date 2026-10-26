@@ -189,8 +189,8 @@ Add it to that file:
 ```
 
 NuGet applies `PrivateAssets="All"` to a global package reference, so you do not set it. You need no
-`PackageReference` item and no `PackageVersion` item. Every host in
-[Prerequisites](#prerequisites) supports global package references. See
+`PackageReference` item and no `PackageVersion` item. Global package references need Visual Studio 2022 17.4, .NET
+SDK 7.0.100, and NuGet 6.4, or later. Every host that runs releases after 0.4.2 meets this. See
 [Global package references](https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management#global-package-references)
 on Microsoft Learn.
 

@@ -38,7 +38,7 @@
 
     Exit codes:
       0 = harness ran (with or without Moq diagnostics)
-      1 = usage or setup error
+      1 = usage or setup error, or a build failure that is not a compile error, crash, or load failure
       2 = snippet failed to compile (CS errors printed)
       3 = an analyzer crashed (AD0001)
       4 = an analyzer or a dependency failed to LOAD (CS8032/CS8034/CS9057). The analyzers never
@@ -142,6 +142,14 @@ try {
 
     # Only emit <OutputType> when the caller set one; otherwise inherit the SDK default.
     $outputTypeElement = ''
+
+    # A checkout path can hold MSBuild-special characters (% $ @ ; ' * ?) or XML-special ones (& < >).
+    # Escape MSBuild characters as %XX first, then XML-escape, so the <Analyzer> item paths stay valid.
+    $analyzerItemDir = $analyzerDir
+    foreach ($ch in @('%', '$', '@', ';', "'", '*', '?')) {
+        $analyzerItemDir = $analyzerItemDir.Replace($ch, ('%{0:X2}' -f [int][char]$ch))
+    }
+    $analyzerItemDir = [System.Security.SecurityElement]::Escape($analyzerItemDir)
     if ($outputType -ne '') {
         $outputTypeElement = "    <OutputType>$outputType</OutputType>"
     }
@@ -163,9 +171,9 @@ $outputTypeElement
     <PackageReference Include="Moq" Version="$MoqVersion" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="$analyzerDir/Moq.Analyzers.dll" />
-    <Analyzer Include="$analyzerDir/Moq.CodeFixes.dll" />
-    <Analyzer Include="$analyzerDir/Microsoft.CodeAnalysis.AnalyzerUtilities.dll" />
+    <Analyzer Include="$analyzerItemDir/Moq.Analyzers.dll" />
+    <Analyzer Include="$analyzerItemDir/Moq.CodeFixes.dll" />
+    <Analyzer Include="$analyzerItemDir/Microsoft.CodeAnalysis.AnalyzerUtilities.dll" />
   </ItemGroup>
 </Project>
 "@ | Set-Content -LiteralPath (Join-Path $work 'Snippet.csproj')
@@ -232,11 +240,9 @@ $outputTypeElement
     # A crash outranks the rest: Roslyn disables the crashing analyzer for the session.
     if ($adCrashes.Count -gt 0) { exit 3 }
     if ($csErrors.Count -gt 0) { exit 2 }
-    if ($buildExit -ne 0 -and $moqLines.Count -gt 0) {
-        # Keep the exit code of the old script (0), but do not hide the failure.
-        [Console]::Error.WriteLine("warning: dotnet build exited $buildExit after reporting Moq diagnostics. Run with KEEP_HARNESS=1 to read $buildLog.")
-    }
-    if ($buildExit -ne 0 -and $moqLines.Count -eq 0) {
+    # Compiler errors, load failures, and crashes already have their own exit codes above.
+    # Any other build failure is a setup failure, even when Moq diagnostics were reported.
+    if ($buildExit -ne 0) {
         [Console]::Error.WriteLine('--- build failed for a non-snippet reason; full log follows ---')
         $logLines | ForEach-Object { [Console]::Error.WriteLine($_) }
         exit 1
