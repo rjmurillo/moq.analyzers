@@ -68,6 +68,132 @@ If any of these are missing, the PR will not be reviewed.
 
 ### 1. Pre-Implementation Expertise Validation
 
+**Before writing any code, you MUST:**
+
+- **Demonstrate actual domain knowledge** through specific technical questions
+- **Validate understanding** of critical concepts before proceeding
+- **Prove comprehension** through concrete examples, not mere declarations
+- **Stop immediately** if you cannot demonstrate required expertise
+
+**Implementation:**
+
+- Answer domain-specific technical questions before coding
+- Provide concrete examples of your understanding
+- Request expert guidance if uncertain about any concept
+- Never proceed with "educated guesses" or trial-and-error approaches
+
+### 2. Mandatory Workflow Compliance
+
+**You MUST enforce and validate required steps:**
+
+- **Check configuration files** and documentation before making changes
+- **Verify completion** of mandatory processes before allowing progression
+- **Validate that each step** was actually performed, not just mentioned
+- **Stop progression** if any required step is incomplete
+
+**Implementation:**
+
+- Read and understand project-specific instructions first
+- Follow established patterns and conventions
+- Verify each workflow step was completed successfully
+- Document compliance with required processes
+
+### 3. Critical Failure Recognition
+
+**You MUST establish clear stop conditions:**
+
+- **Immediate halt** for uncertainty or lack of understanding
+- **Specific criteria** for when to request expert guidance
+- **No trial-and-error tolerance** - require deliberate, correct understanding
+- **Clear escalation paths** when encountering complex situations
+
+**Implementation:**
+
+- Stop immediately if you cannot explain your approach
+- Request expert guidance when uncertain about domain concepts
+- Never attempt to "figure out" solutions through guessing
+- Establish clear failure thresholds and escalation protocols
+
+### 4. Tool Usage Reliability
+
+**You MUST use available tools consistently and reliably:**
+
+- **Consistent, reliable use** of available tools regardless of platform
+- **Graceful handling** of tool failures and interruptions
+- **Validation** that tools were used correctly and effectively
+- **Retry mechanisms** for interrupted operations
+
+**Implementation:**
+
+- Use tools systematically and consistently
+- Handle tool failures gracefully with clear error messages
+- Validate tool outputs before proceeding
+- Implement retry logic for transient failures
+
+### 5. Context and State Management
+
+**You MUST preserve context and maintain state:**
+
+- **Preserve context** across task interruptions or resumptions
+- **Maintain state** during complex multi-step operations
+- **Automatic recovery** of context after interruptions
+- **Clear state transitions** between different phases of work
+
+**Implementation:**
+
+- Maintain clear state throughout complex operations
+- Recover context automatically after interruptions
+- Document state transitions clearly
+- Preserve important information across tool calls
+
+### 6. Documentation and Configuration Awareness
+
+**You MUST check and understand project context:**
+
+- **Check relevant files** before making changes
+- **Read and understand** project-specific instructions
+- **Follow established patterns** and conventions
+- **Respect existing architecture** and design decisions
+
+**Implementation:**
+
+- Always read configuration files and documentation first
+- Understand project structure and conventions
+- Follow established naming and architectural patterns
+- Respect existing code organization and design decisions
+
+### 7. Validation and Verification
+
+**You MUST verify work through appropriate means:**
+
+- **Verify work** through appropriate means (tests, analysis, etc.)
+- **Confirm changes** meet requirements before considering tasks complete
+- **Run validation checks** after modifications
+- **Ensure quality** through systematic verification
+
+**Implementation:**
+
+- Run tests and validation checks after changes
+- Verify that modifications meet stated requirements
+- Use appropriate verification methods for the domain
+- Document validation results clearly
+
+### 8. No Trial-and-Error Tolerance
+
+**You MUST require deliberate understanding:**
+
+- **Require deliberate understanding** before implementation
+- **No guessing** at solutions or approaches
+- **Clear escalation paths** when uncertain
+- **Expert guidance triggers** for complex or unclear situations
+
+**Implementation:**
+
+- Never implement solutions you don't fully understand
+- Stop and request clarification when uncertain
+- Establish clear criteria for when to seek expert guidance
+- Document reasoning and approach clearly
+
 ---
 
 ## Escalation and Stop Conditions
@@ -215,127 +341,6 @@ Use Serena's thinking tools for deliberate reasoning:
 - **`think_about_whether_you_are_done`**: Verify task completion before marking done
 
 These tools enforce the project's "No Trial-and-Error" policy by requiring structured deliberation.
-
----
-
-**Implementation:**
-
-- Answer domain-specific technical questions before coding
-- Provide concrete examples of your understanding
-- Request expert guidance if uncertain about any concept
-- Never proceed with "educated guesses" or trial-and-error approaches
-
-### 2. Mandatory Workflow Compliance
-
-**You MUST enforce and validate required steps:**
-
-- **Check configuration files** and documentation before making changes
-- **Verify completion** of mandatory processes before allowing progression
-- **Validate that each step** was actually performed, not just mentioned
-- **Stop progression** if any required step is incomplete
-
-**Implementation:**
-
-- Read and understand project-specific instructions first
-- Follow established patterns and conventions
-- Verify each workflow step was completed successfully
-- Document compliance with required processes
-
-### 3. Critical Failure Recognition
-
-**You MUST establish clear stop conditions:**
-
-- **Immediate halt** for uncertainty or lack of understanding
-- **Specific criteria** for when to request expert guidance
-- **No trial-and-error tolerance** - require deliberate, correct understanding
-- **Clear escalation paths** when encountering complex situations
-
-**Implementation:**
-
-- Stop immediately if you cannot explain your approach
-- Request expert guidance when uncertain about domain concepts
-- Never attempt to "figure out" solutions through guessing
-- Establish clear failure thresholds and escalation protocols
-
-### 4. Tool Usage Reliability
-
-**You MUST use available tools consistently and reliably:**
-
-- **Consistent, reliable use** of available tools regardless of platform
-- **Graceful handling** of tool failures and interruptions
-- **Validation** that tools were used correctly and effectively
-- **Retry mechanisms** for interrupted operations
-
-**Implementation:**
-
-- Use tools systematically and consistently
-- Handle tool failures gracefully with clear error messages
-- Validate tool outputs before proceeding
-- Implement retry logic for transient failures
-
-### 5. Context and State Management
-
-**You MUST preserve context and maintain state:**
-
-- **Preserve context** across task interruptions or resumptions
-- **Maintain state** during complex multi-step operations
-- **Automatic recovery** of context after interruptions
-- **Clear state transitions** between different phases of work
-
-**Implementation:**
-
-- Maintain clear state throughout complex operations
-- Recover context automatically after interruptions
-- Document state transitions clearly
-- Preserve important information across tool calls
-
-### 6. Documentation and Configuration Awareness
-
-**You MUST check and understand project context:**
-
-- **Check relevant files** before making changes
-- **Read and understand** project-specific instructions
-- **Follow established patterns** and conventions
-- **Respect existing architecture** and design decisions
-
-**Implementation:**
-
-- Always read configuration files and documentation first
-- Understand project structure and conventions
-- Follow established naming and architectural patterns
-- Respect existing code organization and design decisions
-
-### 7. Validation and Verification
-
-**You MUST verify work through appropriate means:**
-
-- **Verify work** through appropriate means (tests, analysis, etc.)
-- **Confirm changes** meet requirements before considering tasks complete
-- **Run validation checks** after modifications
-- **Ensure quality** through systematic verification
-
-**Implementation:**
-
-- Run tests and validation checks after changes
-- Verify that modifications meet stated requirements
-- Use appropriate verification methods for the domain
-- Document validation results clearly
-
-### 8. No Trial-and-Error Tolerance
-
-**You MUST require deliberate understanding:**
-
-- **Require deliberate understanding** before implementation
-- **No guessing** at solutions or approaches
-- **Clear escalation paths** when uncertain
-- **Expert guidance triggers** for complex or unclear situations
-
-**Implementation:**
-
-- Never implement solutions you don't fully understand
-- Stop and request clarification when uncertain
-- Establish clear criteria for when to seek expert guidance
-- Document reasoning and approach clearly
 
 ---
 
@@ -557,7 +562,6 @@ If you encounter:
 - Update `src/Analyzers/AnalyzerReleases.Unshipped.md` and add or update documentation in `docs/rules/` for each diagnostic.
 - **CRITICAL: Do not modify `AnalyzerReleases.Shipped.md`**. This file is an immutable record of past releases. All changes, including category or severity updates to existing rules, **MUST** be documented in `AnalyzerReleases.Unshipped.md`.
 - **Analyzer Release Notes Logic:** For this repository, `AnalyzerReleases.Unshipped.md` must **only** contain a `### New Rules` section. Any modification to a previously shipped rule (e.g., changing its category or severity) is listed as if it were a new rule in this file. The `Changed Rules` and `Removed Rules` sections are only used in `AnalyzerReleases.Shipped.md` when a release is being finalized.
-- **Prioritize Error Message URLs:** If a build or tool error message contains a URL, you **MUST** follow it immediately. This URL is your primary source of truth for fixing the error, taking precedence over web searches or other assumptions.
 - Add or update unit tests in `tests/Moq.Analyzers.Test/` for every analyzer or code fix change.
 - **`src/Common` coverage is measured only through analyzer/code-fix tests.** `src/Common` compiles into every importing project (including the test project), so direct unit tests of Common helpers exercise the test-assembly copy and report **0% coverage** in the shipping `Moq.Analyzers.dll`. The coverage runsettings instruments only `Moq.Analyzers.dll` and `Moq.CodeFixes.dll`. To earn shipping coverage for Common code, exercise it through analyzer or code-fix **verifier** tests, not standalone unit tests.
 - After any file edit, immediately run Codacy analysis for the edited file and resolve all reported issues before proceeding.
@@ -575,9 +579,9 @@ If you encounter:
 
 ## AI Agent Code Review
 
-I need your help tracking down and fixing some bugs that have been reported in this codebase.
+Use this checklist only when a user asks you to review code for bugs or to fix reported bugs. It is not a standing task.
 
-I suspect the bugs are related to:
+Common bug sources to check:
 
 - Incorrect handling of edge cases
 - Off-by-one errors in loops or array indexing
@@ -602,7 +606,7 @@ When you find potential bugs, for each one provide:
 3. Example input that would trigger the bug
 4. Suggestions for how to fix it
 
-After analysis, please update the code with your proposed fixes. Try to match the existing code style. Add regression tests if possible, to prevent the bugs from recurring.
+If the user asked for fixes, update the code to match the existing style and add a regression test for each fix. If the user asked only for a review, report the findings and do not change code.
 
 ---
 
