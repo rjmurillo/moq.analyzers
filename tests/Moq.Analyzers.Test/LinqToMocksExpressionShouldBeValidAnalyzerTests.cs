@@ -2,7 +2,7 @@ using Verifier = Moq.Analyzers.Test.Helpers.AnalyzerVerifier<Moq.Analyzers.LinqT
 
 namespace Moq.Analyzers.Test;
 
-public partial class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper output)
+public class LinqToMocksExpressionShouldBeValidAnalyzerTests(ITestOutputHelper output)
 {
     private readonly ITestOutputHelper output = output;
 

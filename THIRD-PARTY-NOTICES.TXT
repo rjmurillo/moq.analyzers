@@ -10,7 +10,7 @@ The attached notices are provided for information only.
 License notice for Microsoft.CodeAnalysis.AnalyzerUtilities
 -----------------------------------------------------------
 
-https://github.com/dotnet/roslyn-analyzers
+https://github.com/dotnet/roslyn
 
 The MIT License (MIT)
 

@@ -451,9 +451,9 @@ any reference higher than 9.0.0.0 is the failure.
 
 | Layer | Where | What it proves |
 |---|---|---|
-| `ValidateAnalyzerHostCompatibility` MSBuild target | `build/targets/packaging/Packaging.targets:20` | Resolved package versions ≤ max majors, at build/pack time |
+| `ValidateAnalyzerHostCompatibility` MSBuild target | `build/targets/packaging/Packaging.targets:23` | Resolved package versions ≤ max majors, at build/pack time |
 | Inline CI DLL check | `main.yml` "Validate analyzer host compatibility" | The three shipped RELEASE DLLs' actual assembly references |
-| `analyzer-load-test` CI job | `main.yml` (4-leg matrix after ADR-011: net10.0 dotnet-CLI on Linux ARM + net472/48/481 MSBuild on windows-2025-vs2026, all dotnet-version 10.0.x) | The packed nupkg actually loads — build output grepped for CS8032 per leg |
+| `analyzer-load-test` CI job | `main.yml` (4-leg matrix after ADR-011: net10.0 dotnet-CLI on Linux ARM pinned to SDK 10.0.100 via `global.json` with `rollForward: disable`, plus net472/48/481 MSBuild on windows-2025-vs2026 with dotnet-version 10.0.x) | The packed nupkg loads and runs: each leg fails on CS8032, CS9057, AD0001, an assembly binding error, or a missing `warning Moq1000` |
 
 **Pitfalls:** a passing LOCAL build proves nothing — your dev SDK is .NET 10 and
 happily provides 10.x assemblies the VS 2026 .NET Framework host may lack (it only

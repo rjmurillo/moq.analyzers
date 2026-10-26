@@ -308,7 +308,7 @@ in the NuGet package.
   compatibility review.
 - Guards (triple-layered, all verified):
   1. `ValidateAnalyzerHostCompatibility` MSBuild target
-     (`build/targets/packaging/Packaging.targets:20`) — build **error** if
+     (`build/targets/packaging/Packaging.targets:23`) — build **error** if
      System.Collections.Immutable or System.Reflection.Metadata resolve above
      major version 9 for a shipped project.
   2. `tests/Moq.Analyzers.Test/AnalyzerAssemblyCompatibilityTests.cs`

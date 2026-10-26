@@ -31,9 +31,11 @@ xUnit test project that references Moq and one class library that does not.
 
 ## Prerequisites
 
-- The .NET 10 SDK (10.0.100 or later) or Visual Studio 2026. Moq.Analyzers needs Roslyn 5.0. Older compilers,
-  such as the .NET 8 or .NET 9 SDK or Visual Studio 2022, report warning CS9057 and do not run the analyzers.
-  On those hosts, keep Moq.Analyzers 0.4.2.
+- A [supported version of the .NET SDK](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core).
+  Moq.Analyzers 0.4.2 and earlier run on Roslyn 4.8.
+- For releases after 0.4.2: the .NET 10 SDK (10.0.100 or later) or Visual Studio 2026, because those releases are
+  built for Roslyn 5.0. Older compilers, such as the .NET 8 or .NET 9 SDK or Visual Studio 2022, skip the analyzers
+  and report warning CS9057. On those hosts, keep Moq.Analyzers 0.4.2.
 - A project that references [Moq](https://www.nuget.org/packages/Moq). Moq.Analyzers reports nothing in a project
   that does not use Moq.
 
@@ -187,8 +189,8 @@ Add it to that file:
 ```
 
 NuGet applies `PrivateAssets="All"` to a global package reference, so you do not set it. You need no
-`PackageReference` item and no `PackageVersion` item. Global package references need Visual Studio 2022 17.4, .NET
-SDK 7.0.100, and NuGet 6.4, or later. See
+`PackageReference` item and no `PackageVersion` item. Every host in
+[Prerequisites](#prerequisites) supports global package references. See
 [Global package references](https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management#global-package-references)
 on Microsoft Learn.
 

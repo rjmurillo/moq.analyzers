@@ -232,6 +232,10 @@ $outputTypeElement
     # A crash outranks the rest: Roslyn disables the crashing analyzer for the session.
     if ($adCrashes.Count -gt 0) { exit 3 }
     if ($csErrors.Count -gt 0) { exit 2 }
+    if ($buildExit -ne 0 -and $moqLines.Count -gt 0) {
+        # Keep the exit code of the old script (0), but do not hide the failure.
+        [Console]::Error.WriteLine("warning: dotnet build exited $buildExit after reporting Moq diagnostics. Run with KEEP_HARNESS=1 to read $buildLog.")
+    }
     if ($buildExit -ne 0 -and $moqLines.Count -eq 0) {
         [Console]::Error.WriteLine('--- build failed for a non-snippet reason; full log follows ---')
         $logLines | ForEach-Object { [Console]::Error.WriteLine($_) }

@@ -54,6 +54,7 @@
         "System.Reflection.Metadata"
       ],
       "allowedVersions": "<10.0.0",
+      "minimumReleaseAge": "14 days",
       "automerge": false,
       "addLabels": ["analyzer-compat"]
     },
@@ -63,6 +64,7 @@
         "Microsoft.CodeAnalysis.AnalyzerUtilities"
       ],
       "allowedVersions": "<5.6.0",
+      "minimumReleaseAge": "14 days",
       "automerge": false,
       "addLabels": ["analyzer-compat"]
     },
