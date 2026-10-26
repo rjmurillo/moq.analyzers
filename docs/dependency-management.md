@@ -114,9 +114,9 @@ Non-shipped projects (benchmarks, PerfDiff) that need higher versions of central
 <PackageReference Include="System.Collections.Immutable" VersionOverride="10.0.5" />
 ```
 
-This allows the central pin (8.0.0) to protect shipped analyzer DLLs while letting tools use newer versions.
+This allows the central pin (9.0.0) to protect shipped analyzer DLLs while letting tools use newer versions.
 
-**Interaction with Renovate:** Renovate `allowedVersions` caps apply globally by package name. They only affect upgrade proposals. By default, Renovate does not propose downgrades (see the [Renovate `allowedVersions` documentation](https://docs.renovatebot.com/configuration-options/#allowedversions)). A `<=8.0.0` cap on `System.Collections.Immutable` does not affect `VersionOverride` entries at 10.x. Manage those overrides manually.
+**Interaction with Renovate:** Renovate `allowedVersions` caps apply globally by package name. They only affect upgrade proposals. By default, Renovate does not propose downgrades (see the [Renovate `allowedVersions` documentation](https://docs.renovatebot.com/configuration-options/#allowedversions)). A `<10.0.0` cap on `System.Collections.Immutable` does not affect `VersionOverride` entries at 10.x. Manage those overrides manually.
 
 ## Workflow
 

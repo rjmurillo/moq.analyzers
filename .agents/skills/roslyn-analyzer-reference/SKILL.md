@@ -533,7 +533,7 @@ moq-analyzers-research-frontier, moq-analyzers-research-methodology.
 ## Provenance and maintenance
 
 - Walkthrough file unchanged? `git log --oneline -1 -- src/Analyzers/SetupShouldBeUsedOnlyForOverridableMembersAnalyzer.cs` (line refs valid at 101 lines: `wc -l` it).
-- Roslyn pin still 4.8? `grep 'Microsoft.CodeAnalysis.CSharp"' Directory.Packages.props`
+- Roslyn pin still 5.0.0 (ADR-011)? `grep 'Microsoft.CodeAnalysis.CSharp"' Directory.Packages.props`
 - Meta-analyzer versions (5.6.0 / 5.6.0)? `grep -r PackageVersion build/targets/codeanalysis/Packages.props`
 - Banned APIs list? `cat src/BannedSymbols.txt`
 - Packaging path lines (csproj:43-45)? `grep -n 'analyzers/dotnet/cs' src/Analyzers/Moq.Analyzers.csproj`
