@@ -201,11 +201,12 @@ Additional hard rules for any dependency PR:
    Microsoft.CodeAnalysis.AnalyzerUtilities.dll).
    Compile-time-only Roslyn references and dev tools do not need attribution.
    Full research procedure: CONTRIBUTING.md §"Third-Party License Attribution".
-2. **Host-compat is checked three ways** — do not weaken any of them:
-   `ValidateAnalyzerHostCompatibility` target, the inline PowerShell DLL-reference
-   check in the `main.yml` build job (max SCI/SRM = 9.0.0.0), and the
-   `analyzer-load-test` matrix. `AnalyzerAssemblyCompatibilityTests` pins the
-   same bound at test level.
+2. **Host-compat is checked four ways**. Do not weaken any of them:
+   the `ValidateAnalyzerHostCompatibility` target (SCI, SRM, and
+   Microsoft.Bcl.AsyncInterfaces majors), the inline PowerShell DLL-reference
+   check in the `main.yml` build job, `AnalyzerAssemblyCompatibilityTests`, and
+   the `analyzer-load-test` matrix. The DLL check and the test share one list
+   (ADR-011 IMP-003).
 3. **VersionOverride pattern**: non-shipped projects (benchmarks, PerfDiff) may
    float above the central pin via `VersionOverride` in their `.csproj`; the
    central pin exists to protect the shipped DLLs. Manage overrides manually —

@@ -80,7 +80,7 @@ The analyzer and code fix assemblies still target `netstandard2.0` (ADR-002). Th
 
 - **IMP-001**: `Directory.Packages.props` holds the pins.
 - **IMP-002**: `ValidateAnalyzerHostCompatibility` in `build/targets/packaging/Packaging.targets` blocks SCI, SRM, and `Microsoft.Bcl.AsyncInterfaces` above major 9.
-- **IMP-003**: The `main.yml` build job and `AnalyzerAssemblyCompatibilityTests` check the shipped DLL references. The limits are SCI, SRM, and `Microsoft.Bcl.AsyncInterfaces` 9.0.0.0, `System.Threading.Channels` 8.0.0.0, and the Roslyn assemblies 5.0.0.0.
+- **IMP-003**: The `main.yml` build job and `AnalyzerAssemblyCompatibilityTests` check the shipped DLL references. The limits are SCI, SRM, and `Microsoft.Bcl.AsyncInterfaces` 9.0.0.0, `System.Threading.Channels` 8.0.0.0, and the Roslyn assemblies 5.0.0.0. The Channels limit is the version AnalyzerUtilities 5.0.0 references today, not a measured host floor. Raise it only when the VS 2026 load-test legs pass with the new version. The two lists must match. `Packaging.targets` checks only package majors, so it covers the subset that NuGet resolves for the shipped projects.
 - **IMP-004**: The `analyzer-load-test` job fails on CS8032, CS9057, AD0001, an assembly binding error, or a missing Moq1000.
 
 ## Reversibility

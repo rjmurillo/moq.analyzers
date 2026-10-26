@@ -13,6 +13,8 @@ public class AnalyzerAssemblyCompatibilityTests
     private static readonly string BundledAnalyzerUtilities = "Microsoft.CodeAnalysis.AnalyzerUtilities";
 
     // Maximum assembly versions that the minimum supported SDK host (.NET 10, Roslyn 5.0) provides.
+    // Keep this list in sync with the DLL check in .github/workflows/main.yml (ADR-011 IMP-003).
+    // The Channels limit is the version AnalyzerUtilities 5.0.0 references, not a measured host floor.
     // The analyzer must not reference anything higher, or it will fail to load with CS8032.
     // See: https://github.com/rjmurillo/moq.analyzers/issues/850
     private static readonly Version MaxImmutableVersion = new(9, 0, 0, 0);

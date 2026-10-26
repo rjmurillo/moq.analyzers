@@ -154,6 +154,7 @@ jobs:
         if: needs.check-paths.outputs.run-build == 'true'
         shell: pwsh
         run: |
+          # Keep this list in sync with AnalyzerAssemblyCompatibilityTests (ADR-011 IMP-003).
           # Verify shipped analyzer DLLs don't reference assembly versions
           # exceeding what the minimum supported SDK host (.NET 10, Roslyn 5.0) provides.
           # See: https://github.com/rjmurillo/moq.analyzers/issues/850
@@ -552,7 +553,7 @@ jobs:
             Write-Host "::error::AD0001: an analyzer threw an exception (dotnet / ${{ matrix.tfm }})"
             exit 1
           }
-          if ($output -notmatch 'Moq1000') {
+          if ($output -notmatch 'warning Moq1000') {
             Write-Host "::error::Moq1000 was not reported, so the analyzers did not run (dotnet / ${{ matrix.tfm }})"
             exit 1
           }
@@ -590,7 +591,7 @@ jobs:
             Write-Host "::error::AD0001: an analyzer threw an exception (msbuild / ${{ matrix.tfm }})"
             exit 1
           }
-          if ($output -notmatch 'Moq1000') {
+          if ($output -notmatch 'warning Moq1000') {
             Write-Host "::error::Moq1000 was not reported, so the analyzers did not run (msbuild / ${{ matrix.tfm }})"
             exit 1
           }

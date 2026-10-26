@@ -54,7 +54,7 @@ All NuGet package versions are declared in `Directory.Packages.props`. `CentralP
 ## Implementation Notes
 
 - **IMP-001**: `Directory.Packages.props` is located at the solution root. It sets `<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>` and `<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>`.
-- **IMP-002**: The `ValidateAnalyzerHostCompatibility` MSBuild target is defined in `build/targets/packaging/Packaging.targets`. It runs after `ResolvePackageAssets` for shipped analyzer projects. It fails the build if `System.Collections.Immutable` or `System.Reflection.Metadata` resolves above the major version the minimum host provides (9, per ADR-011).
+- **IMP-002**: The `ValidateAnalyzerHostCompatibility` MSBuild target is defined in `build/targets/packaging/Packaging.targets`. It runs after `ResolvePackageAssets` for shipped analyzer projects. It fails the build if `System.Collections.Immutable`, `System.Reflection.Metadata`, or `Microsoft.Bcl.AsyncInterfaces` resolves above the major version the minimum host provides (9, per ADR-011).
 - **IMP-003**: When proposing a new dependency, open `Directory.Packages.props`, add the pin, verify host compatibility, and reference the ADR in the PR description.
 
 ## References

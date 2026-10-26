@@ -41,7 +41,7 @@
       1 = usage or setup error
       2 = snippet failed to compile (CS errors printed)
       3 = an analyzer crashed (AD0001)
-      4 = an analyzer or a dependency failed to LOAD (CS8032/CS8034). The analyzers never
+      4 = an analyzer or a dependency failed to LOAD (CS8032/CS8034/CS9057). The analyzers never
           ran, so "(none)" would be a false clean result (the #850 CS8032 incident class).
 .PARAMETER Snippet
     Path to a self-contained C# file. It must include its own `using Moq;` and so on.
@@ -83,14 +83,17 @@ $outputType = Get-EnvOrDefault 'SNIPPET_OUTPUTTYPE' ''
 # characters so a stray or hostile value cannot break the project file or inject MSBuild
 # elements (for example an <Exec> target that dotnet build would run). This is a denylist,
 # not an allowlist, so NuGet version ranges such as [4.8.2,4.9.0) still pass.
+# MOQ_ANALYZERS_CONFIG is checked too, because it becomes part of the <Analyzer> paths.
 $xmlValues = [ordered]@{
+    CONFIG      = $config
     TFM         = $tfm
     LANGVERSION = $langVersion
     MOQ_VERSION = $MoqVersion
     OUTPUTTYPE  = $outputType
 }
 foreach ($entry in $xmlValues.GetEnumerator()) {
-    if ($entry.Value -match "[<>&`"']") {
+    # Also reject MSBuild property, item, and metadata expansion: $( @( %(
+    if ($entry.Value -match "[<>&`"']" -or $entry.Value -match '[$@%]\(') {
         Write-Error "$($entry.Key) contains XML-unsafe characters: $($entry.Value)" -ErrorAction Continue
         exit 1
     }
@@ -186,7 +189,7 @@ $outputTypeElement
     function Select-LogLine([string]$Pattern) {
         # Callers wrap the result in @() because PowerShell unwraps a 0- or 1-item array return.
         return @($logLines |
-            Where-Object { $_ -match $Pattern } |
+            Where-Object { $_ -cmatch $Pattern } |
             ForEach-Object { $_ -replace ' \[.*Snippet\.csproj\]$', '' } |
             Sort-Object -Unique -CaseSensitive)
     }
@@ -195,10 +198,11 @@ $outputTypeElement
     $csErrors = @(Select-LogLine 'error CS\d+')
     # AD0001 = Roslyn's "analyzer threw an exception". It is a warning, so the build exits 0.
     $adCrashes = @(Select-LogLine 'AD0001')
-    # CS8032 ("instance of analyzer cannot be created") and CS8034 ("unable to load Analyzer
-    # assembly") both mean the analyzer never ran. CS8033 ("assembly does not contain any
-    # analyzers") is EXCLUDED: it fires benignly for the code-fix and utility assemblies.
-    $loadFailures = @(Select-LogLine 'CS803[24]')
+    # CS8032 ("instance of analyzer cannot be created"), CS8034 ("unable to load Analyzer
+    # assembly"), and CS9057 (the analyzer needs a newer compiler than the host runs) all mean
+    # the analyzer never ran. CS8033 ("assembly does not contain any analyzers") is EXCLUDED:
+    # it fires benignly for the code-fix and utility assemblies.
+    $loadFailures = @(Select-LogLine 'CS803[24]|CS9057')
 
     if ($csErrors.Count -gt 0) {
         Write-Output '--- snippet failed to compile (fix these first; analyzers may be unreliable on broken code) ---'
@@ -206,7 +210,7 @@ $outputTypeElement
     }
 
     if ($loadFailures.Count -gt 0) {
-        Write-Output '--- ANALYZER LOAD FAILURE (CS8032/CS8034): the analyzers never loaded; any result below is meaningless ---'
+        Write-Output '--- ANALYZER LOAD FAILURE (CS8032/CS8034/CS9057): the analyzers never loaded; any result below is meaningless ---'
         $loadFailures | ForEach-Object { Write-Output $_ }
     }
 

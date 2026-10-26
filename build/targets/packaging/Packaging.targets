@@ -12,7 +12,9 @@
     See: https://github.com/rjmurillo/moq.analyzers/issues/850
   -->
   <PropertyGroup>
-    <!-- Maximum assembly versions the minimum supported host (.NET 10 SDK, Roslyn 5.0) provides -->
+    <!-- Maximum package majors the minimum supported host (.NET 10 SDK, Roslyn 5.0) provides.
+         This checks resolved packages only. The main.yml DLL check and AnalyzerAssemblyCompatibilityTests
+         hold the full assembly list (ADR-011 IMP-003). -->
     <_MaxSystemCollectionsImmutableMajor>9</_MaxSystemCollectionsImmutableMajor>
     <_MaxSystemReflectionMetadataMajor>9</_MaxSystemReflectionMetadataMajor>
     <_MaxMicrosoftBclAsyncInterfacesMajor>9</_MaxMicrosoftBclAsyncInterfacesMajor>

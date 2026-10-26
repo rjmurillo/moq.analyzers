@@ -770,7 +770,7 @@ This project uses Renovate for automated dependency updates. For detailed packag
 
 #### Version Constraints
 
-- `System.Collections.Immutable` and `System.Reflection.Metadata` must not exceed the assembly versions a Roslyn 5.0 host (.NET 10 SDK, VS 2026) provides: 9.0.0.0. Renovate caps these at `<10.0.0`. `ValidateAnalyzerHostCompatibility` and `AnalyzerAssemblyCompatibilityTests` enforce this. See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
+- Shipped DLLs must not reference assemblies newer than a Roslyn 5.0 host (.NET 10 SDK, VS 2026) provides. The limits are `System.Collections.Immutable`, `System.Reflection.Metadata`, and `Microsoft.Bcl.AsyncInterfaces` 9.0.0.0, `System.Threading.Channels` 8.0.0.0, and the Roslyn assemblies 5.0.0.0. Renovate caps SCI and SRM at `<10.0.0`. `ValidateAnalyzerHostCompatibility`, the `main.yml` DLL check, and `AnalyzerAssemblyCompatibilityTests` enforce this. See [ADR-011](docs/architecture/ADR-011-raise-minimum-host-to-dotnet-10-sdk.md). See [issue #850](https://github.com/rjmurillo/moq.analyzers/issues/850).
 - Renovate disables `Perfolizer`. BenchmarkDotNet declares an exact version constraint (`[0.6.1]`). Update Perfolizer only when BenchmarkDotNet targets a newer version.
 - Renovate disables `System.CommandLine`. Updates require PerfDiff code changes.
 - Renovate ignores `Microsoft.CodeAnalysis.CSharp` core packages. Update manually when raising the minimum supported SDK.
