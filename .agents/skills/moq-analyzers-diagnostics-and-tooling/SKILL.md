@@ -17,7 +17,7 @@ All commands are repo-root relative. `dotnet` must be on PATH (in sandboxes:
 
 | Question | Instrument | Command (from repo root) |
 |---|---|---|
-| Does this C# snippet trigger diagnostic X? | Live-DLL harness | `.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh <file.cs> [moq-version]` |
+| Does this C# snippet trigger diagnostic X? | Live-DLL harness | `pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 <file.cs> [moq-version]` |
 | Did my change slow an analyzer down? | Benchmarks + PerfDiff | `./build/scripts/perf/CIPerf.sh -filter '*(FileCount: 1)'` |
 | Why did MSBuild do that? | Binary log (binlog) | `dotnet build /bl:artifacts/logs/local.binlog` |
 | What code do my tests exercise? | Coverage (Cobertura) | `dotnet test --settings ./build/targets/tests/test.runsettings` |
@@ -35,7 +35,7 @@ need a fast answer to "what does the analyzer report for THIS code, against a RE
 reference?", use the harness script shipped in this skill:
 
 ```bash
-.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh <snippet.cs> [moq-version]
+pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 <snippet.cs> [moq-version]
 ```
 
 What it does (details in the script header):
@@ -80,7 +80,7 @@ reports both as warnings that would otherwise exit the build 0 and read as a cle
 where `Foo` only has a `(string)` constructor. Running:
 
 ```bash
-.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh \
+pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 \
   .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/sample-moq1002.cs
 ```
 
@@ -395,7 +395,7 @@ teaches the tool.
 
 ## Provenance and maintenance
 
-- Harness still works: `.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/sample-moq1002.cs` → expect Moq1002 at (30,33) plus Moq1400/Moq1410 at (30,20).
+- Harness still works: `pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/sample-moq1002.cs` → expect Moq1002 at (30,33) plus Moq1400/Moq1410 at (30,20).
 - Packed analyzer DLL list still 3 files: `grep -n "PackagePath=\"analyzers/dotnet/cs\"" src/Analyzers/Moq.Analyzers.csproj`
 - Rule ID list source: `grep -c '"Moq[0-9]' src/Common/DiagnosticIds.cs` (25 IDs as of 2026-07-02; Moq1209 reserved)
 - PerfDiff thresholds: `grep -rn 'Threshold.Parse\|ThresholdValueNs' src/tools/PerfDiff/BDN/Regression/` (35%; 5%+0.5ms ×2; 250ms; 100ms as of 2026-07-02)
