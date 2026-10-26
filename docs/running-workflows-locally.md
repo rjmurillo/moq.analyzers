@@ -96,4 +96,13 @@ if: ${{ !env.ACT }}
 - Composite actions (like `setup-restore-build`) work, but may need the action source
   checked out locally.
 
+## Troubleshooting
+
+| Symptom | Fix |
+| --- | --- |
+| `gh act` cannot connect to the Docker daemon | Start Docker, then run `docker info` to check that it answers. On Linux, add your user to the `docker` group or run `gh act` with `sudo`. |
+| A job that downloads an artifact fails | Pass `--artifact-server-path /tmp/artifacts` so `act` runs a local artifact server. See "Enable artifact passing between jobs" above. |
+| A Windows job or an MSBuild leg does not start | `act` runs Linux containers only. Push the branch and run those jobs in GitHub Actions. |
+| A job runs on the wrong architecture | Pass `--container-architecture` with the architecture you need. See "Container architecture" above. |
+
 For full documentation, see [nektosact.com](https://nektosact.com/usage/).
