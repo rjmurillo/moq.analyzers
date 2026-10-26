@@ -188,7 +188,7 @@ function Invoke-PerfBaselineComparison {
                 }
             }
 
-            Set-Content -Path $shaMarker -Value $baselineSHA -NoNewline
+            Set-Content -Path $shaMarker -Value $baselineSHA -NoNewline -ErrorAction Stop
         }
 
         Write-Host "Done with baseline run"
