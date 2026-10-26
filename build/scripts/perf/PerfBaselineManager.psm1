@@ -5,6 +5,9 @@ Import-Module (Join-Path $PSScriptRoot 'PerfConfig.psm1') -Force -DisableNameChe
 # One short discarded run keeps both measured phases out of that first slot.
 $script:PerfWarmupFilter = '*Moq1000SealedClassBenchmarks*'
 
+# Records which SHA produced the baseline reports in a results folder.
+$script:PerfBaselineShaFile = 'baseline-sha.txt'
+
 function Test-PerfResults {
     param(
         [String] $ResultsOutput
@@ -139,8 +142,15 @@ function Invoke-PerfBaselineComparison {
 
         $resultsOutput = Join-Path $output "baseline"
 
-        # A cached baseline counts only when it holds a benchmark report (#1383).
-        if ($useCachedBaseline -and (Test-PerfResults $resultsOutput)) {
+        # A cached baseline counts only when it holds a benchmark report (#1383)
+        # from the pinned SHA. A repin must not reuse the old SHA's reports.
+        $shaMarker = Join-Path $resultsOutput $script:PerfBaselineShaFile
+        $cachedSha = if (Test-Path $shaMarker) { (Get-Content -Raw -Path $shaMarker).Trim() } else { $null }
+        if ($useCachedBaseline -and $cachedSha -ne $baselineSHA) {
+            Write-Warning "Cached baseline in '$resultsOutput' is from SHA '$cachedSha', not '$baselineSHA'. Running the baseline again."
+        }
+
+        if ($useCachedBaseline -and $cachedSha -eq $baselineSHA -and (Test-PerfResults $resultsOutput)) {
             Write-Warning "Using cached baseline results from '$resultsOutput'. No new baseline benchmarks will be run."
         } else {
             # Clear old reports so only this run's report can pass the check below.
@@ -177,6 +187,8 @@ function Invoke-PerfBaselineComparison {
                     throw "Baseline perf run produced no benchmark report in '$resultsOutput'. Check that baseline SHA '$baselineSHA' builds and contains benchmarks."
                 }
             }
+
+            Set-Content -Path $shaMarker -Value $baselineSHA -NoNewline -ErrorAction Stop
         }
 
         Write-Host "Done with baseline run"

@@ -81,7 +81,7 @@ The warm-up adds about one minute. It fails the comparison if it exits with an e
 
 ## Same Runtime for Both Runs
 
-The benchmarks run in-process, so each run uses the runtime of its own target framework. The pinned baseline can target an older framework than the current branch. For example, the baseline in `build/perf/baseline.json` targets `net8.0` while the current branch targets `net10.0`.
+The benchmarks run in-process, so each run uses the runtime of its own target framework. The pinned baseline can target an older framework than the current branch. For example, a baseline pinned before a framework upgrade targets the old framework while the current branch targets the new one.
 
 With `-diff`, `PerfCore.ps1` sets `DOTNET_ROLL_FORWARD=LatestMajor` for the warm-up, baseline, current, and compare steps. Every run then uses the newest installed runtime, so a runtime change cannot pass for an analyzer change. The previous value is restored afterward.
 
@@ -97,4 +97,4 @@ This is similar to what is run in the [main action](../../../.github/workflows/m
 
 > NOTE: If you _always_ want to run the baseline, you can set the environment variable `FORCE_PERF_BASELINE=true`
 
-A cached baseline is reused only when it holds a benchmark report. A new baseline run first deletes the old baseline results. If a baseline run with a narrower filter writes no report, the script retries once with filter `*`. If there is still no report, the run stops with an error that names the baseline folder.
+A cached baseline is reused only when it holds a benchmark report. Its `baseline-sha.txt` must also match the SHA in `build/perf/baseline.json`. A repin therefore runs the baseline again. A new baseline run first deletes the old baseline results. If a baseline run with a narrower filter writes no report, the script retries once with filter `*`. If there is still no report, the run stops with an error that names the baseline folder.
