@@ -29,22 +29,32 @@ internal static class WindowsWorkspaceConcurrencyGate
     /// <param name="run">The verifier run.</param>
     /// <param name="cancellationToken">The token that cancels the wait.</param>
     /// <returns>A task that completes when <paramref name="run"/> completes.</returns>
-    public static async Task RunAsync(Func<Task> run, CancellationToken cancellationToken)
+    internal static Task RunAsync(Func<Task> run, CancellationToken cancellationToken)
+        => RunAsync(run, OperatingSystem.IsWindows() ? Gate : null, cancellationToken);
+
+    /// <summary>
+    /// Runs <paramref name="run"/> while it holds one permit of <paramref name="gate"/>.
+    /// </summary>
+    /// <param name="run">The verifier run.</param>
+    /// <param name="gate">The semaphore that limits runs in flight, or <see langword="null"/> to run without a limit.</param>
+    /// <param name="cancellationToken">The token that cancels the wait for a permit.</param>
+    /// <returns>A task that completes when <paramref name="run"/> completes.</returns>
+    internal static async Task RunAsync(Func<Task> run, SemaphoreSlim? gate, CancellationToken cancellationToken)
     {
-        if (!OperatingSystem.IsWindows())
+        if (gate is null)
         {
             await run().ConfigureAwait(false);
             return;
         }
 
-        await Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             await run().ConfigureAwait(false);
         }
         finally
         {
-            Gate.Release();
+            gate.Release();
         }
     }
 }
