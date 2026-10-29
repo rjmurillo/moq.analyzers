@@ -213,6 +213,22 @@ public sealed class ConfirmationIOTests
     }
 
     [Fact]
+    public async Task ConfirmRunAsync_WithTwoRoundBounds_DecidesAfterTwoRounds()
+    {
+        using RoundsRoot root = new();
+        string flagged = await root.WriteFlaggedAsync().ConfigureAwait(true);
+        for (int round = 1; round <= 2; round++)
+        {
+            root.WriteRound("baseline", round, 100_000_000D);
+            root.WriteRound("current", round, 110_000_000D);
+        }
+
+        int exitCode = await ConfirmCommand.RunAsync(new ConfirmOptions(flagged, root.Path, 2, 2), new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
+
+        Assert.Equal(ConfirmCommand.ConfirmedExitCode, exitCode);
+    }
+
+    [Fact]
     public async Task ConfirmRunAsync_WithInvalidRoundBounds_ReturnsError()
     {
         using RoundsRoot root = new();

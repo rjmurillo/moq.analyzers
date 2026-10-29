@@ -157,11 +157,24 @@ Describe 'Invoke-PerfConfirmation' {
     }
 
     It 'throws before the minimum rounds when they cannot fit the time budget' {
-        # Round 1 takes 20 minutes, so 3 rounds need about 60 minutes.
-        Mock Get-PerfElapsedMinutes -ModuleName PerfBaselineManager { 20 }
+        # Round 2 takes 20 minutes and ends at 25, so round 3 would end at about 45.
+        $global:PerfClockTicks = [System.Collections.Queue]::new([double[]](5, 25))
+        Mock Get-PerfElapsedMinutes -ModuleName PerfBaselineManager { $global:PerfClockTicks.Dequeue() }
 
-        { Invoke-Confirmation -TimeBudgetMinutes 40 } | Should -Throw '*needs about 60 minutes for 3 rounds, over its 40 minute budget. The screen result stands*'
-        @(Get-Content $env:STUB_LOG | Where-Object { $_ -like '*/r2|*' }).Count | Should -Be 0
+        { Invoke-Confirmation -TimeBudgetMinutes 40 } | Should -Throw '*needs about 45 minutes for 3 rounds, over its 40 minute budget. The screen result stands*'
+        @(Get-Content $env:STUB_LOG | Where-Object { $_ -like '*/r3|*' }).Count | Should -Be 0
+        Remove-Variable -Name PerfClockTicks -Scope Global
+    }
+
+    It 'does not project later rounds from the build time in round 1' {
+        # Round 1 builds and takes 30 minutes. Rounds 2 and 3 take 2 minutes each.
+        $global:PerfClockTicks = [System.Collections.Queue]::new([double[]](30, 32, 34))
+        Mock Get-PerfElapsedMinutes -ModuleName PerfBaselineManager { $global:PerfClockTicks.Dequeue() }
+
+        Invoke-Confirmation -TimeBudgetMinutes 40 | Should -BeFalse
+
+        @(Get-Content $env:STUB_LOG | Where-Object { $_ -like 'confirm|*' }).Count | Should -Be 1
+        Remove-Variable -Name PerfClockTicks -Scope Global
     }
 
     It 'throws when the decision still asks for a round at the last round' {
