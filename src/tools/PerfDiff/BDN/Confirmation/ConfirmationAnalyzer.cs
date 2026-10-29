@@ -241,9 +241,7 @@ internal static class ConfirmationAnalyzer
         valueNs = double.NaN;
         if (!benchmarks.TryGetValue(benchmarkId, out Benchmark? benchmark)
             || ConfirmationHypothesis.Select(metric, benchmark) is not double value
-            || double.IsNaN(value)
-            || value <= 0D
-            || double.IsInfinity(value))
+            || !IsPositiveFinite(value))
         {
             return false;
         }
@@ -251,6 +249,8 @@ internal static class ConfirmationAnalyzer
         valueNs = value;
         return true;
     }
+
+    private static bool IsPositiveFinite(double value) => double.IsFinite(value) && value > 0D;
 
     /// <summary>
     /// Finds the screen condition, other than the ratio test, that the rounds do not meet.
