@@ -166,6 +166,13 @@ Describe 'Invoke-PerfConfirmation' {
         Remove-Variable -Name PerfClockTicks -Scope Global
     }
 
+    It 'throws after round 1 when round 1 alone used the time budget' {
+        Mock Get-PerfElapsedMinutes -ModuleName PerfBaselineManager { 41 }
+
+        { Invoke-Confirmation -TimeBudgetMinutes 40 } | Should -Throw '*needs about 41 minutes for 3 rounds, over its 40 minute budget. The screen result stands*'
+        @(Get-Content $env:STUB_LOG | Where-Object { $_ -like '*/r2|*' }).Count | Should -Be 0
+    }
+
     It 'does not project later rounds from the build time in round 1' {
         # Round 1 builds and takes 30 minutes. Rounds 2 and 3 take 2 minutes each.
         $global:PerfClockTicks = [System.Collections.Queue]::new([double[]](30, 32, 34))

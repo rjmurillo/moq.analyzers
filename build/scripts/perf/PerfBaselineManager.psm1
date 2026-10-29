@@ -228,8 +228,12 @@ function Invoke-PerfConfirmation {
         if ($round -lt $MinRounds) {
             # The test needs MinRounds rounds. When they cannot fit the budget, confirmation cannot decide in time.
             # Round 1 also builds both checkouts, so only later rounds predict the length of a round.
-            $projectedMinutes = $elapsedMinutes + ($roundMinutes * ($MinRounds - $round))
-            if ($round -gt 1 -and $projectedMinutes -gt $TimeBudgetMinutes) {
+            $projectedMinutes = $elapsedMinutes
+            if ($round -gt 1) {
+                $projectedMinutes += $roundMinutes * ($MinRounds - $round)
+            }
+
+            if ($projectedMinutes -gt $TimeBudgetMinutes) {
                 throw "Confirmation needs about $([math]::Ceiling($projectedMinutes)) minutes for $MinRounds rounds, over its $TimeBudgetMinutes minute budget. The screen result stands."
             }
 
