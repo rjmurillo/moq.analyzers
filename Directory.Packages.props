@@ -32,7 +32,7 @@
       Microsoft.Bcl.AsyncInterfaces 10.0.1.
       See: https://github.com/rjmurillo/moq.analyzers/issues/850
     -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.3.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="GetPackFromProject" Version="1.0.10" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.11.2" />
@@ -41,7 +41,7 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.3" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Perfolizer" Version="0.6.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="4.0.0" />
   </ItemGroup>
   <ItemGroup Label="Transitive pins">
@@ -56,7 +56,7 @@
       Build target ValidateAnalyzerHostCompatibility enforces this constraint.
       See: https://github.com/rjmurillo/moq.analyzers/issues/850
     -->
-    <PackageVersion Include="System.Collections.Immutable" Version="9.0.0" />
-    <PackageVersion Include="System.Formats.Asn1" Version="10.0.12" />
+    <PackageVersion Include="System.Collections.Immutable" Version="9.0.21" />
+    <PackageVersion Include="System.Formats.Asn1" Version="10.0.13" />
   </ItemGroup>
 </Project>
