@@ -3,6 +3,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN;
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 using PerfDiff.ETL;
 
@@ -14,6 +15,10 @@ internal static class PerfDiff
 #pragma warning disable CA2254 // The logging message template should not vary between calls
     internal static async Task<int> CompareAsync(
         string baselineFolder, string resultsFolder, bool failOnRegression, ILogger logger, CancellationToken token)
+        => await CompareAsync(baselineFolder, resultsFolder, failOnRegression, flaggedOutputPath: null, logger, token).ConfigureAwait(false);
+
+    internal static async Task<int> CompareAsync(
+        string baselineFolder, string resultsFolder, bool failOnRegression, string? flaggedOutputPath, ILogger logger, CancellationToken token)
         => await CompareAsync(
             baselineFolder,
             resultsFolder,
@@ -25,7 +30,8 @@ internal static class PerfDiff
             {
                 bool succeeded = EtlDiffer.TryCompareETL(resultsEtlPath, baselineEtlPath, out bool regressionDetected);
                 return (succeeded, regressionDetected);
-            }).ConfigureAwait(false);
+            },
+            flaggedOutputPath).ConfigureAwait(false);
 
     internal static async Task<int> CompareAsync(
         string baselineFolder,
@@ -34,16 +40,25 @@ internal static class PerfDiff
         ILogger logger,
         CancellationToken token,
         Func<string, string, ILogger, CancellationToken, Task<BenchmarkComparisonResult>> compareBenchmarksAsync,
-        Func<string, string, (bool CompareSucceeded, bool RegressionDetected)> compareEtl)
+        Func<string, string, (bool CompareSucceeded, bool RegressionDetected)> compareEtl,
+        string? flaggedOutputPath = null)
     {
         token.ThrowIfCancellationRequested();
 
-        (bool compareSucceeded, bool regressionDetected) = await compareBenchmarksAsync(baselineFolder, resultsFolder, logger, token).ConfigureAwait(false);
+        BenchmarkComparisonResult comparison = await compareBenchmarksAsync(baselineFolder, resultsFolder, logger, token).ConfigureAwait(false);
+        (bool compareSucceeded, bool regressionDetected) = (comparison.CompareSucceeded, comparison.RegressionDetected);
 
         if (!compareSucceeded)
         {
             logger.LogError("Failed to compare the performance results see log.");
             return 1;
+        }
+
+        // The file exists only after a successful comparison, so a caller can tell a
+        // regression exit code from a comparison failure.
+        if (flaggedOutputPath is not null)
+        {
+            await ConfirmationHypothesisFile.WriteAsync(flaggedOutputPath, comparison.FlaggedOrEmpty, token).ConfigureAwait(false);
         }
 
         if (!regressionDetected)

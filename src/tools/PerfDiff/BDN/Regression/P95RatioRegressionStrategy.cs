@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 using Perfolizer.Mathematics.Common;
 
@@ -18,6 +19,7 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
             logger,
             new RegressionRatioMetricConfig(
                 "P95 ratio",
+                ConfirmationMetric.P95,
                 GetP95Ratio,
                 result => BenchmarkDotNetDiffer.GetP95Delta(result.Conclusion, result.BaseResult, result.DiffResult),
                 stabilityDeltaSelector: GetStabilityDelta),

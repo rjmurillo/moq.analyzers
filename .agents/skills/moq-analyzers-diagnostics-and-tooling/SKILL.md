@@ -170,8 +170,13 @@ PerfDiff reads**. In CI both trees are uploaded as the `performance` artifact, a
 ### Reading the verdict
 
 `BenchmarkComparisonService` (`src/tools/PerfDiff/BDN/BenchmarkComparisonService.cs`)
-runs **five strategies; any single one reporting a regression fails the run** (exit 1
-under `--failOnRegression`; exit 0 clean; exit 2 cancelled; file errors exit 1).
+runs **five strategies as a screen** (exit 1 under `--failOnRegression`; exit 0 clean;
+exit 2 cancelled; file errors exit 1). Since ADR-012 (re-checked 2026-10-28), a tripped
+strategy writes `flagged.json`. `Invoke-PerfConfirmation` then reruns only the flagged
+benchmarks in paired, alternating baseline/current rounds. `PerfDiff confirm` decides
+with a paired t-test plus Holm correction (family-wise 1%). Only a CONFIRMED line fails
+the job. Look for the per-benchmark `ratio ..., 99% CI [...], must exceed ..., p = ...`
+lines in the log.
 
 | Strategy (file in `src/tools/PerfDiff/BDN/Regression/`) | Metric | Regression when (2026-07-02) |
 |---|---|---|

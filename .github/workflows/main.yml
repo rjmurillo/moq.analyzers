@@ -611,7 +611,9 @@ jobs:
   # helpers, so the full-no-perf tier skips the steps here.
   perf:
     needs: [check-paths, build, test]
-    timeout-minutes: 90
+    # The nightly screen takes about 85 minutes. Confirmation rounds add up to
+    # 40 minutes when the screen flags a benchmark (ADR-012).
+    timeout-minutes: 140
     runs-on: ubuntu-26.04-arm
 
     env:

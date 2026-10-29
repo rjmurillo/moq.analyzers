@@ -339,7 +339,9 @@ a second working tree, runs the benchmark suite there to produce the
 *baseline*, runs the same suite on your PR, and PerfDiff
 (`src/tools/PerfDiff`) compares the two with `--failOnRegression`. The
 pipeline: `PerfCore.ps1 -diff` → `DiffPerfToBaseline.ps1` → `RunPerfTests.ps1`
-×2 → `ComparePerfResults.ps1` → PerfDiff. `main.yml` fails fast if the file is
+×2 → `ComparePerfResults.ps1` → PerfDiff (screen) → on a hit,
+`Invoke-PerfConfirmation` → `ConfirmPerfResults.ps1` → `PerfDiff confirm`
+(ADR-012, re-checked 2026-10-28). `main.yml` fails fast if the file is
 missing ("Get baseline SHA" step).
 
 How/when to advance it:

@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 
 namespace PerfDiff.BDN.Regression;
 
 internal sealed class RegressionRatioMetricConfig(
     string metricName,
+    ConfirmationMetric metric,
     Func<RegressionResult, double> ratioSelector,
     Func<RegressionResult, double> deltaSelector,
     string thresholdText = RegressionStrategyHelper.AggregateRatioRegressionThresholdText,
@@ -12,6 +14,8 @@ internal sealed class RegressionRatioMetricConfig(
     Func<RegressionResult, double>? stabilityDeltaSelector = null)
 {
     internal string MetricName { get; } = metricName;
+
+    internal ConfirmationMetric Metric { get; } = metric;
 
     internal Func<RegressionResult, double> RatioSelector { get; } = ratioSelector;
 

@@ -756,6 +756,8 @@ PerfDiff hardcodes regression detection thresholds:
 | Median (percentage) | 35% increase |
 | Statistical significance | Mann-Whitney test, user-supplied threshold |
 
+These thresholds only screen. A tripped gate reruns the flagged benchmarks in paired baseline and current rounds. The job fails only when those rounds confirm the slowdown at a 1% family-wise error rate. See [ADR-012](docs/architecture/ADR-012-confirm-perf-regressions-with-paired-rounds.md).
+
 PR benchmarks use 1 file for fast feedback. Nightly runs use 1,000 files for statistically significant results. See [issue #563](https://github.com/rjmurillo/moq.analyzers/issues/563) for planned migration to practical performance budgets.
 
 **Manual Performance Runs:**

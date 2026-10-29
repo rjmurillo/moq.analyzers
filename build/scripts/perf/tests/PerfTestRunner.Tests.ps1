@@ -43,6 +43,12 @@ Describe 'New-PerfBenchmarkArguments' {
         $args | Should -Contain '--keepFiles'
     }
 
+    It 'passes every filter pattern after one --filter flag' {
+        $arguments = New-PerfBenchmarkArguments -ProjectFullPath '/repo/tests/a.csproj' -Output '/repo/out' -Filter @('A.B(FileCount: 1000)', 'C.D')
+        $arguments | Select-Object -Last 3 | Should -Be @('--filter', 'A.B(FileCount: 1000)', 'C.D')
+        Format-PerfCommandArguments -Arguments ($arguments | Select-Object -Last 3) | Should -Be '--filter "A.B(FileCount: 1000)" C.D'
+    }
+
     It 'adds the ETW profiler before the filter' {
         $args = New-PerfBenchmarkArguments -ProjectFullPath '/repo/tests/a.csproj' -Output '/repo/out' -Filter 'abc' -Etl $true
         $args | Should -Contain '--profiler'
@@ -61,5 +67,58 @@ Describe 'Format-PerfCommandArguments' {
 
     It 'preserves wildcard arguments without adding quotes' {
         Format-PerfCommandArguments -Arguments @('--filter', '*') | Should -Be '--filter *'
+    }
+}
+
+Describe 'Invoke-PerfTests build step' {
+    BeforeEach {
+        $script:DotnetCalls = [System.Collections.Generic.List[string]]::new()
+        $calls = $script:DotnetCalls
+        Mock dotnet { $calls.Add($args[0]); $global:LASTEXITCODE = 0 } -ModuleName PerfTestRunner
+        $script:Root = Join-Path ([System.IO.Path]::GetTempPath()) "perf-runner-$([guid]::NewGuid())"
+        New-Item -ItemType Directory -Force -Path $script:Root | Out-Null
+    }
+
+    AfterEach {
+        Remove-Item -Path $script:Root -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    # The benchmark process itself starts through ProcessStartInfo and fails on the
+    # missing project. These tests check only the restore and build calls before it.
+    It 'restores and builds the project by default' {
+        { Invoke-PerfTests -projects 'missing.csproj' -filter 'x' -perftestRootFolder $script:Root -output (Join-Path $script:Root 'out') } |
+            Should -Throw '*One or more benchmark projects failed*'
+
+        $script:DotnetCalls | Should -Be @('restore', 'build')
+    }
+
+    It 'skips restore and build when skipBuild is set' {
+        { Invoke-PerfTests -projects 'missing.csproj' -filter 'x' -perftestRootFolder $script:Root -output (Join-Path $script:Root 'out') -skipBuild $true } |
+            Should -Throw '*One or more benchmark projects failed*'
+
+        $script:DotnetCalls | Should -BeNullOrEmpty
+    }
+}
+
+Describe 'RunPerfTests.ps1 exit code' {
+    It 'resets a stale LASTEXITCODE when the run succeeds' {
+        # Run a copy of the real entry point next to a stub module.
+        $entryRoot = Join-Path ([System.IO.Path]::GetTempPath()) "run-entry-$([guid]::NewGuid())"
+        New-Item -ItemType Directory -Force -Path $entryRoot | Out-Null
+        try {
+            Copy-Item -Path (Join-Path $script:PerfRoot 'RunPerfTests.ps1') -Destination $entryRoot
+            Set-Content -Path (Join-Path $entryRoot 'PerfTestRunner.psm1') -Value @"
+function Invoke-PerfTests { param([string] `$projects, [string[]] `$filter, [string] `$perftestRootFolder, [string] `$output, [bool] `$etl, [bool] `$ci, [bool] `$skipBuild) }
+Export-ModuleMember -Function Invoke-PerfTests
+"@
+            $global:LASTEXITCODE = 3
+
+            & (Join-Path $entryRoot 'RunPerfTests.ps1') -skipBuild $true
+
+            $LASTEXITCODE | Should -Be 0
+        }
+        finally {
+            Remove-Item -Path $entryRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
 }

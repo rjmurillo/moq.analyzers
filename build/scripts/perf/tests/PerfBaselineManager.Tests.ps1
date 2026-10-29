@@ -51,6 +51,14 @@ Describe 'New-PerfRunArguments' {
         $args.ci | Should -BeTrue
     }
 
+    It 'adds skipBuild only when requested and keeps a filter list' {
+        $arguments = New-PerfRunArguments -PerfTestRootFolder '/repo' -Projects 'a.csproj' -Output '/out' -Filter @('a', 'b') -SkipBuild $true
+
+        $arguments.skipBuild | Should -BeTrue
+        $arguments.filter | Should -Be @('a', 'b')
+        (New-PerfRunArguments -PerfTestRootFolder '/repo' -Projects 'a.csproj' -Output '/out' -Filter 'abc').ContainsKey('skipBuild') | Should -BeFalse
+    }
+
     It 'omits ETL and CI when they are false' {
         $args = New-PerfRunArguments -PerfTestRootFolder '/repo' -Projects 'a.csproj' -Output '/out' -Filter 'abc'
 
@@ -246,6 +254,8 @@ exit 0
         @{ Function = 'Invoke-PerfWarmup'; Parameter = 'RunPerfTestsPath' }
         @{ Function = 'Invoke-PerfBaselineComparison'; Parameter = 'RunPerfTestsPath' }
         @{ Function = 'Invoke-PerfBaselineComparison'; Parameter = 'ComparePerfResultsPath' }
+        @{ Function = 'Invoke-PerfBaselineComparison'; Parameter = 'ConfirmPerfResultsPath' }
+        @{ Function = 'Invoke-PerfConfirmation'; Parameter = 'RunPerfTestsPath' }
     ) {
         $paramAst = (Get-Command $Function).ScriptBlock.Ast.Body.ParamBlock.Parameters |
             Where-Object { $_.Name.VariablePath.UserPath -eq $Parameter }
