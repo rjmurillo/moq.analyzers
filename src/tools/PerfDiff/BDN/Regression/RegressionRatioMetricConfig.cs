@@ -11,7 +11,8 @@ internal sealed class RegressionRatioMetricConfig(
     Func<RegressionResult, double> deltaSelector,
     string thresholdText = RegressionStrategyHelper.AggregateRatioRegressionThresholdText,
     double aggregateThreshold = RegressionStrategyHelper.AggregateRatioRegressionThreshold,
-    Func<RegressionResult, double>? stabilityDeltaSelector = null)
+    Func<RegressionResult, double>? stabilityDeltaSelector = null,
+    ConfirmationMetric? stabilityMetric = null)
 {
     internal string MetricName { get; } = metricName;
 
@@ -22,6 +23,11 @@ internal sealed class RegressionRatioMetricConfig(
     internal Func<RegressionResult, double> DeltaSelector { get; } = deltaSelector;
 
     internal Func<RegressionResult, double> StabilityDeltaSelector { get; } = GetStabilityDeltaSelector(deltaSelector, stabilityDeltaSelector);
+
+    /// <summary>
+    /// Gets the statistic that <see cref="StabilityDeltaSelector"/> reads.
+    /// </summary>
+    internal ConfirmationMetric StabilityMetric { get; } = stabilityMetric ?? metric;
 
     internal string ThresholdText { get; } = thresholdText;
 

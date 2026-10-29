@@ -8,6 +8,7 @@ public sealed class ConfirmationAnalyzerTests
 {
     private static readonly string BenchmarkId = "Ns.Bench.Method(FileCount: 1000)";
     private static readonly double BaselineNs = 200_000_000D;
+    private static readonly double NoiseFloorNs = 500_000D;
 
     [Fact]
     public void Analyze_WithNoHypotheses_ReturnsNotConfirmed()
@@ -58,6 +59,61 @@ public sealed class ConfirmationAnalyzerTests
 
         Assert.Equal(ConfirmationDecision.Confirmed, decision);
         Assert.Contains(logger.Messages, message => message.Contains("CONFIRMED regression", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Analyze_WhenRatioAndDeltaClearTheNoiseFloor_ReturnsConfirmed()
+    {
+        ConfirmationDecision decision = Analyze([FloorHypothesis(ConfirmationMetric.Mean)], CreateRounds(1.100, 1.105, 1.098, 1.102));
+
+        Assert.Equal(ConfirmationDecision.Confirmed, decision);
+    }
+
+    [Fact]
+    public void Analyze_WhenRatioPersistsButDeltaIsUnderTheNoiseFloor_ReturnsNotConfirmed()
+    {
+        PerfDiffTestLogger logger = new();
+
+        // 4 ms to 4.3 ms is a 7.5% slowdown but only 0.3 ms, under the 0.5 ms screen floor.
+        ConfirmationDecision decision = Analyze(
+            [FloorHypothesis(ConfirmationMetric.Mean)],
+            CreateRoundsWithBaseline(4_000_000D, 1.075, 1.074, 1.076, 1.075),
+            logger: logger);
+
+        Assert.Equal(ConfirmationDecision.NotConfirmed, decision);
+        Assert.Contains(logger.Messages, message => message.Contains("0.500 ms noise floor", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Analyze_WhenOnlyTheP95TailRegresses_ReturnsNotConfirmed()
+    {
+        PerfDiffTestLogger logger = new();
+        ConfirmationHypothesis hypothesis = new(BenchmarkId, ConfirmationMetric.P95, 0.05, BudgetNs: null, new DeltaFloor(ConfirmationMetric.Mean, NoiseFloorNs));
+        ConfirmationRound[] rounds = [.. new[] { 1.100, 1.105, 1.098, 1.102 }.Select(ratio => new ConfirmationRound(
+            Map(BenchmarkTestData.CreateBenchmark(BenchmarkId, medianNs: BaselineNs, meanNs: BaselineNs, p95Ns: BaselineNs)),
+            Map(BenchmarkTestData.CreateBenchmark(BenchmarkId, medianNs: BaselineNs, meanNs: BaselineNs, p95Ns: BaselineNs * ratio))))];
+
+        ConfirmationDecision decision = Analyze([hypothesis], rounds, logger: logger);
+
+        Assert.Equal(ConfirmationDecision.NotConfirmed, decision);
+        Assert.Contains(logger.Messages, message => message.Contains("median paired Mean slowdown of 0.000 ms", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Analyze_WhenNoiseFloorMetricIsMissing_ReturnsError()
+    {
+        ConfirmationHypothesis hypothesis = new(BenchmarkId, ConfirmationMetric.P95, 0.05, BudgetNs: null, new DeltaFloor(ConfirmationMetric.Mean, NoiseFloorNs));
+        ConfirmationRound[] rounds = [.. Enumerable.Range(0, 3).Select(_ => new ConfirmationRound(
+            Map(BenchmarkTestData.CreateBenchmark(BenchmarkId, meanNs: 0D, p95Ns: BaselineNs)),
+            Map(BenchmarkTestData.CreateBenchmark(BenchmarkId, meanNs: 0D, p95Ns: BaselineNs * 1.1))))];
+
+        Assert.Equal(ConfirmationDecision.Error, Analyze([hypothesis], rounds));
+    }
+
+    [Fact]
+    public void Analyze_WithNoiseFloorBeforeMinRounds_ReturnsContinue()
+    {
+        Assert.Equal(ConfirmationDecision.Continue, Analyze([FloorHypothesis(ConfirmationMetric.Mean)], CreateRounds(1.1)));
     }
 
     [Fact]
@@ -250,6 +306,9 @@ public sealed class ConfirmationAnalyzerTests
 
     private static ConfirmationHypothesis RatioHypothesis()
         => new(BenchmarkId, ConfirmationMetric.Mean, 0.05, BudgetNs: null);
+
+    private static ConfirmationHypothesis FloorHypothesis(ConfirmationMetric floorMetric)
+        => new(BenchmarkId, ConfirmationMetric.Mean, 0.05, BudgetNs: null, new DeltaFloor(floorMetric, NoiseFloorNs));
 
     private static ConfirmationHypothesis BudgetHypothesis(double budgetMs)
         => new(BenchmarkId, ConfirmationMetric.Mean, 0D, budgetMs * 1_000_000D);

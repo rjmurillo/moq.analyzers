@@ -123,7 +123,7 @@ public sealed class ConfirmationIOTests
         ConfirmationHypothesis[] hypotheses =
         [
             new(BenchmarkId, ConfirmationMetric.P95, 0D, 250_000_000D),
-            new("Ns.Bench.Other", ConfirmationMetric.Median, 0.35, BudgetNs: null),
+            new("Ns.Bench.Other", ConfirmationMetric.Median, 0.35, BudgetNs: null, new DeltaFloor(ConfirmationMetric.Mean, 500_000D)),
         ];
 
         await ConfirmationHypothesisFile.WriteAsync(path, hypotheses, CancellationToken.None).ConfigureAwait(true);
@@ -287,9 +287,9 @@ public sealed class ConfirmationIOTests
 
         Assert.True(comparison.RegressionDetected);
         Assert.Equal(3, comparison.FlaggedOrEmpty.Count);
-        AssertFlagged(comparison, ConfirmationMetric.Median, 0.35);
-        AssertFlagged(comparison, ConfirmationMetric.Mean, 0.05);
-        AssertFlagged(comparison, ConfirmationMetric.P95, 0.05);
+        AssertFlagged(comparison, ConfirmationMetric.Median, 0.35, ConfirmationMetric.Median);
+        AssertFlagged(comparison, ConfirmationMetric.Mean, 0.05, ConfirmationMetric.Mean);
+        AssertFlagged(comparison, ConfirmationMetric.P95, 0.05, ConfirmationMetric.Mean);
     }
 
     [Fact]
@@ -342,12 +342,13 @@ public sealed class ConfirmationIOTests
         Assert.Empty(await ConfirmationHypothesisFile.ReadAsync(path, CancellationToken.None).ConfigureAwait(true));
     }
 
-    private static void AssertFlagged(BenchmarkComparisonResult comparison, ConfirmationMetric metric, double minimumEffect)
+    private static void AssertFlagged(BenchmarkComparisonResult comparison, ConfirmationMetric metric, double minimumEffect, ConfirmationMetric floorMetric)
     {
         ConfirmationHypothesis hypothesis = Assert.Single(comparison.FlaggedOrEmpty, flagged => flagged.Metric == metric);
         Assert.Equal(BenchmarkId, hypothesis.BenchmarkId);
         Assert.Equal(minimumEffect, hypothesis.MinimumEffect, 12);
         Assert.Null(hypothesis.BudgetNs);
+        Assert.Equal(new DeltaFloor(floorMetric, 500_000D), hypothesis.Floor);
     }
 
     private static async Task<int> RunConfirmAsync(params double[] ratios)

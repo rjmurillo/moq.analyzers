@@ -13,11 +13,15 @@ namespace PerfDiff.BDN.Confirmation;
 /// The fixed budget that the screen gate checked, in nanoseconds, or <see langword="null"/>
 /// for a ratio gate. A budget hypothesis also needs the current build to stay over budget.
 /// </param>
+/// <param name="Floor">
+/// The absolute slowdown floor of a ratio gate, or <see langword="null"/> for none.
+/// </param>
 public sealed record ConfirmationHypothesis(
     string BenchmarkId,
     ConfirmationMetric Metric,
     double MinimumEffect,
-    double? BudgetNs)
+    double? BudgetNs,
+    DeltaFloor? Floor = null)
 {
     /// <summary>
     /// Selects the hypothesis metric from a benchmark.
@@ -25,7 +29,16 @@ public sealed record ConfirmationHypothesis(
     /// <param name="benchmark">The benchmark to read.</param>
     /// <returns>The metric in nanoseconds, or <see langword="null"/> when the report has no value.</returns>
     public double? SelectMetric(DataContracts.Benchmark benchmark)
-        => Metric switch
+        => Select(Metric, benchmark);
+
+    /// <summary>
+    /// Selects a metric from a benchmark.
+    /// </summary>
+    /// <param name="metric">The statistic to read.</param>
+    /// <param name="benchmark">The benchmark to read.</param>
+    /// <returns>The metric in nanoseconds, or <see langword="null"/> when the report has no value.</returns>
+    internal static double? Select(ConfirmationMetric metric, DataContracts.Benchmark benchmark)
+        => metric switch
         {
             ConfirmationMetric.Median => benchmark.Statistics?.Median,
             ConfirmationMetric.Mean => benchmark.Statistics?.Mean,

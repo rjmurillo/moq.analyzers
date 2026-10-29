@@ -28,10 +28,11 @@ The first comparison becomes a screen. When a gate trips, PerfDiff writes the fl
 
 1. Each round runs the baseline build and the current build as two separate processes. Odd rounds run the baseline first. Even rounds run it second. Linear drift over the job then cancels out.
 2. Each round gives one log ratio, `ln(current / baseline)`, of the metric that tripped the gate.
-3. The stop rule copies BenchmarkDotNet's rule for iterations. After at least 3 rounds, stop when the 99% confidence margin of the mean log ratio is below 2%. Stop at 10 rounds or after a 40 minute budget in any case. The rule reads only the spread of the ratios, never their direction, so it does not bias the test.
+3. The stop rule copies BenchmarkDotNet's rule for iterations. After at least 3 rounds, stop when the 99% confidence margin of the mean log ratio is below 2%. Stop at 10 rounds, or when another round would pass a 40 minute budget. The rule reads only the spread of the ratios, never their direction, so it does not bias the test. When round 1 shows that 3 rounds cannot fit the budget, confirmation stops and the screen result fails the job.
 4. The decision is a one-sided paired t-test. The null hypothesis is that the slowdown is at most the gate's own minimum effect: 5% for the mean and P95 ratio gates, 35% for the median gate, and zero for the fixed budgets.
 5. Holm's method corrects for every flagged benchmark at once. The family-wise error rate is 1%. A budget hypothesis also needs the median of the current rounds to stay over budget.
-6. Only a confirmed regression fails the job. A screen result that does not confirm logs a warning.
+6. A ratio hypothesis also needs the median paired slowdown to pass the screen's 0.5 ms noise floor. The floor reads the metric the screen read: the mean for the mean and P95 gates, and the median for the median gate. A tail-only P95 spike therefore cannot confirm.
+7. Only a confirmed regression fails the job. A screen result that does not confirm logs a warning.
 
 The confirmation data is new and independent of the screen data. Choosing what to confirm from the screen does not bias the confirmation test.
 

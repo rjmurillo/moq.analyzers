@@ -22,7 +22,8 @@ public sealed class P95RatioRegressionStrategy : IBenchmarkRegressionStrategy
                 ConfirmationMetric.P95,
                 GetP95Ratio,
                 result => BenchmarkDotNetDiffer.GetP95Delta(result.Conclusion, result.BaseResult, result.DiffResult),
-                stabilityDeltaSelector: GetStabilityDelta),
+                stabilityDeltaSelector: GetStabilityDelta,
+                stabilityMetric: ConfirmationMetric.Mean),
             out details);
 
     private static double GetStabilityDelta(RegressionResult result)

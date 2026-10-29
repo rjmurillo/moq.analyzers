@@ -98,6 +98,8 @@ documentation. To get started, see the [contributing guide](./CONTRIBUTING.md).
 - When a pull request skips the full test run, CI reports the base commit's coverage to Codacy, because no measured
   code changed. If main CI for the base commit is still queued or running, CI waits up to 40 minutes for it to
   finish, and fails if that run does not pass.
+- The perf job fails only when paired reruns confirm a slowdown that the first comparison flagged. See
+  [ADR-012](./docs/architecture/ADR-012-confirm-perf-regressions-with-paired-rounds.md).
 - The tier rules live in `build/scripts/ci/classify-changed-paths.sh`. Any path the script does not name runs the
   full pipeline.
 - CI keeps artifacts from the main and mutation-testing workflows for seven days. For details, see the

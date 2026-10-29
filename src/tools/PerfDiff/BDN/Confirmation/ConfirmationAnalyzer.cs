@@ -111,10 +111,9 @@ internal static class ConfirmationAnalyzer
         for (int index = 0; index < statistics.Count; index++)
         {
             HypothesisStatistics hypothesisStatistics = statistics[index];
-            bool overBudget = hypothesisStatistics.Hypothesis.BudgetNs is not double budgetNs || hypothesisStatistics.CurrentMedianNs > budgetNs;
-            bool confirmed = rejected[index] && overBudget;
-            anyConfirmed |= confirmed;
-            LogResult(logger, hypothesisStatistics, roundCount, rejected[index], confirmed);
+            string? shortfall = GetShortfall(hypothesisStatistics);
+            anyConfirmed |= rejected[index] && shortfall is null;
+            LogResult(logger, hypothesisStatistics, roundCount, rejected[index], shortfall);
         }
 
         return anyConfirmed ? ConfirmationDecision.Confirmed : ConfirmationDecision.NotConfirmed;
@@ -183,36 +182,65 @@ internal static class ConfirmationAnalyzer
         statistics = null;
         double[] logRatios = new double[rounds.Count];
         double[] currentValues = new double[rounds.Count];
+        double[] floorDeltas = new double[rounds.Count];
         for (int index = 0; index < rounds.Count; index++)
         {
-            ConfirmationRound round = rounds[index];
-            if (!TryGetMetric(hypothesis, round.Baseline, out double baselineNs)
-                || !TryGetMetric(hypothesis, round.Current, out double currentNs))
+            if (!TryGetRoundValues(hypothesis, rounds[index], out logRatios[index], out currentValues[index], out floorDeltas[index]))
             {
-                LogError(logger, $"Confirmation round {index + 1} has no positive {hypothesis.Metric} for '{hypothesis.BenchmarkId}'.");
+                LogError(logger, $"Confirmation round {index + 1} has no positive {hypothesis.Metric} or noise floor metric for '{hypothesis.BenchmarkId}'.");
                 return false;
             }
-
-            logRatios[index] = Math.Log(currentNs / baselineNs);
-            currentValues[index] = currentNs;
         }
 
+        double medianFloorDeltaNs = hypothesis.Floor is null ? double.NaN : Median(floorDeltas);
         if (rounds.Count < MinimumRounds)
         {
-            statistics = new HypothesisStatistics(hypothesis, double.NaN, PValue: 1D, LogMargin: double.PositiveInfinity, double.NaN);
+            statistics = new HypothesisStatistics(hypothesis, double.NaN, PValue: 1D, LogMargin: double.PositiveInfinity, double.NaN, medianFloorDeltaNs);
             return true;
         }
 
         (double mean, double pValue, double logMargin) = TestMeanGreater(logRatios, Math.Log(1D + hypothesis.MinimumEffect));
-        statistics = new HypothesisStatistics(hypothesis, mean, pValue, logMargin, Median(currentValues));
+        statistics = new HypothesisStatistics(hypothesis, mean, pValue, logMargin, Median(currentValues), medianFloorDeltaNs);
         return true;
     }
 
-    private static bool TryGetMetric(ConfirmationHypothesis hypothesis, IReadOnlyDictionary<string, Benchmark> benchmarks, out double valueNs)
+    private static bool TryGetRoundValues(
+        ConfirmationHypothesis hypothesis,
+        ConfirmationRound round,
+        out double logRatio,
+        out double currentNs,
+        out double floorDeltaNs)
+    {
+        logRatio = double.NaN;
+        floorDeltaNs = double.NaN;
+        if (!TryGetMetric(hypothesis.Metric, hypothesis.BenchmarkId, round.Baseline, out double baselineNs)
+            || !TryGetMetric(hypothesis.Metric, hypothesis.BenchmarkId, round.Current, out currentNs))
+        {
+            currentNs = double.NaN;
+            return false;
+        }
+
+        logRatio = Math.Log(currentNs / baselineNs);
+        if (hypothesis.Floor is not DeltaFloor floor)
+        {
+            return true;
+        }
+
+        if (!TryGetMetric(floor.Metric, hypothesis.BenchmarkId, round.Baseline, out double floorBaselineNs)
+            || !TryGetMetric(floor.Metric, hypothesis.BenchmarkId, round.Current, out double floorCurrentNs))
+        {
+            return false;
+        }
+
+        floorDeltaNs = floorCurrentNs - floorBaselineNs;
+        return true;
+    }
+
+    private static bool TryGetMetric(ConfirmationMetric metric, string benchmarkId, IReadOnlyDictionary<string, Benchmark> benchmarks, out double valueNs)
     {
         valueNs = double.NaN;
-        if (!benchmarks.TryGetValue(hypothesis.BenchmarkId, out Benchmark? benchmark)
-            || hypothesis.SelectMetric(benchmark) is not double value
+        if (!benchmarks.TryGetValue(benchmarkId, out Benchmark? benchmark)
+            || ConfirmationHypothesis.Select(metric, benchmark) is not double value
             || double.IsNaN(value)
             || value <= 0D
             || double.IsInfinity(value))
@@ -224,6 +252,27 @@ internal static class ConfirmationAnalyzer
         return true;
     }
 
+    /// <summary>
+    /// Finds the screen condition, other than the ratio test, that the rounds do not meet.
+    /// </summary>
+    /// <param name="statistics">The hypothesis statistics.</param>
+    /// <returns>The reason the regression does not count, or <see langword="null"/> when it does.</returns>
+    private static string? GetShortfall(HypothesisStatistics statistics)
+    {
+        ConfirmationHypothesis hypothesis = statistics.Hypothesis;
+        if (hypothesis.BudgetNs is double budgetNs && statistics.CurrentMedianNs <= budgetNs)
+        {
+            return "current build is back under budget";
+        }
+
+        if (hypothesis.Floor is DeltaFloor floor && statistics.MedianFloorDeltaNs <= floor.MinimumNs)
+        {
+            return $"median paired {floor.Metric} slowdown of {statistics.MedianFloorDeltaNs / NanosecondsPerMillisecond:F3} ms is not above the {floor.MinimumNs / NanosecondsPerMillisecond:F3} ms noise floor";
+        }
+
+        return null;
+    }
+
     private static double Median(double[] values)
     {
         double[] sorted = values.Order().ToArray();
@@ -231,14 +280,15 @@ internal static class ConfirmationAnalyzer
         return sorted.Length % 2 == 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2D;
     }
 
-    private static void LogResult(ILogger logger, HypothesisStatistics statistics, int roundCount, bool significant, bool confirmed)
+    private static void LogResult(ILogger logger, HypothesisStatistics statistics, int roundCount, bool significant, string? shortfall)
     {
         ConfirmationHypothesis hypothesis = statistics.Hypothesis;
-        string verdict = (significant, confirmed) switch
+        bool confirmed = significant && shortfall is null;
+        string verdict = (significant, shortfall) switch
         {
             (false, _) => "not confirmed: slowdown is not significant",
-            (true, false) => "not confirmed: current build is back under budget",
-            (true, true) => "CONFIRMED regression",
+            (true, null) => "CONFIRMED regression",
+            (true, string reason) => $"not confirmed: {reason}",
         };
 
         string budget = string.Empty;
@@ -276,5 +326,6 @@ internal static class ConfirmationAnalyzer
         double Mean,
         double PValue,
         double LogMargin,
-        double CurrentMedianNs);
+        double CurrentMedianNs,
+        double MedianFloorDeltaNs);
 }

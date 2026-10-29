@@ -115,7 +115,12 @@ public static class RegressionStrategyHelper
         bool aggregateRegression = IsAggregateRatioRegression(worse, config.RatioSelector, config.AggregateThreshold, out _);
         ConfirmationHypothesis[] flagged = aggregateRegression
             ? worse
-                .Select(result => new ConfirmationHypothesis(result.Id, config.Metric, config.AggregateThreshold - 1D, BudgetNs: null))
+                .Select(result => new ConfirmationHypothesis(
+                    result.Id,
+                    config.Metric,
+                    config.AggregateThreshold - 1D,
+                    BudgetNs: null,
+                    new DeltaFloor(config.StabilityMetric, AbsoluteNoiseFloorNs)))
                 .ToArray()
             : [];
         details = new RegressionDetectionResult(config.MetricName, relativeThreshold, flagged);

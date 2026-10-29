@@ -131,11 +131,37 @@ Describe 'Invoke-PerfConfirmation' {
         $result[0] | Should -BeFalse
     }
 
-    It 'forces a decision at the current round once the time budget is used' {
-        Invoke-Confirmation -TimeBudgetMinutes 0 | Out-Null
+    It 'forces a decision at the current round when another round would pass the time budget' {
+        # Rounds take 10, 10, and 15 minutes. A fourth 15 minute round would end at 50 minutes.
+        $global:PerfClockTicks = [System.Collections.Queue]::new([double[]](10, 20, 35))
+        Mock Get-PerfElapsedMinutes -ModuleName PerfBaselineManager { $global:PerfClockTicks.Dequeue() }
+
+        Invoke-Confirmation -TimeBudgetMinutes 40 | Out-Null
 
         $decision = (Get-Content $env:STUB_LOG | Where-Object { $_ -like 'confirm|*' }) -split '\|'
         $decision[2] | Should -Be '3'
+        Remove-Variable -Name PerfClockTicks -Scope Global
+    }
+
+    It 'keeps asking for rounds while the next round fits the time budget' {
+        $env:STUB_CONFIRM_CODES = '3,0'
+        $global:PerfClockTicks = [System.Collections.Queue]::new([double[]](10, 20, 30, 40))
+        Mock Get-PerfElapsedMinutes -ModuleName PerfBaselineManager { $global:PerfClockTicks.Dequeue() }
+
+        Invoke-Confirmation -TimeBudgetMinutes 45 | Out-Null
+
+        $decisions = @(Get-Content $env:STUB_LOG | Where-Object { $_ -like 'confirm|*' })
+        ($decisions[0] -split '\|')[2] | Should -Be '10'
+        ($decisions[1] -split '\|')[2] | Should -Be '4'
+        Remove-Variable -Name PerfClockTicks -Scope Global
+    }
+
+    It 'throws before the minimum rounds when they cannot fit the time budget' {
+        # Round 1 takes 20 minutes, so 3 rounds need about 60 minutes.
+        Mock Get-PerfElapsedMinutes -ModuleName PerfBaselineManager { 20 }
+
+        { Invoke-Confirmation -TimeBudgetMinutes 40 } | Should -Throw '*needs about 60 minutes for 3 rounds, over its 40 minute budget. The screen result stands*'
+        @(Get-Content $env:STUB_LOG | Where-Object { $_ -like '*/r2|*' }).Count | Should -Be 0
     }
 
     It 'throws when the decision still asks for a round at the last round' {

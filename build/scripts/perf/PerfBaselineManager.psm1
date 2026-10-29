@@ -206,6 +206,7 @@ function Invoke-PerfConfirmation {
 
     Write-PerfLog -Message "Confirming $($filters.Count) flagged benchmark(s) in $MinRounds to $MaxRounds paired rounds: $($filters -join ', ')"
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    $previousMinutes = 0
     for ($round = 1; $round -le $MaxRounds; $round++) {
         $order = if ($round % 2 -eq 1) { @('baseline', 'current') } else { @('current', 'baseline') }
         foreach ($side in $order) {
@@ -220,14 +221,24 @@ function Invoke-PerfConfirmation {
             if ($LASTEXITCODE -ne 0) { throw "Confirmation round $round ($side) failed with exit code $LASTEXITCODE." }
         }
 
+        $elapsedMinutes = Get-PerfElapsedMinutes -Stopwatch $stopwatch
+        $roundMinutes = $elapsedMinutes - $previousMinutes
+        $previousMinutes = $elapsedMinutes
+
         if ($round -lt $MinRounds) {
+            # The test needs MinRounds rounds. When they cannot fit the budget, confirmation cannot decide in time.
+            $projectedMinutes = $elapsedMinutes + ($roundMinutes * ($MinRounds - $round))
+            if ($projectedMinutes -gt $TimeBudgetMinutes) {
+                throw "Confirmation needs about $([math]::Ceiling($projectedMinutes)) minutes for $MinRounds rounds, over its $TimeBudgetMinutes minute budget. The screen result stands."
+            }
+
             continue
         }
 
-        # Past the time budget, the rounds so far must decide.
+        # When another round would pass the time budget, the rounds so far must decide.
         $decisionMaxRounds = $MaxRounds
-        if ($stopwatch.Elapsed.TotalMinutes -ge $TimeBudgetMinutes) {
-            Write-Warning "Confirmation used its $TimeBudgetMinutes minute budget. Deciding on $round rounds."
+        if (($elapsedMinutes + $roundMinutes) -gt $TimeBudgetMinutes) {
+            Write-Warning "Another confirmation round would pass the $TimeBudgetMinutes minute budget. Deciding on $round rounds."
             $decisionMaxRounds = $round
         }
 
@@ -250,6 +261,12 @@ function Invoke-PerfConfirmation {
     }
 
     throw "Confirmation analysis did not decide within $MaxRounds rounds."
+}
+
+function Get-PerfElapsedMinutes {
+    param([System.Diagnostics.Stopwatch] $Stopwatch)
+
+    return $Stopwatch.Elapsed.TotalMinutes
 }
 
 function Invoke-PerfBaselineComparison {
