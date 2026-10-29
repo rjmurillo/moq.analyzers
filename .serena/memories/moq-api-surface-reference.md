@@ -179,7 +179,7 @@ Tests run against BOTH versions. Analyzers must handle both.
 
 Defined in tests/Moq.Analyzers.Test/Helpers/ReferenceAssemblyCatalog.cs:
 
-- Net80: .NET 8.0 without Moq (tests early exit via IsMockReferenced)
-- Net80WithOldMoq: Moq 4.8.2 (pre-4.13.1, before As<T>() internal change)
-- Net80WithNewMoq: Moq 4.18.4 (most downloaded version)
-- Net80WithNewMoqAndLogging: Moq 4.18.4 + Microsoft.Extensions.Logging.Abstractions 8.0.0
+- Net100: .NET 10.0 without Moq (tests early exit via IsMockReferenced)
+- Net100WithOldMoq: Moq 4.8.2 (pre-4.13.1, before As<T>() internal change)
+- Net100WithNewMoq: Moq 4.18.4 (most downloaded version)
+- Net100WithNewMoqAndLogging: Moq 4.18.4 + Microsoft.Extensions.Logging.Abstractions 8.0.0

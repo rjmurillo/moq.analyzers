@@ -202,13 +202,15 @@ S1135 is SonarAnalyzer's "complete the task associated to this TODO comment".
   release that existed solely to undo this**. Codified as
   ADR-003 (Roslyn pinned to 4.8) and ADR-004 (AnalyzerUtilities capped at
   3.3.4). Renovate caps added in `dac582f` (2026-03-14, PR #1072).
-- **Now triple-enforced:** the `ValidateAnalyzerHostCompatibility` MSBuild
-  target, an inline CI DLL-reference check, and the 9-way
-  `analyzer-load-test` CI matrix (net8/9/10 CLI × net472/48/481 MSBuild).
+- **Now enforced in four places:** the `ValidateAnalyzerHostCompatibility`
+  MSBuild target, an inline CI DLL-reference check,
+  `AnalyzerAssemblyCompatibilityTests`, and the 4-leg `analyzer-load-test` CI
+  matrix (net10.0 CLI on SDK 10.0.100, plus net472/48/481 MSBuild on VS 2026).
+  ADR-011 raised the host floor to the .NET 10 SDK (Roslyn 5.0).
 - **Status:** SETTLED.
 - **Standing rule:** never bump `Microsoft.CodeAnalysis.*`, AnalyzerUtilities,
-  `System.Collections.Immutable`, or `System.Reflection.Metadata` outside the
-  ADR-003/ADR-004 process; the load-test matrix must pass. Full gate list in
+  `System.Collections.Immutable`, or `System.Reflection.Metadata` without an
+  ADR that supersedes ADR-011; the load-test matrix must pass. Full gate list in
   `moq-analyzers-change-control`.
 
 ## 6. Codacy CA1016: suppress, don't fix (2026-02/03)
@@ -399,8 +401,8 @@ status verified with `git branch -r --no-merged main` on 2026-07-02.
   mock targets in expression-tree rules.
 - Do not raise S1135 (or promote any diagnostic to warning) without grepping
   for existing instances first — PedanticMode makes it a CI self-lock.
-- Do not bump Roslyn/AnalyzerUtilities/SCI/SRM outside ADR-003/ADR-004 —
-  v0.4.1 exists because someone effectively did.
+- Do not bump Roslyn/AnalyzerUtilities/SCI/SRM without an ADR that supersedes
+  ADR-011 (formerly ADR-003/ADR-004). v0.4.1 exists because someone effectively did.
 - Do not "fix" Codacy's CA1016 by adding `AssemblyVersionAttribute`; the
   suppression is the fix.
 - Do not use `==` on `ISymbol`, `!` on uncertain values, or "assume it

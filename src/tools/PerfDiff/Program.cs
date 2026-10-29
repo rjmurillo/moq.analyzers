@@ -19,16 +19,6 @@ internal sealed class Program
     private static async Task<int> Main(string[] args)
     {
         RootCommand rootCommand = DiffCommand.CreateCommandLineOptions();
-        rootCommand.SetAction(static async (parseResult, cancellationToken) =>
-        {
-            string baseline = parseResult.GetValue(DiffCommand.BaselineOption)!;
-            string results = parseResult.GetValue(DiffCommand.ResultsOption)!;
-            string? verbosity = parseResult.GetValue(DiffCommand.VerbosityOption);
-            bool failOnRegression = parseResult.GetValue(DiffCommand.FailOnRegressionOption);
-
-            return await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken).ConfigureAwait(false);
-        });
-
         return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
     }
 
@@ -37,16 +27,17 @@ internal sealed class Program
         string results,
         string? verbosity,
         bool failOnRegression,
-        CancellationToken cancellationToken)
-        => await RunAsync(baseline, results, verbosity, failOnRegression, cancellationToken, PerfDiff.CompareAsync).ConfigureAwait(false);
-
-    internal static async Task<int> RunAsync(
-        string baseline,
-        string results,
-        string? verbosity,
-        bool failOnRegression,
         CancellationToken cancellationToken,
         Func<string, string, bool, ILogger, CancellationToken, Task<int>> compareAsync)
+        => await RunWithLoggingAsync(verbosity, logger => compareAsync(baseline, results, failOnRegression, logger, cancellationToken)).ConfigureAwait(false);
+
+    /// <summary>
+    /// Runs a command body with console logging and maps known exceptions to exit codes.
+    /// </summary>
+    /// <param name="verbosity">The verbosity string from the command line.</param>
+    /// <param name="runAsync">The command body.</param>
+    /// <returns>The body's exit code, or an exit code for a known exception.</returns>
+    internal static async Task<int> RunWithLoggingAsync(string? verbosity, Func<ILogger, Task<int>> runAsync)
     {
         // Setup logging.
         LogLevel logLevel = DiffCommand.GetLogLevel(verbosity);
@@ -58,7 +49,7 @@ internal sealed class Program
 
             try
             {
-                return await compareAsync(baseline, results, failOnRegression, logger, cancellationToken).ConfigureAwait(false);
+                return await runAsync(logger).ConfigureAwait(false);
             }
             catch (FileNotFoundException fex)
             {

@@ -12,11 +12,18 @@ public class AnalyzerAssemblyCompatibilityTests
     // Bundled third-party assemblies included in the package
     private static readonly string BundledAnalyzerUtilities = "Microsoft.CodeAnalysis.AnalyzerUtilities";
 
-    // Maximum assembly versions that the minimum supported SDK host (.NET 8) provides.
+    // Maximum assembly versions that the minimum supported SDK host (.NET 10, Roslyn 5.0) provides.
+    // Keep this list in sync with the DLL check in .github/workflows/main.yml (ADR-011 IMP-003).
+    // The Channels limit is the version AnalyzerUtilities 5.0.0 references, not a measured host floor.
     // The analyzer must not reference anything higher, or it will fail to load with CS8032.
     // See: https://github.com/rjmurillo/moq.analyzers/issues/850
-    private static readonly Version MaxImmutableVersion = new(8, 0, 0, 0);
-    private static readonly Version MaxMetadataVersion = new(8, 0, 0, 0);
+    private static readonly Version MaxImmutableVersion = new(9, 0, 0, 0);
+    private static readonly Version MaxMetadataVersion = new(9, 0, 0, 0);
+    private static readonly Version MaxAsyncInterfacesVersion = new(9, 0, 0, 0);
+    private static readonly Version MaxChannelsVersion = new(8, 0, 0, 0);
+
+    // The compiler in the .NET 10.0.100 SDK is Roslyn 5.0.0.0. A newer reference gives CS9057 on that SDK.
+    private static readonly Version MaxCompilerVersion = new(5, 0, 0, 0);
 
     public static TheoryData<string> ShippedAssemblies =>
         new()
@@ -52,6 +59,12 @@ public class AnalyzerAssemblyCompatibilityTests
 
             AssertVersionNotExceeded(assemblyName, references, "System.Collections.Immutable", MaxImmutableVersion);
             AssertVersionNotExceeded(assemblyName, references, "System.Reflection.Metadata", MaxMetadataVersion);
+            AssertVersionNotExceeded(assemblyName, references, "Microsoft.Bcl.AsyncInterfaces", MaxAsyncInterfacesVersion);
+            AssertVersionNotExceeded(assemblyName, references, "System.Threading.Channels", MaxChannelsVersion);
+            AssertVersionNotExceeded(assemblyName, references, "Microsoft.CodeAnalysis", MaxCompilerVersion);
+            AssertVersionNotExceeded(assemblyName, references, "Microsoft.CodeAnalysis.CSharp", MaxCompilerVersion);
+            AssertVersionNotExceeded(assemblyName, references, "Microsoft.CodeAnalysis.Workspaces", MaxCompilerVersion);
+            AssertVersionNotExceeded(assemblyName, references, "Microsoft.CodeAnalysis.CSharp.Workspaces", MaxCompilerVersion);
         }
         finally
         {

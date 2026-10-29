@@ -1,6 +1,6 @@
 ---
 name: moq-analyzers-architecture-contract
-description: Explains the load-bearing design decisions of moq.analyzers — all 10 ADRs as a decision/enforcement table, the non-negotiable invariants (Initialize pattern, MoqKnownSymbols lifecycle, symbol-based detection, netstandard2.0 + Roslyn 4.8 API ceiling, crash-safety ordering), the component map (25 rules, Common helpers, PerfDiff), and the plainly-stated known-weak points with their tracking issues. Load this BEFORE designing any change to src/ — new rule, helper refactor, dependency bump, detection-strategy change — or when asking "why is it built this way?", "what breaks if I...?", "which ADR covers...?", or "is this a known bug?". Do NOT load for step-by-step build/test commands (moq-analyzers-build-and-env), debugging a failing test or crash (moq-analyzers-debugging-playbook), Roslyn API how-tos (roslyn-analyzer-reference), Moq API semantics (moq-api-reference), or the PR/release process (moq-analyzers-change-control).
+description: Explains the load-bearing design decisions of moq.analyzers — all 11 ADRs as a decision/enforcement table, the non-negotiable invariants (Initialize pattern, MoqKnownSymbols lifecycle, symbol-based detection, netstandard2.0 + Roslyn 5.0 API ceiling, crash-safety ordering), the component map (25 rules, Common helpers, PerfDiff), and the plainly-stated known-weak points with their tracking issues. Load this BEFORE designing any change to src/ — new rule, helper refactor, dependency bump, detection-strategy change — or when asking "why is it built this way?", "what breaks if I...?", "which ADR covers...?", or "is this a known bug?". Do NOT load for step-by-step build/test commands (moq-analyzers-build-and-env), debugging a failing test or crash (moq-analyzers-debugging-playbook), Roslyn API how-tos (roslyn-analyzer-reference), Moq API semantics (moq-api-reference), or the PR/release process (moq-analyzers-change-control).
 ---
 
 # moq.analyzers Architecture Contract
@@ -33,22 +33,23 @@ returns "matches" rather than risk a crash *or* an FP).
 
 ## ADR decision table
 
-All ADRs live in `docs/architecture/ADR-00X-*.md`, status Accepted (2026-07-02).
+All ADRs live in `docs/architecture/ADR-0XX-*.md`. ADR-003 and ADR-004 are Superseded by ADR-011; the rest are Accepted.
 "Enforcement point" = the mechanism that catches a violation; "convention" means
 only code review catches it.
 
 | ADR | Decision | Why | What breaks if violated | Enforcement point |
 |---|---|---|---|---|
 | 001 | Symbol-based detection only. Type/method identity via `ISymbol` + `SymbolEqualityComparer.Default` + `MoqKnownSymbols`; never string names for semantic decisions | A user type named `Mock`, aliased usings, or fully-qualified names defeat string matching → FPs/FNs | FP/FN whack-a-mole (the Moq1203 saga took 5 patches); doppelganger types trigger falsely | `src/BannedSymbols.txt` bans `Compilation.GetTypeByMetadataName` ("Use KnownSymbols"); `DoppelgangerTestHelper` test suites; code review |
-| 002 | Analyzer + CodeFix assemblies target `netstandard2.0` (a TFM — target framework moniker — loadable by every host) | The DLL must load in Visual Studio, `dotnet build`, Rider — each with its own runtime | Assembly fails to load in some hosts; user sees no diagnostics and no clear error | `<TargetFramework>` in `src/*/*.csproj`; 9-way `analyzer-load-test` CI matrix (`.github/workflows/main.yml:283`) |
-| 003 | Pin Roslyn SDK (`Microsoft.CodeAnalysis.CSharp[.Workspaces]`) to **4.8** | 4.8 = VS 2022 17.8 (Nov 2023), the broadest deployed baseline; newer pins exclude users on older IDEs | Compiling against newer APIs silently raises the minimum host; APIs like `IsParamsCollection` don't exist in 4.8 (see #1241) | `Directory.Packages.props:22` (`Version="4.8"`); `renovate.json` ignores `Microsoft.CodeAnalysis.*` |
-| 004 | Cap `Microsoft.CodeAnalysis.AnalyzerUtilities` at **3.3.4** (< 4.14) | 4.14+ depends on `System.Collections.Immutable 9.0.0.0`, absent in .NET 8 SDK hosts → analyzer fails to instantiate | **CS8032** ("analyzer cannot be created") for every .NET 8 SDK user — the exact incident #850, fixed by #888, forced release v0.4.1 | `Directory.Packages.props:32` + explanatory comment; `ValidateAnalyzerHostCompatibility` MSBuild target (`build/targets/packaging/Packaging.targets:20`); CI DLL-reference check in the build job; `analyzer-load-test` matrix greps for CS8032 (`main.yml:412,438`) |
+| 002 | Analyzer + CodeFix assemblies target `netstandard2.0` (a TFM — target framework moniker — loadable by every host) | The DLL must load in Visual Studio, `dotnet build`, Rider — each with its own runtime | Assembly fails to load in some hosts; user sees no diagnostics and no clear error | `<TargetFramework>` in `src/*/*.csproj`; 4-leg `analyzer-load-test` CI matrix (`.github/workflows/main.yml:420`) |
+| 003 | **Superseded by ADR-011.** Pinned Roslyn SDK (`Microsoft.CodeAnalysis.CSharp[.Workspaces]`) to **4.8** | 4.8 = VS 2022 17.8 (Nov 2023), the broadest deployed baseline; newer pins exclude users on older IDEs | Compiling against newer APIs silently raises the minimum host; APIs like `IsParamsCollection` don't exist in 4.8 (see #1241) | Replaced by ADR-011 (pin now 5.0.0) |
+| 004 | **Superseded by ADR-011.** Capped `Microsoft.CodeAnalysis.AnalyzerUtilities` at **3.3.4** (< 4.14) | 4.14+ depends on `System.Collections.Immutable 9.0.0.0`, absent in .NET 8 SDK hosts → analyzer fails to instantiate | **CS8032** ("analyzer cannot be created") for every .NET 8 SDK user — the exact incident #850, fixed by #888, forced release v0.4.1 | Replaced by ADR-011 (AnalyzerUtilities now 5.0.0); the CS8032 guards below still apply |
 | 005 | NuGet Central Package Management with `CentralPackageTransitivePinningEnabled=true` | Any transitive dependency drifting above what hosts provide causes silent load failures | Transitive upgrade sneaks a v9 assembly into the nupkg → CS8032 class of failure returns | `Directory.Packages.props:4`; csproj files carry no `Version=` attributes; same host-compat target as ADR-004 |
 | 006 | WellKnown-types pattern: `MoqKnownSymbols` (in `src/Common/WellKnown/`) resolves every Moq symbol **once per `CompilationStartAnalysisContext`**; analyzers receive the instance as a parameter | `GetTypeByMetadataName` per-operation = thousands of redundant lookups per keystroke | IDE lag; per-keystroke perf gate regressions | `src/BannedSymbols.txt` (GetTypeByMetadataName ban); `MoqKnownSymbolsTests.Caching.cs`; audit 2026-07-02 verified all analyzers comply |
 | 007 | Prefer `RegisterOperationAction` (semantic `IOperation` tree) over `RegisterSyntaxNodeAction` (raw syntax) | `IOperation` abstracts syntax variations (named args, parenthesization, target-typed `new`) — one callback covers all shapes | Syntax-kind registration misses variants: `Mock<IFoo> m = new(42);` is invisible to Moq1001/1002 today (audit A-7) because `ImplicitObjectCreationExpression` is a different `SyntaxKind` | **Convention only** — not mechanically enforced; several analyzers still use syntax actions (audit A-12/L4). Treat as the default for new code |
-| 008 | BenchmarkDotNet benchmarks + custom PerfDiff CLI gate performance regressions; baseline in `build/perf/baseline.json` | Analyzers run per keystroke; reviewers cannot see a milliseconds regression in a diff | Unmeasured regressions accumulate as editor lag | `perf` CI job (`main.yml:456`, required check) → `build/scripts/perf/ComparePerfResults.ps1` → PerfDiff `--failOnRegression`. **Gate has known verdict defects — see weak points #1265–#1269** |
+| 008 | BenchmarkDotNet benchmarks + custom PerfDiff CLI gate performance regressions; baseline in `build/perf/baseline.json` | Analyzers run per keystroke; reviewers cannot see a milliseconds regression in a diff | Unmeasured regressions accumulate as editor lag | `perf` CI job (`main.yml:612`, required check) → `build/scripts/perf/ComparePerfResults.ps1` → PerfDiff `--failOnRegression`. **Gate has known verdict defects — see weak points #1265–#1269** |
 | 009 | xUnit + `Microsoft.CodeAnalysis.Testing` verifiers; inline sources with `{\|Moq1002:...\|}` markup asserting diagnostic ID **and exact span** | The markup makes expected output visible at the test site; unmarked code is a genuine negative assertion | Weaker harnesses can't catch span drift or unexpected extra diagnostics | Test helpers in `tests/Moq.Analyzers.Test/Helpers/`; every analyzer suite uses them |
 | 010 | `*.ps1`/`*.psm1`/`*.psd1` get `eol=lf` in `.gitattributes` (global rule, not path-scoped) | CRLF corrupts PowerShell block comments when hooks run from Git Bash — incident #1081 blocked all pushes | Pre-push hook parse errors; contributors bypass hooks with `--no-verify` | `.gitattributes`; repo targets pwsh 7+ only |
+| 011 | Minimum host is the .NET 10 SDK (10.0.100, Roslyn 5.0.0). Pin `Microsoft.CodeAnalysis.CSharp[.Workspaces]` and `AnalyzerUtilities` to **5.0.0**, `System.Collections.Immutable` to 9.0.0. Supersedes ADR-003 and ADR-004 | Every Roslyn 5.0 host, including the VS 2026 .NET Framework host, provides SCI/SRM >= 9.0.0.0. .NET 8 and .NET 9 are deprecated | Compiling against APIs newer than 5.0 raises the minimum host again; SCI/SRM above 9.0.0.0 brings back CS8032 (incident #850 class). Consumers on VS 2022 or .NET 8/9 SDKs get CS9057 and the analyzer does not run | `Directory.Packages.props:21-22,35,59`; `renovate.json` ignores `Microsoft.CodeAnalysis.*`, caps SCI/SRM `<10.0.0` and AnalyzerUtilities `<5.6.0`; `ValidateAnalyzerHostCompatibility` MSBuild target, major 9 (`build/targets/packaging/Packaging.targets:23`); build-job DLL check, max 9.0.0.0 (`main.yml:162`); `AnalyzerAssemblyCompatibilityTests`; `analyzer-load-test` matrix greps for CS8032 (`main.yml:540,578`) |
 
 ## Invariants (with code anchors)
 
@@ -135,26 +136,31 @@ first failure**, re-evaluate the syntax-tree navigation; after a second failure,
 escalate to a human. Report on the specific token (which token varies by rule and
 is pinned by the `{|MoqXXXX:...|}` test markup), not lazily on the whole invocation.
 
-### 7. API ceiling: netstandard2.0 + Roslyn 4.8, but hosts run newer Roslyn
+### 7. API ceiling: netstandard2.0 + Roslyn 5.0, but hosts run newer Roslyn
 
 The most misunderstood invariant. Two directions:
 
-- **Compile-time ceiling:** you may only *call* Roslyn 4.8 APIs
-  (`Directory.Packages.props:22`). `IParameterSymbol.IsParamsCollection`,
-  C# 13 syntax kinds, newer `OperationKind`s — unavailable.
+- **Compile-time ceiling:** you may only *call* Roslyn 5.0 APIs
+  (`Directory.Packages.props:22`, ADR-011). APIs added after 5.0 are unavailable.
+  Roslyn 5.0 aliases `OperationKind.MethodBody`/`MethodBodyOperation` (both 88)
+  and `ConstructorBody`/`ConstructorBodyOperation` (both 89), so `ToString()` can
+  return the `*Operation` name.
 - **Runtime floor is unbounded above:** the DLL executes inside whatever Roslyn the
-  consumer's IDE/SDK hosts (VS 17.12+, .NET 9/10 SDK). Newer hosts feed your 4.8-era
-  code *symbols for language features 4.8 never knew* — e.g. `IsParams == true` for
-  a C# 13 params collection whose `Type` is **not** `IArrayTypeSymbol` (crash #1241).
+  consumer's IDE/SDK hosts (.NET 10 SDK and newer, VS 2026). Newer hosts can feed
+  your code symbols for language features your pin never knew. Crash #1241 is the
+  model: under the old 4.8 pin, `IsParams == true` arrived for a C# 13 params
+  collection whose `Type` is **not** `IArrayTypeSymbol`.
   Defensive pattern-match every cast; never assume the input language version.
-- Host-compat floor on dependencies: shipped assemblies must load in a **.NET 8
-  SDK host** — hence ADR-004's cap and `System.Collections.Immutable`/
-  `System.Reflection.Metadata` ≤ 8.0.0 (`Directory.Packages.props:52`). Violation
-  = CS8032 (incident #850), triple-enforced (MSBuild target, CI DLL check,
-  load-test matrix).
-- Test-suite consequence: the pinned 4.8 test compiler parses C# 12 max — C# 13
-  constructs (params collections) **cannot be written in test sources**, so some
-  crash guards are scenario-untestable in-suite (documented honestly in #1241).
+- Host-compat floor on dependencies: shipped assemblies must load in a **.NET 10
+  SDK host** (ADR-011), hence `System.Collections.Immutable`/
+  `System.Reflection.Metadata` max 9.0.0.0 (SCI pinned at `Directory.Packages.props:59`). Violation
+  = CS8032 (incident #850), enforced by the MSBuild target, CI DLL check,
+  `AnalyzerAssemblyCompatibilityTests`, and the load-test matrix.
+- Test-suite consequence: `Moq.Analyzers.Test` compiles test sources with Roslyn
+  5.0 at the default language version (C# 14), so C# 13 params collections can be
+  written in test sources. The `Moq.Analyzers.CSharp14.Test` verifier sets
+  `LanguageVersion.Preview`. The old C# 12 ceiling, which
+  left some #1241 guards untestable in-suite, is gone.
 
 ### 8. Crash-safety ordering in code
 
@@ -247,7 +253,7 @@ Its verdict logic has multiple confirmed defects — see weak points.
 - `tests/Moq.Analyzers.Test` contains analyzer, fixer, package, and compatibility
   tests. Helpers in `Helpers/`:
   `Test.cs`, `AnalyzerVerifier`/`CodeFixVerifier`, `ReferenceAssemblyCatalog`
-  (keys: `Net80` = no Moq, `Net80WithOldMoq` = 4.8.2, `Net80WithNewMoq` = 4.18.4),
+  (keys: `Net100` = no Moq, `Net100WithOldMoq` = 4.8.2, `Net100WithNewMoq` = 4.18.4),
   `TestDataExtensions` (`WithNamespaces() × With*MoqReferenceAssemblyGroups()`
   row fan-out), `AllAnalyzersVerifier` (reflection-discovers analyzers **only in
   namespace `Moq.Analyzers`** — a wrong namespace silently drops an analyzer from
@@ -271,7 +277,6 @@ work around them; reference the issue.
 | **PerfDiff verdict defects** (5): ETL comparison never sets its regression out-param, so ETL presence vetoes any real BDN regression to "noise"/exit 0 (#1265); mismatched/empty benchmark sets silently intersected — a broken harness passes green (#1266); absolute-budget strategies never consult the baseline — an unchanged over-budget benchmark permanently blocks CI (#1267); infinite median ratios (the worst regressions) filtered out of the verdict (#1268); empty/single-sample sets, duplicate FullNames, zero-Operations, null-deserialized files crash or distort (#1269) | High (gate integrity) | `src/tools/PerfDiff/ETL/EtlDiffer.cs`, `BDN/BenchmarkDotNetDiffer.cs`, `BDN/Regression/*.cs` | [#1265](https://github.com/rjmurillo/moq.analyzers/issues/1265)–[#1269](https://github.com/rjmurillo/moq.analyzers/issues/1269) |
 | **void-Setup FN**: `IsMoqSetupMethod` requires `IsGenericMethod: true` (`src/Common/ISymbolExtensions.Moq.cs:42`), so the non-generic `Setup(Expression<Action<T>>)` overload (void members) is never analyzed — Moq1100/Moq1200-family miss all void-member setups | Known FN (by design until revisited) | `src/Common/ISymbolExtensions.Moq.cs:40-43` | [#1270](https://github.com/rjmurillo/moq.analyzers/issues/1270) pins current behavior with commented data rows; changing it is a separate enhancement |
 | **Phantom symbols in the registry**: `MoqKnownSymbols.IReturns` (line 293) and `IReturns1` (line 298) point at `Moq.Language.IReturns`/``IReturns`1``, which **do not exist in any Moq version** — they always resolve null. Real Returns methods live on ``IReturns`2``. These two are only the best-known cases of a 10-entry phantom set — full reflection-verified table in moq-api-reference §PHANTOM SYMBOLS doctrine | Trap, not a bug (dependent method groups are empty, harmless) | `src/Common/WellKnown/MoqKnownSymbols.cs:293,298`; pinned by `tests/Moq.Analyzers.Test/Common/MoqKnownSymbolsTests.ReturnsAndThrows.cs` (`..._ReturnsNull`) | No issue; lesson: **every new KnownSymbols property needs a resolves-non-null test** |
-| **SquiggleCop installed but unwired**: pinned local tool v1.0.26 in `.config/dotnet-tools.json` but zero invocations anywhere (no baseline YAML, no CI step, no MSBuild hook) — diagnostic-severity drift is unmanaged | Trap (looks enforced, isn't) | `.config/dotnet-tools.json` | No tracking issue found (UNVERIFIED whether one exists); verified unwired by repo-wide grep 2026-07-02 |
 | **Moq1500 limitation**: `repo.VerifyAll()` does not suppress Moq1500 (only `Verify()` counts); repository passed to a helper that verifies also FPs | Known limitation | `src/Analyzers/MockRepositoryVerifyAnalyzer.cs` | [#986](https://github.com/rjmurillo/moq.analyzers/issues/986), pinned by `TODO(#986)` test comments |
 
 Full audit context: 54 findings (1 Critical, 6 High, 16 Medium, 17 Low, 14 Info)
@@ -326,7 +331,7 @@ how to work inside them.
 
 Re-verify each volatile claim before relying on it:
 
-- ADR set (10 files, statuses): `ls docs/architecture/` and check `status:` frontmatter.
+- ADR set (11 files, statuses): `ls docs/architecture/` and check `status:` frontmatter.
 - Rule count/IDs (25, Moq1209 skipped): `grep -c 'internal const string' src/Common/DiagnosticIds.cs` (expect 25) and read the Moq1209 comment.
 - Analyzer class count (24): `grep -l '\[DiagnosticAnalyzer' src/Analyzers/*.cs | wc -l`.
 - Initialize invariant coverage: `grep -L 'EnableConcurrentExecution' $(grep -l '\[DiagnosticAnalyzer' src/Analyzers/*.cs)` — only the two MockBehavior analyzers (base class provides it) should appear.
@@ -336,7 +341,6 @@ Re-verify each volatile claim before relying on it:
 - Weak-point anchors: `sed -n '383p' src/Analyzers/ConstructorArgumentsShouldMatchAnalyzer.cs` (cast), `sed -n '60p' src/Common/SemanticModelExtensions.cs` (Arguments[0]), `grep -n 'SingleOrDefault' src/Common/WellKnown/MoqKnownSymbols.cs`, `grep -n 'IsGenericMethod' src/Common/ISymbolExtensions.Moq.cs` — if an anchor no longer matches, the fix likely landed; check the issue state.
 - Issue states: `gh issue view 1241 1242 1248 1250 1265 1266 1267 1268 1269 1270 986 --json state` (or one at a time) — remove fixed items from the weak-points table.
 - Phantom symbols: `grep -n 'Moq.Language.IReturns"' src/Common/WellKnown/MoqKnownSymbols.cs` and the `_ReturnsNull` tests in `tests/Moq.Analyzers.Test/Common/MoqKnownSymbolsTests.ReturnsAndThrows.cs`.
-- SquiggleCop wiring: `grep -rni squigglecop --include='*.yml' --include='*.props' --include='*.targets' .github build` (empty ⇒ still unwired) and version in `.config/dotnet-tools.json`.
 - Test counts: run `dotnet test --settings ./build/targets/tests/test.runsettings`;
   2 PackageTests fail only in sandboxes with non-github.com git remotes.
 - Perf gate wiring: `grep -n 'failOnRegression' build/scripts/perf/ComparePerfResults.ps1` and the `perf:` job in `.github/workflows/main.yml`.

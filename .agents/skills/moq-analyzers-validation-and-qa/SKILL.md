@@ -38,9 +38,9 @@ dotnet test --settings ./build/targets/tests/test.runsettings --filter "FullyQua
 ```
 
 Read the current suite size from the full command output. Tests target net10.0
-and run against a pinned Roslyn 4.8 test compiler, so test code parses as C# 12.
-C# 13 features such as `params` collections are not parseable inside test
-sources.
+and run against the pinned Roslyn 5.0 test compiler at its default language
+version, C# 14. C# 13 features such as `params` collections parse inside test
+sources. The `Moq.Analyzers.CSharp14.Test` verifier sets `LanguageVersion.Preview`.
 
 ## 1. Evidence hierarchy — compiling test code is the floor
 
@@ -97,13 +97,13 @@ All helpers live in `tests/Moq.Analyzers.Test/Helpers/` (2026-07-02):
 | `Test.cs` | `Test<TAnalyzer, TCodeFixProvider>` wraps Roslyn's `CSharpCodeFixTest`. Injects `global using System; ... global using Moq;` into every test compilation — rows don't need those usings |
 | `AnalyzerVerifier.cs` | `AnalyzerVerifier<TAnalyzer>.VerifyAnalyzerAsync(source, group, ...)` — the workhorse. Overloads accept `.editorconfig` content, `CompilerDiagnostics`, or `params DiagnosticResult[]` |
 | `CodeFixVerifier.cs` | `CodeFixVerifier<TAnalyzer, TFixer>.VerifyCodeFixAsync(original, fixed, group, ...)` |
-| `ReferenceAssemblyCatalog.cs` | String-keyed catalog of reference-assembly sets: `Net80` (no Moq), `Net80WithOldMoq` (Moq 4.8.2), `Net80WithNewMoq` (Moq 4.18.4), `Net80WithNewMoqAndLogging` (4.18.4 + Logging.Abstractions 8.0.0). String keys keep VS Test Explorer rows expanded |
+| `ReferenceAssemblyCatalog.cs` | String-keyed catalog of reference-assembly sets: `Net100` (no Moq), `Net100WithOldMoq` (Moq 4.8.2), `Net100WithNewMoq` (Moq 4.18.4), `Net100WithNewMoqAndLogging` (4.18.4 + Logging.Abstractions 8.0.0). String keys keep VS Test Explorer rows expanded |
 | `TestDataExtensions.cs` | Row combinators: `WithNamespaces()`, `WithMoqReferenceAssemblyGroups()` (both versions), `WithOldMoqReferenceAssemblyGroups()`, `WithNewMoqReferenceAssemblyGroups()` |
 | `AllAnalyzersVerifier.cs` | Reflection-enrolled "no diagnostics from ANY analyzer" verifier (section 6.1) |
 | `DoppelgangerTestHelper.cs` | Templates for user-defined `Mock<T>`/`MockBehavior` look-alikes (section 3.4) |
 | `CompilationHelper.cs` | Raw `SemanticModel`/`SyntaxTree` boilerplate for unit tests of `src/Common/` helpers (not analyzer end-to-end tests) |
 
-`Net80` (no Moq reference) exists to prove the `IsMockReferenced()` early
+`Net100` (no Moq reference) exists to prove the `IsMockReferenced()` early
 exit: every analyzer must stay silent when Moq isn't referenced.
 
 ## 3. Test taxonomy — one worked example of each, from this repo
@@ -152,7 +152,7 @@ await Verifier.VerifyAnalyzerAsync(
             }
         }
         """,
-        ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+        ReferenceAssemblyCatalog.Net100WithNewMoqAndLogging,
         new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
             .WithSpan("/0/Test1.cs", 8, 29, 8, 36)
             .WithArguments("NullLogger.Instance"));
@@ -175,7 +175,7 @@ public async Task ShouldPassIfCustomMockClassIsUsed(string mockCode)
 {
     await Verifier.VerifyAnalyzerAsync(
         DoppelgangerTestHelper.CreateTestCode(mockCode),
-        ReferenceAssemblyCatalog.Net80WithNewMoq);
+        ReferenceAssemblyCatalog.Net100WithNewMoq);
 }
 ```
 
@@ -267,8 +267,8 @@ return data.WithNamespaces().WithMoqReferenceAssemblyGroups();
 
 - `WithNamespaces()` — ×2: prepends `""` and `"namespace MyNamespace;"`
   (analyzers must work in both file-scoped-namespace and no-namespace code).
-- `WithMoqReferenceAssemblyGroups()` — ×2: prepends `Net80WithOldMoq`
-  (4.8.2) and `Net80WithNewMoq` (4.18.4).
+- `WithMoqReferenceAssemblyGroups()` — ×2: prepends `Net100WithOldMoq`
+  (4.8.2) and `Net100WithNewMoq` (4.18.4).
 
 Net effect: **4 executed tests per data row**, and because combinators
 prepend, the theory signature is
@@ -377,10 +377,11 @@ name-fallback, issue #1243.)
 shipped DLL (`Moq.Analyzers`, `Moq.CodeFixes`, bundled
 `Microsoft.CodeAnalysis.AnalyzerUtilities`) and asserts no reference to
 `System.Collections.Immutable` / `System.Reflection.Metadata` exceeds
-8.0.0.0 — the max a .NET 8 host (VS 2022 17.8+) provides. Exceeding it
+9.0.0.0, the max every Roslyn 5.0 host provides, including the VS 2026
+.NET Framework host (ADR-011). Exceeding it
 reproduces incident #850: the analyzer fails to load with CS8032 in every
-consumer IDE (v0.4.1 existed solely to fix this). This test is one of three
-enforcement layers (plus an MSBuild target and a 9-way CI load-test matrix).
+consumer IDE (v0.4.1 existed solely to fix this). This test is one of the
+enforcement layers (plus an MSBuild target, the CI DLL check, and a 4-leg CI load-test matrix).
 Never loosen `MaxImmutableVersion`/`MaxMetadataVersion` to make a dependency
 bump pass — that defeats the guard; see `moq-analyzers-change-control`.
 
@@ -523,7 +524,7 @@ Re-verify volatile claims with:
 - Namespace-trap filter still exact-match: `grep -n '"Moq.Analyzers"' tests/Moq.Analyzers.Test/Helpers/AllAnalyzersVerifier.cs`.
 - Phantom symbols still phantom: `grep -n "Moq.Language.IReturns" src/Common/WellKnown/MoqKnownSymbols.cs` then confirm absence with an EXACT-name probe — do NOT use `dotnet-inspect member "IReturns"`, which fuzzy-matches the real arity-2 ``Moq.Language.IReturns`2`` and so CANNOT prove absence (see `moq-analyzers-proof-toolkit` Recipe 1). Instead run the reflection scan for the exact metadata names against the restored DLL (`~/.nuget/packages/moq/4.18.4/lib/net6.0/Moq.dll`), expecting ``Moq.Language.IReturns`` and ``Moq.Language.IReturns`1`` NOT FOUND while ``Moq.Language.IReturns`2`` exists, or byte-scan the package DLL for the exact null-terminated `` IReturns` `` type name.
 - Golden nuspec files: `ls tests/Moq.Analyzers.Test/PackageTests.Baseline*`.
-- CS8032 guard ceilings still 8.0.0.0: `grep -n "MaxImmutableVersion\|MaxMetadataVersion" tests/Moq.Analyzers.Test/AnalyzerAssemblyCompatibilityTests.cs`.
+- CS8032 guard ceilings still 9.0.0.0: `grep -n "MaxImmutableVersion\|MaxMetadataVersion" tests/Moq.Analyzers.Test/AnalyzerAssemblyCompatibilityTests.cs`.
 - Issue states: #1270 (thin-spot inventory, open as of 2026-07-02), #639/#645 (coverage epic, open), #904 (mutation testing, open), #1243 (GeneratedReturnsExtensions not in KnownSymbols): `gh issue view <n> --repo rjmurillo/moq.analyzers`.
 - Moq1203 saga commits: `git log --oneline --no-walk 6ec810c c270302 894313b 0bef80b 5eec7e1`.
 - Coverage outputs: run the test command, then `ls artifacts/TestResults/coverage/`.

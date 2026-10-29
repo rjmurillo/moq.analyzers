@@ -139,8 +139,8 @@ rule to `warning` so Info-severity rules appear:
 
 ```bash
 # from repo root; build first if needed: dotnet build src/Analyzers/Moq.Analyzers.csproj
-.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh repro.cs 4.18.4
-.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh repro.cs 4.8.2
+pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 repro.cs 4.18.4
+pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 repro.cs 4.8.2
 ```
 
 4.8.2 and 4.18.4 are the two Moq versions the entire test suite pins
@@ -349,8 +349,8 @@ dotnet format --verify-no-changes
 dotnet build /p:PedanticMode=true                                  # expect 0 warnings
 dotnet test --settings ./build/targets/tests/test.runsettings      # expect baseline count + your new rows
 # re-run the Phase-1 harness on the repro, BOTH versions — expect flipped outcome
-.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh repro.cs 4.18.4
-.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh repro.cs 4.8.2
+pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 repro.cs 4.18.4
+pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 repro.cs 4.8.2
 # perf gate (ADR-008; required PR check). Local pre-flight:
 pwsh build/scripts/perf/PerfCore.ps1 -diff -ci -filter '*(FileCount: 1)'
 ```
@@ -407,7 +407,7 @@ in-repo pieces:
 2. Inject into a checked-out OSS test project exactly the way the snippet
    harness does — three `<Analyzer Include="...">` items plus a generated
    `.editorconfig` raising all `Moq*` IDs to `warning` (see the csproj
-   template inside `run-analyzer-on-snippet.sh`); or add the nupkg via a
+   template inside `Invoke-AnalyzerOnSnippet.ps1`); or add the nupkg via a
    local NuGet source.
 3. Build the corpus project, grep the binlog/console for `Moq[0-9]{4}`, and
    adjudicate every hit as TP or FP (each FP becomes a Phase-1 repro).
@@ -504,7 +504,7 @@ Re-verify anything volatile before relying on it:
 - copilot/fix-496 self-removal of its proposed InSequence analyzer (then ID Moq1203): `git log --oneline origin/copilot/fix-496 | head -3`.
 - Mutation-testing status: `gh issue view 904 -R rjmurillo/moq.analyzers`.
 - Corpus validation remains unimplemented: search issues for "corpus"; if an issue/CI job now exists, update §5.2 from candidate to live.
-- Harness script still present: `ls .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh`.
+- Harness script still present: `ls .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1`.
 - Chain-analyzer ID list: `grep -n "const string" src/Common/DiagnosticIds.cs`.
 
 Last verified: 2026-07-02 against commit 05135b2.

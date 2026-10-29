@@ -1,3 +1,4 @@
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 using Perfolizer.Metrology;
 
@@ -12,4 +13,5 @@ public record RegressionMetricConfig(
     double ThresholdValueNs,
     Func<Benchmark, double?> MetricSelector,
     Func<RegressionResult, double> DisplayValueSelector,
-    string MetricName);
+    string MetricName,
+    ConfirmationMetric Metric);

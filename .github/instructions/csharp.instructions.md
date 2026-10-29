@@ -141,7 +141,7 @@ Program defensively: when a code path assumes an invariant about a symbol's shap
 
 ### Ship a regression test at the language version that triggers the crash
 
-Any crash-path fix tied to a specific language feature **MUST** include a regression test compiled at the C# version that reproduces it. If the default harness pins an older language version (e.g. the `net8.0` group pins C# 12, so `params List<int>` fails `CS0225`), use the isolated newest-language test project (`Moq.Analyzers.CSharp13.Test`, Roslyn 4.13 — kept separate so shipping analyzers keep their netstandard2.0 + Roslyn 4.8 API ceiling). A fix without a test at the triggering language version does not close the defect.
+Any crash-path fix tied to a specific language feature **MUST** include a regression test compiled at the C# version that reproduces it. The default harness compiles with the pinned Roslyn 5.0 at its default language version (C# 14). If the triggering feature needs a different language version, use the isolated language-version test projects (`Moq.Analyzers.CSharp13.Test`, or `Moq.Analyzers.CSharp14.Test`, which sets `LanguageVersion.Preview`). A fix without a test at the triggering language version does not close the defect.
 
 For the broader structural guardrails (a first-class "latest language version" test leg, an automated unguarded-cast guard, a scheduled newest-SDK CI probe), see issue [#1321](https://github.com/rjmurillo/moq.analyzers/issues/1321).
 

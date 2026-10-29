@@ -91,7 +91,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests(ITestOutputHelper output)
     {
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests(ITestOutputHelper output)
                 }
             }
             """,
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     /// <summary>
@@ -125,8 +125,8 @@ public class AsAcceptOnlyInterfaceAnalyzerTests(ITestOutputHelper output)
     /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
     /// <returns>A task representing the asynchronous unit test.</returns>
     [Theory]
-    [InlineData("Net80WithOldMoq")]
-    [InlineData("Net80WithNewMoq")]
+    [InlineData("Net100WithOldMoq")]
+    [InlineData("Net100WithNewMoq")]
     public async Task ShouldNotReportWhenTypeArgumentViolatesClassConstraint(string referenceAssemblyGroup)
     {
         const string source = """
@@ -169,7 +169,7 @@ public class AsAcceptOnlyInterfaceAnalyzerTests(ITestOutputHelper output)
                 }
             }
             """,
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -193,6 +193,6 @@ public class AsAcceptOnlyInterfaceAnalyzerTests(ITestOutputHelper output)
                 }
             }
             """,
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 }

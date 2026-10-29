@@ -175,7 +175,7 @@ public class ProtectedSetupShouldUseItExprAnalyzerTests(ITestOutputHelper output
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80, CompilerDiagnostics.None);
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net100, CompilerDiagnostics.None);
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class ProtectedSetupShouldUseItExprAnalyzerTests(ITestOutputHelper output
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     private static string Template(string ns, string testCode) =>

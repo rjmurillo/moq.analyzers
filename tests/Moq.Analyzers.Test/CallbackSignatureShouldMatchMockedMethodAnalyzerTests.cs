@@ -223,8 +223,8 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
     /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
     /// <returns>A task representing the asynchronous unit test.</returns>
     [Theory]
-    [InlineData("Net80WithOldMoq")]
-    [InlineData("Net80WithNewMoq")]
+    [InlineData("Net100WithOldMoq")]
+    [InlineData("Net100WithNewMoq")]
     public async Task ImplicitlyTypedLambdaWithoutGenericOverload_NoFalsePositive(string referenceAssemblyGroup)
     {
         const string source = """
@@ -260,8 +260,8 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
     /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
     /// <returns>A task representing the asynchronous unit test.</returns>
     [Theory]
-    [InlineData("Net80WithOldMoq")]
-    [InlineData("Net80WithNewMoq")]
+    [InlineData("Net100WithOldMoq")]
+    [InlineData("Net100WithNewMoq")]
     public async Task UnresolvableParameterType_ReportsDiagnostic(string referenceAssemblyGroup)
     {
         const string source = """
@@ -296,8 +296,8 @@ public class CallbackSignatureShouldMatchMockedMethodAnalyzerTests(ITestOutputHe
     /// <param name="referenceAssemblyGroup">The Moq version reference assembly group.</param>
     /// <returns>A task representing the asynchronous unit test.</returns>
     [Theory]
-    [InlineData("Net80WithOldMoq")]
-    [InlineData("Net80WithNewMoq")]
+    [InlineData("Net100WithOldMoq")]
+    [InlineData("Net100WithNewMoq")]
     public async Task GenericCallbackWithWrongType_ProducesDiagnostic(string referenceAssemblyGroup)
     {
         const string source = """

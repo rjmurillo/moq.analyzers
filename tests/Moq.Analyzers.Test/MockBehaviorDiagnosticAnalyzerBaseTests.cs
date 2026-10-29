@@ -25,8 +25,8 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
     {
         return new object[][]
         {
-            [ReferenceAssemblyCatalog.Net80WithOldMoq],
-            [ReferenceAssemblyCatalog.Net80WithNewMoq],
+            [ReferenceAssemblyCatalog.Net100WithOldMoq],
+            [ReferenceAssemblyCatalog.Net100WithNewMoq],
         };
     }
 
@@ -41,7 +41,7 @@ public class MockBehaviorDiagnosticAnalyzerBaseTests
             """;
 
         // CompilerDiagnostics.None suppresses CS0246 from the global using Moq added by the test infrastructure.
-        await VerifyBothAnalyzersAsync(source, ReferenceAssemblyCatalog.Net80, CompilerDiagnostics.None);
+        await VerifyBothAnalyzersAsync(source, ReferenceAssemblyCatalog.Net100, CompilerDiagnostics.None);
     }
 
     [Theory]

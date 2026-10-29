@@ -48,7 +48,7 @@ internal class {name}
 "));
         }
 
-        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq");
+        Microsoft.CodeAnalysis.Testing.ReferenceAssemblies referenceAssemblies = CompilationCreator.GetReferenceAssemblies("Net100WithOldMoq");
         (BaselineCompilation, TestCompilation) =
             BenchmarkCSharpCompilationFactory.CreateAsync<SetStrictMockBehaviorAnalyzer>(sources.ToArray(), referenceAssemblies)
             .GetAwaiter()

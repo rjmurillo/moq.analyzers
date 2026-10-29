@@ -51,7 +51,12 @@ internal static class DiffCommand
         Description = "Should return non-zero exit code if regression detected",
     };
 
-    private static Option<string> CreateFilePathOption(string name, string description)
+    internal static Option<string?> FlaggedOutputOption { get; } = new("--flaggedOutput")
+    {
+        Description = "file to write the flagged benchmarks to, for confirmation rounds",
+    };
+
+    internal static Option<string> CreateFilePathOption(string name, string description)
     {
         Option<string> option = new(name) { Description = description, Required = true };
         option.AcceptLegalFilePathsOnly();
@@ -69,7 +74,7 @@ internal static class DiffCommand
             ? level
             : LogLevel.Information;
 
-    private static Option<string> CreateVerbosityOption()
+    internal static Option<string> CreateVerbosityOption()
     {
         Option<string> option = new("--verbosity", "-v") { Description = "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]" };
         option.AcceptOnlyFromAmong(VerbosityMap.Keys.ToArray());
@@ -88,8 +93,35 @@ internal static class DiffCommand
             ResultsOption,
             VerbosityOption,
             FailOnRegressionOption,
+            FlaggedOutputOption,
         };
 
+        rootCommand.SetAction(static async (parseResult, cancellationToken) =>
+        {
+            string baseline = parseResult.GetValue(BaselineOption)!;
+            string results = parseResult.GetValue(ResultsOption)!;
+            string? verbosity = parseResult.GetValue(VerbosityOption);
+            bool failOnRegression = parseResult.GetValue(FailOnRegressionOption);
+            string? flaggedOutput = parseResult.GetValue(FlaggedOutputOption);
+
+            return await Program.RunAsync(
+                baseline,
+                results,
+                verbosity,
+                failOnRegression,
+                cancellationToken,
+                (baselineFolder, resultsFolder, fail, logger, token) => PerfDiff.CompareAsync(
+                    baselineFolder,
+                    resultsFolder,
+                    fail,
+                    logger,
+                    token,
+                    PerfDiff.CompareBenchmarks(flaggedOutput),
+                    PerfDiff.CompareEtl)).ConfigureAwait(false);
+        });
+
+        // The confirm command runs after the screen run when a gate trips.
+        rootCommand.Subcommands.Add(ConfirmCommand.Create());
         return rootCommand;
     }
 }
