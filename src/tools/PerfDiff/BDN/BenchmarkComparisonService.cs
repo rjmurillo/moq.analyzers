@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 using PerfDiff.BDN.Regression;
 
@@ -34,6 +35,7 @@ public class BenchmarkComparisonService(ILogger logger)
         }
 
         bool regressionDetected = false;
+        List<ConfirmationHypothesis> flagged = [];
         foreach (IBenchmarkRegressionStrategy strategy in _strategies)
         {
             if (!strategy.HasRegression(comparison, logger, out RegressionDetectionResult details))
@@ -42,6 +44,7 @@ public class BenchmarkComparisonService(ILogger logger)
             }
 
             regressionDetected = true;
+            flagged.AddRange(details.Flagged);
             logger.LogError("========== {MetricName} regression detected (threshold: {PercentThreshold}) -- {StrategyName} ==========", details.MetricName, details.Threshold, strategy.GetType().Name);
         }
 
@@ -50,6 +53,6 @@ public class BenchmarkComparisonService(ILogger logger)
             logger.LogInformation("========== No regressions detected. ==========");
         }
 
-        return new BenchmarkComparisonResult(CompareSucceeded: true, regressionDetected);
+        return new BenchmarkComparisonResult(CompareSucceeded: true, regressionDetected, flagged);
     }
 }

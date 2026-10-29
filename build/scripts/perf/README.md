@@ -85,6 +85,22 @@ The benchmarks run in-process, so each run uses the runtime of its own target fr
 
 With `-diff`, `PerfCore.ps1` sets `DOTNET_ROLL_FORWARD=LatestMajor` for the warm-up, baseline, current, and compare steps. Every run then uses the newest installed runtime, so a runtime change cannot pass for an analyzer change. The previous value is restored afterward.
 
+## Screen and Confirmation Rounds
+
+With `-diff`, the first comparison is a screen. It runs the baseline once and the current branch once. Iterations in one process share one machine state, so a slower runner can look like slower code.
+
+When a gate trips, PerfDiff writes the flagged benchmarks to `artifacts/performance/perfResults/flagged.json`. The script then reruns only those benchmarks in paired rounds under `artifacts/performance/perfResults/confirm/baseline/rN` and `confirm/current/rN`.
+
+- Odd rounds run the baseline first. Even rounds run it second.
+- Round 1 builds each checkout. Later rounds reuse that build.
+- After at least 3 rounds, `PerfDiff confirm` stops when the 99% confidence margin of the mean log ratio is below 2%. This is the BenchmarkDotNet stop rule for iterations, applied to rounds.
+- At 10 rounds, or when another round would pass the 40 minute budget, the rounds so far decide.
+- When round 1 shows that 3 rounds cannot fit the budget, confirmation stops and the screen result stands.
+- A one-sided paired t-test checks each flagged benchmark against its gate's minimum effect. Holm's method holds the chance of any false confirmation at 1%.
+- A ratio gate also needs the median paired slowdown to pass the screen's 0.5 ms noise floor. The P95 gate reads that floor on the mean, so a tail-only spike does not confirm.
+
+The job fails only for a confirmed regression. A screen result that does not confirm logs a warning. Each flagged benchmark logs its ratio, confidence interval, threshold, and p-value. See [ADR-012](../../../docs/architecture/ADR-012-confirm-perf-regressions-with-paired-rounds.md).
+
 ## Example Usage
 
 You can run a quick pass of the benchmarks (about 20 minutes with baseline, then the baseline is reused)

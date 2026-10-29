@@ -378,7 +378,9 @@ project priority.
 3. Paste the verdict AND the relevant `-report-github.md` table into the PR as evidence.
 
 **Expected output:** PerfDiff exit 0 with per-strategy "No regressions detected"
-logging, or exit 1 naming the strategy and benchmark. Thresholds and the per-strategy
+logging, or a screen hit naming the strategy and benchmark. A screen hit starts paired
+confirmation rounds (ADR-012, re-checked 2026-10-28); the job fails only on a
+`CONFIRMED regression` line. Thresholds and the per-strategy
 defect table: moq-analyzers-diagnostics-and-tooling §2 (canonical); re-derive from
 `grep -rn 'Threshold' src/tools/PerfDiff/BDN/Regression/`.
 
@@ -389,8 +391,8 @@ the harness passes green — confirm `perfTest/results` actually contains non-em
 budget failure may not be YOUR regression — check whether baseline already exceeded
 it); infinite ratios are excluded from the verdict. A green perf gate is weaker
 evidence than it looks; the hypothesis-first step is what catches what the gate misses.
-Noise floor: benchmark reruns jitter — a small "regression" on one run of a change that
-touches nothing hot is more likely noise than signal; rerun before believing it.
+Noise floor: benchmark reruns jitter. The confirmation rounds (ADR-012) now do the
+rerun: a screen hit that does not confirm logs a warning instead of failing.
 
 ---
 

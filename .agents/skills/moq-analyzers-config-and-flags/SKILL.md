@@ -270,9 +270,9 @@ All verified against `.github/workflows/main.yml` and scripts, 2026-07-02.
 | Variable | Where set | Semantics |
 |----------|-----------|-----------|
 | `RUN_FULL_PERF` | `main.yml:462` (perf job env) | `true` only when (a) the nightly `schedule` run (`cron: '0 3 * * *'`, `main.yml:27`) on `main`, or (b) `workflow_dispatch` with input `run_performance=true`. When true the benchmark filter is `'*'` (full suite, 1,000-file corpus); otherwise the PR fast path `'*(FileCount: 1)'` (`main.yml:511-515`). PRs therefore get a fast, lower-power perf gate; the nightly run is the statistically strong one |
-| `FORCE_PERF_BASELINE` | `main.yml:619` from dispatch input `force_baseline`; read by `Test-ForcePerfBaseline` at `build/scripts/perf/PerfConfig.psm1:67` (`$env:FORCE_PERF_BASELINE -eq 'true'`), which `PerfCore.ps1` calls. Re-checked 2026-10-26 | Forces baseline benchmarks to re-run even when a cached `*report-full-compressed.json` exists under `artifacts/performance/perfResults/baseline/results`. A cached baseline whose `baseline-sha.txt` does not match the pinned SHA already runs again. Set it locally (`FORCE_PERF_BASELINE=true`) when you suspect a stale cached baseline |
+| `FORCE_PERF_BASELINE` | `main.yml:621` from dispatch input `force_baseline`; read by `Test-ForcePerfBaseline` at `build/scripts/perf/PerfConfig.psm1:67` (`$env:FORCE_PERF_BASELINE -eq 'true'`), which `PerfCore.ps1` calls. Re-checked 2026-10-26 | Forces baseline benchmarks to re-run even when a cached `*report-full-compressed.json` exists under `artifacts/performance/perfResults/baseline/results`. A cached baseline whose `baseline-sha.txt` does not match the pinned SHA already runs again. Set it locally (`FORCE_PERF_BASELINE=true`) when you suspect a stale cached baseline |
 | `IS_CODACY_COVERAGE_ALLOWED` / `IS_QLTY_COVERAGE_ALLOWED` | `main.yml:187-188`, computed as `secrets.CODACY_PROJECT_TOKEN != ''` / `secrets.QLTY_COVERAGE_TOKEN != ''` | Secret-presence gates: coverage uploads to Codacy/Qlty run only on Linux test legs AND only when the secret exists (`main.yml:257,267`). Forks without secrets skip cleanly instead of failing — mimic this pattern for any new secret-dependent step |
-| `DOTNET_ROLL_FORWARD=LatestMajor` | Set by `Invoke-PerfBaselineComparison` (`build/scripts/perf/PerfBaselineManager.psm1:133`) and restored in its `finally` block. Re-checked 2026-10-26 | Benchmarks run `[InProcess]`, so each run uses its own TFM runtime. The pinned baseline can target an older TFM than the head (for example, `net8.0` at `42012bd`, before the baseline moved to `94e503d` on `net10.0`). The `-diff` comparison runs the warm-up, baseline, head, and compare steps on the newest installed runtime so a runtime change cannot pass for an analyzer change. See `build/scripts/perf/README.md` |
+| `DOTNET_ROLL_FORWARD=LatestMajor` | Set by `Invoke-PerfBaselineComparison` (`build/scripts/perf/PerfBaselineManager.psm1:273`) and restored in its `finally` block. Re-checked 2026-10-26 | Benchmarks run `[InProcess]`, so each run uses its own TFM runtime. The pinned baseline can target an older TFM than the head (for example, `net8.0` at `42012bd`, before the baseline moved to `94e503d` on `net10.0`). The `-diff` comparison runs the warm-up, baseline, head, and compare steps on the newest installed runtime so a runtime change cannot pass for an analyzer change. See `build/scripts/perf/README.md` |
 | `HUSKY=0` | consumed by `Directory.Build.targets` `HuskyInstall` target | Skips git-hook installation on restore (also auto-skipped when `ContinuousIntegrationBuild=true` or design-time builds) |
 | `RUN_PERF` dispatch inputs | `main.yml:4-15` | `run_performance` (bool) and `force_baseline` (bool) are the only two `workflow_dispatch` inputs |
 
@@ -339,7 +339,9 @@ a second working tree, runs the benchmark suite there to produce the
 *baseline*, runs the same suite on your PR, and PerfDiff
 (`src/tools/PerfDiff`) compares the two with `--failOnRegression`. The
 pipeline: `PerfCore.ps1 -diff` → `DiffPerfToBaseline.ps1` → `RunPerfTests.ps1`
-×2 → `ComparePerfResults.ps1` → PerfDiff. `main.yml` fails fast if the file is
+×2 → `ComparePerfResults.ps1` → PerfDiff (screen) → on a hit,
+`Invoke-PerfConfirmation` → `ConfirmPerfResults.ps1` → `PerfDiff confirm`
+(ADR-012, re-checked 2026-10-28). `main.yml` fails fast if the file is
 missing ("Get baseline SHA" step).
 
 How/when to advance it:

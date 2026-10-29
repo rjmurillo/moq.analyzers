@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 
 namespace PerfDiff.BDN.Regression;
@@ -15,6 +16,7 @@ public sealed class MeanPercentageRegressionStrategy : IBenchmarkRegressionStrat
             logger,
             new RegressionRatioMetricConfig(
                 "Mean Ratio",
+                ConfirmationMetric.Mean,
                 result => BenchmarkDotNetDiffer.GetMeanRatio(result.Conclusion, result.BaseResult, result.DiffResult),
                 result => BenchmarkDotNetDiffer.GetMeanDelta(result.Conclusion, result.BaseResult, result.DiffResult)),
             out details);
