@@ -28,4 +28,8 @@ internal class Test<TAnalyzer, TCodeFixProvider> : CSharpCodeFixTest<TAnalyzer, 
         TestState.Sources.Add(globalUsings);
         FixedState.Sources.Add(globalUsings);
     }
+
+    /// <inheritdoc />
+    protected override Task RunImplAsync(CancellationToken cancellationToken)
+        => WindowsWorkspaceConcurrencyGate.RunAsync(() => base.RunImplAsync(cancellationToken), cancellationToken);
 }

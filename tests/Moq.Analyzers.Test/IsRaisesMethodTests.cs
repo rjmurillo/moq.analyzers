@@ -126,6 +126,6 @@ public class TestSimpleRaises
 }
 """;
 
-        await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(source, "Net80WithNewMoq");
+        await AllAnalyzersVerifier.VerifyAllAnalyzersAsync(source, "Net100WithNewMoq");
     }
 }

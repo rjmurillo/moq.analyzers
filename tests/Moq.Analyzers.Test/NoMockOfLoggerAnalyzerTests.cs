@@ -22,7 +22,7 @@ public class NoMockOfLoggerAnalyzerTests
                     }
                 }
                 """,
-                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                ReferenceAssemblyCatalog.Net100WithNewMoqAndLogging,
                 new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
                     .WithSpan("/0/Test1.cs", 8, 29, 8, 36)
                     .WithArguments("NullLogger.Instance"));
@@ -47,7 +47,7 @@ public class NoMockOfLoggerAnalyzerTests
                     }
                 }
                 """,
-                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                ReferenceAssemblyCatalog.Net100WithNewMoqAndLogging,
                 new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
                     .WithSpan("/0/Test1.cs", 10, 29, 10, 47)
                     .WithArguments("NullLogger<T>.Instance"));
@@ -72,7 +72,7 @@ public class NoMockOfLoggerAnalyzerTests
                     }
                 }
                 """,
-                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                ReferenceAssemblyCatalog.Net100WithNewMoqAndLogging,
                 new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
                     .WithSpan("/0/Test1.cs", 10, 30, 10, 37)
                     .WithArguments("NullLogger.Instance"),
@@ -98,7 +98,7 @@ public class NoMockOfLoggerAnalyzerTests
                     }
                 }
                 """,
-                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                ReferenceAssemblyCatalog.Net100WithNewMoqAndLogging,
                 new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
                     .WithSpan("/0/Test1.cs", 8, 30, 8, 37)
                     .WithArguments("NullLogger.Instance"));
@@ -123,7 +123,7 @@ public class NoMockOfLoggerAnalyzerTests
                     }
                 }
                 """,
-                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                ReferenceAssemblyCatalog.Net100WithNewMoqAndLogging,
                 new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
                     .WithSpan("/0/Test1.cs", 10, 30, 10, 48)
                     .WithArguments("NullLogger<T>.Instance"));
@@ -151,7 +151,7 @@ public class NoMockOfLoggerAnalyzerTests
                     }
                 }
                 """,
-                ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging,
+                ReferenceAssemblyCatalog.Net100WithNewMoqAndLogging,
                 new DiagnosticResult("Moq1004", DiagnosticSeverity.Warning)
                     .WithSpan("/0/Test1.cs", 11, 39, 11, 46)
                     .WithArguments("NullLogger.Instance"),
@@ -179,7 +179,7 @@ public class NoMockOfLoggerAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithNewMoqAndLogging);
     }
 
     [Fact]
@@ -201,7 +201,7 @@ public class NoMockOfLoggerAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithNewMoqAndLogging);
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public class NoMockOfLoggerAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -242,6 +242,6 @@ public class NoMockOfLoggerAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithNewMoqAndLogging);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithNewMoqAndLogging);
     }
 }

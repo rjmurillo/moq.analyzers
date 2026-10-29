@@ -422,7 +422,7 @@ public partial class NoSealedClassMocksAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq); // Use valid group for test infrastructure
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq); // Use valid group for test infrastructure
     }
 
     [Fact]
@@ -450,7 +450,7 @@ public partial class NoSealedClassMocksAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Theory]
@@ -499,7 +499,7 @@ public partial class NoSealedClassMocksAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -526,7 +526,7 @@ public partial class NoSealedClassMocksAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -558,7 +558,7 @@ public partial class NoSealedClassMocksAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -595,7 +595,7 @@ public partial class NoSealedClassMocksAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -622,7 +622,7 @@ public partial class NoSealedClassMocksAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -651,7 +651,7 @@ public partial class NoSealedClassMocksAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -681,7 +681,7 @@ public partial class NoSealedClassMocksAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 
     [Fact]
@@ -707,6 +707,6 @@ public partial class NoSealedClassMocksAnalyzerTests
                     }
                 }
                 """,
-                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net80WithOldMoq);
+                referenceAssemblyGroup: ReferenceAssemblyCatalog.Net100WithOldMoq);
     }
 }

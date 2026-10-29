@@ -81,6 +81,6 @@ public class SetupShouldNotIncludeAsyncResultAnalyzerTests(ITestOutputHelper out
     {
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 }
