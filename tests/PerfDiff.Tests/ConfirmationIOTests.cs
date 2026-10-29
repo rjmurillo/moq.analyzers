@@ -168,7 +168,7 @@ public sealed class ConfirmationIOTests
         using RoundsRoot root = new();
         string flagged = await root.WriteFlaggedAsync().ConfigureAwait(true);
 
-        int exitCode = await ConfirmCommand.RunAsync(flagged, root.Path, 3, 10, new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
+        int exitCode = await ConfirmCommand.RunAsync(new ConfirmOptions(flagged, root.Path, 3, 10), new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
 
         Assert.Equal(ConfirmCommand.ErrorExitCode, exitCode);
     }
@@ -181,7 +181,7 @@ public sealed class ConfirmationIOTests
         root.WriteRound("baseline", 1, 100);
         root.WriteRound("current", 1, 100);
 
-        int exitCode = await ConfirmCommand.RunAsync(flagged, root.Path, 3, 10, new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
+        int exitCode = await ConfirmCommand.RunAsync(new ConfirmOptions(flagged, root.Path, 3, 10), new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
 
         Assert.Equal(ConfirmCommand.ErrorExitCode, exitCode);
     }
@@ -194,7 +194,7 @@ public sealed class ConfirmationIOTests
         await File.WriteAllTextAsync(flagged, "{ not json").ConfigureAwait(true);
         PerfDiffTestLogger logger = new();
 
-        int exitCode = await ConfirmCommand.RunAsync(flagged, root.Path, 3, 10, logger, CancellationToken.None).ConfigureAwait(true);
+        int exitCode = await ConfirmCommand.RunAsync(new ConfirmOptions(flagged, root.Path, 3, 10), logger, CancellationToken.None).ConfigureAwait(true);
 
         Assert.Equal(ConfirmCommand.ErrorExitCode, exitCode);
         Assert.Contains(logger.Messages, message => message.Contains("Failed to read flagged benchmark file", StringComparison.Ordinal));
@@ -219,9 +219,9 @@ public sealed class ConfirmationIOTests
         string flagged = await root.WriteFlaggedAsync().ConfigureAwait(true);
         PerfDiffTestLogger logger = new();
 
-        Assert.Equal(ConfirmCommand.ErrorExitCode, await ConfirmCommand.RunAsync(flagged, root.Path, 1, 10, logger, CancellationToken.None).ConfigureAwait(true));
-        Assert.Equal(ConfirmCommand.ErrorExitCode, await ConfirmCommand.RunAsync(flagged, root.Path, 4, 3, logger, CancellationToken.None).ConfigureAwait(true));
-        Assert.Equal(ConfirmCommand.ErrorExitCode, await ConfirmCommand.RunAsync(flagged, root.Path, 2, 2, logger, CancellationToken.None).ConfigureAwait(true));
+        Assert.Equal(ConfirmCommand.ErrorExitCode, await ConfirmCommand.RunAsync(new ConfirmOptions(flagged, root.Path, 1, 10), logger, CancellationToken.None).ConfigureAwait(true));
+        Assert.Equal(ConfirmCommand.ErrorExitCode, await ConfirmCommand.RunAsync(new ConfirmOptions(flagged, root.Path, 4, 3), logger, CancellationToken.None).ConfigureAwait(true));
+        Assert.Equal(ConfirmCommand.ErrorExitCode, await ConfirmCommand.RunAsync(new ConfirmOptions(flagged, root.Path, 2, 2), logger, CancellationToken.None).ConfigureAwait(true));
         Assert.Contains(logger.Messages, message => message.Contains("Got 1 and 10", StringComparison.Ordinal));
         Assert.Contains(logger.Messages, message => message.Contains("Got 4 and 3", StringComparison.Ordinal));
         Assert.DoesNotContain(logger.Messages, message => message.Contains("Got 2 and 2", StringComparison.Ordinal));
@@ -299,35 +299,30 @@ public sealed class ConfirmationIOTests
     }
 
     [Fact]
-    public async Task PerfDiffCompareAsync_WithFlaggedOutput_WritesFlaggedFile()
+    public async Task CompareBenchmarks_WithFlaggedOutput_WritesFlaggedFile()
     {
+        using BenchmarkTestData.ResultDirectory baseline = BenchmarkTestData.CreateResultDirectory(
+            BenchmarkTestData.CreateBenchmark(BenchmarkId, medianNs: 10_000_000, meanNs: 10_000_000, p95Ns: 10_000_000, BenchmarkTestData.CreateMeasurements(10_000_000, 10_100_000, 9_900_000, 10_000_000, 10_050_000)));
+        using BenchmarkTestData.ResultDirectory results = BenchmarkTestData.CreateResultDirectory(
+            BenchmarkTestData.CreateBenchmark(BenchmarkId, medianNs: 20_000_000, meanNs: 20_000_000, p95Ns: 20_000_000, BenchmarkTestData.CreateMeasurements(20_000_000, 20_100_000, 19_900_000, 20_000_000, 20_050_000)));
         using RoundsRoot root = new();
         string path = Path.Combine(root.Path, "flagged.json");
-        ConfirmationHypothesis hypothesis = new(BenchmarkId, ConfirmationMetric.Mean, 0.05, BudgetNs: null);
 
-        int exitCode = await PerfDiff.CompareAsync(
-            root.Path,
-            root.Path,
-            failOnRegression: true,
-            new PerfDiffTestLogger(),
-            CancellationToken.None,
-            (_, _, _, _) => Task.FromResult(new BenchmarkComparisonResult(CompareSucceeded: true, RegressionDetected: true, [hypothesis])),
-            static (_, _) => (CompareSucceeded: false, RegressionDetected: false),
-            path).ConfigureAwait(true);
+        BenchmarkComparisonResult comparison = await PerfDiff.CompareBenchmarks(path)(baseline.Path, results.Path, new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
 
-        Assert.Equal(1, exitCode);
-        Assert.Equal([hypothesis], await ConfirmationHypothesisFile.ReadAsync(path, CancellationToken.None).ConfigureAwait(true));
+        Assert.True(comparison.RegressionDetected);
+        Assert.Equal(comparison.FlaggedOrEmpty, await ConfirmationHypothesisFile.ReadAsync(path, CancellationToken.None).ConfigureAwait(true));
     }
 
     [Fact]
-    public async Task PerfDiffCompareAsync_WhenComparisonFails_DoesNotWriteFlaggedFile()
+    public async Task CompareBenchmarks_WhenComparisonFails_DoesNotWriteFlaggedFile()
     {
         using RoundsRoot root = new();
         string path = Path.Combine(root.Path, "flagged.json");
 
-        int exitCode = await PerfDiff.CompareAsync(root.Path, root.Path, failOnRegression: true, path, new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
+        BenchmarkComparisonResult comparison = await PerfDiff.CompareBenchmarks(path)(root.Path, root.Path, new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
 
-        Assert.Equal(1, exitCode);
+        Assert.False(comparison.CompareSucceeded);
         Assert.False(File.Exists(path));
     }
 
@@ -365,7 +360,7 @@ public sealed class ConfirmationIOTests
             root.WriteRound("current", index + 1, 100_000_000D * ratios[index]);
         }
 
-        return await ConfirmCommand.RunAsync(flagged, root.Path, 3, 10, new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
+        return await ConfirmCommand.RunAsync(new ConfirmOptions(flagged, root.Path, 3, 10), new PerfDiffTestLogger(), CancellationToken.None).ConfigureAwait(true);
     }
 
     private sealed class RoundsRoot : IDisposable

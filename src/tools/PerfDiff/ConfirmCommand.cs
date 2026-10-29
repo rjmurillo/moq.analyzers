@@ -49,10 +49,11 @@ internal static class ConfirmCommand
         command.SetAction(static async (parseResult, cancellationToken) => await Program.RunWithLoggingAsync(
             parseResult.GetValue(VerbosityOption),
             logger => RunAsync(
-                parseResult.GetValue(FlaggedOption)!,
-                parseResult.GetValue(RoundsOption)!,
-                parseResult.GetValue(MinRoundsOption),
-                parseResult.GetValue(MaxRoundsOption),
+                new ConfirmOptions(
+                    parseResult.GetValue(FlaggedOption)!,
+                    parseResult.GetValue(RoundsOption)!,
+                    parseResult.GetValue(MinRoundsOption),
+                    parseResult.GetValue(MaxRoundsOption)),
                 logger,
                 cancellationToken)).ConfigureAwait(false));
 
@@ -62,17 +63,15 @@ internal static class ConfirmCommand
     /// <summary>
     /// Reads the flagged benchmarks and the rounds, then maps the decision to an exit code.
     /// </summary>
-    /// <param name="flaggedPath">The flagged benchmark file.</param>
-    /// <param name="roundsRoot">The confirmation output root.</param>
-    /// <param name="minRounds">The fewest rounds before the stop rule applies.</param>
-    /// <param name="maxRounds">The round count that forces a decision.</param>
+    /// <param name="options">The parsed command options.</param>
     /// <param name="logger">Receives the per-benchmark results.</param>
     /// <param name="cancellationToken">Token to observe for cancellation requests.</param>
     /// <returns>One of the exit code constants on this class.</returns>
-    internal static async Task<int> RunAsync(string flaggedPath, string roundsRoot, int minRounds, int maxRounds, ILogger logger, CancellationToken cancellationToken)
+    internal static async Task<int> RunAsync(ConfirmOptions options, ILogger logger, CancellationToken cancellationToken)
     {
+        (string flaggedPath, string roundsRoot, int minRounds, int maxRounds) = options;
 #pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates
-        if (minRounds < 2 || maxRounds < minRounds)
+        if (minRounds < ConfirmationAnalyzer.MinimumRounds || maxRounds < minRounds)
         {
             logger.LogError("--minRounds must be at least 2 and --maxRounds at least --minRounds. Got {MinRounds} and {MaxRounds}.", minRounds, maxRounds);
             return ErrorExitCode;

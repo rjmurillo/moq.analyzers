@@ -110,7 +110,14 @@ internal static class DiffCommand
                 verbosity,
                 failOnRegression,
                 cancellationToken,
-                (baselineFolder, resultsFolder, fail, logger, token) => PerfDiff.CompareAsync(baselineFolder, resultsFolder, fail, flaggedOutput, logger, token)).ConfigureAwait(false);
+                (baselineFolder, resultsFolder, fail, logger, token) => PerfDiff.CompareAsync(
+                    baselineFolder,
+                    resultsFolder,
+                    fail,
+                    logger,
+                    token,
+                    PerfDiff.CompareBenchmarks(flaggedOutput),
+                    PerfDiff.CompareEtl)).ConfigureAwait(false);
         });
 
         // The confirm command runs after the screen run when a gate trips.

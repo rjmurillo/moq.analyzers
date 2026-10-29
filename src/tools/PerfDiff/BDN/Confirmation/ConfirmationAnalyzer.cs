@@ -45,6 +45,13 @@ internal static class ConfirmationAnalyzer
     internal const double MaxRelativeError = 0.02;
 
     /// <summary>
+    /// The fewest rounds a paired t-test can use.
+    /// </summary>
+    internal const int MinimumRounds = 2;
+
+    private const double NanosecondsPerMillisecond = 1_000_000D;
+
+    /// <summary>
     /// Analyzes the rounds that ran so far.
     /// </summary>
     /// <param name="hypotheses">The flagged benchmarks to confirm.</param>
@@ -60,7 +67,7 @@ internal static class ConfirmationAnalyzer
         int maxRounds,
         ILogger logger)
     {
-        Debug.Assert(minRounds >= 2, "A paired t-test needs at least two rounds.");
+        Debug.Assert(minRounds >= MinimumRounds, "A paired t-test needs at least two rounds.");
         Debug.Assert(maxRounds >= minRounds, "The maximum round count cannot be below the minimum.");
 
         if (hypotheses.Count == 0)
@@ -107,7 +114,7 @@ internal static class ConfirmationAnalyzer
             bool overBudget = hypothesisStatistics.Hypothesis.BudgetNs is not double budgetNs || hypothesisStatistics.CurrentMedianNs > budgetNs;
             bool confirmed = rejected[index] && overBudget;
             anyConfirmed |= confirmed;
-            LogResult(logger, hypothesisStatistics, roundCount, confirmed, rejected[index], overBudget);
+            LogResult(logger, hypothesisStatistics, roundCount, rejected[index], confirmed);
         }
 
         return anyConfirmed ? ConfirmationDecision.Confirmed : ConfirmationDecision.NotConfirmed;
@@ -127,7 +134,8 @@ internal static class ConfirmationAnalyzer
         for (int rank = 0; rank < count; rank++)
         {
             int index = order[rank];
-            if (!(pValues[index] <= alpha / (count - rank)))
+            double pValue = pValues[index];
+            if (double.IsNaN(pValue) || pValue > alpha / (count - rank))
             {
                 break;
             }
@@ -147,13 +155,13 @@ internal static class ConfirmationAnalyzer
     internal static (double Mean, double PValue, double LogMargin) TestMeanGreater(double[] logRatios, double nullLogRatio)
     {
         int count = logRatios.Length;
-        Debug.Assert(count >= 2, "A t-test needs at least two values.");
+        Debug.Assert(count >= MinimumRounds, "A t-test needs at least two values.");
 
         double mean = logRatios.Average();
         double sumOfSquares = logRatios.Sum(value => (value - mean) * (value - mean));
         double standardError = Math.Sqrt(sumOfSquares / (count - 1) / count);
 
-        if (standardError == 0D)
+        if (standardError <= 0D)
         {
             // Identical ratios leave no doubt about the direction.
             return (mean, mean > nullLogRatio ? 0D : 1D, 0D);
@@ -189,7 +197,7 @@ internal static class ConfirmationAnalyzer
             currentValues[index] = currentNs;
         }
 
-        if (rounds.Count < 2)
+        if (rounds.Count < MinimumRounds)
         {
             statistics = new HypothesisStatistics(hypothesis, double.NaN, PValue: 1D, LogMargin: double.PositiveInfinity, double.NaN);
             return true;
@@ -205,7 +213,8 @@ internal static class ConfirmationAnalyzer
         valueNs = double.NaN;
         if (!benchmarks.TryGetValue(hypothesis.BenchmarkId, out Benchmark? benchmark)
             || hypothesis.SelectMetric(benchmark) is not double value
-            || !(value > 0D)
+            || double.IsNaN(value)
+            || value <= 0D
             || double.IsInfinity(value))
         {
             return false;
@@ -222,24 +231,21 @@ internal static class ConfirmationAnalyzer
         return sorted.Length % 2 == 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2D;
     }
 
-    private static void LogResult(ILogger logger, HypothesisStatistics statistics, int roundCount, bool confirmed, bool significant, bool overBudget)
+    private static void LogResult(ILogger logger, HypothesisStatistics statistics, int roundCount, bool significant, bool confirmed)
     {
         ConfirmationHypothesis hypothesis = statistics.Hypothesis;
-        string verdict = "CONFIRMED regression";
-        if (!significant)
+        string verdict = (significant, confirmed) switch
         {
-            verdict = "not confirmed: slowdown is not significant";
-        }
-        else if (!confirmed)
-        {
-            verdict = "not confirmed: current build is back under budget";
-        }
+            (false, _) => "not confirmed: slowdown is not significant",
+            (true, false) => "not confirmed: current build is back under budget",
+            (true, true) => "CONFIRMED regression",
+        };
 
         string budget = string.Empty;
         if (hypothesis.BudgetNs is double budgetNs)
         {
-            string side = overBudget ? "over" : "under";
-            budget = $", current median {statistics.CurrentMedianNs / 1_000_000D:F3} ms vs budget {budgetNs / 1_000_000D:F3} ms ({side})";
+            string side = statistics.CurrentMedianNs > budgetNs ? "over" : "under";
+            budget = $", current median {statistics.CurrentMedianNs / NanosecondsPerMillisecond:F3} ms vs budget {budgetNs / NanosecondsPerMillisecond:F3} ms ({side})";
         }
 
         string message =
