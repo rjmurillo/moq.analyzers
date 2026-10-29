@@ -28,7 +28,7 @@ function New-PerfBenchmarkArguments {
         [Parameter(Mandatory=$true)]
         [string]$Output,
 
-        [string]$Filter,
+        [string[]]$Filter,
 
         [bool]$Ci = $false,
 
@@ -43,7 +43,9 @@ function New-PerfBenchmarkArguments {
         $commandArguments += @("--profiler", "ETW")
     }
 
-    $commandArguments += @("--filter", $Filter)
+    # BenchmarkDotNet takes several patterns after one --filter flag.
+    $commandArguments += "--filter"
+    $commandArguments += $Filter
     return $commandArguments
 }
 
@@ -61,11 +63,12 @@ function Format-PerfCommandArguments {
 function Invoke-PerfTests {
     param(
         [string] $projects,
-        [string] $filter,
+        [string[]] $filter,
         [String] $perftestRootFolder,
         [String] $output,
         [bool]   $etl=$false,
-        [bool]   $ci=$false
+        [bool]   $ci=$false,
+        [bool]   $skipBuild=$false
     )
 
     Push-Location $perftestRootFolder
@@ -78,10 +81,13 @@ function Invoke-PerfTests {
         $projectsList = Split-PerfProjects -Projects $projects
         foreach ($project in $projectsList) {
             $projectFullPath = Get-PerfProjectFullPath -PerfTestRootFolder $perftestRootFolder -Project $project
-            & dotnet restore $projectFullPath
-            if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed with exit code $LASTEXITCODE for project $project" }
-            & dotnet build -c Release --no-incremental $projectFullPath
-            if ($LASTEXITCODE -ne 0) { throw "dotnet build failed with exit code $LASTEXITCODE for project $project" }
+            # Confirmation rounds reuse the build from their first round.
+            if (-not $skipBuild) {
+                & dotnet restore $projectFullPath
+                if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed with exit code $LASTEXITCODE for project $project" }
+                & dotnet build -c Release --no-incremental $projectFullPath
+                if ($LASTEXITCODE -ne 0) { throw "dotnet build failed with exit code $LASTEXITCODE for project $project" }
+            }
             $commandArguments = New-PerfBenchmarkArguments -ProjectFullPath $projectFullPath -Output $output -Filter $filter -Ci $ci -Etl $etl
             $formattedArgs = Format-PerfCommandArguments -Arguments $commandArguments
             Write-Host "Invoking: dotnet $formattedArgs"

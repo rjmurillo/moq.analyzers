@@ -1,16 +1,16 @@
 ---
 title: "ADR-004: Cap Microsoft.CodeAnalysis.AnalyzerUtilities at 3.3.4"
-status: "Accepted"
+status: "Superseded"
 date: "2026-03-15"
 authors: "moq.analyzers maintainers"
 tags: ["architecture", "decision", "dependencies", "compatibility"]
 supersedes: ""
-superseded_by: ""
+superseded_by: "ADR-011"
 ---
 
 ## Status
 
-Accepted
+Superseded by [ADR-011](ADR-011-raise-minimum-host-to-dotnet-10-sdk.md). The minimum supported host is now the .NET 10 SDK (Roslyn 5.0).
 
 ## Context
 

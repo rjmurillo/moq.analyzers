@@ -55,6 +55,17 @@ For analyzers that cover the rest of a test project, see [Analyzers that pair we
 
 Before you install, make sure you use a
 [supported version of the .NET SDK](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core).
+Moq.Analyzers 0.4.2 and earlier run on Roslyn 4.8.
+
+Releases after 0.4.2 need the .NET 10 SDK (10.0.100 or later) or Visual Studio 2026, because they are built for
+Roslyn 5.0. Older compilers, such as the .NET 8 or .NET 9 SDK or Visual Studio 2022, skip the analyzers and report
+this warning (from a .NET 9.0.318 SDK build, path shortened):
+
+```text
+warning CS9057: Analyzer assembly '<nuget-packages>/moq.analyzers/<version>/analyzers/dotnet/cs/Moq.Analyzers.dll' cannot be used because it references version '5.0.0.0' of the compiler, which is newer than the currently running version '4.14.0.0'.
+```
+
+If you must stay on one of those hosts, keep Moq.Analyzers 0.4.2.
 
 To install Moq.Analyzers from NuGet, run this command in each test project:
 
@@ -87,6 +98,8 @@ documentation. To get started, see the [contributing guide](./CONTRIBUTING.md).
 - When a pull request skips the full test run, CI reports the base commit's coverage to Codacy, because no measured
   code changed. If main CI for the base commit is still queued or running, CI waits up to 40 minutes for it to
   finish, and fails if that run does not pass.
+- The perf job fails only when paired reruns confirm a slowdown that the first comparison flagged. See
+  [ADR-012](./docs/architecture/ADR-012-confirm-perf-regressions-with-paired-rounds.md).
 - The tier rules live in `build/scripts/ci/classify-changed-paths.sh`. Any path the script does not name runs the
   full pipeline.
 - CI keeps artifacts from the main and mutation-testing workflows for seven days. For details, see the

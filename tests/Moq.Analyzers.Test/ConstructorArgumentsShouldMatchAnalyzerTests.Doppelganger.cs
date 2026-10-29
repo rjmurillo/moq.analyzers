@@ -61,7 +61,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
                     }
                 }
                 """,
-                ReferenceAssemblyCatalog.Net80WithNewMoq);
+                ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     public static IEnumerable<object[]> RealMoqIsUsedWithInvalidParameters()
@@ -115,7 +115,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
                     }
                 }
                 """,
-                ReferenceAssemblyCatalog.Net80WithNewMoq);
+                ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
                     }
                 }
                 """,
-                ReferenceAssemblyCatalog.Net80WithNewMoq);
+                ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

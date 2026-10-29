@@ -84,7 +84,7 @@ which the pre-push git hook runs for you.)
 | `ContinuousIntegrationBuild` / `Deterministic` | not set in repo files; passed as `/p:` by CI composite action and pre-push hook | `.github/actions/setup-restore-build/action.yml`, `build/scripts/hooks/Invoke-PrePushBuild.ps1` | Reproducible builds (DotNet.ReproducibleBuilds 2.0.5, `build/targets/reproducible/`) |
 | `ArtifactsPath` | `$(RepoRoot)/artifacts` | `build/targets/artifacts/Artifacts.props` | All bin/obj/test/package output lands under `artifacts/` |
 | `ArtifactsTestResultsPath` | `$(ArtifactsPath)/TestResults` | same file | TRX + coverage output root |
-| `LangVersion` | `default` | `build/targets/compiler/Compiler.props` | Deliberately floats with the SDK pinned in `global.json`. Do NOT hard-pin a C# version; the shipped assembly still compiles against Roslyn 4.8 (ADR-003) |
+| `LangVersion` | `default` | `build/targets/compiler/Compiler.props` | Deliberately floats with the SDK pinned in `global.json`. Do NOT hard-pin a C# version; the shipped assembly still compiles against Roslyn 5.0 (ADR-011) |
 | `Nullable` | `enable` | same file | Repo-wide nullable reference types |
 | `ImplicitUsings` | `enable` | same file | Global usings on |
 | `EnableNETAnalyzers` | `true` | `build/targets/codeanalysis/CodeAnalysis.props` | Built-in CA rules on |
@@ -244,6 +244,8 @@ canonical invocation (CI and pre-push both use it). Knobs inside
 | `SkipAutoProps` | `true` | auto-properties don't count against coverage |
 | `Functions/Exclude` | `^get_.*`, `^set_.*`, `^.*Test.*`, `^Microsoft\.Testing.*`, `^System\.Diagnostics.*` | property accessors and test-infra functions excluded |
 
+Outside the runsettings, `WindowsWorkspaceConcurrencyGate` (`tests/Moq.Analyzers.Test/Helpers/`) allows at most 8 verifier runs at once on Windows. Each Roslyn workspace there holds 8 MB of memory mapped storage. Without the gate, the parallel test framework ran out of commit memory and crashed the test host. Added 2026-10-26.
+
 Post-processing: `build/targets/tests/Tests.targets` writes TRX logs to
 `artifacts/TestResults/<tfm>/` and runs ReportGenerator
 (`MarkdownSummaryGithub;Cobertura;HtmlInline`) into
@@ -268,9 +270,9 @@ All verified against `.github/workflows/main.yml` and scripts, 2026-07-02.
 | Variable | Where set | Semantics |
 |----------|-----------|-----------|
 | `RUN_FULL_PERF` | `main.yml:462` (perf job env) | `true` only when (a) the nightly `schedule` run (`cron: '0 3 * * *'`, `main.yml:27`) on `main`, or (b) `workflow_dispatch` with input `run_performance=true`. When true the benchmark filter is `'*'` (full suite, 1,000-file corpus); otherwise the PR fast path `'*(FileCount: 1)'` (`main.yml:511-515`). PRs therefore get a fast, lower-power perf gate; the nightly run is the statistically strong one |
-| `FORCE_PERF_BASELINE` | `main.yml:463` from dispatch input `force_baseline`; consumed at `build/scripts/perf/PerfCore.ps1:83` (`$env:FORCE_PERF_BASELINE -eq 'true'`) | Forces baseline benchmarks to re-run even when a cached `*report-full-compressed.json` exists under `artifacts/performance/perfResults/baseline/results`. Set it locally (`FORCE_PERF_BASELINE=true`) when you suspect a stale cached baseline |
+| `FORCE_PERF_BASELINE` | `main.yml:621` from dispatch input `force_baseline`; read by `Test-ForcePerfBaseline` at `build/scripts/perf/PerfConfig.psm1:67` (`$env:FORCE_PERF_BASELINE -eq 'true'`), which `PerfCore.ps1` calls. Re-checked 2026-10-26 | Forces baseline benchmarks to re-run even when a cached `*report-full-compressed.json` exists under `artifacts/performance/perfResults/baseline/results`. A cached baseline whose `baseline-sha.txt` does not match the pinned SHA already runs again. Set it locally (`FORCE_PERF_BASELINE=true`) when you suspect a stale cached baseline |
 | `IS_CODACY_COVERAGE_ALLOWED` / `IS_QLTY_COVERAGE_ALLOWED` | `main.yml:187-188`, computed as `secrets.CODACY_PROJECT_TOKEN != ''` / `secrets.QLTY_COVERAGE_TOKEN != ''` | Secret-presence gates: coverage uploads to Codacy/Qlty run only on Linux test legs AND only when the secret exists (`main.yml:257,267`). Forks without secrets skip cleanly instead of failing — mimic this pattern for any new secret-dependent step |
-| `DOTNET_ROLL_FORWARD=LatestMajor` | Set by `Invoke-PerfBaselineComparison` (`build/scripts/perf/PerfBaselineManager.psm1:130`) and restored in its `finally` block | Benchmarks run `[InProcess]`, so each run uses its own TFM runtime. The pinned baseline can target an older TFM (`net8.0` at `42012bd`) than the head (`net10.0`). The `-diff` comparison runs the warm-up, baseline, head, and compare steps on the newest installed runtime so a runtime change cannot pass for an analyzer change. See `build/scripts/perf/README.md` |
+| `DOTNET_ROLL_FORWARD=LatestMajor` | Set by `Invoke-PerfBaselineComparison` (`build/scripts/perf/PerfBaselineManager.psm1:273`) and restored in its `finally` block. Re-checked 2026-10-26 | Benchmarks run `[InProcess]`, so each run uses its own TFM runtime. The pinned baseline can target an older TFM than the head (for example, `net8.0` at `42012bd`, before the baseline moved to `94e503d` on `net10.0`). The `-diff` comparison runs the warm-up, baseline, head, and compare steps on the newest installed runtime so a runtime change cannot pass for an analyzer change. See `build/scripts/perf/README.md` |
 | `HUSKY=0` | consumed by `Directory.Build.targets` `HuskyInstall` target | Skips git-hook installation on restore (also auto-skipped when `ContinuousIntegrationBuild=true` or design-time builds) |
 | `RUN_PERF` dispatch inputs | `main.yml:4-15` | `run_performance` (bool) and `force_baseline` (bool) are the only two `workflow_dispatch` inputs |
 
@@ -286,13 +288,13 @@ Renovate is the automated dependency updater (`enabledManagers`:
 `nuget`, `github-actions`). Several rules exist because violating them ships
 a broken analyzer (CS8032 = "analyzer cannot be loaded" in the consumer's
 compiler — incident #850, hotfix release v0.4.1). Verbatim highlights,
-2026-07-02:
+re-verified 2026-10-25 after ADR-011:
 
 | Rule | Setting | Reason |
 |------|---------|--------|
-| `ignoreDeps` | `Microsoft.CodeAnalysis.CSharp`, `.CSharp.Workspaces`, `.Common`, `.Workspaces.Common` | Roslyn is pinned to **4.8** (ADR-003: minimum supported host is VS 2022 17.8 / .NET 8 SDK). Renovate must never bump it; raising it is a support-matrix decision |
-| `System.Collections.Immutable`, `System.Reflection.Metadata` | `allowedVersions: "<=8.0.0"`, `automerge: false`, label `analyzer-compat` | The shipped DLL must bind against what a .NET 8 host provides (issue #850) |
-| `Microsoft.CodeAnalysis.AnalyzerUtilities` | `allowedVersions: "<4.14.0"`, `automerge: false`, label `analyzer-compat` | 4.14.0+ pulls System.Collections.Immutable 9.0.0.0 → CS8032 in .NET 8 hosts (ADR-004) |
+| `ignoreDeps` | `Microsoft.CodeAnalysis.CSharp`, `.CSharp.Workspaces`, `.Common`, `.Workspaces.Common` | Roslyn is pinned to **5.0.0** (ADR-011: minimum supported host is the .NET 10 SDK, 10.0.100). Renovate must never bump it; raising it is a support-matrix decision |
+| `System.Collections.Immutable`, `System.Reflection.Metadata` | `allowedVersions: "<10.0.0"`, `automerge: false`, label `analyzer-compat` | The shipped DLL must bind against what a .NET 10 SDK host provides. Roslyn 5.0 depends on 9.0.0, so every Roslyn 5.0 host has 9.0.0.0 (issue #850) |
+| `Microsoft.CodeAnalysis.AnalyzerUtilities` | `allowedVersions: "<5.6.0"`, `automerge: false`, label `analyzer-compat` | 5.6.0+ pulls Microsoft.Bcl.AsyncInterfaces 10.0.1, newer than a Roslyn 5.0 host provides (ADR-011) |
 | `System.Formats.Asn1` | `automerge: false`, label `analyzer-compat` | Transitive pin for the shipped analyzer; manual review |
 | `Perfolizer` | `enabled: false` | BenchmarkDotNet declares the **exact** constraint `[0.6.1]`; independent bumps cause NU1608. Update only when BenchmarkDotNet moves (PR #968) |
 | `BenchmarkDotNet` | `automerge: false`, label `benchmark-tooling` | Must be reviewed together with the Perfolizer pin |
@@ -308,12 +310,13 @@ in the NuGet package.
   compatibility review.
 - Guards (triple-layered, all verified):
   1. `ValidateAnalyzerHostCompatibility` MSBuild target
-     (`build/targets/packaging/Packaging.targets:20`) — build **error** if
+     (`build/targets/packaging/Packaging.targets:23`) — build **error** if
      System.Collections.Immutable or System.Reflection.Metadata resolve above
-     major version 8 for a shipped project.
-  2. `tests/Moq.Analyzers.Test/AnalyzerAssemblyCompatibilityTests.cs`.
-  3. The 9-way `analyzer-load-test` CI matrix in `main.yml` (net8/9/10 CLI +
-     net472/48/481 MSBuild) which greps output for CS8032 / binding failures.
+     major version 9 for a shipped project.
+  2. `tests/Moq.Analyzers.Test/AnalyzerAssemblyCompatibilityTests.cs`
+     (`MaxImmutableVersion`/`MaxMetadataVersion` = 9.0.0.0).
+  3. The 4-leg `analyzer-load-test` CI matrix in `main.yml` (net10.0 CLI +
+     net472/48/481 MSBuild on VS 2026) which greps output for CS8032 / binding failures.
 - Validation for renovate.json edits:
   `npx --package renovate -- renovate-config-validator` (documented in #1271).
 
@@ -336,7 +339,9 @@ a second working tree, runs the benchmark suite there to produce the
 *baseline*, runs the same suite on your PR, and PerfDiff
 (`src/tools/PerfDiff`) compares the two with `--failOnRegression`. The
 pipeline: `PerfCore.ps1 -diff` → `DiffPerfToBaseline.ps1` → `RunPerfTests.ps1`
-×2 → `ComparePerfResults.ps1` → PerfDiff. `main.yml` fails fast if the file is
+×2 → `ComparePerfResults.ps1` → PerfDiff (screen) → on a hit,
+`Invoke-PerfConfirmation` → `ConfirmPerfResults.ps1` → `PerfDiff confirm`
+(ADR-012, re-checked 2026-10-28). `main.yml` fails fast if the file is
 missing ("Get baseline SHA" step).
 
 How/when to advance it:
@@ -487,7 +492,7 @@ Re-verify each axis with one command before trusting this document:
 - CI env vars: `grep -n "RUN_FULL_PERF\|FORCE_PERF_BASELINE\|IS_CODACY\|IS_QLTY" .github/workflows/main.yml`
 - Renovate pins: `grep -n "allowedVersions\|enabled\|automerge\|ignoreDeps" renovate.json`
 - Automerge policy issue still open? `gh issue view 1271 --repo rjmurillo/moq.analyzers --json state`
-- Central pins (Roslyn 4.8, AnalyzerUtilities 3.3.4, Perfolizer 0.6.1, System.CommandLine 2.0.3): `grep -n "CodeAnalysis.CSharp\"\|AnalyzerUtilities\|Perfolizer\|System.CommandLine\"" Directory.Packages.props`
+- Central pins (Roslyn 5.0.0, AnalyzerUtilities 5.0.0, Perfolizer 0.6.1, System.CommandLine 2.0.3): `grep -n "CodeAnalysis.CSharp\"\|AnalyzerUtilities\|Perfolizer\|System.CommandLine\"" Directory.Packages.props`
 - Host-compat guard: `grep -n "ValidateAnalyzerHostCompatibility\|_MaxSystem" build/targets/packaging/Packaging.targets`
 - Perf baseline: `cat build/perf/baseline.json && git log --oneline -3 -- build/perf/baseline.json`
 - Version stem: `cat version.json global.json`

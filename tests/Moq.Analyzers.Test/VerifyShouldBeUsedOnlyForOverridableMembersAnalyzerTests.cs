@@ -66,8 +66,8 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
     public static IEnumerable<object[]> MoqReferenceAssemblyGroups() =>
         new List<object[]>
         {
-            new object[] { ReferenceAssemblyCatalog.Net80WithOldMoq },
-            new object[] { ReferenceAssemblyCatalog.Net80WithNewMoq },
+            new object[] { ReferenceAssemblyCatalog.Net100WithOldMoq },
+            new object[] { ReferenceAssemblyCatalog.Net100WithNewMoq },
         };
 
     public static IEnumerable<object[]> MakesNonVirtualPropertyVirtualData()
@@ -301,7 +301,7 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
     {
         await Verifier.VerifyAnalyzerAsync(
             DoppelgangerTestHelper.CreateTestCode(mockCode),
-            ReferenceAssemblyCatalog.Net80WithNewMoq);
+            ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Theory]
@@ -611,7 +611,7 @@ public partial class VerifyShouldBeUsedOnlyForOverridableMembersAnalyzerTests(IT
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(test, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        await Verifier.VerifyAnalyzerAsync(test, ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     private static string InvokeCanMakeMemberVirtual(ISymbol memberSymbol)

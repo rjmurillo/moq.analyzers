@@ -32,7 +32,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 
     [Fact]
@@ -142,6 +142,6 @@ public partial class ConstructorArgumentsShouldMatchAnalyzerTests
             }
             """;
 
-        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net80WithNewMoq);
+        await Verifier.VerifyAnalyzerAsync(source, ReferenceAssemblyCatalog.Net100WithNewMoq);
     }
 }

@@ -120,7 +120,7 @@ public sealed class MSBuildProjectCreatorEndToEndTests
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void CreateProjectFile(string projectPath, bool includeMoq)
     {
-        ProjectCreator project = ProjectCreator.Templates.SdkCsproj(path: projectPath, targetFramework: "net8.0")
+        ProjectCreator project = ProjectCreator.Templates.SdkCsproj(path: projectPath, targetFramework: "net10.0")
             .Property("ImplicitUsings", "enable")
             .Property("Nullable", "enable")
             .ItemPackageReference("Moq.Analyzers");

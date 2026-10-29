@@ -1,4 +1,5 @@
 using PerfDiff.BDN;
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 using PerfDiff.BDN.Regression;
 using Perfolizer.Mathematics.Common;
@@ -221,7 +222,7 @@ public sealed class RatioRegressionStrategyTests
     public void RegressionRatioMetricConfig_WhenStabilityDeltaSelectorIsOmitted_UsesDeltaSelector()
     {
         Func<RegressionResult, double> deltaSelector = _ => 42D;
-        RegressionRatioMetricConfig config = new("Test ratio", _ => 1D, deltaSelector);
+        RegressionRatioMetricConfig config = new("Test ratio", ConfirmationMetric.Mean, _ => 1D, deltaSelector);
 
         Assert.Same(deltaSelector, config.StabilityDeltaSelector);
     }

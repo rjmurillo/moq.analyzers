@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 using Perfolizer.Mathematics.Common;
 
@@ -19,6 +20,7 @@ public sealed class PercentageRegressionStrategy : IBenchmarkRegressionStrategy
             logger,
             new RegressionRatioMetricConfig(
                 "Median ratio",
+                ConfirmationMetric.Median,
                 BenchmarkDotNetDiffer.GetMedianRatio,
                 GetMedianDelta,
                 "35%",

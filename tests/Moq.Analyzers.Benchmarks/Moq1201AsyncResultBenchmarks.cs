@@ -16,8 +16,8 @@ public class Moq1201AsyncResultBenchmarks
 #pragma warning restore ECS0900
     public int FileCount { get; set; }
 
-    [Params("Net80WithOldMoq", "Net80WithNewMoq")]
-    public string MoqKey { get; set; } = "Net80WithOldMoq";
+    [Params("Net100WithOldMoq", "Net100WithNewMoq")]
+    public string MoqKey { get; set; } = "Net100WithOldMoq";
 
     private CompilationWithAnalyzers? BaselineCompilation { get; set; }
 
@@ -71,7 +71,7 @@ internal class {name}
             .AssertValidAnalysisResult()
             .GetAllDiagnostics();
 
-        if (string.Equals(MoqKey, "Net80WithNewMoq", StringComparison.Ordinal))
+        if (string.Equals(MoqKey, "Net100WithNewMoq", StringComparison.Ordinal))
         {
             if (diagnostics.Length != 0)
             {

@@ -30,7 +30,7 @@ All tests must pass. New functionality requires new tests.
 
 - If adding/modifying a diagnostic: update `AnalyzerReleases.Unshipped.md`
 - If adding a new rule: add documentation in `docs/rules/`
-- If modifying public API: check backward compatibility with Roslyn 4.8+
+- If modifying public API: check backward compatibility with Roslyn 5.0+
 
 ## 5. Format
 

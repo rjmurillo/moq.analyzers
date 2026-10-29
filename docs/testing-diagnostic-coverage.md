@@ -37,6 +37,6 @@ await Verifier.VerifyAnalyzerAsync(
         }
     }
     """,
-    ReferenceAssemblyCatalog.Net80WithNewMoq,
+    ReferenceAssemblyCatalog.Net100WithNewMoq,
     expected);
 ```

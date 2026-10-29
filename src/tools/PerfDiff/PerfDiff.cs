@@ -3,6 +3,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using PerfDiff.BDN;
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 using PerfDiff.ETL;
 
@@ -20,12 +21,8 @@ internal static class PerfDiff
             failOnRegression,
             logger,
             token,
-            BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync,
-            static (resultsEtlPath, baselineEtlPath) =>
-            {
-                bool succeeded = EtlDiffer.TryCompareETL(resultsEtlPath, baselineEtlPath, out bool regressionDetected);
-                return (succeeded, regressionDetected);
-            }).ConfigureAwait(false);
+            CompareBenchmarks(flaggedOutputPath: null),
+            CompareEtl).ConfigureAwait(false);
 
     internal static async Task<int> CompareAsync(
         string baselineFolder,
@@ -38,7 +35,8 @@ internal static class PerfDiff
     {
         token.ThrowIfCancellationRequested();
 
-        (bool compareSucceeded, bool regressionDetected) = await compareBenchmarksAsync(baselineFolder, resultsFolder, logger, token).ConfigureAwait(false);
+        BenchmarkComparisonResult comparison = await compareBenchmarksAsync(baselineFolder, resultsFolder, logger, token).ConfigureAwait(false);
+        (bool compareSucceeded, bool regressionDetected) = (comparison.CompareSucceeded, comparison.RegressionDetected);
 
         if (!compareSucceeded)
         {
@@ -70,6 +68,40 @@ internal static class PerfDiff
     }
 #pragma warning restore CA2254
 #pragma warning restore CA1848
+
+    /// <summary>
+    /// Gets the BenchmarkDotNet comparison. When <paramref name="flaggedOutputPath"/> is set,
+    /// the comparison also writes the flagged benchmarks there after it succeeds.
+    /// </summary>
+    /// <param name="flaggedOutputPath">The flagged benchmark file, or <see langword="null"/> for none.</param>
+    /// <returns>The comparison delegate.</returns>
+    internal static Func<string, string, ILogger, CancellationToken, Task<BenchmarkComparisonResult>> CompareBenchmarks(string? flaggedOutputPath)
+    {
+        if (flaggedOutputPath is null)
+        {
+            return BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync;
+        }
+
+        return async (baselineFolder, resultsFolder, logger, token) =>
+        {
+            BenchmarkComparisonResult comparison = await BenchmarkDotNetDiffer.TryCompareBenchmarkDotNetResultsAsync(baselineFolder, resultsFolder, logger, token).ConfigureAwait(false);
+
+            // The file exists only after a successful comparison, so a caller can tell a
+            // regression exit code from a comparison failure.
+            if (comparison.CompareSucceeded)
+            {
+                await ConfirmationHypothesisFile.WriteAsync(flaggedOutputPath, comparison.FlaggedOrEmpty, token).ConfigureAwait(false);
+            }
+
+            return comparison;
+        };
+    }
+
+    internal static (bool CompareSucceeded, bool RegressionDetected) CompareEtl(string resultsEtlPath, string baselineEtlPath)
+    {
+        bool succeeded = EtlDiffer.TryCompareETL(resultsEtlPath, baselineEtlPath, out bool regressionDetected);
+        return (succeeded, regressionDetected);
+    }
 
     private static (bool compareSucceeded, bool regressionDetected) CheckEltTraces(
         string baselineFolder,

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 using Perfolizer.Metrology;
 
@@ -17,7 +18,8 @@ public sealed class MeanWallClockRegressionStrategy : IBenchmarkRegressionStrate
             ThresholdValueNs: 100D * TimeUnitConstants.NanoSecondsToMilliseconds,
             MetricSelector: b => b.Statistics?.Mean,
             DisplayValueSelector: r => r.DiffResult.Statistics!.Mean / TimeUnitConstants.NanoSecondsToMilliseconds,
-            MetricName: "Mean");
+            MetricName: "Mean",
+            Metric: ConfirmationMetric.Mean);
 
         return RegressionStrategyHelper.HasRegression(comparison, logger, config, out details);
     }

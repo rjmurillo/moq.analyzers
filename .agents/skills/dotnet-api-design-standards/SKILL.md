@@ -303,7 +303,7 @@ on 2026-07-02):
 |---|---|---|
 | Static state is `static readonly` immutable | descriptors, `LocalizableString`s, name arrays only; **zero mutable statics** reachable from callbacks | every analyzer's `Rule` field |
 | Lazy init uses `LazyThreadSafetyMode.ExecutionAndPublication` | value computed once even under concurrent access | `MoqKnownSymbols.CreateLazyMethods` (`src/Common/WellKnown/MoqKnownSymbols.cs:611-617`) |
-| Shared caches are `ConcurrentDictionary`-backed | via `WellKnownTypeProvider.GetOrCreate(compilation)` from AnalyzerUtilities (pinned ≤3.3.4, ADR-004) | `KnownSymbols` ctor (`src/Common/WellKnown/KnownSymbols.cs`) |
+| Shared caches are `ConcurrentDictionary`-backed | via `WellKnownTypeProvider.GetOrCreate(compilation)` from AnalyzerUtilities (pinned 5.0.0, ADR-011) | `KnownSymbols` ctor (`src/Common/WellKnown/KnownSymbols.cs`) |
 | Per-compilation state flows as parameters | no fields written from callbacks; capture `knownSymbols` in the registration lambda | `RegisterOperationAction(ctx => Analyze(ctx, knownSymbols), ...)` |
 
 **Caution — `Lazy` caches exceptions.** Under `ExecutionAndPublication`, a factory
@@ -413,7 +413,7 @@ audit-caught) defect class in this repo — none is theoretical.
   math): **roslyn-analyzer-reference**.
 - **Moq semantics** (what `Setup`/`Raise`/`ItExpr` actually do, version diffs):
   **moq-api-reference**.
-- **Architecture invariants and ADR text** (why netstandard2.0, why Roslyn 4.8):
+- **Architecture invariants and ADR text** (why netstandard2.0, why Roslyn 5.0):
   **moq-analyzers-architecture-contract**.
 - **How to land a change** (branch names, PR evidence, release notes files):
   **moq-analyzers-change-control**; rule lifecycle steps: **moq-analyzers-rule-lifecycle**.

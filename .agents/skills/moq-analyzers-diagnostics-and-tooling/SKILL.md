@@ -17,7 +17,7 @@ All commands are repo-root relative. `dotnet` must be on PATH (in sandboxes:
 
 | Question | Instrument | Command (from repo root) |
 |---|---|---|
-| Does this C# snippet trigger diagnostic X? | Live-DLL harness | `.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh <file.cs> [moq-version]` |
+| Does this C# snippet trigger diagnostic X? | Live-DLL harness | `pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 <file.cs> [moq-version]` |
 | Did my change slow an analyzer down? | Benchmarks + PerfDiff | `./build/scripts/perf/CIPerf.sh -filter '*(FileCount: 1)'` |
 | Why did MSBuild do that? | Binary log (binlog) | `dotnet build /bl:artifacts/logs/local.binlog` |
 | What code do my tests exercise? | Coverage (Cobertura) | `dotnet test --settings ./build/targets/tests/test.runsettings` |
@@ -35,12 +35,12 @@ need a fast answer to "what does the analyzer report for THIS code, against a RE
 reference?", use the harness script shipped in this skill:
 
 ```bash
-.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh <snippet.cs> [moq-version]
+pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 <snippet.cs> [moq-version]
 ```
 
 What it does (details in the script header):
 
-1. Builds a throwaway `net8.0` class-library project **outside the repo tree** so the
+1. Builds a throwaway `net10.0` class-library project **outside the repo tree** so the
    repo's `Directory.Build.props`, Central Package Management, and PedanticMode cannot
    interfere with the snippet.
 2. References the **real Moq package** (default 4.18.4; pass `4.8.2` for the old-Moq
@@ -61,9 +61,9 @@ What it does (details in the script header):
    "snippet didn't compile".
 
 Environment knobs: `MOQ_ANALYZERS_CONFIG=release` (default `debug`),
-`SNIPPET_TFM=<tfm>` (default `net8.0`), `SNIPPET_LANGVERSION=<ver>` (default `latest` — the
+`SNIPPET_TFM=<tfm>` (default `net10.0`), `SNIPPET_LANGVERSION=<ver>` (default `latest` — the
 host SDK's newest stable C#, so modern-host repros such as the C# 13 `params`-collection
-crash of #1241 actually parse; set `12` to mirror the pinned Roslyn 4.8 test compiler),
+crash of #1241 actually parse; set an older version to reproduce a language-version bug),
 `SNIPPET_OUTPUTTYPE=Exe` (default unset = class library, correct for declaration-only
 repros; set `Exe` when the snippet is top-level statements, else the SDK rejects it with
 CS8805 and the harness exits 2 before analyzers can be trusted — but do not set it for a
@@ -80,14 +80,14 @@ reports both as warnings that would otherwise exit the build 0 and read as a cle
 where `Foo` only has a `(string)` constructor. Running:
 
 ```bash
-.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh \
+pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 \
   .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/sample-moq1002.cs
 ```
 
 produced (paths shortened; ~7 s wall clock including NuGet restore):
 
 ```text
---- Moq.Analyzers diagnostics (config=debug, Moq 4.18.4, net8.0, C# latest) ---
+--- Moq.Analyzers diagnostics (config=debug, Moq 4.18.4, net10.0, C# latest) ---
 Snippet.cs(30,20): warning Moq1400: Explicitly choose a mocking behavior for SnippetSample.Foo instead of relying on the default (Loose) behavior (https://github.com/rjmurillo/moq.analyzers/blob/05135b2.../docs/rules/Moq1400.md)
 Snippet.cs(30,20): warning Moq1410: Explicitly set the Strict mocking behavior for 'SnippetSample.Foo' (https://github.com/rjmurillo/moq.analyzers/blob/05135b2.../docs/rules/Moq1410.md)
 Snippet.cs(30,33): warning Moq1002: Could not find a matching constructor for type 'SnippetSample.Foo' with arguments (1, true) (https://github.com/rjmurillo/moq.analyzers/blob/05135b2.../docs/rules/Moq1002.md)
@@ -110,8 +110,8 @@ it is the case a naive grep for `MoqXXXX` would silently miss.
 |---|---|
 | Severities are forced to `warning` | Do not read severity off the output; check the descriptor or `docs/rules/MoqXXXX.md` for the shipped default |
 | Code fixes are not exercised | Fixer behavior/crashes need the code-fix test infra (see moq-analyzers-validation-and-qa) |
-| Compiles with the host SDK's current Roslyn (SDK 10.x) | Good for "modern host" behavior; the test suite pins Roslyn 4.8 (ADR-003), so parse-level differences (e.g. C# 13 params collections) can differ between harness and suite. Set `SNIPPET_LANGVERSION=12` to approximate the pinned test compiler |
-| One file, `net8.0`, LangVersion `latest` by default | Multi-file/multi-TFM repros belong in the test suite; override the language version with `SNIPPET_LANGVERSION` |
+| Compiles with the host SDK's current Roslyn (SDK 10.x) | Good for "modern host" behavior; the test suite pins Roslyn 5.0 (ADR-011) at default C# 14, so parse-level differences can appear when the host SDK's Roslyn is newer than the pin. Set `SNIPPET_LANGVERSION` to an older version to reproduce a language-version bug |
+| One file, `net10.0`, LangVersion `latest` by default | Multi-file/multi-TFM repros belong in the test suite; override the language version with `SNIPPET_LANGVERSION` |
 | A result here is evidence, not a regression test | Every FP/FN fix still ships with an issue-linked test (repo rule) |
 
 ---
@@ -170,8 +170,13 @@ PerfDiff reads**. In CI both trees are uploaded as the `performance` artifact, a
 ### Reading the verdict
 
 `BenchmarkComparisonService` (`src/tools/PerfDiff/BDN/BenchmarkComparisonService.cs`)
-runs **five strategies; any single one reporting a regression fails the run** (exit 1
-under `--failOnRegression`; exit 0 clean; exit 2 cancelled; file errors exit 1).
+runs **five strategies as a screen** (exit 1 under `--failOnRegression`; exit 0 clean;
+exit 2 cancelled; file errors exit 1). Since ADR-012 (re-checked 2026-10-28), a tripped
+strategy writes `flagged.json`. `Invoke-PerfConfirmation` then reruns only the flagged
+benchmarks in paired, alternating baseline/current rounds. `PerfDiff confirm` decides
+with a paired t-test plus Holm correction (family-wise 1%). Only a CONFIRMED line fails
+the job. Look for the per-benchmark `ratio ..., 99% CI [...], must exceed ..., p = ...`
+lines in the log.
 
 | Strategy (file in `src/tools/PerfDiff/BDN/Regression/`) | Metric | Regression when (2026-07-02) |
 |---|---|---|
@@ -205,7 +210,7 @@ Skeleton contract:
   `BenchmarkCSharpCompilationFactory.CreateAsync<TAnalyzer>(sources, referenceAssemblies)`
   (helpers in `tests/Moq.Analyzers.Benchmarks/Helpers/`), getting back a
   `(BaselineCompilation, TestCompilation)` pair — baseline has no analyzer attached.
-  Reference assemblies come from `CompilationCreator.GetReferenceAssemblies("Net80WithOldMoq")`
+  Reference assemblies come from `CompilationCreator.GetReferenceAssemblies("Net100WithOldMoq")`
   (same string keys as the test suite's `ReferenceAssemblyCatalog`).
 - Two `[Benchmark]` methods: the analyzer one **throws if the diagnostic count ≠
   `FileCount`** (so a silently-broken analyzer fails the benchmark instead of measuring
@@ -395,7 +400,7 @@ teaches the tool.
 
 ## Provenance and maintenance
 
-- Harness still works: `.agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/run-analyzer-on-snippet.sh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/sample-moq1002.cs` → expect Moq1002 at (30,33) plus Moq1400/Moq1410 at (30,20).
+- Harness still works: `pwsh .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/Invoke-AnalyzerOnSnippet.ps1 .agents/skills/moq-analyzers-diagnostics-and-tooling/scripts/sample-moq1002.cs` → expect Moq1002 at (30,33) plus Moq1400/Moq1410 at (30,20).
 - Packed analyzer DLL list still 3 files: `grep -n "PackagePath=\"analyzers/dotnet/cs\"" src/Analyzers/Moq.Analyzers.csproj`
 - Rule ID list source: `grep -c '"Moq[0-9]' src/Common/DiagnosticIds.cs` (25 IDs as of 2026-07-02; Moq1209 reserved)
 - PerfDiff thresholds: `grep -rn 'Threshold.Parse\|ThresholdValueNs' src/tools/PerfDiff/BDN/Regression/` (35%; 5%+0.5ms ×2; 250ms; 100ms as of 2026-07-02)

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using PerfDiff.BDN.Confirmation;
 using PerfDiff.BDN.DataContracts;
 using Perfolizer.Mathematics.Common;
 using Perfolizer.Metrology;
@@ -77,7 +78,10 @@ public static class RegressionStrategyHelper
             }
         }
 
-        details = new RegressionDetectionResult(config.MetricName, config.DisplayThreshold);
+        ConfirmationHypothesis[] flagged = worse
+            .Select(result => new ConfirmationHypothesis(result.Id, config.Metric, MinimumEffect: 0D, config.ThresholdValueNs))
+            .ToArray();
+        details = new RegressionDetectionResult(config.MetricName, config.DisplayThreshold, flagged);
         return worseCount > 0;
     }
 
@@ -109,7 +113,17 @@ public static class RegressionStrategyHelper
         LogRatioResults(worse, logger, config, "more");
 
         bool aggregateRegression = IsAggregateRatioRegression(worse, config.RatioSelector, config.AggregateThreshold, out _);
-        details = new RegressionDetectionResult(config.MetricName, relativeThreshold);
+        ConfirmationHypothesis[] flagged = aggregateRegression
+            ? worse
+                .Select(result => new ConfirmationHypothesis(
+                    result.Id,
+                    config.Metric,
+                    config.AggregateThreshold - 1D,
+                    BudgetNs: null,
+                    new DeltaFloor(config.StabilityMetric, AbsoluteNoiseFloorNs)))
+                .ToArray()
+            : [];
+        details = new RegressionDetectionResult(config.MetricName, relativeThreshold, flagged);
         return aggregateRegression;
     }
 

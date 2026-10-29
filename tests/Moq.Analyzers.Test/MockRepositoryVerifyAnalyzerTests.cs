@@ -300,7 +300,7 @@ public class MockRepositoryVerifyAnalyzerTests
     }
 
     [Theory]
-    [InlineData("Net80")]
+    [InlineData("Net100")]
     public async Task ShouldNotReportWhenMoqIsNotReferenced(string referenceAssemblyGroup)
     {
         const string code = """

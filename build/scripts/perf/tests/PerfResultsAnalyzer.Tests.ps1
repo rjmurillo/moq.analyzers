@@ -99,3 +99,34 @@ Describe 'Invoke-PerfResultsComparison exit-code contract' {
         { Invoke-PerfResultsComparison -baseline $script:comparisonBaseline -results $script:comparisonResults } | Should -Throw '*dotnet build failed*'
     }
 }
+
+Describe 'PerfDiff arguments for confirmation' {
+    BeforeEach {
+        $script:comparisonBaseline = Join-Path $script:ScratchRoot "comparisonBaseline-$([guid]::NewGuid())"
+        $script:comparisonResults = Join-Path $script:ScratchRoot "comparisonResults-$([guid]::NewGuid())"
+        New-Item -ItemType Directory -Force -Path (Join-Path $script:comparisonBaseline 'results') | Out-Null
+        New-Item -ItemType Directory -Force -Path (Join-Path $script:comparisonResults 'results') | Out-Null
+        $script:DotnetArgs = [System.Collections.Generic.List[string]]::new()
+        $dotnetArgs = $script:DotnetArgs
+        Mock dotnet { $dotnetArgs.Add($args -join ' '); $global:LASTEXITCODE = 0 } -ModuleName PerfResultsAnalyzer
+    }
+
+    It 'passes --flaggedOutput to PerfDiff only when it is set' {
+        Invoke-PerfResultsComparison -baseline $script:comparisonBaseline -results $script:comparisonResults -flaggedOutput '/out/flagged.json' | Out-Null
+        Invoke-PerfResultsComparison -baseline $script:comparisonBaseline -results $script:comparisonResults | Out-Null
+
+        $runs = @($script:DotnetArgs | Where-Object { $_ -like 'run *' })
+        $runs[0] | Should -BeLike '*--failOnRegression --flaggedOutput /out/flagged.json'
+        $runs[1] | Should -BeLike '*--failOnRegression'
+    }
+
+    It 'runs PerfDiff confirm with the round bounds and returns its exit code' {
+        Mock dotnet { $dotnetArgs.Add($args -join ' '); $global:LASTEXITCODE = 3 } -ModuleName PerfResultsAnalyzer
+
+        $result = Invoke-PerfConfirmationDecision -flagged '/out/flagged.json' -rounds '/out/confirm' -minRounds 3 -maxRounds 10
+
+        $result | Should -BeOfType [int]
+        $result | Should -Be 3
+        $script:DotnetArgs[0] | Should -BeLike '*PerfDiff.csproj* confirm --flagged /out/flagged.json --rounds /out/confirm --minRounds 3 --maxRounds 10'
+    }
+}
