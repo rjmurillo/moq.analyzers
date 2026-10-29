@@ -76,7 +76,7 @@ dotnet --list-runtimes   # expect a line: Microsoft.NETCore.App 10.0.x
 ```
 
 Verified in this environment 2026-10-29: `dotnet --version` in the repo root prints
-`10.0.403`, and `./dotnet-install.sh --jsonfile global.json --dry-run` resolves
+`10.0.403`, and `"$HOME/dotnet-install.sh" --jsonfile global.json --dry-run` resolves
 `--version "10.0.403"`.
 
 ### Optional but required-for-hooks tools
@@ -384,7 +384,7 @@ dotnet test --settings ./build/targets/tests/test.runsettings
 ## Provenance and maintenance
 
 Re-verify each volatile claim with one command before trusting it. The list was last
-checked in full on 2026-07-02; the SDK pin bullet was rechecked on 2026-10-11:
+checked in full on 2026-07-02; the SDK pin bullet was rechecked on 2026-10-29:
 
 - SDK pin: `cat global.json` (source of truth; 10.0.403, rollForward latestPatch on 2026-10-29)
 - Tool list + versions: `cat .config/dotnet-tools.json`
