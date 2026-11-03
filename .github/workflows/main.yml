@@ -449,7 +449,7 @@ jobs:
     steps:
       - name: Setup .NET ${{ matrix.dotnet-version }}
         if: needs.check-paths.outputs.run-tests == 'true'
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
@@ -652,7 +652,7 @@ jobs:
 
       - name: Setup .NET for performance baseline
         if: needs.check-paths.outputs.run-perf == 'true'
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
         with:
           global-json-file: ./global.json
 
