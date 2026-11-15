@@ -120,6 +120,12 @@ jobs:
     needs: check-paths
     runs-on: ubuntu-26.04-arm
 
+    env:
+      # Same .NET 11 test platform verification as the test job below: the
+      # docs-tested tier runs dotnet test in this job on the ARM runner, and
+      # the fallback session directory fails the check after the tests pass.
+      VSTEST_DISABLE_ARTIFACTS_DIRECTORY_VERIFICATION: "1"
+
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: needs.check-paths.outputs.run-build == 'true'
@@ -266,6 +272,13 @@ jobs:
       IS_CODACY_COVERAGE_ALLOWED: ${{ secrets.CODACY_PROJECT_TOKEN != '' }}
       IS_QLTY_COVERAGE_ALLOWED: ${{ secrets.QLTY_COVERAGE_TOKEN != '' }}
       IS_TARGET_MAIN: ${{ github.ref == 'refs/heads/main' }}
+      # The .NET 11 test platform verifies the Unix directory that holds the
+      # test session artifacts. On the GitHub ARM runners the fallback
+      # directory (/run/user/<uid>) fails that verification after every test
+      # passes, which fails the Test step. The directory is owned by the
+      # runner image, not by this repo, so skip the verification in CI.
+      # The variable has no effect on Windows.
+      VSTEST_DISABLE_ARTIFACTS_DIRECTORY_VERIFICATION: "1"
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
