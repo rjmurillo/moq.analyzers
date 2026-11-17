@@ -83,7 +83,11 @@ The warm-up adds about one minute. It fails the comparison if it exits with an e
 
 The benchmarks run in-process, so each run uses the runtime of its own target framework. The pinned baseline can target an older framework than the current branch. For example, a baseline pinned before a framework upgrade targets the old framework while the current branch targets the new one.
 
-With `-diff`, `PerfCore.ps1` sets `DOTNET_ROLL_FORWARD=LatestMajor` for the warm-up, baseline, current, and compare steps. Every run then uses the newest installed runtime, so a runtime change cannot pass for an analyzer change. The previous value is restored afterward.
+With `-diff`, `PerfCore.ps1` sets `DOTNET_ROLL_FORWARD=LatestMinor` for the warm-up, baseline, current, and compare steps. Every run then uses the newest installed patch of its target major version. The previous value is restored afterward.
+
+Both runs share one runtime only when the baseline and the current branch target the same major version. After a framework upgrade, re-pin the baseline to a commit on the new framework.
+
+Do not use `LatestMajor`. Runner images can carry a newer .NET major than BenchmarkDotNet supports. In November 2026 the arm64 image added .NET 11. `LatestMajor` then moved the benchmarks to .NET 11, and BenchmarkDotNet 0.15.8 rejected that runtime. The `perf` job failed with `ThreadingDiagnoser supports only .NET Core 3.0+`.
 
 ## Screen and Confirmation Rounds
 

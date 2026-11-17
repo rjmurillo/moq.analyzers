@@ -117,7 +117,7 @@ mock.Setup(x => x.Place(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>(
     .Returns(1);
 ```
 
-Moq.Analyzers 0.4.2 does not report the generic form. Builds of the analyzer from `main` do.
+Moq.Analyzers 0.4.2 does not report the generic form. Moq.Analyzers 0.5.0-alpha and later report it.
 
 ## Callback and Returns together
 
