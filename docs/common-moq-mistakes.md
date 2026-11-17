@@ -211,7 +211,7 @@ mock.Setup(x => x.GetValueAsync()).ReturnsAsync(42);
 
 You can also keep `Returns` and wrap the value yourself: `Returns(() => Task.FromResult(42))`.
 
-Moq1208 is not in Moq.Analyzers 0.4.2. It ships in the next release.
+Moq1208 is new in Moq.Analyzers 0.5.0-alpha. Version 0.4.2 does not have it.
 
 Moq1208 has a code fix that rewrites `Returns` to `ReturnsAsync`. The Moq1208 pattern compiles. Without the analyzer,
 Moq 4.18.4 then throws `ArgumentException` at run time with this message:
