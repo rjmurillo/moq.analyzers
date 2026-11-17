@@ -163,10 +163,13 @@ Customer? customer = await find;
 
 ## Three mistakes Moq.Analyzers catches
 
-Install the analyzer to get these at build time. Moq1208 needs a version newer than 0.4.2.
+Install the analyzer to get these at build time. Moq1208 needs Moq.Analyzers 0.5.0-alpha or later.
+That version is a prerelease, so the command below uses `--prerelease` until 0.5.0 ships.
+It also needs the .NET 10 SDK (10.0.100 or later) or Visual Studio 2026. Older hosts report CS9057 and run no
+Moq.Analyzers rules. See [Getting started](../README.md#getting-started).
 
 ```shell
-dotnet add package Moq.Analyzers
+dotnet add package Moq.Analyzers --prerelease
 ```
 
 | Wrong pattern                                         | Rule                        | Default severity | Code fix |
@@ -177,7 +180,7 @@ dotnet add package Moq.Analyzers
 
 ### Returns with a delegate that returns the bare value (Moq1208)
 
-Moq1208 is not in Moq.Analyzers 0.4.2. It ships in the next release.
+Moq1208 is new in Moq.Analyzers 0.5.0-alpha. Version 0.4.2 does not have it.
 
 The delegate returns `int`, but `CountAsync` returns `ValueTask<int>`.
 
