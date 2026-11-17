@@ -30,6 +30,10 @@ jobs:
       - name: Run mutation smoke test
         working-directory: build/stryker
         run: dotnet stryker --output ../../artifacts/stryker/no-mock-of-logger
+        env:
+          # Same arm64 VSTest workaround as main.yml.
+          # See https://github.com/microsoft/vstest/issues/16657
+          VSTEST_DISABLE_ARTIFACTS_DIRECTORY_VERIFICATION: ${{ runner.arch == 'ARM64' && '1' || '0' }}
 
       - name: Upload Stryker reports
         if: always()

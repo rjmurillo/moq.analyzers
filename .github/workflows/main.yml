@@ -204,6 +204,10 @@ jobs:
           --no-build
           --configuration Release
           --filter "FullyQualifiedName~Moq.Analyzers.Test.DiagnosticDescriptorMetadataTests|FullyQualifiedName~Moq.Analyzers.Test.PackageTests"
+        env:
+          # Same arm64 VSTest workaround as the test job.
+          # See https://github.com/microsoft/vstest/issues/16657
+          VSTEST_DISABLE_ARTIFACTS_DIRECTORY_VERIFICATION: ${{ runner.arch == 'ARM64' && '1' || '0' }}
 
       - name: Upload binlogs
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -290,6 +294,12 @@ jobs:
         run: dotnet test --no-build --configuration Release --settings ./build/targets/tests/test.runsettings
         env:
           REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
+          # VSTest in SDK 11.0.100 checks session directory access with
+          # x64 open() flags. On linux-arm64 the check always fails, so
+          # dotnet test exits 1 after every test passes. Skip the check on
+          # ARM64 only. Remove once global.json pins an SDK with the fix.
+          # See https://github.com/microsoft/vstest/issues/16657
+          VSTEST_DISABLE_ARTIFACTS_DIRECTORY_VERIFICATION: ${{ runner.arch == 'ARM64' && '1' || '0' }}
 
       - name: Upload coverage history
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
