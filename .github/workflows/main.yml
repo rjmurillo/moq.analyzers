@@ -205,7 +205,8 @@ jobs:
           --configuration Release
           --filter "FullyQualifiedName~Moq.Analyzers.Test.DiagnosticDescriptorMetadataTests|FullyQualifiedName~Moq.Analyzers.Test.PackageTests"
         env:
-          # Same arm64 VSTest workaround as the test job.
+          # Same arm64 VSTest workaround as the test job. Remove all
+          # copies once global.json pins an SDK with the fix.
           # See https://github.com/microsoft/vstest/issues/16657
           VSTEST_DISABLE_ARTIFACTS_DIRECTORY_VERIFICATION: ${{ runner.arch == 'ARM64' && '1' || '0' }}
 
@@ -297,7 +298,8 @@ jobs:
           # VSTest in SDK 11.0.100 checks session directory access with
           # x64 open() flags. On linux-arm64 the check always fails, so
           # dotnet test exits 1 after every test passes. Skip the check on
-          # ARM64 only. Remove once global.json pins an SDK with the fix.
+          # ARM64 only. Remove this and the copies in the build job and
+          # mutation-testing.yml once global.json pins an SDK with the fix.
           # See https://github.com/microsoft/vstest/issues/16657
           VSTEST_DISABLE_ARTIFACTS_DIRECTORY_VERIFICATION: ${{ runner.arch == 'ARM64' && '1' || '0' }}
 

@@ -3,7 +3,7 @@
 ## General
 
 - Follow .NET Framework Design Guidelines
-- C# 14 language features allowed
+- C# 15 language features allowed (SDK 11 default)
 - Conventional Commits format for git messages (e.g., `feat:`, `fix:`, `chore:`, `docs:`)
 - EditorConfig enforces formatting rules (tabs/spaces, line endings, etc.)
 
