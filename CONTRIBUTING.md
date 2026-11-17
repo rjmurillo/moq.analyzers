@@ -1072,7 +1072,11 @@ release/v0.4.0 ─────────────────────�
 **NuGet publish fails:**
 
 - Check the `.nupkg` artifacts in the workflow run to verify they were built.
-- Verify the `NUGET_API_KEY` secret is configured and has push permissions.
+- The `publish` job uses nuget.org trusted publishing, not a stored API key.
+  The `NuGet/login` step trades a GitHub OIDC token for a temporary API key.
+- On nuget.org, check the trusted publishing policy for `Moq.Analyzers`.
+  It must name workflow `release.yml` and environment `production`.
+- A `403` from `dotnet nuget push` means the token exchange or the policy failed.
 - Review the release job logs for authentication or validation errors.
 
 **Tag and target mismatch:**

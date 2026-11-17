@@ -242,10 +242,11 @@ Throughout, `{X}.{Y}.{Z}` is the FULL target version: for a major/minor release 
 
 1. `build`: `uses: ./.github/workflows/main.yml` — the FULL CI pipeline (build with PedanticMode, 3,300+ tests, 4-leg analyzer-load-test matrix, perf gate) reruns on the release commit. A red main.yml means no publish.
 2. `publish` (needs `build`): downloads the `packages` artifact (uploaded by main.yml from `./artifacts/package`), then:
-   - **Version-verify gate** — `if: github.event_name == 'release'`: strips `v` from the tag, parses the version out of each non-symbols `.nupkg` filename, and hard-fails on mismatch: `Write-Error "Package version '$nupkgVersion' does not match release tag '$tag'"`. This is what catches a tag created against the wrong branch or a stale `version.json`.
-   - **Push** — `dotnet nuget push $file --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate`, retried up to 3 times with backoff.
+   - **Version-verify gate**: compares each non-symbols `.nupkg` version to the release tag (without `v`). On `workflow_dispatch`, it compares to the required `expected-version` input. A mismatch hard-fails: `Write-Error "Package version '$nupkgVersion' does not match release tag '$tag'"`. This catches a tag on the wrong branch or a stale `version.json`.
+   - **NuGet login**: the job runs in environment `production` with `id-token: write`. `NuGet/login` (user `rjmurillo`) trades a GitHub OIDC token for a temporary API key. This is nuget.org trusted publishing. The nuget.org policy names workflow `release.yml` and environment `production`. No `NUGET_API_KEY` secret is used.
+   - **Push**: `dotnet nuget push $file --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate`, retried up to 3 times with backoff. Here `NUGET_API_KEY` is the step env var set from the login output.
 
-Caution (audit finding D-7, open as of 2026-07-02): the version-verify step is skipped on `workflow_dispatch` runs — a manual dispatch pushes whatever version NBGV computed. Do not use `workflow_dispatch` on `release.yml` to publish; always publish via a GitHub Release event.
+A release event always runs the `release.yml` from the tagged commit, and `v*` tags cannot move. If a publish fails because of the workflow itself, fix it on the release branch. Then dispatch `release.yml` on that branch with `expected-version` (precedent: v0.5.0-alpha, 2026-11-17).
 
 ### Release checklist (from `CONTRIBUTING.md:1158`)
 
