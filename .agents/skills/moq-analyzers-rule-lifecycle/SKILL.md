@@ -316,7 +316,7 @@ Total: 10 files, +713/−1. No code fix (doc says `CodeFix | False`), so no `src
 - Unshipped/Shipped shape (and the Changed-Rules discrepancy vs the AGENTS.md section "General Coding and Workflow Rules"): `sed -n '1,30p' src/Analyzers/AnalyzerReleases.Unshipped.md`.
 - Release-tracking analyzer pin: `grep CodeAnalysis.Analyzers build/targets/codeanalysis/Packages.props` (5.6.0, 2026-07-04).
 - Version stem: `grep '"version"' version.json` (`0.5.0-alpha.{height}`, 2026-07-02); post-release bump precedent `git show bae5141 --stat`.
-- release.yml gates: `sed -n '1,80p' .github/workflows/release.yml` (verify step at `if: github.event_name == 'release'`; push uses `--skip-duplicate` with 3 retries).
+- release.yml gates: `sed -n '1,90p' .github/workflows/release.yml` (verify step compares to the release tag, or to `expected-version` on `workflow_dispatch`; publish job uses environment `production` and `NuGet/login`; push uses `--skip-duplicate` with 3 retries).
 - Release process prose: `grep -n 'Release Process' CONTRIBUTING.md` (line 1007; checklist at 1158).
 - Moq1600 worked example: `git show --stat 3f98710`.
 - Benchmark file convention/coverage: `ls tests/Moq.Analyzers.Benchmarks/Moq1*Benchmarks.cs | wc -l` (18 files, 2026-07-02).

@@ -386,10 +386,9 @@ the pinned CLI tool is `nbgv 3.10.85` (Axis 9).
 - Who may change: owner, and only as part of a release train (bumping the stem
   is "open next version for development"). Release promotion also touches
   `AnalyzerReleases.Shipped.md` — see `moq-analyzers-rule-lifecycle`.
-- Guards: `release.yml` verifies the packed nupkg version equals the release
-  tag before `dotnet nuget push` (release-event runs). Known gap (audit
-  finding D-7, Info): a `workflow_dispatch` release run skips that
-  verification.
+- Guards: `release.yml` verifies the packed nupkg version before
+  `dotnet nuget push`: against the release tag on release events, and
+  against the required `expected-version` input on `workflow_dispatch`.
 - Gotcha: NBGV needs full history. `MSB4018` in `GetBuildVersion` → run
   `git fetch --unshallow`.
 
