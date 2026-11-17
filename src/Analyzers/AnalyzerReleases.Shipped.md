@@ -1,5 +1,5 @@
 ﻿; Shipped analyzer releases
-; https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+; <https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md>
 
 ## Release 0.0.1.22865
 
@@ -101,3 +101,33 @@ Moq1201 | Usage | Error | Moq | Error | SetupShouldNotIncludeAsyncResultAnalyzer
 Moq1300 | Usage | Error | Moq | Error | AsShouldBeUsedOnlyForInterfaceAnalyzer
 Moq1400 | Usage | Warning | Moq | Warning | SetExplicitMockBehaviorAnalyzer
 Moq1410 | Usage | Info | Moq | Info | SetStrictMockBehaviorAnalyzer
+
+## Release 0.5.0
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+Moq1003 | Usage | Warning | InternalTypeMustHaveInternalsVisibleToAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1003.md)
+Moq1004 | Usage | Warning | NoMockOfLoggerAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1004.md)
+Moq1208 | Correctness | Warning | ReturnsDelegateShouldReturnTaskAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1208.md)
+Moq1600 | Usage | Warning | ProtectedSetupShouldUseItExprAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1600.md)
+
+### Changed Rules
+
+Rule ID | New Category | New Severity | Old Category | Old Severity | Notes
+--------|--------------|--------------|--------------|--------------|-------
+Moq1100 | Correctness | Warning | Usage | Warning | CallbackSignatureShouldMatchMockedMethodAnalyzer
+Moq1101 | Correctness | Warning | Usage | Warning | NoMethodsInPropertySetupAnalyzer
+Moq1200 | Correctness | Error | Usage | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer
+Moq1201 | Correctness | Error | Usage | Error | SetupShouldNotIncludeAsyncResultAnalyzer
+Moq1202 | Correctness | Warning | Usage | Warning | RaiseEventArgumentsShouldMatchEventSignatureAnalyzer
+Moq1203 | Correctness | Warning | Usage | Warning | MethodSetupShouldSpecifyReturnValueAnalyzer
+Moq1204 | Correctness | Warning | Usage | Warning | RaisesEventArgumentsShouldMatchEventSignatureAnalyzer
+Moq1205 | Correctness | Warning | Usage | Warning | EventSetupHandlerShouldMatchEventTypeAnalyzer
+Moq1206 | Correctness | Warning | Usage | Warning | ReturnsAsyncShouldBeUsedForAsyncMethodsAnalyzer
+Moq1207 | Correctness | Error | Usage | Error | SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer
+Moq1210 | Correctness | Error | Usage | Error | VerifyShouldBeUsedOnlyForOverridableMembersAnalyzer
+Moq1400 | Best Practice | Warning | Usage | Warning | SetExplicitMockBehaviorAnalyzer
+Moq1410 | Best Practice | Info | Usage | Info | SetStrictMockBehaviorAnalyzer
+Moq1500 | Best Practice | Warning | Usage | Warning | MockRepositoryVerifyAnalyzer
