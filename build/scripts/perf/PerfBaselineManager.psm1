@@ -288,11 +288,13 @@ function Invoke-PerfBaselineComparison {
         [String] $ConfirmPerfResultsPath = (Join-Path $PSScriptRoot "ConfirmPerfResults.ps1")
     )
 
-    # The baseline checkout can target an older TFM than the head checkout.
-    # Benchmarks run in-process, so each run would use its own TFM's runtime.
-    # LatestMajor runs every phase on the same newest installed runtime.
+    # Benchmarks run in-process, so each run uses its own TFM's runtime.
+    # LatestMinor runs every phase on the newest installed patch of that major.
+    # Do not use LatestMajor. A runner image with a newer major (such as .NET 11)
+    # would then run the benchmarks on a runtime that BenchmarkDotNet rejects.
+    # Baseline and head share one runtime only while they target the same major.
     $previousRollForward = $env:DOTNET_ROLL_FORWARD
-    $env:DOTNET_ROLL_FORWARD = 'LatestMajor'
+    $env:DOTNET_ROLL_FORWARD = 'LatestMinor'
     try {
         $RepoRoot = Get-RepoRoot
         $Temp = Join-Path $RepoRoot "artifacts"
