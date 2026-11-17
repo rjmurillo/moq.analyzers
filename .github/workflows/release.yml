@@ -24,6 +24,13 @@ jobs:
     needs: build
     runs-on: ubuntu-26.04-arm
     timeout-minutes: 15
+    # nuget.org trusted publishing matches on workflow file release.yml and this environment.
+    environment: production
+    permissions:
+      packages: read
+      contents: read
+      actions: read
+      id-token: write # NuGet/login exchanges a GitHub OIDC token for a temporary API key.
     steps:
       - name: Download packages
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -55,10 +62,15 @@ jobs:
             }
           }
           Write-Host "All packages match release tag v$tag"
+      - name: NuGet login (OIDC to temporary API key)
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: rjmurillo
       - name: Publish NuGet package
         shell: pwsh
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: |
           $files = @(Get-ChildItem ./packages/release -Recurse -Include *.nupkg -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike '*.symbols.*' })
           if ($files.Count -eq 0) {
