@@ -135,14 +135,14 @@ exit 0
         $env:DOTNET_ROLL_FORWARD = $script:SavedRollForward
     }
 
-    It 'runs every phase on the latest major runtime' {
+    It 'runs every phase on the latest minor runtime' {
         $env:STUB_ROLLFORWARD_LOG = Join-Path $script:CaseRoot 'rollforward.log'
 
         Invoke-PerfBaselineComparison -baselineSHA 'abc' -output $script:Output -filter "'*'" `
             -RunPerfTestsPath $script:RunStub -ComparePerfResultsPath $script:CompareStub
 
         Get-Content $env:STUB_ROLLFORWARD_LOG |
-            Should -Be @('warmup|LatestMajor', 'baseline|LatestMajor', 'perfTest|LatestMajor', 'compare|LatestMajor')
+            Should -Be @('warmup|LatestMinor', 'baseline|LatestMinor', 'perfTest|LatestMinor', 'compare|LatestMinor')
     }
 
     It 'restores DOTNET_ROLL_FORWARD when it was <Case>' -ForEach @(
