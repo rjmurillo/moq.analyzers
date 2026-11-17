@@ -110,7 +110,7 @@ it is the case a naive grep for `MoqXXXX` would silently miss.
 |---|---|
 | Severities are forced to `warning` | Do not read severity off the output; check the descriptor or `docs/rules/MoqXXXX.md` for the shipped default |
 | Code fixes are not exercised | Fixer behavior/crashes need the code-fix test infra (see moq-analyzers-validation-and-qa) |
-| Compiles with the host SDK's current Roslyn (SDK 10.x) | Good for "modern host" behavior; the test suite pins Roslyn 5.0 (ADR-011) at default C# 14, so parse-level differences can appear when the host SDK's Roslyn is newer than the pin. Set `SNIPPET_LANGVERSION` to an older version to reproduce a language-version bug |
+| Compiles with the host SDK's current Roslyn (SDK 11.x) | Good for "modern host" behavior; the test suite pins Roslyn 5.0 (ADR-011) at default C# 14, so parse-level differences can appear when the host SDK's Roslyn is newer than the pin. Set `SNIPPET_LANGVERSION` to an older version to reproduce a language-version bug |
 | One file, `net10.0`, LangVersion `latest` by default | Multi-file/multi-TFM repros belong in the test suite; override the language version with `SNIPPET_LANGVERSION` |
 | A result here is evidence, not a regression test | Every FP/FN fix still ships with an issue-linked test (repo rule) |
 

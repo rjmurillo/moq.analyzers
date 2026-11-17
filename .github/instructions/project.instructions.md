@@ -34,7 +34,7 @@ Before submitting any changes, verify:
 
 **Build & Dependency Management:**
 
-- [ ] Use the .NET 10 SDK pinned in global.json. `build/targets/compiler/Compiler.props` sets `LangVersion` to `default`, which means the compiler's latest major version (C# 14) for every target, including .NET Standard 2.0; shipped analyzers and code fixes target .NET Standard 2.0; tests and tools target .NET 10
+- [ ] Use the .NET 11 SDK pinned in global.json. `build/targets/compiler/Compiler.props` sets `LangVersion` to `default`, which means the compiler's latest major version (C# 15) for every target, including .NET Standard 2.0; shipped analyzers and code fixes target .NET Standard 2.0; tests and tools target .NET 10
 - [ ] All build and dependency requirements met
 - [ ] No warnings or errors in build
 - [ ] All tests pass

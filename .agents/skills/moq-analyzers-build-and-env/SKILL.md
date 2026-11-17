@@ -29,7 +29,7 @@ need to understand those to get a green build; they are covered by
 | Format check | `dotnet format --verify-no-changes` |
 | Restore pinned local tools | `dotnet tool restore` |
 | Attach git hooks manually | `dotnet husky install` (after `dotnet tool restore`) |
-| Check SDK visible | `dotnet --version` in the repo root (must satisfy `global.json`: 10.0.403 or a newer 10.0.4xx patch on 2026-10-29) |
+| Check SDK visible | `dotnet --version` in the repo root (must satisfy `global.json`: 11.0.100 or a newer 11.0.1xx patch on 2026-11-17) |
 | Check runtimes visible | `dotnet --list-runtimes` (need Microsoft.NETCore.App 10.0.x) |
 | Fix MSB4018 GetBuildVersion | `git fetch --unshallow` |
 
@@ -39,13 +39,15 @@ You need exactly three things before the first build:
 
 1. **git** with **full history** (not a shallow clone; see section 2).
 2. **The .NET SDK that `global.json` pins.** `global.json` is the source of truth;
-   read it with `cat global.json`. As of 2026-10-29 it holds
-   `"version": "10.0.403", "rollForward": "latestPatch"`. A newer patch in the same
-   feature band (10.0.4xx) satisfies it. SDK 10.0.5xx or 11.x does not, because
+   read it with `cat global.json`. As of 2026-11-17 it holds
+   `"version": "11.0.100", "rollForward": "latestPatch"`. A newer patch in the same
+   feature band (11.0.1xx) satisfies it. SDK 11.0.2xx or 12.x does not, because
    `latestPatch` stays within the pinned feature band.
-3. No extra runtime. The shipped analyzer targets netstandard2.0. The test projects
-   (`tests/Moq.Analyzers.Test`, `tests/PerfDiff.Tests`) and the PerfDiff tool target
-   **net10.0**, and the SDK 10 install includes the 10.0 runtime they run on.
+3. **The .NET 10 runtime.** The shipped analyzer targets netstandard2.0. The test
+   projects (`tests/Moq.Analyzers.Test`, `tests/PerfDiff.Tests`) and the PerfDiff tool
+   target **net10.0**. The SDK 11 install includes only the 11.0 runtime, so also
+   install the 10.0 runtime (for example `dotnet-install.sh --runtime dotnet --channel 10.0`).
+   In CI, `actions/setup-dotnet` installs the LTS runtime (10.0) before the SDK.
 
 ### Install on Linux / macOS
 
@@ -75,9 +77,9 @@ dotnet --list-sdks       # expect that SDK in the list
 dotnet --list-runtimes   # expect a line: Microsoft.NETCore.App 10.0.x
 ```
 
-Verified in this environment 2026-10-29: `dotnet --version` in the repo root prints
-`10.0.403`, and `"$HOME/dotnet-install.sh" --jsonfile global.json --dry-run` resolves
-`--version "10.0.403"`.
+Verified in this environment 2026-11-17: `dotnet --version` in the repo root prints
+`11.0.100`, and `"$HOME/dotnet-install.sh" --jsonfile global.json --dry-run` resolves
+`--version "11.0.100"`.
 
 ### Optional but required-for-hooks tools
 
@@ -304,7 +306,7 @@ NBGV; check it with `dotnet nbgv get-version`.
   C# Dev Kit. `Moq.Analyzers.lutconfig` configures VS Live Unit Testing.
 - **Two different C# language versions are in play — do not confuse them:**
   1. *Repo source code* compiles with `<LangVersion>default</LangVersion>`
-     (`build/targets/compiler/Compiler.props`) — i.e. the newest C# of SDK 10 — even in
+     (`build/targets/compiler/Compiler.props`), which is the newest C# of SDK 11 (C# 15), even in
      the netstandard2.0 analyzer projects (the Polyfill package backfills missing BCL APIs).
   2. *Test-case code* — the C# source **strings inside tests** — is compiled by the
      test harness using the pinned **Roslyn 5.0** compiler
@@ -386,7 +388,7 @@ dotnet test --settings ./build/targets/tests/test.runsettings
 Re-verify each volatile claim with one command before trusting it. The list was last
 checked in full on 2026-07-02; the SDK pin bullet was rechecked on 2026-10-29:
 
-- SDK pin: `cat global.json` (source of truth; 10.0.403, rollForward latestPatch on 2026-10-29)
+- SDK pin: `cat global.json` (source of truth; 11.0.100, rollForward latestPatch on 2026-11-17)
 - Tool list + versions: `cat .config/dotnet-tools.json`
 - Hook tasks: `cat .husky/task-runner.json`
 - Pre-push flags: `cat build/scripts/hooks/Invoke-PrePushBuild.ps1`

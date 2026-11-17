@@ -30,6 +30,11 @@ jobs:
       - name: Run mutation smoke test
         working-directory: build/stryker
         run: dotnet stryker --output ../../artifacts/stryker/no-mock-of-logger
+        env:
+          # Same .NET 11 test platform check that main.yml skips (#1518).
+          # On linux-arm64 the check fails after every test passes.
+          # See https://github.com/microsoft/vstest/issues/16657
+          VSTEST_DISABLE_ARTIFACTS_DIRECTORY_VERIFICATION: "1"
 
       - name: Upload Stryker reports
         if: always()

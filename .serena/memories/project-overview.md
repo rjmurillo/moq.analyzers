@@ -6,7 +6,7 @@ Roslyn analyzer NuGet package for the Moq mocking framework. Detects common mist
 
 ## Tech Stack
 
-- **Language**: C# 14, .NET 10 SDK (pinned via global.json; see global.json for the exact version)
+- **Language**: C# 15, .NET 11 SDK (pinned via global.json; see global.json for the exact version)
 - **Analyzer target**: .NET Standard 2.0 (runs inside compiler hosts)
 - **Roslyn SDK**: Microsoft.CodeAnalysis 5.0.0 (minimum host: .NET 10 SDK / VS 2026, ADR-011)
 - **Build**: SDK-style projects, Central Package Management (Directory.Packages.props)

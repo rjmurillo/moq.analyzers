@@ -2,7 +2,7 @@
 
 ## Critical Rule
 
-Packages that ship inside the analyzer NuGet run in the **user's** compiler host, not our build environment. Versions must not exceed what the minimum supported SDK host provides (currently **.NET 10 SDK with Roslyn 5.0, which guarantees assembly version 9.0.0.0** for System.Collections.Immutable and System.Reflection.Metadata; see ADR-011). This is the runtime host version in user IDEs, not the build SDK version (which is .NET 10).
+Packages that ship inside the analyzer NuGet run in the **user's** compiler host, not our build environment. Versions must not exceed what the minimum supported SDK host provides (currently **.NET 10 SDK with Roslyn 5.0, which guarantees assembly version 9.0.0.0** for System.Collections.Immutable and System.Reflection.Metadata; see ADR-011). This is the runtime host version in user IDEs, not the build SDK version (which is .NET 11).
 
 ## Enforcement
 
