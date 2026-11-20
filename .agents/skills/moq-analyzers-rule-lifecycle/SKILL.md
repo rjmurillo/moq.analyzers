@@ -140,7 +140,7 @@ and confirm your new analyzer appears in test output, or temporarily make your a
 
 ### 9. Benchmark — `tests/Moq.Analyzers.Benchmarks/MoqXXXX<ShortName>Benchmarks.cs`
 
-The convention is one benchmark file per rule, and every recent rule PR (including Moq1600) added one. Coverage today: 18 `Moq1*Benchmarks.cs` files against 25 rule IDs (2026-07-02) — Moq1001, Moq1004, Moq1005, Moq1205, Moq1207, Moq1302, and Moq1420 have no dedicated file (pre-existing gap; do not use it as license to skip yours). Naming: `Moq1600Benchmarks.cs` or `Moq1203MethodSetupReturnValueBenchmarks.cs` — ID prefix mandatory, descriptive middle optional. Copy the shape of `Moq1600Benchmarks.cs`:
+The convention is one benchmark file per rule, and every recent rule PR (including Moq1600) added one. Coverage today: 18 `Moq1*Benchmarks.cs` files against 25 rule IDs (2026-07-02). Moq1001, Moq1004, Moq1005, Moq1205, Moq1207, Moq1302, and Moq1420 have no dedicated file (pre-existing gap; do not use it as license to skip yours). Naming: `Moq1600Benchmarks.cs` or `Moq1203MethodSetupReturnValueBenchmarks.cs`. The ID prefix is mandatory and the descriptive middle is optional. Copy the shape of `Moq1600Benchmarks.cs`:
 
 - Class attributes: `[InProcess]`, `[MemoryDiagnoser]`, `[BenchmarkCategory("MoqXXXX")]`
 - `[Params(1, 1_000)] public int FileCount` — the PR perf gate's fast path filters on `'*(FileCount: 1)'`, so the `1` param is what gates your PR; nightly runs everything
