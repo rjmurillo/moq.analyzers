@@ -4,3 +4,4 @@ tools:
     - lizard@1.17.19
     - semgrep@1.78.0
     - trivy@0.59.1
+    - opengrep@1.78.0
