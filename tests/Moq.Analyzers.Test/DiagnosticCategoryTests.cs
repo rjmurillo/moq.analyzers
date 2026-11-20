@@ -12,7 +12,7 @@ public class DiagnosticCategoryTests
             { new NoSealedClassMocksAnalyzer(), "Moq1000", DiagnosticCategory.Usage },
             { new ConstructorArgumentsShouldMatchAnalyzer(), "Moq1001", DiagnosticCategory.Usage },
             { new ConstructorArgumentsShouldMatchAnalyzer(), "Moq1002", DiagnosticCategory.Usage },
-            { new InternalTypeMustHaveInternalsVisibleToAnalyzer(), "Moq1003", DiagnosticCategory.Usage },
+            { new InternalTypeMustHaveInternalsVisibleToAnalyzer(), "Moq1005", DiagnosticCategory.Usage },
             { new NoMockOfLoggerAnalyzer(), "Moq1004", DiagnosticCategory.Usage },
             { new AsShouldBeUsedOnlyForInterfaceAnalyzer(), "Moq1300", DiagnosticCategory.Usage },
             { new MockGetShouldNotTakeLiteralsAnalyzer(), "Moq1301", DiagnosticCategory.Usage },
