@@ -9,8 +9,8 @@
 | Moq1000 | NoSealedClassMocksAnalyzer | Sealed classes cannot be mocked |
 | Moq1001 | ConstructorArgumentsShouldMatchAnalyzer | Mocked interfaces cannot have constructor parameters |
 | Moq1002 | ConstructorArgumentsShouldMatchAnalyzer | Constructor parameters must match an existing constructor |
-| Moq1003 | InternalTypeMustHaveInternalsVisibleToAnalyzer | Internal type requires InternalsVisibleTo for DynamicProxy |
 | Moq1004 | NoMockOfLoggerAnalyzer | ILogger should not be mocked |
+| Moq1005 | InternalTypeMustHaveInternalsVisibleToAnalyzer | Internal type requires InternalsVisibleTo for DynamicProxy |
 | Moq1300 | AsShouldBeUsedOnlyForInterfaceAnalyzer | Mock.As() should take interfaces only |
 | Moq1301 | MockGetShouldNotTakeLiteralsAnalyzer | Mock.Get() should not take literals |
 | Moq1302 | LinqToMocksExpressionShouldBeValidAnalyzer | LINQ to Mocks expression should be valid |
@@ -62,5 +62,5 @@ Note: Moq1209 is intentionally reserved (undocumented reason).
 
 ## Analyzers Without Code Fixes (gaps)
 
-Moq1000, Moq1001, Moq1002, Moq1003, Moq1004, Moq1101, Moq1200, Moq1201, Moq1202, Moq1203,
+Moq1000, Moq1001, Moq1002, Moq1004, Moq1005, Moq1101, Moq1200, Moq1201, Moq1202, Moq1203,
 Moq1204, Moq1205, Moq1206, Moq1207, Moq1300, Moq1301, Moq1302, Moq1420, Moq1500, Moq1600

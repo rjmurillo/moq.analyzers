@@ -108,8 +108,8 @@ Moq1410 | Usage | Info | Moq | Info | SetStrictMockBehaviorAnalyzer
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1003 | Usage | Warning | InternalTypeMustHaveInternalsVisibleToAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1003.md)
 Moq1004 | Usage | Warning | NoMockOfLoggerAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1004.md)
+Moq1005 | Usage | Warning | InternalTypeMustHaveInternalsVisibleToAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1005.md)
 Moq1208 | Correctness | Warning | ReturnsDelegateShouldReturnTaskAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1208.md)
 Moq1600 | Usage | Warning | ProtectedSetupShouldUseItExprAnalyzer, [Documentation](https://github.com/rjmurillo/moq.analyzers/blob/main/docs/rules/Moq1600.md)
 

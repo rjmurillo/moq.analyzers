@@ -88,6 +88,20 @@ public class DiagnosticDescriptorMetadataTests
         Assert.Equal(descriptorIds, documentedIds);
     }
 
+    [Theory]
+    [InlineData("Moq1003")]
+    public void RetiredRuleIdsShouldNotBeReused(string retiredId)
+    {
+        // Old suppressions and .editorconfig entries still name a retired ID. Reuse would apply them to a new rule.
+        foreach (DiagnosticDescriptor descriptor in DiscoverDescriptors())
+        {
+            Assert.NotEqual(retiredId, descriptor.Id, StringComparer.Ordinal);
+        }
+
+        FileInfo ruleDoc = new(Path.Combine(GetRuleDocsDirectory().FullName, $"{retiredId}.md"));
+        Assert.False(ruleDoc.Exists, $"Retired rule {retiredId} must not have a rule doc.");
+    }
+
     [Fact]
     public void ExpectedMetadataShouldCoverDiscoveredDescriptors()
     {
