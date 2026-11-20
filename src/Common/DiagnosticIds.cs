@@ -7,8 +7,11 @@ internal static class DiagnosticIds
     internal const string SealedClassCannotBeMocked = "Moq1000";
     internal const string NoConstructorArgumentsForInterfaceMockRuleId = "Moq1001";
     internal const string NoMatchingConstructorRuleId = "Moq1002";
-    internal const string InternalTypeMustHaveInternalsVisibleTo = "Moq1003";
+
+    // Moq1003 is retired and must not be reused. Release 0.0.6 removed the original Moq1003.
+    // Moq.Analyzers 0.5.0-alpha reported InternalTypeMustHaveInternalsVisibleTo as Moq1003.
     internal const string LoggerShouldNotBeMocked = "Moq1004";
+    internal const string InternalTypeMustHaveInternalsVisibleTo = "Moq1005";
     internal const string BadCallbackParameters = "Moq1100";
     internal const string PropertySetupUsedForMethod = "Moq1101";
     internal const string SetupOnlyUsedForOverridableMembers = "Moq1200";

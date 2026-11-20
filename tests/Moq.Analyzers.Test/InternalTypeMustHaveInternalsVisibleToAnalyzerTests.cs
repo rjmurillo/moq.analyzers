@@ -9,11 +9,11 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
     {
         return new object[][]
         {
-            ["""new Mock<{|Moq1003:InternalClass|}>()"""],
-            ["""new Mock<{|Moq1003:InternalClass|}>(MockBehavior.Strict)"""],
-            ["""Mock.Of<{|Moq1003:InternalClass|}>()"""],
-            ["""var mock = new Mock<{|Moq1003:InternalClass|}>()"""],
-            ["""var repo = new MockRepository(MockBehavior.Strict); repo.Create<{|Moq1003:InternalClass|}>()"""],
+            ["""new Mock<{|Moq1005:InternalClass|}>()"""],
+            ["""new Mock<{|Moq1005:InternalClass|}>(MockBehavior.Strict)"""],
+            ["""Mock.Of<{|Moq1005:InternalClass|}>()"""],
+            ["""var mock = new Mock<{|Moq1005:InternalClass|}>()"""],
+            ["""var repo = new MockRepository(MockBehavior.Strict); repo.Create<{|Moq1005:InternalClass|}>()"""],
         }.WithNamespaces().WithMoqReferenceAssemblyGroups();
     }
 
@@ -34,8 +34,8 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
         return new object[][]
         {
             // Internal interfaces also need InternalsVisibleTo
-            ["""new Mock<{|Moq1003:IInternalInterface|}>()"""],
-            ["""Mock.Of<{|Moq1003:IInternalInterface|}>()"""],
+            ["""new Mock<{|Moq1005:IInternalInterface|}>()"""],
+            ["""Mock.Of<{|Moq1005:IInternalInterface|}>()"""],
 
             // Public interfaces should not trigger
             ["""new Mock<IPublicInterface>()"""],
@@ -48,10 +48,10 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
         return new object[][]
         {
             // Public type nested inside internal type is effectively internal
-            ["""new Mock<{|Moq1003:InternalOuter.PublicNested|}>()"""],
+            ["""new Mock<{|Moq1005:InternalOuter.PublicNested|}>()"""],
 
             // Internal type nested inside public type
-            ["""new Mock<{|Moq1003:PublicOuter.InternalNested|}>()"""],
+            ["""new Mock<{|Moq1005:PublicOuter.InternalNested|}>()"""],
 
             // Public nested in public should not trigger
             ["""new Mock<PublicOuter.PublicNested>()"""],
@@ -197,8 +197,8 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                 {
                     private void Test()
                     {
-                        var mock = new Mock<{|Moq1003:InternalClass|}>();
-                        var of = Mock.Of<{|Moq1003:InternalClass|}>();
+                        var mock = new Mock<{|Moq1005:InternalClass|}>();
+                        var of = Mock.Of<{|Moq1005:InternalClass|}>();
                     }
                 }
                 """,
@@ -313,7 +313,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                 {
                     private void Test()
                     {
-                        var mock = new Mock<{|Moq1003:InternalClass|}>();
+                        var mock = new Mock<{|Moq1005:InternalClass|}>();
                     }
                 }
                 """,
@@ -339,7 +339,7 @@ public class InternalTypeMustHaveInternalsVisibleToAnalyzerTests
                 {
                     private void Test()
                     {
-                        var mock = new Mock<{|Moq1003:PublicBase.ProtectedInternalNested|}>();
+                        var mock = new Mock<{|Moq1005:PublicBase.ProtectedInternalNested|}>();
                     }
                 }
                 """,

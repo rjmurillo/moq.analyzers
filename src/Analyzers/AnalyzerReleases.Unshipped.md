@@ -5,8 +5,8 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-Moq1003 | Usage | Warning | InternalTypeMustHaveInternalsVisibleToAnalyzer
 Moq1004 | Usage | Warning | NoMockOfLoggerAnalyzer
+Moq1005 | Usage | Warning | InternalTypeMustHaveInternalsVisibleToAnalyzer
 Moq1200 | Correctness | Error | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer now reports sealed default interface members
 Moq1207 | Correctness | Error | SetupSequenceShouldBeUsedOnlyForOverridableMembersAnalyzer now reports sealed default interface members
 Moq1208 | Correctness | Warning | ReturnsDelegateShouldReturnTaskAnalyzer detects explicit Returns<T> delegate mismatches and fixes with inferred ReturnsAsync
