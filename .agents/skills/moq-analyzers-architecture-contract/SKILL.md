@@ -190,8 +190,8 @@ emits two IDs, which is why classes (24) ≠ rules (25). ID ranges:
 | Moq1000 | NoSealedClassMocksAnalyzer.cs | No `Mock<T>` of sealed classes |
 | Moq1001 | ConstructorArgumentsShouldMatchAnalyzer.cs | Interface mocks take no ctor args |
 | Moq1002 | ConstructorArgumentsShouldMatchAnalyzer.cs | Class-mock ctor args match a real constructor |
-| Moq1003 | InternalTypeMustHaveInternalsVisibleToAnalyzer.cs | Internal mocked types need IVT to DynamicProxyGenAssembly2 |
 | Moq1004 | NoMockOfLoggerAnalyzer.cs | Don't mock `ILogger` |
+| Moq1005 | InternalTypeMustHaveInternalsVisibleToAnalyzer.cs | Internal mocked types need IVT to DynamicProxyGenAssembly2 |
 | Moq1100 | CallbackSignatureShouldMatchMockedMethodAnalyzer.cs | `.Callback` lambda matches mocked signature |
 | Moq1101 | NoMethodsInPropertySetupAnalyzer.cs | `SetupGet/Set` not used on methods |
 | Moq1200 | SetupShouldBeUsedOnlyForOverridableMembersAnalyzer.cs | Setup targets overridable members |

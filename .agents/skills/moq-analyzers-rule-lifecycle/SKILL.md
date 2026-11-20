@@ -53,7 +53,7 @@ Pick the next free ID in the correct range. The authoritative range table lives 
 Constraints (verified against `src/Common/DiagnosticIds.cs`, 2026-07-02):
 
 - `Moq1209` is intentionally reserved and unassigned — do not take it.
-- `Moq1003` was removed in Release 0.0.6 and later **reused** for `InternalTypeMustHaveInternalsVisibleToAnalyzer` (currently unshipped). That reuse is historical fact, not license: general Roslyn convention is to never reuse a retired ID. Prefer a fresh ID; if you believe reuse is warranted, raise it with the maintainer first.
+- `Moq1003` is retired. Release 0.0.6 removed the original rule. Moq.Analyzers 0.5.0-alpha briefly reused the ID for `InternalTypeMustHaveInternalsVisibleToAnalyzer`, and the maintainer then moved that rule to `Moq1005`. Never reuse a retired ID: old suppressions and `.editorconfig` entries would silently apply to the new rule.
 - One analyzer class may own several IDs (`ConstructorArgumentsShouldMatchAnalyzer` owns Moq1001 and Moq1002).
 
 ### 2. The analyzer file — `src/Analyzers/<Name>Analyzer.cs`
@@ -140,7 +140,7 @@ and confirm your new analyzer appears in test output, or temporarily make your a
 
 ### 9. Benchmark — `tests/Moq.Analyzers.Benchmarks/MoqXXXX<ShortName>Benchmarks.cs`
 
-The convention is one benchmark file per rule, and every recent rule PR (including Moq1600) added one. Coverage today: 18 `Moq1*Benchmarks.cs` files against 25 rule IDs (2026-07-02) — Moq1001, Moq1003, Moq1004, Moq1205, Moq1207, Moq1302, and Moq1420 have no dedicated file (pre-existing gap; do not use it as license to skip yours). Naming: `Moq1600Benchmarks.cs` or `Moq1203MethodSetupReturnValueBenchmarks.cs` — ID prefix mandatory, descriptive middle optional. Copy the shape of `Moq1600Benchmarks.cs`:
+The convention is one benchmark file per rule, and every recent rule PR (including Moq1600) added one. Coverage today: 18 `Moq1*Benchmarks.cs` files against 25 rule IDs (2026-07-02). Moq1001, Moq1004, Moq1005, Moq1205, Moq1207, Moq1302, and Moq1420 have no dedicated file (pre-existing gap; do not use it as license to skip yours). Naming: `Moq1600Benchmarks.cs` or `Moq1203MethodSetupReturnValueBenchmarks.cs`. The ID prefix is mandatory and the descriptive middle is optional. Copy the shape of `Moq1600Benchmarks.cs`:
 
 - Class attributes: `[InProcess]`, `[MemoryDiagnoser]`, `[BenchmarkCategory("MoqXXXX")]`
 - `[Params(1, 1_000)] public int FileCount` — the PR perf gate's fast path filters on `'*(FileCount: 1)'`, so the `1` param is what gates your PR; nightly runs everything
@@ -268,7 +268,7 @@ There is **no documented rule-retirement or deprecation policy** in this repo (2
 Known historical facts to reason from (not a policy):
 
 - Exactly one removal exists in the record: `## Release 0.0.6` in `AnalyzerReleases.Shipped.md` has a `### Removed Rules` section removing the original Moq1003 (2017-era, pre-current-maintainer).
-- That ID was later reused for `InternalTypeMustHaveInternalsVisibleToAnalyzer` (currently in `Unshipped.md`). ID reuse is generally considered unsafe (consumers' suppressions/`.editorconfig` entries keyed to the old meaning silently apply to the new rule).
+- 0.5.0-alpha reused that ID for `InternalTypeMustHaveInternalsVisibleToAnalyzer`. The maintainer then moved the rule to `Moq1005`, because ID reuse is unsafe: consumers' suppressions and `.editorconfig` entries keyed to the old meaning silently apply to the new rule. Treat every removed ID as retired.
 - The release-tracking format has first-class `### Removed Rules` support, so the mechanical path exists; what is missing is the policy (deprecation window? Info-severity sunset release? doc tombstone?). Treat any proposal here as an open candidate requiring maintainer sign-off.
 
 ## Worked example — what Moq1600 actually shipped (commit 3f98710)

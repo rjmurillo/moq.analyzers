@@ -236,8 +236,8 @@ Hard rules (from `AGENTS.md`, enforced by review):
 
 KNOWN INCONSISTENCY (2026-07-02): `AGENTS.md` states
 Unshipped "must only contain a `### New Rules` section", but the actual
-`AnalyzerReleases.Unshipped.md` on `main` contains both `### New Rules` (Moq1003,
-Moq1004, Moq1208, Moq1600) and a `### Changed Rules` section (the category
+`AnalyzerReleases.Unshipped.md` on `main` contains both `### New Rules` (Moq1004,
+Moq1005, Moq1200, Moq1207, Moq1208, Moq1210, Moq1600) and a `### Changed Rules` section (the category
 realignment from PR #1087), and the build passes with it. **Do not treat the live
 file's shape as authoritative and do not append to `### Changed Rules`.** The root
 `AGENTS.md` is a higher-priority

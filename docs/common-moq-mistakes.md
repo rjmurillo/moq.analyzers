@@ -38,8 +38,8 @@ Moq.Analyzers reports the rules below. It does not catch every Moq mistake, and 
 | You mock a sealed class | [Moq1000](rules/Moq1000.md) | Sealed classes cannot be mocked | Usage | Warning | No |
 | You pass constructor arguments to an interface mock | [Moq1001](rules/Moq1001.md) | Mocked interfaces cannot have constructor parameters | Usage | Warning | No |
 | You pass constructor arguments that match no constructor | [Moq1002](rules/Moq1002.md) | Parameters provided into mock do not match any existing constructors | Usage | Warning | No |
-| You mock an internal type without `InternalsVisibleTo` | [Moq1003](rules/Moq1003.md) | Internal type requires InternalsVisibleTo for DynamicProxy | Usage | Warning | No |
 | You mock `ILogger` or `ILogger<T>` | [Moq1004](rules/Moq1004.md) | ILogger should not be mocked | Usage | Warning | No |
+| You mock an internal type without `InternalsVisibleTo` | [Moq1005](rules/Moq1005.md) | Internal type requires InternalsVisibleTo for DynamicProxy | Usage | Warning | No |
 | Your `Callback` parameters differ from the method you set up | [Moq1100](rules/Moq1100.md) | Callback signature must match the signature of the mocked method | Correctness | Warning | Yes |
 | You use `SetupGet`, `SetupSet`, or `SetupProperty` on a method | [Moq1101](rules/Moq1101.md) | SetupGet/SetupSet/SetupProperty should be used for properties, not for methods | Correctness | Warning | No |
 | You call `Setup` on a non-virtual member | [Moq1200](rules/Moq1200.md) | Setup should be used only for overridable members | Correctness | Error | No |
@@ -309,7 +309,7 @@ System.Int32
 
 ## Mocking internal types without InternalsVisibleTo
 
-Moq needs access to an `internal` type to generate a proxy for it, and [Moq1003](rules/Moq1003.md) flags a mock of an
+Moq needs access to an `internal` type to generate a proxy for it, and [Moq1005](rules/Moq1005.md) flags a mock of an
 internal type that lacks that access. Castle DynamicProxy builds the proxy in an assembly named
 `DynamicProxyGenAssembly2`.
 
@@ -317,7 +317,7 @@ internal type that lacks that access. Castle DynamicProxy builds the proxy in an
 // Assembly without InternalsVisibleTo
 internal class MyService { }
 
-var mock = new Mock<MyService>(); // Moq1003: Internal type requires InternalsVisibleTo
+var mock = new Mock<MyService>(); // Moq1005: Internal type requires InternalsVisibleTo
 ```
 
 Add the attribute to the assembly that contains the internal type.
@@ -330,7 +330,7 @@ internal class MyService { }
 var mock = new Mock<MyService>();
 ```
 
-You can also make the type `public`, or mock a public interface instead. See [Moq1003](rules/Moq1003.md).
+You can also make the type `public`, or mock a public interface instead. See [Moq1005](rules/Moq1005.md).
 
 ## Mocking ILogger
 
