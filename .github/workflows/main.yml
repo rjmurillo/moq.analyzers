@@ -410,7 +410,7 @@ jobs:
           needs.check-paths.outputs.run-tests == 'true'
           && runner.os == 'Linux'
           && env.IS_QLTY_COVERAGE_ALLOWED == 'true'
-        uses: qltysh/qlty-action/coverage@a46e29cfd54065ae8a2c6b1fd3446aed1b1a4257 # v2
+        uses: qltysh/qlty-action/coverage@56bee2d751c94b7bd8de22f64c9b5f398048e13f # v2
         with:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
           files: ${{ github.workspace }}/artifacts/TestResults/coverage/Cobertura.xml
