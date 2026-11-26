@@ -73,6 +73,17 @@ To install Moq.Analyzers from NuGet, run this command in each test project:
 dotnet add package Moq.Analyzers
 ```
 
+This command installs the latest stable release. To install exactly the 0.5.0-alpha prerelease, name its version:
+
+```shell
+dotnet add package Moq.Analyzers --version 0.5.0-alpha
+```
+
+`--prerelease` installs the newest version and allows that version to be a prerelease. It can pick a stable release that is newer. To get a specific prerelease, use `--version`.
+
+0.5.0-alpha reports the InternalsVisibleTo rule as `Moq1003`. Later releases report it as `Moq1005`. If you
+configure or suppress this rule on 0.5.0-alpha, use `Moq1003`. See [Moq1005](docs/rules/Moq1005.md).
+
 To install in every test project at once, see [Install Moq.Analyzers in every test project](docs/install.md).
 
 After you install the package, the analyzers report diagnostics when you build and in IDEs that support Roslyn

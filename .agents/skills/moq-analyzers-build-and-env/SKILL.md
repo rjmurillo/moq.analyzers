@@ -332,6 +332,7 @@ NBGV; check it with `dotnet nbgv get-version`.
 | Hooks never attached | `git config core.hooksPath` empty; commits skip all checks | First build ran with `ContinuousIntegrationBuild=true`, or `HUSKY=0` | `dotnet tool restore && dotnet husky install` |
 | Offline / proxied network | `dotnet restore` or `dotnet tool restore` hangs or 403s | Feeds are nuget.org + pkgs.dev.azure.com (both HTTPS); corporate proxies must allow both hosts and any proxy CA must be trusted by the machine | Configure `HTTPS_PROXY`/CA per your environment; do NOT add mirror feeds to `nuget.config` to work around it |
 | Stale coverage numbers | `artifacts/TestResults/coverage` looks wrong | Each test run deletes and regenerates the report (`CleanCoverageReport` target) — a **filtered** run reports coverage for that filter only | Re-run the full suite before quoting coverage |
+| Test step fails on Linux ARM after every test passes | `dotnet test` exits non-zero with no failed test | The .NET 11 test platform checks the Unix folder that holds the test session artifacts. On GitHub ARM runners the fallback folder (`/run/user/<uid>`) fails that check | CI sets `VSTEST_DISABLE_ARTIFACTS_DIRECTORY_VERIFICATION: "1"` on the `build` and `test` jobs in `main.yml`. Keep it, and add it to any new ARM job that runs `dotnet test`. Set it locally on an ARM machine that hits the same failure |
 
 ## 10. Verified end-to-end sequence (copy-paste)
 

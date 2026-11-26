@@ -66,6 +66,8 @@ The JSON data is what is used by the performance comparison tools to determine i
 2. The CI mode (`-ci`) is useful for development as it fails fast and keeps partial artifacts.
 3. For comparing performance results, use the `-diff` flag with `PerfCore.ps1`.
 4. Both scripts will automatically handle restoring and building the projects before running tests.
+5. The benchmarks target `net10.0`. They compile their test corpus against the `Net100` reference assembly groups through `CompilationCreator.GetReferenceAssemblies`. Most use `Net100WithOldMoq`, and a few use `Net100WithNewMoq`. There are no `Net80` groups.
+6. The baseline commit is pinned in `build/perf/baseline.json`. A cached baseline is reused only when its `baseline-sha.txt` matches that SHA. See the end of this file.
 
 ## Warm-up Run
 
