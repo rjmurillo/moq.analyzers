@@ -269,7 +269,6 @@ their table format is dictated by Roslyn, not by markdownlint.
 - Version-scope host requirements in reader docs. Name the releases a requirement covers,
   for example "Releases after 0.4.2 need the .NET 10 SDK". An unscoped requirement is wrong
   for users who stay on an older release.
-- Use no em dashes or en dashes in lines you add or change. `.cursor/BUGBOT.md` flags them.
 
 ### Commit messages (Conventional Commits)
 
