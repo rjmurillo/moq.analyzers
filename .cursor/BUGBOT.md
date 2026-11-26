@@ -9,7 +9,7 @@ Repo facts live in `AGENTS.md` under "Repo facts agents must not miss". Check th
 
 ## Rule pages
 
-- Flag a `docs/rules/` example that would not compile against real Moq. Also flag one that the analyzer would not report the way the page says. A flagged example must raise that rule's diagnostic, and a "Solution" example must raise none.
+- Flag a `docs/rules/` example that would not compile against real Moq. Also flag one that the analyzer would not report the way the page says. A flagged example must raise that rule's diagnostic. A "Solution" example must not raise that rule's diagnostic. It can still raise a different rule, so do not flag that alone.
 
 ## Tooling
 
