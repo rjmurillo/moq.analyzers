@@ -46,7 +46,7 @@ All tools are required. Missing tools fail the hook (no soft-skip).
 |---|---|---|
 | .markdownlint.json | markdownlint-cli2 | MD013 off (line length), MD024 off (duplicate headings), MD033 off (inline HTML), MD041 off (first line heading), MD060 off |
 | .yamllint.yml | yamllint | truthy check-keys off, line-length max 320, document-start disabled, 1 space min from content |
-| .github/actionlint.yaml | actionlint | Custom self-hosted runner label: windows-2025-vs2026 |
+| .github/actionlint.yaml | actionlint | Runner labels actionlint does not know yet: ubuntu-26.04-arm, windows-2025-vs2026 |
 | .editorconfig | dotnet format | Enforces formatting rules (tabs/spaces, line endings, naming) |
 
 ## Build Flags

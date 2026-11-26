@@ -27,5 +27,5 @@ Repo facts live in `AGENTS.md` under "Repo facts agents must not miss". Check th
 
 ## Performance
 
-- Flag a performance job that fails on a screen result alone. ADR-012 needs paired confirmation rounds before a regression fails the job.
+- Flag a performance job that fails on a screen result alone. ADR-012 needs paired confirmation rounds before a regression fails the job. One exception is correct: when round 1 shows that 3 rounds cannot fit the 40 minute budget, the screen result fails the job (ADR-012 item 3).
 - Flag `DOTNET_ROLL_FORWARD=LatestMajor` in perf scripts or docs. The perf comparison uses `LatestMinor`.
