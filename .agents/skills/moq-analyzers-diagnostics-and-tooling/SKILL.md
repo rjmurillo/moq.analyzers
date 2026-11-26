@@ -70,9 +70,14 @@ CS8805 and the harness exits 2 before analyzers can be trusted — but do not se
 declaration-only snippet, which would fail CS5001 for lack of a `Main`),
 `KEEP_HARNESS=1` (keep the temp project for inspection). Exit codes: 0 = ran; 1 = setup
 error; 2 = snippet has compile errors; **3 = an analyzer crashed (AD0001)**;
-**4 = an analyzer or a dependency failed to LOAD (CS8032/CS8034)** — the #850 incident class,
-where the analyzers never ran at all. Codes 3 and 4 are surfaced separately because Roslyn
+**4 = an analyzer or a dependency failed to LOAD (CS8032/CS8034/CS9057)**. That is the #850
+incident class, where the analyzers never ran at all. Codes 3 and 4 are surfaced separately because Roslyn
 reports both as warnings that would otherwise exit the build 0 and read as a clean snippet.
+The script header (`Exit codes:` in `Invoke-AnalyzerOnSnippet.ps1`) is the source of truth. Change
+this list in the same PR as the script. The script also escapes the analyzer folder path for
+MSBuild (`%`, `$`, `@`, `;`, `'`, `*`, `?` become `%XX`) and then for XML (`&`, `<`, `>`). Keep both
+steps when you change how it writes the `<Analyzer>` items, or a checkout path with those
+characters breaks the harness.
 
 ### Worked example (observed output, 2026-07-02)
 

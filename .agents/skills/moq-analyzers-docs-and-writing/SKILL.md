@@ -263,6 +263,13 @@ their table format is dictated by Roslyn, not by markdownlint.
 - Imperative voice in docs and commit subjects ("Add", "Guard", not "Added").
 - Define every term at first use; prefer tables and checklists over paragraphs.
 - Never narrate success — show evidence (logs, test output).
+- Keep cites in lockstep with HEAD. When a PR changes a file that a skill or doc cites by
+  line, value, or date, update that cite in the same PR. Prefer a symbol, job, or step name
+  over a line number, because line numbers drift with every edit.
+- Version-scope host requirements in reader docs. Name the releases a requirement covers,
+  for example "Releases after 0.4.2 need the .NET 10 SDK". An unscoped requirement is wrong
+  for users who stay on an older release.
+- Use no em dashes or en dashes in lines you add or change. `.cursor/BUGBOT.md` flags them.
 
 ### Commit messages (Conventional Commits)
 

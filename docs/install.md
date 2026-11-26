@@ -4,6 +4,9 @@ Run `dotnet add package Moq.Analyzers` in one test project. To cover every proje
 `PackageReference` to a `Directory.Build.props` file. Mark a reference you write by hand with `PrivateAssets="all"`.
 That keeps the analyzer out of projects and packages that reference yours.
 
+`dotnet add package Moq.Analyzers` installs the latest stable release. To install the 0.5.0-alpha prerelease, run
+`dotnet add package Moq.Analyzers --prerelease`. Releases after 0.4.2 need a newer host. See [Prerequisites](#prerequisites).
+
 | You want to cover | Add this | Where |
 | ----------------- | -------- | ----- |
 | One project | `dotnet add package Moq.Analyzers` | The test project folder |

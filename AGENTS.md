@@ -20,6 +20,20 @@
 | Commit Messages | Use Conventional Commits format |
 | Instruction Files | Read and comply with all `.github/instructions/*` for edited file types |
 
+### Repo facts agents must not miss
+
+Check these facts against the named source before you rely on them. Update this list when a fact changes.
+
+- **Releases:** 0.4.2 is the latest stable release. 0.5.0-alpha shipped to nuget.org as a prerelease on 2026-11-17. Source: `gh release list`.
+- **Install:** Until a stable 0.5.x ships, a 0.5.0-alpha install needs `dotnet add package Moq.Analyzers --prerelease`. Without the flag, NuGet picks 0.4.2.
+- **Rule IDs:** `Moq1003` is retired and must never be reused (`src/Common/DiagnosticIds.cs`). The InternalsVisibleTo rule is `Moq1005`. Only the 0.5.0-alpha package reports it as `Moq1003`.
+- **Host floor (ADR-011):** Releases after 0.4.2 build against Roslyn 5.0. They need the .NET 10 SDK or Visual Studio 2026. Older hosts report CS9057 and skip the analyzers.
+- **Test matrix:** Verifier tests use the `Net100` reference assembly groups in `tests/Moq.Analyzers.Test/Helpers/ReferenceAssemblyCatalog.cs`: `Net100` (no Moq), `Net100WithOldMoq` (Moq 4.8.2), and `Net100WithNewMoq` (Moq 4.18.4). There are no `Net80` groups. Test snippets parse at C# 14, the Roslyn 5.0 default.
+- **Release publishing:** The `publish` job in `.github/workflows/release.yml` uses nuget.org trusted publishing through OIDC. `NuGet/login` returns a temporary key, so the job reads no `NUGET_API_KEY` secret. The old D-7 caution is closed.
+- **Lint config:** actionlint reads `.github/actionlint.yaml`, not `.github/actionlint.yml`.
+- **AGENTS.md scope:** This file is agent context, not product documentation. Reader docs (`README.md`, `docs/`) must not depend on it.
+- **Reviewer rules:** Cursor Bugbot reads `.cursor/BUGBOT.md`. It holds the negative rules that reviewers enforce.
+
 ---
 
 > **MANDATORY:** You MUST follow these instructions without exception. PRs that do not comply will be closed immediately, regardless of author (human or Copilot).
@@ -227,7 +241,7 @@ If you encounter a diagnostic span test failure, or are unsure about any Roslyn 
 
 ### Symbol-Cast Crash Safety (MANDATORY)
 
-Never cast an `ITypeSymbol`/`ISymbol` to a derived interface (`IArrayTypeSymbol`, `INamedTypeSymbol`, ...) with a direct `(T)` cast. Use a pattern test with a graceful early-return, or the analyzer throws `InvalidCastException` → Roslyn `AD0001` → the analyzer is disabled for the session. Example of the exact defect (#1241): `(IArrayTypeSymbol)paramsParameter.Type` throws on C# 13 `params List<int>` because `Type` is an `INamedTypeSymbol`; `IsParams` does not imply array. Fix pattern: `if (x.Type is not IArrayTypeSymbol arr) { return; }`. Any crash-path fix tied to a new C# feature must ship a regression test at the triggering language version (use the isolated `Moq.Analyzers.CSharp13.Test` project when the default harness pins an older version). See `.github/instructions/csharp.instructions.md` and issue #1321.
+Never cast an `ITypeSymbol`/`ISymbol` to a derived interface (`IArrayTypeSymbol`, `INamedTypeSymbol`, ...) with a direct `(T)` cast. Use a pattern test with a graceful early-return, or the analyzer throws `InvalidCastException` → Roslyn `AD0001` → the analyzer is disabled for the session. Example of the exact defect (#1241): `(IArrayTypeSymbol)paramsParameter.Type` throws on C# 13 `params List<int>` because `Type` is an `INamedTypeSymbol`; `IsParams` does not imply array. Fix pattern: `if (x.Type is not IArrayTypeSymbol arr) { return; }`. Any crash-path fix tied to a new C# feature must ship a regression test at the triggering language version (the default harness parses at C# 14; use the isolated `Moq.Analyzers.CSharp13.Test` or `Moq.Analyzers.CSharp14.Test` project when the feature needs another language version). See `.github/instructions/csharp.instructions.md` and issue #1321.
 
 ### Diagnostic Investigation Pattern
 
@@ -580,6 +594,8 @@ If you encounter:
 ## AI Agent Code Review
 
 Use this checklist only when a user asks you to review code for bugs or to fix reported bugs. It is not a standing task.
+
+Also apply the negative rules in `.cursor/BUGBOT.md`. Cursor Bugbot enforces the same list on every pull request.
 
 Common bug sources to check:
 
