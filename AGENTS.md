@@ -25,7 +25,7 @@
 Check these facts against the named source before you rely on them. Update this list when a fact changes.
 
 - **Releases:** 0.4.2 is the latest stable release. 0.5.0-alpha shipped to nuget.org as a prerelease on 2026-11-17. Source: `gh release list`.
-- **Install:** Without a flag, `dotnet add package Moq.Analyzers` picks 0.4.2. `--version 0.5.0-alpha` pins the prerelease. `--prerelease` picks the newest prerelease, which is 0.5.0-alpha only until a later one ships.
+- **Install:** Without a flag, `dotnet add package Moq.Analyzers` picks 0.4.2. `--version 0.5.0-alpha` pins the prerelease. `--prerelease` picks the newest version and allows a prerelease, so it can pick a newer stable release. Use `--version` when a specific prerelease is needed.
 - **Rule IDs:** `Moq1003` is retired and must never be reused (`src/Common/DiagnosticIds.cs`). The InternalsVisibleTo rule is `Moq1005`. Only the 0.5.0-alpha package reports it as `Moq1003`.
 - **Host floor (ADR-011):** Releases after 0.4.2 build against Roslyn 5.0. They need the .NET 10 SDK or Visual Studio 2026. Older hosts report CS9057 and skip the analyzers.
 - **Test matrix:** Verifier tests use the `Net100` reference assembly groups in `tests/Moq.Analyzers.Test/Helpers/ReferenceAssemblyCatalog.cs`: `Net100` (no Moq), `Net100WithOldMoq` (Moq 4.8.2), `Net100WithNewMoq` (Moq 4.18.4), and `Net100WithNewMoqAndLogging` (Moq 4.18.4 plus Microsoft.Extensions.Logging.Abstractions 8.0.0). There are no `Net80` groups. Test snippets parse at C# 14, the Roslyn 5.0 default.

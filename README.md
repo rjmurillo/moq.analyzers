@@ -79,7 +79,7 @@ This command installs the latest stable release. To install exactly the 0.5.0-al
 dotnet add package Moq.Analyzers --version 0.5.0-alpha
 ```
 
-To install the newest prerelease, whatever its version, use `--prerelease` instead.
+`--prerelease` installs the newest version and allows that version to be a prerelease. It can pick a stable release that is newer. To get a specific prerelease, use `--version`.
 
 0.5.0-alpha reports the InternalsVisibleTo rule as `Moq1003`. Later releases report it as `Moq1005`. If you
 configure or suppress this rule on 0.5.0-alpha, use `Moq1003`. See [Moq1005](docs/rules/Moq1005.md).
