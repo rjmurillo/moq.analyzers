@@ -142,7 +142,7 @@ This repository contains several types of shell scripts:
 
 ### Error Handling Requirements
 
-- Resolve PowerShell paths before you pass them to .NET file APIs such as `[System.IO.File]::ReadAllBytes`. .NET resolves a relative path against the process folder (`[Environment]::CurrentDirectory`), not the PowerShell location (`$PWD`). Use `Resolve-Path`, `Join-Path` on a known root, or `$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath()` for a path that does not exist yet
+- Resolve PowerShell paths before you pass them to .NET file APIs such as `[System.IO.File]::ReadAllBytes`. .NET resolves a relative path against the process folder (`[Environment]::CurrentDirectory`), not the PowerShell location (`$PWD`). For a path that exists, use `(Resolve-Path -LiteralPath $path).ProviderPath`. The plain `Resolve-Path` result can keep a custom PowerShell drive name that .NET cannot read. For a path that does not exist yet, use `$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)`
 - Implement proper error checking for all critical operations
 - Use appropriate exit codes for different failure scenarios
 - Provide clear error messages with actionable guidance
