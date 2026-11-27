@@ -20,6 +20,10 @@ Index of session-derived learnings stored in Serena memories.
 - `project-overview` — Purpose, tech stack, counts (23 analyzers, 5 fixers), solution structure, extension method list
 - `dependency-constraints` — AnalyzerUtilities pin 5.0.0 (cap <5.6.0), ValidateAnalyzerHostCompatibility, transitive pinning rules
 
+## Decisions
+
+- `decision-windows-test-host-stack-overflow-is-commit-exhaustion`: Windows "Stack overflow" test-host crash was commit-limit exhaustion from Roslyn memory mapped storage; coverage ruled out; one forced GC schedule (every 64 tests) peaked at 13.1 GB against a 32.7 GB baseline
+
 ## Tooling
 
 - `suggested-commands` — Build, test, benchmark, format, package commands
