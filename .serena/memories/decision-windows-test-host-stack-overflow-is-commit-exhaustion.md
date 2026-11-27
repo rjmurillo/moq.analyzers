@@ -20,12 +20,12 @@ The message names the symptom, not the cause. The 15 frames ended at `Thread.Sta
 - In a crashing run, commit owned by no process reached 32.7 GB. Free commit fell to 0 MB.
 - Test host handles rose by about 1,100 while commit rose by about 8.5 GB. That is about 7.7 MB per handle.
 - The crash reproduced with the coverage collector removed. Coverage is ruled out.
-- A forced GC every 64 tests still peaked at 13.1 GB. The blocks belong to tests that are still running, so GC cannot free them.
+- One forced GC schedule was measured: a GC every 64 tests. It peaked at 13.1 GB, against 32.7 GB in the crashing run without it. The record does not show whether that run crashed or how close it came to the commit limit. Other schedules were not measured, so this does not show that GC cannot fix the crash.
 - Limiting verifier runs in flight to 8 kept free commit above 10.1 GB in two Windows CI runs.
 - The pre-#1484 code (4d31801) also fell to 369 MB of free commit without crashing. The Roslyn 4.8 to 5.0 upgrade pushed an existing risk past the limit.
 
 ## Decision
 
-Keep `WindowsWorkspaceConcurrencyGate` (`tests/Moq.Analyzers.Test/Helpers/WindowsWorkspaceConcurrencyGate.cs`) at 8 runs in flight. Do not remove the coverage collector or add forced GC to fix this crash. When a Windows test host reports `Stack overflow` with a stack that ends in thread start, sample free commit first. Raise the gate only with a new commit sample that shows headroom.
+Keep `WindowsWorkspaceConcurrencyGate` (`tests/Moq.Analyzers.Test/Helpers/WindowsWorkspaceConcurrencyGate.cs`) at 8 runs in flight. Do not remove the coverage collector to fix this crash. Forced GC was tried on one schedule only (see Evidence), so treat it as untested beyond that schedule, not as ruled out. When a Windows test host reports `Stack overflow` with a stack that ends in thread start, sample free commit first. Raise the gate only with a new commit sample that shows headroom.
 
 The gate and its cause are also noted at `.agents/skills/moq-analyzers-config-and-flags/SKILL.md:247` (checked at 72fd229c, 2026-11-25). No contradicted artifact remains, so no issue was filed.

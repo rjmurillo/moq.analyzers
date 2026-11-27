@@ -22,7 +22,7 @@ Index of session-derived learnings stored in Serena memories.
 
 ## Decisions
 
-- `decision-windows-test-host-stack-overflow-is-commit-exhaustion`: Windows "Stack overflow" test-host crash was commit-limit exhaustion from Roslyn memory mapped storage; coverage and forced GC ruled out
+- `decision-windows-test-host-stack-overflow-is-commit-exhaustion`: Windows "Stack overflow" test-host crash was commit-limit exhaustion from Roslyn memory mapped storage; coverage ruled out; one forced GC schedule (every 64 tests) peaked at 13.1 GB against a 32.7 GB baseline
 
 ## Tooling
 
